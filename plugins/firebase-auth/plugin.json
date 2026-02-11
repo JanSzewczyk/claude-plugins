@@ -1,0 +1,30 @@
+{
+  "name": "firebase-auth",
+  "description": "Firebase Firestore database patterns, data migrations, Clerk authentication proxy, and database architecture agent.",
+  "version": "1.0.0",
+  "author": "Szum Tech Team",
+  "agents": [
+    {
+      "name": "database-architect",
+      "description": "Design data models, optimize queries, plan migrations, and manage database type patterns.",
+      "path": "./agents/database-architect.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "firebase-firestore",
+      "description": "Firebase Firestore query patterns, type lifecycle, error handling, seeding.",
+      "path": "./skills/firebase-firestore"
+    },
+    {
+      "name": "db-migration",
+      "description": "Database migration scripts, rollback strategies, batch processing.",
+      "path": "./skills/db-migration"
+    },
+    {
+      "name": "clerk-auth-proxy",
+      "description": "Clerk authentication with Next.js proxy pattern, session claims, onboarding gates.",
+      "path": "./skills/clerk-auth-proxy"
+    }
+  ]
+}

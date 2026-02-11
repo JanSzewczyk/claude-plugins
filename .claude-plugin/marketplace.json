@@ -1,0 +1,31 @@
+{
+  "name": "szum-tech",
+  "description": "Szum-Tech shared skills and agents for Claude Code",
+  "plugins": [
+    {
+      "name": "nextjs-react",
+      "description": "React & Next.js full-stack development — React 19, App Router, Tailwind CSS v4, Server Actions",
+      "path": "./plugins/nextjs-react"
+    },
+    {
+      "name": "testing",
+      "description": "Testing strategies, Storybook interaction tests, Playwright E2E, accessibility audits",
+      "path": "./plugins/testing"
+    },
+    {
+      "name": "code-quality",
+      "description": "Code review, performance analysis, bundle optimization, dependency management",
+      "path": "./plugins/code-quality"
+    },
+    {
+      "name": "firebase-auth",
+      "description": "Firebase Firestore, database architecture, Clerk authentication proxy",
+      "path": "./plugins/firebase-auth"
+    },
+    {
+      "name": "dev-experience",
+      "description": "Statusline (context/cost/token tracking), safety hooks, auto-formatting",
+      "path": "./plugins/dev-experience"
+    }
+  ]
+}

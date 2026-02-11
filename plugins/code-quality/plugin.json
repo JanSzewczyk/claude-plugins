@@ -1,0 +1,30 @@
+{
+  "name": "code-quality",
+  "description": "Code review, performance analysis, bundle optimization, and dependency management agents and skills.",
+  "version": "1.0.0",
+  "author": "Szum Tech Team",
+  "agents": [
+    {
+      "name": "code-reviewer",
+      "description": "Comprehensive code review for quality, performance, type safety, security, and pattern compliance.",
+      "path": "./agents/code-reviewer.md"
+    },
+    {
+      "name": "performance-analyzer",
+      "description": "Analyze bundle size, React rendering efficiency, database queries, and Core Web Vitals.",
+      "path": "./agents/performance-analyzer.md"
+    },
+    {
+      "name": "library-updater",
+      "description": "Update npm packages, investigate breaking changes, execute migrations, and verify quality.",
+      "path": "./agents/library-updater.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "performance-optimization",
+      "description": "Bundle analysis, React rendering optimization, database query tuning.",
+      "path": "./skills/performance-optimization"
+    }
+  ]
+}
