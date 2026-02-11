@@ -3,17 +3,24 @@
 # Installs statusline and safety hooks into your .claude/ project config.
 #
 # Usage:
-#   bash <path-to>/plugins/dev-experience/install.sh [--statusline] [--hooks] [--all]
+#   bash install.sh [OPTIONS]
 #
 # Options:
-#   --statusline   Install the statusline script only
-#   --hooks        Install safety hooks only
-#   --all          Install everything (default)
+#   --statusline         Install the statusline script only
+#   --hooks              Install safety hooks only
+#   --all                Install everything (default)
+#   --target <path>      Target project directory (default: current working directory)
+#
+# Examples:
+#   # From cloned repository
+#   bash plugins/dev-experience/install.sh --all
+#
+#   # Marketplace — install into a specific project
+#   bash ~/.claude/installed-plugins/szum-tech/dev-experience/install.sh --target ~/Projects/my-app
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_DIR="${CLAUDE_PROJECT_DIR:-.claude}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -27,21 +34,48 @@ warn()  { printf "${YELLOW}[warn]${NC}  %s\n" "$1"; }
 
 install_statusline=false
 install_hooks=false
+target_dir=""
 
 # Parse args
-if [ $# -eq 0 ]; then
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --statusline) install_statusline=true ;;
+    --hooks)      install_hooks=true ;;
+    --all)        install_statusline=true; install_hooks=true ;;
+    --target)
+      shift
+      if [ $# -eq 0 ]; then
+        echo "Error: --target requires a path argument" >&2
+        exit 1
+      fi
+      target_dir="$1"
+      ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+  shift
+done
+
+# Default: install everything if nothing specified
+if [ "$install_statusline" = false ] && [ "$install_hooks" = false ]; then
   install_statusline=true
   install_hooks=true
 fi
 
-for arg in "$@"; do
-  case "$arg" in
-    --statusline) install_statusline=true ;;
-    --hooks)      install_hooks=true ;;
-    --all)        install_statusline=true; install_hooks=true ;;
-    *)            echo "Unknown option: $arg"; exit 1 ;;
-  esac
-done
+# Resolve target .claude directory
+if [ -n "$target_dir" ]; then
+  # Expand ~ if present
+  target_dir="${target_dir/#\~/$HOME}"
+  if [ ! -d "$target_dir" ]; then
+    echo "Error: target directory does not exist: $target_dir" >&2
+    exit 1
+  fi
+  TARGET_DIR="$target_dir/.claude"
+else
+  TARGET_DIR="${CLAUDE_PROJECT_DIR:+${CLAUDE_PROJECT_DIR}/.claude}"
+  TARGET_DIR="${TARGET_DIR:-.claude}"
+fi
+
+info "Target: $TARGET_DIR"
 
 # Ensure .claude directory exists
 mkdir -p "$TARGET_DIR"

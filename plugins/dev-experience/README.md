@@ -31,31 +31,61 @@ Based on [cc-statusline](https://www.npmjs.com/package/@chongdashu/cc-statusline
 
 ## Installation
 
-### Automated (recommended)
+### Via Marketplace (recommended)
+
+After installing the plugin from the Szum-Tech marketplace, run the installer pointing at your project:
 
 ```bash
-# Install everything
+# Find the plugin path (typically ~/.claude/installed-plugins/szum-tech/dev-experience)
+PLUGIN_DIR="$(find ~/.claude -type d -name 'dev-experience' 2>/dev/null | head -1)"
+
+# Install everything into your project
+bash "$PLUGIN_DIR/install.sh" --target ~/Projects/my-app
+
+# Or install selectively
+bash "$PLUGIN_DIR/install.sh" --target ~/Projects/my-app --statusline
+bash "$PLUGIN_DIR/install.sh" --target ~/Projects/my-app --hooks
+```
+
+### From Source
+
+If you cloned the [claude-plugins](https://github.com/AJSzczesniak/claude-plugins) repository:
+
+```bash
+# Install everything (uses current directory)
 bash plugins/dev-experience/install.sh --all
 
 # Or install selectively
 bash plugins/dev-experience/install.sh --statusline
 bash plugins/dev-experience/install.sh --hooks
+
+# Or install into a specific project
+bash plugins/dev-experience/install.sh --target ~/Projects/my-app --all
 ```
 
-The script will:
+### What the Script Does
 
-- Copy `statusline.sh` to your `.claude/` directory and make it executable
-- Create or update `.claude/settings.json` with the statusline config
-- Guide you through hooks installation
+- Copies `statusline.sh` to your project's `.claude/` directory and makes it executable
+- Creates or updates `.claude/settings.json` with the statusline config
+- Auto-merges safety hooks into `settings.json` (requires `jq`)
+
+### Install Options
+
+| Flag             | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| `--all`          | Install everything (default when no flags given)     |
+| `--statusline`   | Install statusline only                              |
+| `--hooks`        | Install safety hooks only                            |
+| `--target <path>`| Target project directory (default: current directory) |
 
 ### Manual
 
 #### Statusline only
 
-1. Copy the script:
+1. Copy the script from the plugin source to your project:
 
    ```bash
-   cp plugins/dev-experience/statusline/statusline.sh  your-project/.claude/statusline.sh
+   cp <plugin-dir>/statusline/statusline.sh your-project/.claude/statusline.sh
    chmod +x your-project/.claude/statusline.sh
    ```
 
@@ -78,7 +108,7 @@ The script will:
 1. Open the hooks reference:
 
    ```bash
-   cat plugins/dev-experience/hooks/safety-hooks.json
+   cat <plugin-dir>/hooks/safety-hooks.json
    ```
 
 2. Merge the `hooks` object into your `.claude/settings.json`:

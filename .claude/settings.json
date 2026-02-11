@@ -1,4 +1,9 @@
 {
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": ["next-devtools", "jetbrains"],
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/statusline.sh",
+    "padding": 0
+  }
 }
