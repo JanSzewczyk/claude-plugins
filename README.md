@@ -12,17 +12,87 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 | [**firebase-auth**](./plugins/firebase-auth/)   | 1 agent + 3 skills for Firebase Firestore, migrations, Clerk auth           | [Guide](./plugins/firebase-auth/README.md)  |
 | [**dev-experience**](./plugins/dev-experience/) | Statusline (cost/tokens/context tracking), safety hooks, auto-formatting    | [Guide](./plugins/dev-experience/README.md) |
 
-## Quick Start
+## Installation
 
-### 1. Clone the repository
+### Via Marketplace (recommended)
+
+#### 1. Add the marketplace
+
+```bash
+/plugin marketplace add JanSzewczyk/claude-plugins
+```
+
+#### 2. Install a plugin
+
+```bash
+/plugin install testing@szum-tech
+/plugin install nextjs-react@szum-tech
+/plugin install code-quality@szum-tech
+/plugin install firebase-auth@szum-tech
+/plugin install dev-experience@szum-tech
+```
+
+Or browse available plugins interactively:
+
+```bash
+/plugin
+```
+
+This opens a tabbed interface (Discover, Installed, Marketplaces) where you can browse and install plugins.
+
+#### 3. Manage installed plugins
+
+```bash
+# List installed marketplaces
+/plugin marketplace list
+
+# Update marketplace to get latest plugins
+/plugin marketplace update szum-tech
+
+# Disable / enable / uninstall a plugin
+/plugin disable testing@szum-tech
+/plugin enable testing@szum-tech
+/plugin uninstall testing@szum-tech
+```
+
+#### Install scope
+
+Plugins can be installed at different scopes:
+
+| Scope       | Applies to              | Command                                                    |
+| ----------- | ----------------------- | ---------------------------------------------------------- |
+| **user**    | All your projects       | `/plugin install testing@szum-tech --scope user` (default) |
+| **project** | Current project (team)  | `/plugin install testing@szum-tech --scope project`        |
+| **local**   | Current project (local) | `/plugin install testing@szum-tech --scope local`          |
+
+#### Pre-configure for your team
+
+Add the marketplace to your project's `.claude/settings.json` so all team members have access:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "szum-tech": {
+      "source": {
+        "source": "github",
+        "repo": "JanSzewczyk/claude-plugins"
+      }
+    }
+  }
+}
+```
+
+### Manual Installation
+
+If you prefer manual setup:
+
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/JanSzewczyk/claude-plugins.git
 ```
 
-### 2. Install a plugin
-
-Each plugin has its own installation guide. The general process:
+#### 2. Copy agents and skills
 
 ```bash
 # Copy agents to your project
@@ -38,7 +108,7 @@ Or install the dev-experience plugin with the automated script:
 bash claude-plugins/plugins/dev-experience/install.sh --all
 ```
 
-### 3. Verify installation
+#### 3. Verify installation
 
 ```bash
 ls your-project/.claude/agents/   # Should show agent .md files

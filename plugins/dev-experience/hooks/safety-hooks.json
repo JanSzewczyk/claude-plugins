@@ -38,9 +38,8 @@
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Before finishing, verify: 1) All requested changes are complete, 2) No TypeScript errors introduced, 3) Code follows project patterns from CLAUDE.md. If something is incomplete, list it.",
-            "timeout": 60
+            "type": "command",
+            "command": "echo '✅ Session complete in: $CLAUDE_PROJECT_DIR' >&2"
           }
         ]
       }
