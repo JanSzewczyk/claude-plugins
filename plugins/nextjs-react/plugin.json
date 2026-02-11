@@ -2,64 +2,9 @@
   "name": "nextjs-react",
   "description": "React & Next.js full-stack development — agents and skills for building modern web apps with React 19, Next.js App Router, Tailwind CSS v4, Server Actions, and more.",
   "version": "1.0.0",
-  "author": "Szum Tech Team",
-  "agents": [
-    {
-      "name": "frontend-expert",
-      "description": "Build UI components, style with Tailwind CSS, integrate design systems, and fix UI bugs.",
-      "path": "./agents/frontend-expert.md"
-    },
-    {
-      "name": "nextjs-backend-engineer",
-      "description": "Implement server actions, route handlers, API endpoints, database operations, and auth flows.",
-      "path": "./agents/nextjs-backend-engineer.md"
-    }
-  ],
-  "skills": [
-    {
-      "name": "react-19-compiler",
-      "description": "React 19 hooks, React Compiler optimization, memoization decisions.",
-      "path": "./skills/react-19-compiler"
-    },
-    {
-      "name": "server-actions",
-      "description": "Next.js Server Actions patterns, form handling, validation, React Hook Form integration.",
-      "path": "./skills/server-actions"
-    },
-    {
-      "name": "tailwind-css-4",
-      "description": "Tailwind CSS v4 patterns, CSS-first config, design system integration.",
-      "path": "./skills/tailwind-css-4"
-    },
-    {
-      "name": "t3-env-validation",
-      "description": "Type-safe environment variables with @t3-oss/env-nextjs and Zod.",
-      "path": "./skills/t3-env-validation"
-    },
-    {
-      "name": "structured-logging",
-      "description": "Pino structured logging patterns, context enrichment, log levels.",
-      "path": "./skills/structured-logging"
-    },
-    {
-      "name": "toast-notifications",
-      "description": "Cookie-based toast notification system for Server Actions.",
-      "path": "./skills/toast-notifications"
-    },
-    {
-      "name": "error-handling",
-      "description": "DbError patterns, error boundaries, standardized error responses.",
-      "path": "./skills/error-handling"
-    }
-  ],
-  "examples": [
-    {
-      "name": "server-actions-example",
-      "path": "./agents/examples/server-actions.example.md"
-    },
-    {
-      "name": "database-queries-example",
-      "path": "./agents/examples/database-queries.example.md"
-    }
-  ]
+  "author": {
+    "name": "Szum Tech Team"
+  },
+  "agents": "./agents/",
+  "skills": "./skills/"
 }

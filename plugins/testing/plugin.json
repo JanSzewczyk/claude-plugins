@@ -2,49 +2,9 @@
   "name": "testing",
   "description": "Testing strategies, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, and test data builders.",
   "version": "1.0.0",
-  "author": "Szum Tech Team",
-  "agents": [
-    {
-      "name": "testing-strategist",
-      "description": "Plan test strategies, analyze coverage, and decide which types of tests to write.",
-      "path": "./agents/testing-strategist.md"
-    },
-    {
-      "name": "storybook-test-architect",
-      "description": "Multi-phase agent for creating Storybook interaction tests using CSF Next format.",
-      "path": "./agents/storybook-test-architect.md"
-    }
-  ],
-  "skills": [
-    {
-      "name": "storybook-testing",
-      "description": "Component testing with Storybook play functions (CSF Next format).",
-      "path": "./skills/storybook-testing"
-    },
-    {
-      "name": "builder-factory",
-      "description": "Test data builders with test-data-bot for mock data.",
-      "path": "./skills/builder-factory"
-    },
-    {
-      "name": "api-test",
-      "description": "Testing Next.js Route Handlers with Playwright.",
-      "path": "./skills/api-test"
-    },
-    {
-      "name": "accessibility-audit",
-      "description": "WCAG accessibility audits for React components.",
-      "path": "./skills/accessibility-audit"
-    },
-    {
-      "name": "playwright-cli",
-      "description": "Browser automation, web testing, screenshots, form filling, tracing.",
-      "path": "./skills/playwright-cli"
-    },
-    {
-      "name": "unit-testing",
-      "description": "Unit testing patterns with Vitest — mocking, async testing, parameterized tests, coverage.",
-      "path": "./skills/unit-testing"
-    }
-  ]
+  "author": {
+    "name": "Szum Tech Team"
+  },
+  "agents": "./agents/",
+  "skills": "./skills/"
 }

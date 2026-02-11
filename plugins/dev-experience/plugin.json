@@ -2,26 +2,7 @@
   "name": "dev-experience",
   "description": "Developer experience toolkit — statusline with context/cost/token tracking, safety hooks (dangerous command blocking, auto-formatting, verification prompts).",
   "version": "1.0.0",
-  "author": "Szum Tech Team",
-  "agents": [],
-  "skills": [],
-  "assets": {
-    "statusline": {
-      "description": "Rich 3-line statusline showing directory, git, model, context window, cost, tokens/min.",
-      "path": "./statusline/statusline.sh",
-      "setup": {
-        "1_copy": "Copy statusline.sh to your project's .claude/ directory",
-        "2_chmod": "Run: chmod +x .claude/statusline.sh",
-        "3_settings": "Add to .claude/settings.json: { \"statusLine\": { \"type\": \"command\", \"command\": \".claude/statusline.sh\", \"padding\": 0 } }"
-      },
-      "requires": ["jq (optional, bash fallback available)"]
-    },
-    "hooks": {
-      "description": "Safety hooks — block dangerous commands (rm -rf /, git push --force, drop database), auto-format with prettier/eslint on save, verification prompt before session end.",
-      "path": "./hooks/safety-hooks.json",
-      "setup": {
-        "1_merge": "Merge the hooks object from safety-hooks.json into your .claude/settings.json"
-      }
-    }
+  "author": {
+    "name": "Szum Tech Team"
   }
 }
