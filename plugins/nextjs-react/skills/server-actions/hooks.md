@@ -30,7 +30,7 @@ type CreatePostState = {
 
 export async function createPost(
   previousState: CreatePostState | null,
-  formData: FormData
+  formData: FormData,
 ): Promise<CreatePostState> {
   const title = formData.get("title") as string;
 
@@ -38,7 +38,7 @@ export async function createPost(
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: { title: ["Title must be at least 3 characters"] }
+      fieldErrors: { title: ["Title must be at least 3 characters"] },
     };
   }
 

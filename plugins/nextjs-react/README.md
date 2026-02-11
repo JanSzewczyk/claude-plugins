@@ -6,22 +6,22 @@ React & Next.js full-stack development — agents and skills for building modern
 
 ### Agents
 
-| Agent | Description |
-|-------|-------------|
-| **frontend-expert** | Build UI components, style with Tailwind CSS, integrate design systems, fix UI bugs. Defaults to Server Components, uses React Compiler. |
-| **nextjs-backend-engineer** | Implement server actions, route handlers, API endpoints, database operations, authentication flows. |
+| Agent                       | Description                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **frontend-expert**         | Build UI components, style with Tailwind CSS, integrate design systems, fix UI bugs. Defaults to Server Components, uses React Compiler. |
+| **nextjs-backend-engineer** | Implement server actions, route handlers, API endpoints, database operations, authentication flows.                                      |
 
 ### Skills
 
-| Skill | Invoke with | Description |
-|-------|-------------|-------------|
-| **react-19-compiler** | `/react-19-compiler` | React 19 hooks, React Compiler optimization, memoization decisions |
-| **server-actions** | `/server-actions` | Next.js Server Actions — form handling, Zod validation, React Hook Form integration, ActionResponse types |
-| **tailwind-css-4** | `/tailwind-css-4` | Tailwind CSS v4 — CSS-first config, `@theme` directive, design system integration, responsive patterns |
-| **t3-env-validation** | `/t3-env-validation` | Type-safe env vars with `@t3-oss/env-nextjs` and Zod |
-| **structured-logging** | `/structured-logging` | Pino structured logging — context enrichment, log levels, dev pretty-printing |
-| **toast-notifications** | `/toast-notifications` | Cookie-based toast notification system for Server Actions |
-| **error-handling** | `/error-handling` | DbError patterns, error boundaries, standardized error responses |
+| Skill                   | Invoke with            | Description                                                                                               |
+| ----------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| **react-19-compiler**   | `/react-19-compiler`   | React 19 hooks, React Compiler optimization, memoization decisions                                        |
+| **server-actions**      | `/server-actions`      | Next.js Server Actions — form handling, Zod validation, React Hook Form integration, ActionResponse types |
+| **tailwind-css-4**      | `/tailwind-css-4`      | Tailwind CSS v4 — CSS-first config, `@theme` directive, design system integration, responsive patterns    |
+| **t3-env-validation**   | `/t3-env-validation`   | Type-safe env vars with `@t3-oss/env-nextjs` and Zod                                                      |
+| **structured-logging**  | `/structured-logging`  | Pino structured logging — context enrichment, log levels, dev pretty-printing                             |
+| **toast-notifications** | `/toast-notifications` | Cookie-based toast notification system for Server Actions                                                 |
+| **error-handling**      | `/error-handling`      | DbError patterns, error boundaries, standardized error responses                                          |
 
 ### Examples
 
@@ -69,26 +69,40 @@ ls your-project/.claude/skills/server-actions/SKILL.md
 ## Usage
 
 **Frontend work** — Claude will use the `frontend-expert` agent automatically for UI tasks, or you can invoke it directly:
+
 > "Use frontend-expert to build a user profile card"
 
 **Backend work** — the `nextjs-backend-engineer` handles server-side tasks:
+
 > "Use nextjs-backend-engineer to create a server action for updating user settings"
 
 **Skills** — invoke any skill directly:
+
 > `/server-actions` — opens Server Actions patterns and examples
 > `/tailwind-css-4` — opens Tailwind v4 reference
 
 ## Tech Stack Compatibility
 
-| Technology | Minimum Version |
-|-----------|----------------|
-| Next.js | 15+ (App Router) |
-| React | 19+ |
-| TypeScript | 5.7+ |
-| Tailwind CSS | 4.0+ |
-| React Hook Form | 7.x |
-| Zod | 3.x / 4.x |
-| Pino | 9.x / 10.x |
+| Technology      | Minimum Version  |
+| --------------- | ---------------- |
+| Next.js         | 15+ (App Router) |
+| React           | 19+              |
+| TypeScript      | 5.7+             |
+| Tailwind CSS    | 4.0+             |
+| React Hook Form | 7.x              |
+| Zod             | 3.x / 4.x        |
+| Pino            | 9.x / 10.x       |
+
+## Troubleshooting
+
+| Problem                                     | Solution                                                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Agent doesn't pick up project conventions   | Ensure `.claude/project-context.md` exists and describes your stack, auth provider, and database     |
+| `/server-actions` assumes Clerk auth        | Adapt auth check to your provider (NextAuth, Supabase, JWT) — the pattern remains the same           |
+| Tailwind v4 classes not working             | Verify `@import "tailwindcss"` in your CSS and that `@source` includes your component paths          |
+| Error handling references Firebase          | `DbError` pattern works with any database — replace `categorizeDbError` with your DB's error mapping |
+| Toast notifications not showing             | Check that `ToastHandler` is in your root layout providers and `usePathname` triggers are set up     |
+| Agent references skills from testing plugin | Install skills from the **testing** plugin for full agent functionality                              |
 
 ## Related Plugins
 

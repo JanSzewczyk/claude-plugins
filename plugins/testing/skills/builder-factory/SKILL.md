@@ -19,6 +19,7 @@ examples:
 Generate test-data-bot factory builders for TypeScript types.
 
 > **Reference Files:**
+>
 > - `field-mappings.md` - Field type to Faker method mappings
 > - `examples.md` - Complete builder examples and patterns
 
@@ -103,8 +104,8 @@ export const yourTypeBuilder = build<YourType>({
     id: sequence(),
     name: perBuild(() => faker.person.fullName()),
     email: perBuild(() => faker.internet.email()),
-    status: "active"
-  }
+    status: "active",
+  },
 });
 ```
 
@@ -122,21 +123,21 @@ export const userBuilder = build<User>({
   fields: {
     id: sequence(),
     role: "user",
-    isActive: true
+    isActive: true,
   },
   traits: {
     admin: {
-      overrides: { role: "admin" }
+      overrides: { role: "admin" },
     },
     inactive: {
-      overrides: { isActive: false }
-    }
-  }
+      overrides: { isActive: false },
+    },
+  },
 });
 
 // Usage
-userBuilder.one({ traits: ["admin"] })
-userBuilder.one({ traits: ["admin", "inactive"] })
+userBuilder.one({ traits: ["admin"] });
+userBuilder.one({ traits: ["admin", "inactive"] });
 ```
 
 ## postBuild Hook
@@ -144,13 +145,15 @@ userBuilder.one({ traits: ["admin", "inactive"] })
 ```typescript
 export const orderBuilder = build<Order>({
   fields: {
-    products: perBuild(() => Array.from({ length: 3 }, () => productBuilder.one())),
-    totalAmount: 0
+    products: perBuild(() =>
+      Array.from({ length: 3 }, () => productBuilder.one()),
+    ),
+    totalAmount: 0,
   },
   postBuild: (order) => {
     order.totalAmount = order.products.reduce((sum, p) => sum + p.price, 0);
     return order;
-  }
+  },
 });
 ```
 
@@ -160,8 +163,8 @@ export const orderBuilder = build<Order>({
 export const userBuilder = build<User>({
   fields: {
     id: sequence(),
-    address: perBuild(() => addressBuilder.one())
-  }
+    address: perBuild(() => addressBuilder.one()),
+  },
 });
 ```
 
@@ -174,8 +177,8 @@ Check project-context.md for the specific type lifecycle pattern. Common pattern
 export const resourceBaseBuilder = build<ResourceBase>({
   fields: {
     name: perBuild(() => faker.commerce.productName()),
-    status: "active"
-  }
+    status: "active",
+  },
 });
 
 // Application type builder (with id, timestamps)
@@ -185,8 +188,8 @@ export const resourceBuilder = build<Resource>({
     name: perBuild(() => faker.commerce.productName()),
     status: "active",
     createdAt: perBuild(() => faker.date.past()),
-    updatedAt: perBuild(() => faker.date.recent())
-  }
+    updatedAt: perBuild(() => faker.date.recent()),
+  },
 });
 ```
 

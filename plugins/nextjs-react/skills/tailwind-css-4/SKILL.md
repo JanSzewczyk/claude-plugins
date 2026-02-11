@@ -21,6 +21,7 @@ examples:
 Tailwind CSS v4 patterns with CSS-first configuration for Next.js applications.
 
 > **Reference Files:**
+>
 > - [css-first-config.md](./css-first-config.md) - CSS-first configuration with @theme
 > - [utility-patterns.md](./utility-patterns.md) - Common utility class patterns
 > - [design-system.md](./design-system.md) - Integration with @szum-tech/design-system
@@ -40,6 +41,7 @@ This project uses Tailwind CSS v4 with CSS-first configuration:
 ```
 
 **Key v4 Changes:**
+
 - No `tailwind.config.ts` file - configuration in CSS
 - `@import "tailwindcss"` replaces `@tailwind` directives
 - `@theme` directive for customization
@@ -62,9 +64,7 @@ This project uses Tailwind CSS v4 with CSS-first configuration:
 
 ```tsx
 // Usage in components
-<div className="bg-brand-500 text-brand-50">
-  Brand colored box
-</div>
+<div className="bg-brand-500 text-brand-50">Brand colored box</div>
 ```
 
 ### Custom Spacing
@@ -100,12 +100,12 @@ This project uses Tailwind CSS v4 with CSS-first configuration:
 
 Tailwind v4 moves configuration from JavaScript to CSS:
 
-| v3 (JavaScript) | v4 (CSS) |
-|-----------------|----------|
-| `tailwind.config.ts` | `@theme` in CSS |
-| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
-| `content: ['./src/**/*.tsx']` | Automatic detection + `@source` |
-| `theme.extend.colors` | `--color-*` variables |
+| v3 (JavaScript)                       | v4 (CSS)                        |
+| ------------------------------------- | ------------------------------- |
+| `tailwind.config.ts`                  | `@theme` in CSS                 |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"`         |
+| `content: ['./src/**/*.tsx']`         | Automatic detection + `@source` |
+| `theme.extend.colors`                 | `--color-*` variables           |
 
 ### @theme Directive
 
@@ -146,12 +146,12 @@ Scan additional directories for class names:
 
 ## v4 Breaking Changes
 
-| Change | v3 | v4 | Action |
-|--------|----|----|--------|
-| Ring width | `ring` = 3px | `ring` = 1px | Use `ring-3` for old behavior |
-| Ring color | `ring` = blue-500 | `ring` = currentColor | Add `ring-blue-500` explicitly |
-| Outline | No default width | `outline` = 1px solid | Explicit if needed |
-| Import | `@tailwind base` | `@import "tailwindcss"` | Update imports |
+| Change     | v3                | v4                      | Action                         |
+| ---------- | ----------------- | ----------------------- | ------------------------------ |
+| Ring width | `ring` = 3px      | `ring` = 1px            | Use `ring-3` for old behavior  |
+| Ring color | `ring` = blue-500 | `ring` = currentColor   | Add `ring-blue-500` explicitly |
+| Outline    | No default width  | `outline` = 1px solid   | Explicit if needed             |
+| Import     | `@tailwind base`  | `@import "tailwindcss"` | Update imports                 |
 
 ## Design System Integration
 
@@ -181,9 +181,7 @@ import { Button, Card } from "@szum-tech/design-system";
 ```tsx
 // Mobile-first approach
 <div className="p-4 md:p-6 lg:p-8">
-  <h1 className="text-xl md:text-2xl lg:text-4xl">
-    Responsive heading
-  </h1>
+  <h1 className="text-xl md:text-2xl lg:text-4xl">Responsive heading</h1>
 </div>
 ```
 
@@ -198,14 +196,16 @@ import { Button, Card } from "@szum-tech/design-system";
 ### State Variants
 
 ```tsx
-<button className="
+<button
+  className="
   bg-blue-500
   hover:bg-blue-600
   focus:ring-2
   focus:ring-blue-500
   disabled:opacity-50
   disabled:cursor-not-allowed
-">
+"
+>
   Interactive button
 </button>
 ```
@@ -227,11 +227,11 @@ import { Button, Card } from "@szum-tech/design-system";
 
 ## File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Global styles | `app/globals.css` |
-| Design tokens | `@theme` in globals.css |
-| Component styles | Inline with className |
+| Purpose          | Location                |
+| ---------------- | ----------------------- |
+| Global styles    | `app/globals.css`       |
+| Design tokens    | `@theme` in globals.css |
+| Component styles | Inline with className   |
 
 ## Related Skills
 

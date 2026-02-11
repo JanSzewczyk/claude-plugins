@@ -13,12 +13,12 @@ npm run analyze
 
 ### Chunk Types
 
-| Chunk | Contains | Optimize By |
-|-------|----------|-------------|
-| `main` | Core framework | Upgrade Next.js |
-| `pages/*` | Page-specific code | Code splitting |
-| `node_modules/*` | Dependencies | Tree shaking, alternatives |
-| `commons` | Shared between pages | Dynamic imports |
+| Chunk            | Contains             | Optimize By                |
+| ---------------- | -------------------- | -------------------------- |
+| `main`           | Core framework       | Upgrade Next.js            |
+| `pages/*`        | Page-specific code   | Code splitting             |
+| `node_modules/*` | Dependencies         | Tree shaking, alternatives |
+| `commons`        | Shared between pages | Dynamic imports            |
 
 ### Size Benchmarks
 
@@ -82,13 +82,13 @@ const debounce = (fn: Function, ms: number) => {
 
 ### 3. Replace Heavy Dependencies
 
-| Heavy Library | Size | Lighter Alternative | Size |
-|---------------|------|---------------------|------|
-| moment | 67KB | date-fns | 13KB |
-| moment | 67KB | Intl.DateTimeFormat (native) | 0KB |
-| axios | 13KB | fetch (native) | 0KB |
-| uuid | 8KB | crypto.randomUUID() (native) | 0KB |
-| classnames | 1KB | clsx | 0.5KB |
+| Heavy Library | Size | Lighter Alternative          | Size  |
+| ------------- | ---- | ---------------------------- | ----- |
+| moment        | 67KB | date-fns                     | 13KB  |
+| moment        | 67KB | Intl.DateTimeFormat (native) | 0KB   |
+| axios         | 13KB | fetch (native)               | 0KB   |
+| uuid          | 8KB  | crypto.randomUUID() (native) | 0KB   |
+| classnames    | 1KB  | clsx                         | 0.5KB |
 
 ### 4. Analyze Duplicates
 
@@ -101,6 +101,7 @@ npm dedupe
 ```
 
 Common duplicates:
+
 - Multiple React versions
 - Multiple Tailwind versions
 - Polyfills included twice
@@ -114,9 +115,9 @@ export default {
     optimizePackageImports: [
       "@szum-tech/design-system",
       "lucide-react",
-      "date-fns"
-    ]
-  }
+      "date-fns",
+    ],
+  },
 };
 ```
 
@@ -125,6 +126,7 @@ export default {
 ### Route-Based (Automatic)
 
 Next.js App Router automatically splits by route:
+
 ```
 app/
 ├── page.tsx      → / (chunk)
@@ -151,8 +153,8 @@ const AdminPanel = dynamic(() => import("./AdminPanel"), {
 ```typescript
 // Split heavy chart library
 const ChartComponent = dynamic(
-  () => import("recharts").then(mod => mod.LineChart),
-  { ssr: false }
+  () => import("recharts").then((mod) => mod.LineChart),
+  { ssr: false },
 );
 ```
 
@@ -196,11 +198,13 @@ First Load JS: 250KB ← Too large
 ```
 
 **Diagnose:**
+
 1. Run `npm run analyze`
 2. Find largest chunks
 3. Check for heavy dependencies
 
 **Fix:**
+
 - Dynamic import large components
 - Replace heavy libraries
 - Enable `optimizePackageImports`
@@ -208,12 +212,14 @@ First Load JS: 250KB ← Too large
 ### Issue: Duplicate Dependencies
 
 **Diagnose:**
+
 ```bash
 npm ls react
 # Shows multiple versions
 ```
 
 **Fix:**
+
 ```json
 // package.json - force single version
 {
@@ -226,13 +232,15 @@ npm ls react
 ### Issue: Unshaken Code
 
 **Diagnose:**
+
 - Dead code visible in bundle analyzer
 
 **Fix:**
+
 ```typescript
 // Use named exports
 export { Button } from "./Button";
 
 // Not default exports for tree shaking
-export default Button;  // Harder to tree shake
+export default Button; // Harder to tree shake
 ```

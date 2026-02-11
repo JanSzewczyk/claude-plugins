@@ -3,7 +3,13 @@ name: code-reviewer
 version: 2.0.0
 lastUpdated: 2026-01-18
 author: Szum Tech Team
-related-agents: [frontend-expert, nextjs-backend-engineer, database-architect, performance-analyzer]
+related-agents:
+  [
+    frontend-expert,
+    nextjs-backend-engineer,
+    database-architect,
+    performance-analyzer,
+  ]
 description: Comprehensive code review for Next.js/React/TypeScript code. Use proactively after completing logical chunks of implementation. Reviews recent code changes for quality, performance, type safety, security, and pattern compliance.
 tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), KillShell, ListMcpResourcesTool, ReadMcpResourceTool, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__jetbrains__get_file_problems, mcp__jetbrains__search_in_files_by_text
 model: sonnet
@@ -185,15 +191,15 @@ Refer to the following skills for detailed patterns and code examples:
 
 **Quick validation checklist:**
 
-| Area | Key Rule |
-| ---- | -------- |
-| React Compiler | Remove unnecessary `useMemo`/`useCallback`/`memo` |
-| Forms | `useFormStatus` must be in child component, not same as `<form>` |
-| Components | Server Components by default, minimal `"use client"` boundaries |
-| Server Actions | Use standardized return types with Zod validation |
-| Database | Tuple error return, never throw from DB functions |
-| Auth | Server-side auth checks only |
-| Logging | Structured Pino logging, no `console.log` |
+| Area           | Key Rule                                                         |
+| -------------- | ---------------------------------------------------------------- |
+| React Compiler | Remove unnecessary `useMemo`/`useCallback`/`memo`                |
+| Forms          | `useFormStatus` must be in child component, not same as `<form>` |
+| Components     | Server Components by default, minimal `"use client"` boundaries  |
+| Server Actions | Use standardized return types with Zod validation                |
+| Database       | Tuple error return, never throw from DB functions                |
+| Auth           | Server-side auth checks only                                     |
+| Logging        | Structured Pino logging, no `console.log`                        |
 
 ## Performance Integration
 

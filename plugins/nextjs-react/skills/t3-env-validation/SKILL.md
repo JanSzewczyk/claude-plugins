@@ -21,6 +21,7 @@ examples:
 Type-safe environment variable validation with @t3-oss/env-nextjs and Zod.
 
 > **Reference Files:**
+>
 > - [setup.md](./setup.md) - Configuration patterns
 > - [schema-patterns.md](./schema-patterns.md) - Common Zod validation patterns
 > - [testing.md](./testing.md) - Mocking env vars in tests
@@ -30,10 +31,10 @@ Type-safe environment variable validation with @t3-oss/env-nextjs and Zod.
 
 Environment variables are validated in two files:
 
-| File | Purpose | Variables |
-|------|---------|-----------|
+| File                 | Purpose          | Variables                          |
+| -------------------- | ---------------- | ---------------------------------- |
 | `data/env/server.ts` | Server-only vars | `CLERK_SECRET_KEY`, Firebase, etc. |
-| `data/env/client.ts` | Public vars | `NEXT_PUBLIC_*` variables |
+| `data/env/client.ts` | Public vars      | `NEXT_PUBLIC_*` variables          |
 
 ## Quick Start
 
@@ -83,12 +84,12 @@ export const env = createEnv({
 // Server-side (Server Components, Server Actions, API routes)
 import { env } from "~/data/env/server";
 
-const apiSecret = env.API_SECRET;  // Type-safe!
+const apiSecret = env.API_SECRET; // Type-safe!
 
 // Client-side (Client Components)
 import { env } from "~/data/env/client";
 
-const apiUrl = env.NEXT_PUBLIC_API_URL;  // Type-safe!
+const apiUrl = env.NEXT_PUBLIC_API_URL; // Type-safe!
 ```
 
 ## Key Concepts
@@ -109,20 +110,21 @@ This prevents deploying with missing configuration.
 
 ### Server vs Client Variables
 
-| Type | Prefix | Accessible In | Bundled |
-|------|--------|---------------|---------|
-| Server | None | Server Components, Actions, API | No |
-| Client | `NEXT_PUBLIC_` | Everywhere | Yes (in JS bundle) |
+| Type   | Prefix         | Accessible In                   | Bundled            |
+| ------ | -------------- | ------------------------------- | ------------------ |
+| Server | None           | Server Components, Actions, API | No                 |
+| Client | `NEXT_PUBLIC_` | Everywhere                      | Yes (in JS bundle) |
 
 **Security Rule:** Never put secrets in client variables!
 
 ### Empty String Handling
 
 ```typescript
-emptyStringAsUndefined: true
+emptyStringAsUndefined: true;
 ```
 
 With this setting:
+
 - `VAR=""` is treated as undefined
 - Required vars with empty string will fail validation
 - Optional vars with empty string use default
@@ -132,7 +134,7 @@ With this setting:
 ### Required String
 
 ```typescript
-API_KEY: z.string()
+API_KEY: z.string();
 ```
 
 ### Optional with Default
@@ -140,40 +142,39 @@ API_KEY: z.string()
 ```typescript
 LOG_LEVEL: z.enum(["debug", "info", "warn", "error"])
   .optional()
-  .default("info")
+  .default("info");
 ```
 
 ### Boolean Transform
 
 ```typescript
-FEATURE_FLAG: z
-  .enum(["true", "false"])
+FEATURE_FLAG: z.enum(["true", "false"])
   .optional()
-  .transform((val) => val === "true")
+  .transform((val) => val === "true");
 ```
 
 ### URL Validation
 
 ```typescript
-API_URL: z.string().url()
-DATABASE_URL: z.string().url().startsWith("postgresql://")
+API_URL: z.string().url();
+DATABASE_URL: z.string().url().startsWith("postgresql://");
 ```
 
 ### Number Transform
 
 ```typescript
-PORT: z.string().transform((val) => parseInt(val, 10))
-TIMEOUT_MS: z.coerce.number().int().positive()
+PORT: z.string().transform((val) => parseInt(val, 10));
+TIMEOUT_MS: z.coerce.number().int().positive();
 ```
 
 ## File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Server env | `data/env/server.ts` |
-| Client env | `data/env/client.ts` |
-| Env template | `.env.example` |
-| Local env | `.env.local` |
+| Purpose      | Location             |
+| ------------ | -------------------- |
+| Server env   | `data/env/server.ts` |
+| Client env   | `data/env/client.ts` |
+| Env template | `.env.example`       |
+| Local env    | `.env.local`         |
 
 ## Troubleshooting
 
@@ -194,8 +195,8 @@ SKIP_ENV_VALIDATION=true npm run build
 
 ```typescript
 // Import from correct file
-import { env } from "~/data/env/server";  // For server vars
-import { env } from "~/data/env/client";  // For client vars
+import { env } from "~/data/env/server"; // For server vars
+import { env } from "~/data/env/client"; // For client vars
 ```
 
 ## Related Skills

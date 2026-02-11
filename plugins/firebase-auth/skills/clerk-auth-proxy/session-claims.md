@@ -3,6 +3,7 @@
 ## Overview
 
 Clerk provides three types of user metadata:
+
 - **publicMetadata** - Included in JWT, readable everywhere
 - **privateMetadata** - Server-only, never in JWT
 - **unsafeMetadata** - User-editable via Clerk components
@@ -119,7 +120,7 @@ const logger = createLogger({ module: "user-db" });
 
 export async function updateUserMetadata(
   userId: string,
-  metadata: Partial<UserPublicMetadata>
+  metadata: Partial<UserPublicMetadata>,
 ): Promise<[null, User] | [DbError, null]> {
   // Input validation
   if (!userId?.trim()) {
@@ -139,7 +140,7 @@ export async function updateUserMetadata(
 
     const client = await clerkClient();
     const updatedUser = await client.users.updateUser(userId, {
-      publicMetadata: metadata
+      publicMetadata: metadata,
     });
 
     logger.info({ userId }, "User metadata updated successfully");
@@ -148,7 +149,7 @@ export async function updateUserMetadata(
     const dbError = categorizeDbError(error, "User");
     logger.error(
       { userId, errorCode: dbError.code, isRetryable: dbError.isRetryable },
-      "Error updating user metadata"
+      "Error updating user metadata",
     );
     return [dbError, null];
   }
@@ -161,7 +162,7 @@ export async function updateUserMetadata(
 
 ```typescript
 await updateUserMetadata(userId, {
-  onboardingComplete: true
+  onboardingComplete: true,
 });
 ```
 
@@ -169,7 +170,7 @@ await updateUserMetadata(userId, {
 
 ```typescript
 await updateUserMetadata(userId, {
-  role: "admin"
+  role: "admin",
 });
 ```
 
@@ -177,7 +178,7 @@ await updateUserMetadata(userId, {
 
 ```typescript
 await updateUserMetadata(userId, {
-  plan: "pro"
+  plan: "pro",
 });
 ```
 
@@ -187,7 +188,7 @@ await updateUserMetadata(userId, {
 await updateUserMetadata(userId, {
   onboardingComplete: true,
   plan: "pro",
-  teamId: "team_123"
+  teamId: "team_123",
 });
 ```
 
@@ -235,9 +236,9 @@ interface CustomJwtSessionClaims {
 interface CustomJwtSessionClaims {
   metadata: {
     role: string;
-    permissions: string[];      // Could be large array
-    settings: UserSettings;     // Complex object
-    history: ActionHistory[];   // Potentially unbounded
+    permissions: string[]; // Could be large array
+    settings: UserSettings; // Complex object
+    history: ActionHistory[]; // Potentially unbounded
   };
 }
 ```
@@ -249,8 +250,8 @@ interface CustomJwtSessionClaims {
 await client.users.updateUser(userId, {
   publicMetadata: {
     role: "admin",
-    plan: "pro"
-  }
+    plan: "pro",
+  },
 });
 
 // Private metadata - server-only
@@ -258,8 +259,8 @@ await client.users.updateUser(userId, {
   privateMetadata: {
     internalNotes: "VIP customer",
     apiQuotaOverride: 10000,
-    billingId: "cus_xxx"
-  }
+    billingId: "cus_xxx",
+  },
 });
 ```
 
@@ -296,7 +297,7 @@ const role = sessionClaims?.metadata?.role ?? "user";
 const isAdmin = sessionClaims?.metadata?.role === "admin";
 
 // Bad - may throw
-const role = sessionClaims.metadata.role;  // Error if null
+const role = sessionClaims.metadata.role; // Error if null
 ```
 
 ## Accessing Metadata on Client

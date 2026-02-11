@@ -6,17 +6,18 @@ React Server Components (RSC) are the default in Next.js App Router. Understandi
 
 ## Default Behavior
 
-| Location | Default |
-|----------|---------|
-| `app/**/*.tsx` | Server Component |
+| Location                       | Default          |
+| ------------------------------ | ---------------- |
+| `app/**/*.tsx`                 | Server Component |
 | `features/**/components/*.tsx` | Server Component |
-| Files with `"use client"` | Client Component |
+| Files with `"use client"`      | Client Component |
 
 ## When to Use Each
 
 ### Server Components (Default)
 
 Use for:
+
 - Data fetching
 - Direct database access
 - Accessing backend resources
@@ -44,6 +45,7 @@ export default async function DashboardPage() {
 ### Client Components
 
 Use for:
+
 - Event handlers (onClick, onChange, etc.)
 - State (useState, useReducer)
 - Effects (useEffect, useLayoutEffect)
@@ -374,12 +376,12 @@ function AddToCartButton({ product }: Props) {
 
 ## Summary
 
-| Aspect | Server Component | Client Component |
-|--------|------------------|------------------|
-| Directive | None (default) | `"use client"` |
-| Data fetching | Direct DB/API | Via props or fetch |
-| State | ❌ No | ✅ Yes |
-| Events | ❌ No | ✅ Yes |
-| Browser APIs | ❌ No | ✅ Yes |
-| Bundle size | Not in JS bundle | In JS bundle |
-| Rendering | Server only | Server + Client |
+| Aspect        | Server Component | Client Component   |
+| ------------- | ---------------- | ------------------ |
+| Directive     | None (default)   | `"use client"`     |
+| Data fetching | Direct DB/API    | Via props or fetch |
+| State         | ❌ No            | ✅ Yes             |
+| Events        | ❌ No            | ✅ Yes             |
+| Browser APIs  | ❌ No            | ✅ Yes             |
+| Bundle size   | Not in JS bundle | In JS bundle       |
+| Rendering     | Server only      | Server + Client    |

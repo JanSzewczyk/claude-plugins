@@ -210,7 +210,10 @@ For forms that navigate after successful submission.
 
 ```typescript
 // types/action-types.ts
-export type RedirectAction = Promise<never | { success: false; error: string; fieldErrors?: Record<string, string[]> }>;
+export type RedirectAction = Promise<
+  | never
+  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+>;
 ```
 
 ```typescript
@@ -1027,7 +1030,7 @@ async function onSubmit(data: FormData) {
     // Or reset to specific values
     form.reset({
       name: "",
-      email: result.data.email // Keep email
+      email: result.data.email, // Keep email
     });
   }
 }
@@ -1041,7 +1044,7 @@ useEffect(() => {
   if (userData) {
     form.reset({
       name: userData.name,
-      email: userData.email
+      email: userData.email,
     });
   }
 }, [userData, form]);
@@ -1053,7 +1056,7 @@ useEffect(() => {
 // Reset but keep dirty fields
 form.reset(undefined, {
   keepDirty: true,
-  keepDirtyValues: true
+  keepDirtyValues: true,
 });
 
 // Reset specific field
@@ -1061,7 +1064,7 @@ form.resetField("email");
 
 // Reset and keep errors
 form.reset(undefined, {
-  keepErrors: true
+  keepErrors: true,
 });
 ```
 

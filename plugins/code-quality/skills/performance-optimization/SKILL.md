@@ -22,6 +22,7 @@ examples:
 Performance optimization patterns for Next.js applications.
 
 > **Reference Files:**
+>
 > - [bundle-analysis.md](./bundle-analysis.md) - Bundle size optimization
 > - [react-rendering.md](./react-rendering.md) - React performance patterns
 > - [database-optimization.md](./database-optimization.md) - Query optimization
@@ -30,6 +31,7 @@ Performance optimization patterns for Next.js applications.
 ## Performance Philosophy
 
 **Principles:**
+
 1. **Measure first** - Never optimize without metrics
 2. **Target bottlenecks** - Focus on the biggest impact areas
 3. **User-centric** - Prioritize perceived performance
@@ -49,12 +51,14 @@ npm run analyze
 ```
 
 **Quick Wins:**
+
 ```typescript
 // Dynamic imports for heavy components
 const Chart = dynamic(() => import("./Chart"), { ssr: false });
 
 // Prefer native implementations
-const debounce = (fn: Function, ms: number) => {  // ✅ Native
+const debounce = (fn: Function, ms: number) => {
+  // ✅ Native
   let timeout: NodeJS.Timeout;
   return (...args: unknown[]) => {
     clearTimeout(timeout);
@@ -83,44 +87,39 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 ```typescript
 // Always use limits
-const query = db.collection("items")
-  .where("userId", "==", userId)
-  .limit(20);
+const query = db.collection("items").where("userId", "==", userId).limit(20);
 
 // Parallel fetching
-const [users, posts] = await Promise.all([
-  getUsers(),
-  getPosts()
-]);
+const [users, posts] = await Promise.all([getUsers(), getPosts()]);
 ```
 
 ### Core Web Vitals
 
-| Metric | Target | Optimization |
-|--------|--------|--------------|
-| **LCP** | < 2.5s | `priority` on hero image, preload fonts |
+| Metric  | Target  | Optimization                             |
+| ------- | ------- | ---------------------------------------- |
+| **LCP** | < 2.5s  | `priority` on hero image, preload fonts  |
 | **INP** | < 200ms | `startTransition`, defer non-critical JS |
-| **CLS** | < 0.1 | Fixed dimensions, skeleton loaders |
+| **CLS** | < 0.1   | Fixed dimensions, skeleton loaders       |
 
 ## Performance Targets
 
 ### Bundle Size Targets
 
-| Category | Target (gzipped) |
-|----------|------------------|
-| First Load JS | < 100KB |
-| Per-page JS | < 50KB |
-| Total app | < 300KB |
-| Single dependency | < 30KB |
+| Category          | Target (gzipped) |
+| ----------------- | ---------------- |
+| First Load JS     | < 100KB          |
+| Per-page JS       | < 50KB           |
+| Total app         | < 300KB          |
+| Single dependency | < 30KB           |
 
 ### Runtime Targets
 
-| Metric | Good | Needs Work |
-|--------|------|------------|
-| Time to Interactive | < 3s | > 5s |
-| First Contentful Paint | < 1.8s | > 3s |
-| Server Response | < 200ms | > 500ms |
-| Database Query | < 100ms | > 500ms |
+| Metric                 | Good    | Needs Work |
+| ---------------------- | ------- | ---------- |
+| Time to Interactive    | < 3s    | > 5s       |
+| First Contentful Paint | < 1.8s  | > 3s       |
+| Server Response        | < 200ms | > 500ms    |
+| Database Query         | < 100ms | > 500ms    |
 
 ## Analysis Commands
 
@@ -162,13 +161,13 @@ Performance Issue?
 
 ## Common Issues & Solutions
 
-| Issue | Detection | Solution |
-|-------|-----------|----------|
-| Large bundle | > 100KB first load | Dynamic imports, tree shaking |
-| Slow renders | React Profiler > 16ms | Memoization, virtualization |
-| N+1 queries | Multiple sequential DB calls | Batch queries, denormalization |
-| Layout shift | CLS > 0.1 | Fixed dimensions, skeletons |
-| Unoptimized images | Large image files | next/image, WebP, responsive |
+| Issue              | Detection                    | Solution                       |
+| ------------------ | ---------------------------- | ------------------------------ |
+| Large bundle       | > 100KB first load           | Dynamic imports, tree shaking  |
+| Slow renders       | React Profiler > 16ms        | Memoization, virtualization    |
+| N+1 queries        | Multiple sequential DB calls | Batch queries, denormalization |
+| Layout shift       | CLS > 0.1                    | Fixed dimensions, skeletons    |
+| Unoptimized images | Large image files            | next/image, WebP, responsive   |
 
 ## Related Skills
 

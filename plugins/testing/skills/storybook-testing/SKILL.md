@@ -5,7 +5,16 @@ lastUpdated: 2026-01-18
 description:
   Create comprehensive Storybook stories with interactive tests for React components using CSF Next format and .test()
   method. Use when writing component tests, interaction tests, or documenting component behavior.
-tags: [testing, storybook, react, component-testing, integration-testing, test-method, csf-next]
+tags:
+  [
+    testing,
+    storybook,
+    react,
+    component-testing,
+    integration-testing,
+    test-method,
+    csf-next,
+  ]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 user-invocable: true
@@ -64,6 +73,30 @@ Stories are used for:
 - ✅ **Better reporting** - Individual test results in Storybook UI
 - ✅ **Less boilerplate** - No repeated `meta.story()` calls
 
+## CRITICAL: userEvent Must Be Destructured from Parameters
+
+**Never import `userEvent` from `storybook/test`.** Always destructure it from the test function parameters.
+
+```typescript
+// ❌ WRONG — breaks Storybook timing integration
+import { expect, fn, userEvent } from "storybook/test";
+Story.test("Test", async ({ canvas }) => {
+  await userEvent.click(button);
+});
+
+// ✅ CORRECT — properly integrated with Storybook
+import { expect, fn } from "storybook/test";
+Story.test("Test", async ({ canvas, userEvent }) => {
+  await userEvent.click(button);
+});
+```
+
+**Rules:**
+
+- **Import:** Only `expect`, `fn`, `waitFor`, `screen` from `storybook/test`
+- **Destructure:** `userEvent`, `canvas`, `args`, `step` always come from the function parameter
+- **Why:** The test framework provides these with proper Storybook integration to handle timing correctly
+
 ## CSF Next Format
 
 CSF Next uses factory functions that provide full type safety:
@@ -85,8 +118,8 @@ const meta = preview.meta({
   title: "Components/SubmitButton",
   component: SubmitButton,
   args: {
-    onClick: fn()
-  }
+    onClick: fn(),
+  },
 });
 
 // Story named after component (single story)
@@ -99,11 +132,14 @@ SubmitButton.test("Renders button with correct text", async ({ canvas }) => {
 });
 
 // Test 2: Interaction
-SubmitButton.test("Clicking button triggers onClick", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button", { name: /submit/i });
-  await userEvent.click(button);
-  await expect(args.onClick).toHaveBeenCalled();
-});
+SubmitButton.test(
+  "Clicking button triggers onClick",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button", { name: /submit/i });
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 
 // Test 3: Accessibility
 SubmitButton.test("Button has correct ARIA label", async ({ canvas }) => {
@@ -137,7 +173,7 @@ export const CompleteCheckoutFlow = meta.story({
     await step("Complete payment", async () => {
       /* ... */
     });
-  }
+  },
 });
 ```
 
@@ -250,15 +286,15 @@ import { UserCard } from "./user-card";
 const meta = preview.meta({
   component: UserCard,
   args: {
-    onSubmit: fn()
-  }
+    onSubmit: fn(),
+  },
 });
 
 // Story named after component (single story with data)
 export const UserCard = meta.story({
   args: {
-    user: userBuilder.one()
-  }
+    user: userBuilder.one(),
+  },
 });
 
 // Multiple tests for that story
@@ -272,11 +308,14 @@ UserCard.test("Displays user avatar", async ({ canvas }) => {
   await expect(avatar).toBeVisible();
 });
 
-UserCard.test("Clicking card triggers callback", async ({ canvas, userEvent, args }) => {
-  const card = canvas.getByRole("article");
-  await userEvent.click(card);
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+UserCard.test(
+  "Clicking card triggers callback",
+  async ({ canvas, userEvent, args }) => {
+    const card = canvas.getByRole("article");
+    await userEvent.click(card);
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 ```
 
 If builder doesn't exist, invoke `/builder-factory` skill first.

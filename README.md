@@ -4,13 +4,13 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 
 ## Available Plugins
 
-| Plugin | What's inside | Install |
-|--------|--------------|---------|
-| [**nextjs-react**](./plugins/nextjs-react/) | 2 agents + 7 skills for React 19 & Next.js full-stack development | [Guide](./plugins/nextjs-react/README.md) |
-| [**testing**](./plugins/testing/) | 2 agents + 5 skills for Storybook, Playwright, accessibility, test strategy | [Guide](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | 3 agents + 1 skill for code review, performance, dependency management | [Guide](./plugins/code-quality/README.md) |
-| [**firebase-auth**](./plugins/firebase-auth/) | 1 agent + 3 skills for Firebase Firestore, migrations, Clerk auth | [Guide](./plugins/firebase-auth/README.md) |
-| [**dev-experience**](./plugins/dev-experience/) | Statusline (cost/tokens/context tracking), safety hooks, auto-formatting | [Guide](./plugins/dev-experience/README.md) |
+| Plugin                                          | What's inside                                                               | Install                                     |
+| ----------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------- |
+| [**nextjs-react**](./plugins/nextjs-react/)     | 2 agents + 7 skills for React 19 & Next.js full-stack development           | [Guide](./plugins/nextjs-react/README.md)   |
+| [**testing**](./plugins/testing/)               | 2 agents + 5 skills for Storybook, Playwright, accessibility, test strategy | [Guide](./plugins/testing/README.md)        |
+| [**code-quality**](./plugins/code-quality/)     | 3 agents + 1 skill for code review, performance, dependency management      | [Guide](./plugins/code-quality/README.md)   |
+| [**firebase-auth**](./plugins/firebase-auth/)   | 1 agent + 3 skills for Firebase Firestore, migrations, Clerk auth           | [Guide](./plugins/firebase-auth/README.md)  |
+| [**dev-experience**](./plugins/dev-experience/) | Statusline (cost/tokens/context tracking), safety hooks, auto-formatting    | [Guide](./plugins/dev-experience/README.md) |
 
 ## Quick Start
 
@@ -44,6 +44,71 @@ bash claude-plugins/plugins/dev-experience/install.sh --all
 ls your-project/.claude/agents/   # Should show agent .md files
 ls your-project/.claude/skills/   # Should show skill directories
 ```
+
+## Which Agent or Skill Should I Use?
+
+### By Task Type
+
+```
+What are you doing?
+│
+├── Building UI / styling / components
+│   └── Agent: frontend-expert (nextjs-react)
+│       Skills: react-19-compiler, tailwind-css-4
+│
+├── Server actions / API routes / database ops
+│   └── Agent: nextjs-backend-engineer (nextjs-react)
+│       Skills: server-actions, t3-env-validation, structured-logging, error-handling, toast-notifications
+│
+├── Database design / data modeling / migrations
+│   └── Agent: database-architect (firebase-auth)
+│       Skills: firebase-firestore, db-migration
+│
+├── Authentication / Clerk / session management
+│   └── Skill: clerk-auth-proxy (firebase-auth)
+│
+├── Writing tests
+│   ├── Planning test strategy → Agent: testing-strategist (testing)
+│   ├── Component / Storybook tests → Agent: storybook-test-architect (testing)
+│   │   Skills: storybook-testing, builder-factory
+│   ├── Unit tests (Vitest) → Skill: unit-testing (testing)
+│   ├── API / E2E tests → Skill: api-test, playwright-cli (testing)
+│   └── Accessibility audit → Skill: accessibility-audit (testing)
+│
+├── Code review / quality check
+│   └── Agent: code-reviewer (code-quality)
+│
+├── Performance analysis / bundle optimization
+│   └── Agent: performance-analyzer (code-quality)
+│       Skill: performance-optimization
+│
+├── Updating dependencies
+│   └── Agent: library-updater (code-quality)
+│
+└── Developer experience / safety
+    └── Plugin: dev-experience (statusline, hooks)
+```
+
+### Quick Reference
+
+| I want to...               | Use this                         |
+| -------------------------- | -------------------------------- |
+| Build a React component    | `frontend-expert` agent          |
+| Create a server action     | `nextjs-backend-engineer` agent  |
+| Write Storybook tests      | `storybook-test-architect` agent |
+| Plan which tests to write  | `testing-strategist` agent       |
+| Write unit tests           | `/unit-testing` skill            |
+| Review code quality        | `code-reviewer` agent            |
+| Optimize performance       | `performance-analyzer` agent     |
+| Run an accessibility audit | `/accessibility-audit` skill     |
+| Design a database schema   | `database-architect` agent       |
+| Write a migration script   | `/db-migration` skill            |
+| Set up Clerk auth          | `/clerk-auth-proxy` skill        |
+| Update npm packages        | `library-updater` agent          |
+| Add environment variables  | `/t3-env-validation` skill       |
+| Add logging to my code     | `/structured-logging` skill      |
+| Handle errors properly     | `/error-handling` skill          |
+| Test an API endpoint       | `/api-test` skill                |
 
 ## How Plugins Work
 

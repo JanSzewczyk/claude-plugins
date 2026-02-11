@@ -259,19 +259,20 @@ function App() {
 ```
 
 **Rule of thumb**: Only add manual memoization if profiling shows a component:
+
 - Renders frequently (>10 times per second)
 - Takes >16ms to render (blocking frame)
 - Has expensive computations (>100ms)
 
 ## Summary Table
 
-| Scenario | Keep Memoization? | Reason |
-|----------|-------------------|--------|
-| Simple derived values | ❌ No | Compiler handles |
-| Event handlers | ❌ No | Compiler handles |
-| Sorting/filtering arrays | ❌ No | Compiler handles |
-| React.memo wrappers | ❌ No | Compiler handles |
-| External library callbacks | ✅ Yes | Non-React code |
-| Context provider values | ✅ Yes | Prevents cascading re-renders |
-| Computations >100ms | ✅ Yes | Documented performance need |
-| Subscription handlers | ✅ Yes | Prevents re-subscription |
+| Scenario                   | Keep Memoization? | Reason                        |
+| -------------------------- | ----------------- | ----------------------------- |
+| Simple derived values      | ❌ No             | Compiler handles              |
+| Event handlers             | ❌ No             | Compiler handles              |
+| Sorting/filtering arrays   | ❌ No             | Compiler handles              |
+| React.memo wrappers        | ❌ No             | Compiler handles              |
+| External library callbacks | ✅ Yes            | Non-React code                |
+| Context provider values    | ✅ Yes            | Prevents cascading re-renders |
+| Computations >100ms        | ✅ Yes            | Documented performance need   |
+| Subscription handlers      | ✅ Yes            | Prevents re-subscription      |

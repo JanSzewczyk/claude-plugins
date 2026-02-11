@@ -21,12 +21,16 @@ examples:
 Comprehensive error handling patterns for Next.js applications.
 
 > **Reference Files:**
+>
 > - [patterns.md](./patterns.md) - Error handling patterns by layer
 > - [examples.md](./examples.md) - Practical code examples
+> - [retry-patterns.md](./retry-patterns.md) - Retry, circuit breaker, and resilience patterns
+> - [validation-vs-runtime.md](./validation-vs-runtime.md) - Validation errors vs runtime errors guide
 
 ## Error Handling Philosophy
 
 **Principles:**
+
 1. **Never expose internal errors to users** - Log details server-side, show friendly messages client-side
 2. **Use typed errors** - DbError class for database, ActionResponse for server actions
 3. **Fail gracefully** - Error boundaries, fallback UI, retry mechanisms
@@ -73,7 +77,9 @@ Comprehensive error handling patterns for Next.js applications.
 import { categorizeDbError, DbError } from "~/lib/firebase/errors";
 
 // Tuple pattern - always return [error, data]
-export async function getById(id: string): Promise<[null, Data] | [DbError, null]> {
+export async function getById(
+  id: string,
+): Promise<[null, Data] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id"), null];
   }
@@ -110,7 +116,7 @@ export async function createItem(data: FormData): ActionResponse<Item> {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -155,23 +161,23 @@ export default function Error({
 
 ## DbError Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `code` | string | Error code (validation, not-found, permission-denied, etc.) |
-| `message` | string | User-friendly error message |
-| `isRetryable` | boolean | True for transient errors (network, timeout) |
-| `isNotFound` | boolean | True when resource doesn't exist |
-| `isAlreadyExists` | boolean | True when creating existing resource |
-| `isPermissionDenied` | boolean | True for auth/permission issues |
+| Property             | Type    | Description                                                 |
+| -------------------- | ------- | ----------------------------------------------------------- |
+| `code`               | string  | Error code (validation, not-found, permission-denied, etc.) |
+| `message`            | string  | User-friendly error message                                 |
+| `isRetryable`        | boolean | True for transient errors (network, timeout)                |
+| `isNotFound`         | boolean | True when resource doesn't exist                            |
+| `isAlreadyExists`    | boolean | True when creating existing resource                        |
+| `isPermissionDenied` | boolean | True for auth/permission issues                             |
 
 ## Static Factory Methods
 
 ```typescript
-DbError.notFound("User")           // Resource not found
-DbError.alreadyExists("Budget")    // Resource already exists
-DbError.validation("Invalid input") // Validation failed
-DbError.dataCorruption("Event")    // Document exists but data invalid
-DbError.permissionDenied()         // Auth/permission issue
+DbError.notFound("User"); // Resource not found
+DbError.alreadyExists("Budget"); // Resource already exists
+DbError.validation("Invalid input"); // Validation failed
+DbError.dataCorruption("Event"); // Document exists but data invalid
+DbError.permissionDenied(); // Auth/permission issue
 ```
 
 ## Error Response Flow

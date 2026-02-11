@@ -44,7 +44,7 @@ export async function GET() {
 
   const logger = createLogger({
     module: "api",
-    requestId
+    requestId,
   });
 
   logger.info({ path: "/api/users" }, "Request started");
@@ -66,7 +66,7 @@ export async function serverAction() {
 
   const logger = createLogger({
     module: "user-actions",
-    userId: userId ?? "anonymous"
+    userId: userId ?? "anonymous",
   });
 
   logger.info({ action: "updateProfile" }, "Action started");
@@ -83,7 +83,9 @@ import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "user-db" });
 
-export async function getUserById(id: string): Promise<[DbError | null, User | null]> {
+export async function getUserById(
+  id: string,
+): Promise<[DbError | null, User | null]> {
   try {
     const doc = await db.collection("users").doc(id).get();
 
@@ -96,12 +98,15 @@ export async function getUserById(id: string): Promise<[DbError | null, User | n
   } catch (error) {
     const dbError = categorizeDbError(error, "User");
 
-    logger.error({
-      userId: id,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable,
-      isNotFound: dbError.isNotFound
-    }, "Database error");
+    logger.error(
+      {
+        userId: id,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+        isNotFound: dbError.isNotFound,
+      },
+      "Database error",
+    );
 
     return [dbError, null];
   }
@@ -119,26 +124,35 @@ async function createCharge(amount: number, currency: string) {
 
     const charge = await stripe.charges.create({ amount, currency });
 
-    logger.info({
-      chargeId: charge.id,
-      amount,
-      currency
-    }, "Charge created successfully");
+    logger.info(
+      {
+        chargeId: charge.id,
+        amount,
+        currency,
+      },
+      "Charge created successfully",
+    );
 
     return charge;
   } catch (error) {
     if (error instanceof Stripe.errors.StripeCardError) {
-      logger.warn({
-        code: error.code,
-        decline_code: error.decline_code,
-        amount
-      }, "Card declined");
+      logger.warn(
+        {
+          code: error.code,
+          decline_code: error.decline_code,
+          amount,
+        },
+        "Card declined",
+      );
     } else {
-      logger.error({
-        errorType: error.constructor.name,
-        message: error.message,
-        amount
-      }, "Stripe error");
+      logger.error(
+        {
+          errorType: error.constructor.name,
+          message: error.message,
+          amount,
+        },
+        "Stripe error",
+      );
     }
     throw error;
   }
@@ -154,10 +168,13 @@ export function validateUserInput(data: unknown) {
   const result = userSchema.safeParse(data);
 
   if (!result.success) {
-    logger.warn({
-      errors: result.error.flatten().fieldErrors,
-      inputKeys: Object.keys(data as object)
-    }, "Validation failed");
+    logger.warn(
+      {
+        errors: result.error.flatten().fieldErrors,
+        inputKeys: Object.keys(data as object),
+      },
+      "Validation failed",
+    );
 
     return { valid: false, errors: result.error.flatten() };
   }
@@ -182,9 +199,15 @@ async function slowOperation() {
     const durationMs = Math.round(performance.now() - startTime);
 
     if (durationMs > 1000) {
-      logger.warn({ durationMs, operation: "slowOperation" }, "Slow operation detected");
+      logger.warn(
+        { durationMs, operation: "slowOperation" },
+        "Slow operation detected",
+      );
     } else {
-      logger.debug({ durationMs, operation: "slowOperation" }, "Operation completed");
+      logger.debug(
+        { durationMs, operation: "slowOperation" },
+        "Operation completed",
+      );
     }
 
     return result;
@@ -220,13 +243,16 @@ async function processBatch(items: Item[]) {
 
   const durationMs = Math.round(performance.now() - startTime);
 
-  logger.info({
-    totalItems: items.length,
-    successCount,
-    errorCount,
-    durationMs,
-    itemsPerSecond: Math.round((items.length / durationMs) * 1000)
-  }, "Batch processing completed");
+  logger.info(
+    {
+      totalItems: items.length,
+      successCount,
+      errorCount,
+      durationMs,
+      itemsPerSecond: Math.round((items.length / durationMs) * 1000),
+    },
+    "Batch processing completed",
+  );
 }
 ```
 
@@ -239,11 +265,14 @@ async function processBatch(items: Item[]) {
 import logger from "~/lib/logger";
 import { env } from "~/data/env/server";
 
-logger.info({
-  nodeEnv: env.NODE_ENV,
-  logLevel: env.LOG_LEVEL,
-  version: process.env.npm_package_version
-}, "Application starting");
+logger.info(
+  {
+    nodeEnv: env.NODE_ENV,
+    logLevel: env.LOG_LEVEL,
+    version: process.env.npm_package_version,
+  },
+  "Application starting",
+);
 ```
 
 ### Graceful Shutdown
@@ -276,7 +305,7 @@ export function logAuthEvent(event: AuthEvent) {
   const baseContext = {
     userId: event.userId,
     ip: event.ip,
-    userAgent: event.userAgent?.slice(0, 100)  // Truncate
+    userAgent: event.userAgent?.slice(0, 100), // Truncate
   };
 
   switch (event.type) {
@@ -284,17 +313,23 @@ export function logAuthEvent(event: AuthEvent) {
       logger.info({ ...baseContext, method: event.method }, "User logged in");
       break;
     case "login_failure":
-      logger.warn({
-        ...baseContext,
-        reason: event.reason,
-        attemptCount: event.attemptCount
-      }, "Login failed");
+      logger.warn(
+        {
+          ...baseContext,
+          reason: event.reason,
+          attemptCount: event.attemptCount,
+        },
+        "Login failed",
+      );
       break;
     case "logout":
       logger.info(baseContext, "User logged out");
       break;
     case "password_reset":
-      logger.info({ ...baseContext, initiated: true }, "Password reset initiated");
+      logger.info(
+        { ...baseContext, initiated: true },
+        "Password reset initiated",
+      );
       break;
   }
 }
@@ -303,24 +338,31 @@ export function logAuthEvent(event: AuthEvent) {
 ### Sensitive Data Redaction
 
 ```typescript
-function redactSensitive(obj: Record<string, unknown>): Record<string, unknown> {
+function redactSensitive(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
   const sensitiveKeys = ["password", "token", "secret", "apiKey", "creditCard"];
 
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => {
-      if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+      if (
+        sensitiveKeys.some((sk) => key.toLowerCase().includes(sk.toLowerCase()))
+      ) {
         return [key, "[REDACTED]"];
       }
       if (typeof value === "object" && value !== null) {
         return [key, redactSensitive(value as Record<string, unknown>)];
       }
       return [key, value];
-    })
+    }),
   );
 }
 
 // Usage
-logger.info(redactSensitive({ email, password, token }), "User credentials received");
+logger.info(
+  redactSensitive({ email, password, token }),
+  "User credentials received",
+);
 // Output: { email: "user@example.com", password: "[REDACTED]", token: "[REDACTED]" }
 ```
 
@@ -328,17 +370,17 @@ logger.info(redactSensitive({ email, password, token }), "User credentials recei
 
 ### Recommended Context Fields
 
-| Field | Type | When to Use |
-|-------|------|-------------|
-| `userId` | string | User-initiated actions |
-| `requestId` | string | HTTP requests |
-| `operation` | string | Named operations |
-| `durationMs` | number | Timed operations |
-| `errorCode` | string | Error responses |
-| `isRetryable` | boolean | Error categorization |
-| `statusCode` | number | HTTP responses |
-| `path` | string | API endpoints |
-| `method` | string | HTTP methods |
+| Field         | Type    | When to Use            |
+| ------------- | ------- | ---------------------- |
+| `userId`      | string  | User-initiated actions |
+| `requestId`   | string  | HTTP requests          |
+| `operation`   | string  | Named operations       |
+| `durationMs`  | number  | Timed operations       |
+| `errorCode`   | string  | Error responses        |
+| `isRetryable` | boolean | Error categorization   |
+| `statusCode`  | number  | HTTP responses         |
+| `path`        | string  | API endpoints          |
+| `method`      | string  | HTTP methods           |
 
 ### Consistent Naming
 

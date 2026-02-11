@@ -202,7 +202,7 @@ export async function completeWelcomeStep(): RedirectAction {
   }
 
   const [error] = await updateOnboarding(userId, {
-    currentStep: OnboardingSteps.PREFERENCES
+    currentStep: OnboardingSteps.PREFERENCES,
   });
 
   if (error) {
@@ -270,30 +270,26 @@ export async function syncWithExternalService(): ActionResponse {
     if (result.partialSuccess) {
       await setToastCookie(
         `Synced ${result.successCount} of ${result.totalCount} items`,
-        "warning"
+        "warning",
       );
       return { success: true, data: result };
     }
 
     await setToastCookie("Sync completed successfully!", "success");
     return { success: true, data: result };
-
   } catch (error) {
     if (error instanceof RateLimitError) {
       await setToastCookie(
         "Rate limit reached. Please try again in a few minutes.",
-        "warning"
+        "warning",
       );
     } else if (error instanceof AuthenticationError) {
       await setToastCookie(
         "Authentication failed. Please reconnect your account.",
-        "error"
+        "error",
       );
     } else {
-      await setToastCookie(
-        "Sync failed. Please try again later.",
-        "error"
-      );
+      await setToastCookie("Sync failed. Please try again later.", "error");
     }
 
     return { success: false, error: "Sync failed" };
@@ -317,13 +313,13 @@ export async function checkPlanLimits(userId: string) {
     await setToastCookie(
       `You've used ${usage.percentage}% of your plan. Consider upgrading.`,
       "info",
-      10000  // Show longer
+      10000, // Show longer
     );
   } else if (usage.percentage >= 100) {
     await setToastCookie(
       "You've reached your plan limit. Upgrade to continue.",
       "warning",
-      10000
+      10000,
     );
   }
 
@@ -357,17 +353,14 @@ export async function bulkDeleteUsers(userIds: string[]): ActionResponse {
   if (errorCount === 0) {
     await setToastCookie(
       `Successfully deleted ${successCount} users`,
-      "success"
+      "success",
     );
   } else if (successCount === 0) {
-    await setToastCookie(
-      `Failed to delete users. Please try again.`,
-      "error"
-    );
+    await setToastCookie(`Failed to delete users. Please try again.`, "error");
   } else {
     await setToastCookie(
       `Deleted ${successCount} users. ${errorCount} failed.`,
-      "warning"
+      "warning",
     );
   }
 
@@ -375,7 +368,7 @@ export async function bulkDeleteUsers(userIds: string[]): ActionResponse {
 
   return {
     success: errorCount === 0,
-    data: { successCount, errorCount }
+    data: { successCount, errorCount },
   };
 }
 ```

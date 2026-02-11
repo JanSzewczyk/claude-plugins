@@ -4,7 +4,7 @@
 
 Copy these type definitions to `lib/action-types.ts` in your project:
 
-```typescript
+````typescript
 // lib/action-types.ts
 
 /**
@@ -45,7 +45,9 @@ type ActionStateFailed = {
  * }
  * ```
  */
-export type ActionResponse<T = unknown> = Promise<ActionStateSuccess<T> | ActionStateFailed>;
+export type ActionResponse<T = unknown> = Promise<
+  ActionStateSuccess<T> | ActionStateFailed
+>;
 
 /**
  * Response type for actions that redirect on success
@@ -61,7 +63,7 @@ export type ActionResponse<T = unknown> = Promise<ActionStateSuccess<T> | Action
  * ```
  */
 export type RedirectAction = Promise<never | ActionStateFailed>;
-```
+````
 
 ## Type Usage Guide
 
@@ -81,7 +83,7 @@ export async function createUser(data: CreateUserDto): ActionResponse<User> {
   return {
     success: true,
     data: user,
-    message: "User created successfully"
+    message: "User created successfully",
   };
 }
 
@@ -128,14 +130,14 @@ Use `fieldErrors` to return field-specific validation errors for form handling.
 export async function registerUser(formData: FormData): ActionResponse<User> {
   const parsed = userSchema.safeParse({
     email: formData.get("email"),
-    password: formData.get("password")
+    password: formData.get("password"),
   });
 
   if (!parsed.success) {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
       // Example fieldErrors:
       // {
       //   email: ["Invalid email format"],
@@ -166,14 +168,14 @@ const result = await myAction();
 
 if (result.success) {
   // TypeScript knows this is ActionStateSuccess<T>
-  console.log(result.data);    // ✅ Accessible
+  console.log(result.data); // ✅ Accessible
   console.log(result.message); // ✅ Accessible (optional)
-  console.log(result.error);   // ❌ Type error - doesn't exist
+  console.log(result.error); // ❌ Type error - doesn't exist
 } else {
   // TypeScript knows this is ActionStateFailed
-  console.log(result.error);       // ✅ Accessible
+  console.log(result.error); // ✅ Accessible
   console.log(result.fieldErrors); // ✅ Accessible (optional)
-  console.log(result.data);        // ❌ Type error - doesn't exist
+  console.log(result.data); // ❌ Type error - doesn't exist
 }
 ```
 
@@ -185,13 +187,13 @@ Create type guards for additional safety:
 // lib/action-types.ts
 
 export function isActionSuccess<T>(
-  result: Awaited<ActionResponse<T>>
+  result: Awaited<ActionResponse<T>>,
 ): result is ActionStateSuccess<T> {
   return result.success === true;
 }
 
 export function isActionFailed(
-  result: Awaited<ActionResponse<unknown>>
+  result: Awaited<ActionResponse<unknown>>,
 ): result is ActionStateFailed {
   return result.success === false;
 }
@@ -212,7 +214,7 @@ When your action works with specific resource types:
 // Generic action for any entity with an ID
 export async function deleteEntity<T extends { id: string }>(
   entity: T,
-  deleteFunction: (id: string) => Promise<[Error | null, void]>
+  deleteFunction: (id: string) => Promise<[Error | null, void]>,
 ): ActionResponse<void> {
   const [error] = await deleteFunction(entity.id);
 
@@ -285,18 +287,20 @@ type ActionStateFailed = {
   fieldErrors?: Record<string, string[]>;
 };
 
-export type ActionResponse<T = unknown> = Promise<ActionStateSuccess<T> | ActionStateFailed>;
+export type ActionResponse<T = unknown> = Promise<
+  ActionStateSuccess<T> | ActionStateFailed
+>;
 export type RedirectAction = Promise<never | ActionStateFailed>;
 
 // Optional type guards
 export function isActionSuccess<T>(
-  result: Awaited<ActionResponse<T>>
+  result: Awaited<ActionResponse<T>>,
 ): result is ActionStateSuccess<T> {
   return result.success === true;
 }
 
 export function isActionFailed(
-  result: Awaited<ActionResponse<unknown>>
+  result: Awaited<ActionResponse<unknown>>,
 ): result is ActionStateFailed {
   return result.success === false;
 }

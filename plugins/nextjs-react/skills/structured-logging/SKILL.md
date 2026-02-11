@@ -21,6 +21,7 @@ examples:
 Structured logging patterns with Pino for Next.js applications.
 
 > **Reference Files:**
+>
 > - [pino-setup.md](./pino-setup.md) - Logger configuration
 > - [log-levels.md](./log-levels.md) - When to use each level
 > - [patterns.md](./patterns.md) - Common logging patterns
@@ -42,14 +43,14 @@ const logger = pino({
           options: {
             colorize: true,
             translateTime: "SYS:standard",
-            ignore: "pid,hostname"
-          }
+            ignore: "pid,hostname",
+          },
         }
       : undefined,
   formatters: {
-    level: (label) => ({ level: label.toUpperCase() })
+    level: (label) => ({ level: label.toUpperCase() }),
   },
-  timestamp: pino.stdTimeFunctions.isoTime
+  timestamp: pino.stdTimeFunctions.isoTime,
 });
 
 export function createLogger(context: Record<string, unknown>) {
@@ -90,14 +91,14 @@ logger.info({ userId: "123" }, "User created");
 
 ## Log Levels
 
-| Level | When to Use | Example |
-|-------|-------------|---------|
-| `fatal` | App crash, unrecoverable | Database connection lost |
-| `error` | Operation failed | User creation failed |
-| `warn` | Unexpected but recoverable | Rate limit approaching |
-| `info` | Normal operations | User logged in |
-| `debug` | Development details | Request payload |
-| `trace` | Fine-grained debugging | Function entry/exit |
+| Level   | When to Use                | Example                  |
+| ------- | -------------------------- | ------------------------ |
+| `fatal` | App crash, unrecoverable   | Database connection lost |
+| `error` | Operation failed           | User creation failed     |
+| `warn`  | Unexpected but recoverable | Rate limit approaching   |
+| `info`  | Normal operations          | User logged in           |
+| `debug` | Development details        | Request payload          |
+| `trace` | Fine-grained debugging     | Function entry/exit      |
 
 ### Usage
 
@@ -135,12 +136,15 @@ try {
 } catch (error) {
   const dbError = categorizeDbError(error, "User");
 
-  logger.error({
-    userId,
-    errorCode: dbError.code,
-    isRetryable: dbError.isRetryable,
-    operation: "updateUser"
-  }, "Failed to update user");
+  logger.error(
+    {
+      userId,
+      errorCode: dbError.code,
+      isRetryable: dbError.isRetryable,
+      operation: "updateUser",
+    },
+    "Failed to update user",
+  );
 
   return [dbError, null];
 }
@@ -166,11 +170,14 @@ export async function getUserById(id: string) {
     return [null, transformUser(user)];
   } catch (error) {
     const dbError = categorizeDbError(error, "User");
-    logger.error({
-      userId: id,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Database error fetching user");
+    logger.error(
+      {
+        userId: id,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Database error fetching user",
+    );
     return [dbError, null];
   }
 }
@@ -194,15 +201,21 @@ export async function updateProfile(data: ProfileData): ActionResponse {
   const [error] = await updateUserProfile(userId, data);
 
   if (error) {
-    logger.error({
-      userId,
-      errorCode: error.code,
-      action: "updateProfile"
-    }, "Profile update failed");
+    logger.error(
+      {
+        userId,
+        errorCode: error.code,
+        action: "updateProfile",
+      },
+      "Profile update failed",
+    );
     return { success: false, error: error.message };
   }
 
-  logger.info({ userId, action: "updateProfile" }, "Profile updated successfully");
+  logger.info(
+    { userId, action: "updateProfile" },
+    "Profile updated successfully",
+  );
   return { success: true, data: null };
 }
 ```
@@ -219,11 +232,86 @@ LOG_LEVEL=info   # Production: info and above
 
 ## File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Logger setup | `lib/logger.ts` |
-| Feature loggers | Create in feature modules |
-| Log level config | `data/env/server.ts` |
+| Purpose          | Location                  |
+| ---------------- | ------------------------- |
+| Logger setup     | `lib/logger.ts`           |
+| Feature loggers  | Create in feature modules |
+| Log level config | `data/env/server.ts`      |
+
+## Sensitive Data Protection
+
+**Never log secrets, credentials, or personally identifiable information (PII).**
+
+### What NOT to Log
+
+```typescript
+// ❌ NEVER log these
+logger.info({ password, token, apiKey }, "User login");
+logger.info({ creditCard: card.number }, "Payment processed");
+logger.info({ ssn, dateOfBirth, fullAddress }, "User profile loaded");
+logger.debug({ cookie: req.headers.cookie }, "Request received");
+logger.info({ authorization: req.headers.authorization }, "API call");
+```
+
+### Safe Logging Patterns
+
+```typescript
+// ✅ Log identifiers, not values
+logger.info({ userId, email: maskEmail(email) }, "User login");
+logger.info({ cardLast4: card.number.slice(-4) }, "Payment processed");
+logger.debug({ hasAuthHeader: !!req.headers.authorization }, "API call");
+
+// ✅ Log metadata, not content
+logger.info({ bodySize: JSON.stringify(body).length }, "Request received");
+logger.info({ fieldCount: Object.keys(formData).length }, "Form submitted");
+```
+
+### Sensitive Fields Checklist
+
+| Category      | Fields to NEVER log                                                                    |
+| ------------- | -------------------------------------------------------------------------------------- |
+| **Auth**      | password, token, apiKey, secret, refreshToken, sessionId, cookie, authorization header |
+| **PII**       | SSN, date of birth, full address, phone number (log last 4 digits max)                 |
+| **Financial** | credit card number, bank account, CVV, routing number                                  |
+| **Health**    | medical records, diagnoses, insurance IDs                                              |
+
+### Masking Helper
+
+```typescript
+export function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  return `${local[0]}***@${domain}`;
+}
+
+export function maskId(id: string): string {
+  return id.length > 8 ? `${id.slice(0, 4)}...${id.slice(-4)}` : "***";
+}
+```
+
+### Framework-Level Protection
+
+Consider adding a Pino redaction config to automatically strip sensitive fields:
+
+```typescript
+const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  redact: {
+    paths: [
+      "password",
+      "token",
+      "apiKey",
+      "*.password",
+      "*.token",
+      "*.apiKey",
+      "authorization",
+      "cookie",
+      "creditCard",
+      "ssn",
+    ],
+    censor: "[REDACTED]",
+  },
+});
+```
 
 ## Related Skills
 

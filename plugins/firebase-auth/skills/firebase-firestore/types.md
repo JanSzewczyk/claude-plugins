@@ -304,7 +304,7 @@ export type UpdateCategoryDto = UpdateDto<CategoryBase>;
 
 function transformToBudget(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Budget {
   return {
     id: docId,
@@ -322,7 +322,7 @@ function transformToBudget(
 
 function transformToEvent(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Event {
   return {
     id: docId,
@@ -346,7 +346,7 @@ function transformToEvent(
  * Converts Firestore Timestamp fields to Date objects
  */
 export function timestampToDate(
-  timestamp: FirebaseFirestore.Timestamp | undefined
+  timestamp: FirebaseFirestore.Timestamp | undefined,
 ): Date | undefined {
   return timestamp?.toDate();
 }
@@ -355,7 +355,7 @@ export function timestampToDate(
  * Creates a transform function for a given type
  */
 export function createTransform<T>(
-  dateFields: string[] = []
+  dateFields: string[] = [],
 ): (docId: string, data: FirebaseFirestore.DocumentData) => T {
   return (docId: string, data: FirebaseFirestore.DocumentData): T => {
     const result: Record<string, unknown> = {

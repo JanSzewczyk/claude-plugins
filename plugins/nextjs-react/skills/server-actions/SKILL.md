@@ -3,7 +3,8 @@ name: server-actions
 version: 1.0.0
 lastUpdated: 2026-01-18
 description: Create Next.js Server Actions with TypeScript following best practices for forms, mutations, validation, and error handling. Use when implementing server-side form handling, CRUD operations, or data mutations.
-tags: [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
+tags:
+  [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 context: fork
@@ -21,6 +22,7 @@ examples:
 Create Next.js Server Actions with TypeScript following best practices for validation, error handling, and React integration.
 
 > **Reference Files:**
+>
 > - [types.md](./types.md) - ActionResponse, RedirectAction type definitions
 > - [examples.md](./examples.md) - Complete implementation examples
 > - [patterns.md](./patterns.md) - Best practices and anti-patterns
@@ -33,11 +35,13 @@ Create Next.js Server Actions with TypeScript following best practices for valid
 **IMPORTANT**: Before creating server actions, check project configuration files:
 
 **`.claude/project-context.md`** for:
+
 - Authentication provider (Clerk, NextAuth, JWT)
 - Database patterns (tuple error handling, DbError class)
 - Logging conventions
 
 **`CLAUDE.md`** for:
+
 - Server Actions patterns (ActionResponse type)
 - Database error handling (DbError class)
 - Toast notification system
@@ -59,6 +63,7 @@ When the user requests a server action:
 ### 1. Analyze Requirements
 
 Gather information about:
+
 - What data does the action handle?
 - Does it return data or redirect?
 - What validation is needed?
@@ -68,11 +73,11 @@ Gather information about:
 
 ### 2. Choose Response Type
 
-| Scenario                   | Type                 | Description                            |
-|----------------------------|----------------------|----------------------------------------|
-| Returns data               | `ActionResponse<T>`  | Action returns data to client          |
-| Redirects on success       | `RedirectAction`     | Action navigates to new page           |
-| Form with `useActionState` | Modified signature   | Accepts `previousState` as first param |
+| Scenario                   | Type                | Description                            |
+| -------------------------- | ------------------- | -------------------------------------- |
+| Returns data               | `ActionResponse<T>` | Action returns data to client          |
+| Redirects on success       | `RedirectAction`    | Action navigates to new page           |
+| Form with `useActionState` | Modified signature  | Accepts `previousState` as first param |
 
 ### 3. Create Server Action
 
@@ -104,7 +109,7 @@ export async function actionName(data: InputType): ActionResponse<OutputType> {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -133,7 +138,7 @@ import { z } from "zod";
 
 export const inputSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address")
+  email: z.string().email("Invalid email address"),
 });
 
 export type InputData = z.infer<typeof inputSchema>;
@@ -143,11 +148,11 @@ export type InputData = z.infer<typeof inputSchema>;
 
 Choose integration pattern based on form complexity:
 
-| Complexity | Pattern                              | Use When                           |
-|------------|--------------------------------------|------------------------------------|
-| Simple     | `useActionState`                     | Native form, simple state          |
-| Complex    | React Hook Form + `useTransition`    | Dynamic fields, complex validation |
-| Redirect   | Bound action prop                    | Multi-step flows                   |
+| Complexity | Pattern                           | Use When                           |
+| ---------- | --------------------------------- | ---------------------------------- |
+| Simple     | `useActionState`                  | Native form, simple state          |
+| Complex    | React Hook Form + `useTransition` | Dynamic fields, complex validation |
+| Redirect   | Bound action prop                 | Multi-step flows                   |
 
 See [hooks.md](./hooks.md) and [react-hook-form.md](./react-hook-form.md) for implementation details.
 
@@ -171,8 +176,8 @@ if (error) {
 Always revalidate after mutations:
 
 ```typescript
-revalidatePath("/posts");        // Specific path
-revalidateTag("posts");          // By cache tag
+revalidatePath("/posts"); // Specific path
+revalidateTag("posts"); // By cache tag
 ```
 
 ### Toast Notifications

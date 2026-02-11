@@ -21,6 +21,7 @@ examples:
 Cookie-based toast notification system for server-to-client messaging.
 
 > **Reference Files:**
+>
 > - [architecture.md](./architecture.md) - How the system works
 > - [patterns.md](./patterns.md) - Usage patterns
 > - [examples.md](./examples.md) - Practical examples
@@ -88,7 +89,7 @@ await setToastCookie("New features available", "info");
 await setToastCookie("Quick message", "info");
 
 // Custom duration in milliseconds
-await setToastCookie("This stays longer", "info", 10000);  // 10 seconds
+await setToastCookie("This stays longer", "info", 10000); // 10 seconds
 ```
 
 ## How It Works
@@ -149,15 +150,15 @@ This ensures toasts appear after navigation.
 async function setToastCookie(
   message: string,
   type: ToastType = "success",
-  duration?: number
-): Promise<void>
+  duration?: number,
+): Promise<void>;
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `message` | string | required | Toast message text |
-| `type` | ToastType | "success" | Toast variant |
-| `duration` | number | undefined | Display duration in ms |
+| Parameter  | Type      | Default   | Description            |
+| ---------- | --------- | --------- | ---------------------- |
+| `message`  | string    | required  | Toast message text     |
+| `type`     | ToastType | "success" | Toast variant          |
+| `duration` | number    | undefined | Display duration in ms |
 
 ### ToastType
 
@@ -177,13 +178,13 @@ interface ToastMessage {
 
 ## File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Server cookie setter | `lib/toast/server/toast.cookie.ts` |
-| Client handler | `lib/toast/components/toast-handler.tsx` |
-| Types | `lib/toast/types.ts` |
-| Constants | `lib/toast/constants.ts` |
-| Providers | `components/providers.tsx` |
+| Purpose              | Location                                 |
+| -------------------- | ---------------------------------------- |
+| Server cookie setter | `lib/toast/server/toast.cookie.ts`       |
+| Client handler       | `lib/toast/components/toast-handler.tsx` |
+| Types                | `lib/toast/types.ts`                     |
+| Constants            | `lib/toast/constants.ts`                 |
+| Providers            | `components/providers.tsx`               |
 
 ## Related Skills
 

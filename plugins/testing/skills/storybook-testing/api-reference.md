@@ -21,7 +21,7 @@ export default definePreview({
   decorators: [
     /* global decorators */
   ],
-  addons: [addonA11y()]
+  addons: [addonA11y()],
 });
 ```
 
@@ -39,7 +39,7 @@ const meta = preview.meta({
   },
   parameters: {
     /* story-level parameters */
-  }
+  },
 });
 ```
 
@@ -57,7 +57,7 @@ export const StoryName = meta.story({
   tags: ["test-only"], // Optional tags
   play: async (context) => {
     /* optional: for complex multi-step flows */
-  }
+  },
 });
 ```
 
@@ -84,24 +84,33 @@ StoryName.test(testName: string, testFunction: TestFunction): void
 export const LoginForm = meta.story({});
 
 // MULTIPLE tests using .test() method
-LoginForm.test("Shows validation error on empty submit", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(canvas.getByText(/email is required/i)).toBeVisible();
-});
+LoginForm.test(
+  "Shows validation error on empty submit",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(canvas.getByText(/email is required/i)).toBeVisible();
+  },
+);
 
-LoginForm.test("Submits form with valid data", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-  await userEvent.type(canvas.getByLabelText(/password/i), "password123");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+LoginForm.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 
-LoginForm.test("Keyboard navigation works correctly", async ({ canvas, userEvent }) => {
-  const emailInput = canvas.getByLabelText(/email/i);
-  emailInput.focus();
-  await userEvent.tab();
-  await expect(canvas.getByLabelText(/password/i)).toHaveFocus();
-});
+LoginForm.test(
+  "Keyboard navigation works correctly",
+  async ({ canvas, userEvent }) => {
+    const emailInput = canvas.getByLabelText(/email/i);
+    emailInput.focus();
+    await userEvent.tab();
+    await expect(canvas.getByLabelText(/password/i)).toHaveFocus();
+  },
+);
 ```
 
 ### Parameters
@@ -141,20 +150,26 @@ interface TestContext {
 // ✅ Use .test() for independent tests
 export const Button = meta.story({});
 
-Button.test("Calls onClick when clicked", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button"));
-  await expect(args.onClick).toHaveBeenCalled();
-});
+Button.test(
+  "Calls onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 
 Button.test("Shows loading state when isLoading=true", async ({ canvas }) => {
   await expect(canvas.getByRole("progressbar")).toBeVisible();
 });
 
-Button.test("Keyboard activation with Enter works", async ({ canvas, userEvent, args }) => {
-  canvas.getByRole("button").focus();
-  await userEvent.keyboard("{Enter}");
-  await expect(args.onClick).toHaveBeenCalled();
-});
+Button.test(
+  "Keyboard activation with Enter works",
+  async ({ canvas, userEvent, args }) => {
+    canvas.getByRole("button").focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 
 // ✅ Use play for complete user journey
 export const CheckoutFlow = meta.story({
@@ -170,7 +185,7 @@ export const CheckoutFlow = meta.story({
     await step("Complete payment", async () => {
       /* ... */
     });
-  }
+  },
 });
 ```
 
@@ -231,7 +246,10 @@ await expect(args.onSubmit).toHaveBeenCalledWith({ data: "value" });
 await expect(args.onSubmit).not.toHaveBeenCalled();
 
 // String matching
-await expect(element).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
+await expect(element).toHaveAttribute(
+  "rel",
+  expect.stringContaining("noreferrer"),
+);
 ```
 
 ## User Interactions
@@ -280,7 +298,7 @@ await waitFor(
   async () => {
     await expect(condition).toBe(true);
   },
-  { timeout: 5000 }
+  { timeout: 5000 },
 );
 ```
 
@@ -304,8 +322,8 @@ const meta = preview.meta({
     // Mock that throws
     onError: fn(() => {
       throw new Error("Test error");
-    })
-  }
+    }),
+  },
 });
 ```
 
@@ -318,14 +336,14 @@ export const MyStory = meta.story({
     canvasElement, // Raw DOM element (HTMLElement)
     userEvent, // Pre-configured user event instance
     args, // Story args (component props)
-    step // Function to group assertions
+    step, // Function to group assertions
     // Additional context properties:
     // - globals
     // - parameters
     // - viewMode
   }) => {
     // Test implementation
-  }
+  },
 });
 ```
 
@@ -382,7 +400,7 @@ export const ModalTest = meta.story({
 
     // Close button inside portal - still use screen
     await userEvent.click(screen.getByRole("button", { name: /close/i }));
-  }
+  },
 });
 ```
 
@@ -402,7 +420,7 @@ export const CompleteFlow = meta.story({
       await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
       await expect(canvas.getByText(/success/i)).toBeVisible();
     });
-  }
+  },
 });
 ```
 
@@ -415,11 +433,11 @@ export const TestOnlyStory = meta.story({
   tags: ["test-only"], // Hidden from Storybook sidebar, runs in tests
   play: async ({ canvas }) => {
     // Test assertions
-  }
+  },
 });
 
 export const DocsStory = meta.story({
-  tags: ["autodocs"] // Include in auto-generated docs
+  tags: ["autodocs"], // Include in auto-generated docs
 });
 ```
 

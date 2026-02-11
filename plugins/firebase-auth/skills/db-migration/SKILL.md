@@ -46,6 +46,7 @@ When the user requests a migration:
 ### 1. Analyze the Change
 
 Gather information about:
+
 - Source collection name
 - Current document structure
 - Target document structure
@@ -54,12 +55,12 @@ Gather information about:
 
 ### 2. Assess Risk Level
 
-| Risk | Criteria | Approach |
-|------|----------|----------|
-| Low | Adding optional field | Direct migration |
-| Medium | Restructuring data | Migration with validation |
-| High | Removing/renaming fields | Dual-write period recommended |
-| Critical | Changing primary keys | Manual review required |
+| Risk     | Criteria                 | Approach                      |
+| -------- | ------------------------ | ----------------------------- |
+| Low      | Adding optional field    | Direct migration              |
+| Medium   | Restructuring data       | Migration with validation     |
+| High     | Removing/renaming fields | Dual-write period recommended |
+| Critical | Changing primary keys    | Manual review required        |
 
 ### 3. Generate Migration Script
 
@@ -110,7 +111,7 @@ interface MigrationResult {
 }
 
 export async function migrate(
-  options: MigrationOptions = {}
+  options: MigrationOptions = {},
 ): Promise<MigrationResult> {
   const { dryRun = DRY_RUN_DEFAULT, startAfter, limit } = options;
 
@@ -121,7 +122,7 @@ export async function migrate(
     updated: 0,
     skipped: 0,
     errors: 0,
-    dryRun
+    dryRun,
   };
 
   try {
@@ -131,7 +132,10 @@ export async function migrate(
       .limit(BATCH_SIZE);
 
     if (startAfter) {
-      const startDoc = await db.collection(COLLECTION_NAME).doc(startAfter).get();
+      const startDoc = await db
+        .collection(COLLECTION_NAME)
+        .doc(startAfter)
+        .get();
       if (startDoc.exists) {
         query = query.startAfter(startDoc);
       }
@@ -172,7 +176,7 @@ export async function migrate(
           if (!dryRun) {
             batch.update(doc.ref, {
               ...updates,
-              updatedAt: FieldValue.serverTimestamp()
+              updatedAt: FieldValue.serverTimestamp(),
             });
             batchCount++;
           }
@@ -190,7 +194,7 @@ export async function migrate(
         await batch.commit();
         logger.info(
           { batchCount, totalProcessed: result.processed },
-          "Batch committed"
+          "Batch committed",
         );
       }
 
@@ -224,7 +228,7 @@ function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
  * Compute the updates to apply to a document
  */
 function computeUpdates(
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Record<string, unknown> {
   // TODO: Implement update logic based on migration requirements
   // Example:
@@ -239,8 +243,10 @@ function computeUpdates(
 if (require.main === module) {
   const args = process.argv.slice(2);
   const dryRun = !args.includes("--apply");
-  const startAfter = args.find(a => a.startsWith("--start-after="))?.split("=")[1];
-  const limit = args.find(a => a.startsWith("--limit="))?.split("=")[1];
+  const startAfter = args
+    .find((a) => a.startsWith("--start-after="))
+    ?.split("=")[1];
+  const limit = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
 
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
@@ -254,7 +260,7 @@ ${startAfter ? `║  Starting after: ${startAfter}\n` : ""}${limit ? `║  Limit
   migrate({
     dryRun,
     startAfter,
-    limit: limit ? parseInt(limit, 10) : undefined
+    limit: limit ? parseInt(limit, 10) : undefined,
   })
     .then((result) => {
       console.log("\n📊 Migration Results:");
@@ -281,20 +287,23 @@ ${startAfter ? `║  Starting after: ${startAfter}\n` : ""}${limit ? `║  Limit
 
 Include these in the migration file:
 
-```markdown
+````markdown
 ## How to Run
 
 1. **Preview changes (dry run):**
    ```bash
    npx ts-node scripts/migrations/YYYY-MM-DD-description.ts
    ```
+````
 
 2. **Apply changes:**
+
    ```bash
    npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply
    ```
 
 3. **Resume from specific document:**
+
    ```bash
    npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply --start-after=docId123
    ```
@@ -303,7 +312,8 @@ Include these in the migration file:
    ```bash
    npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --limit=10
    ```
-```
+
+````
 
 ### 5. Update Type Definitions
 
@@ -320,7 +330,7 @@ export type ResourceBase = {
   name: string;
   newField: string; // Added in migration YYYY-MM-DD
 };
-```
+````
 
 ## Common Migration Patterns
 
@@ -333,7 +343,7 @@ function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
 
 function computeUpdates(data: FirebaseFirestore.DocumentData) {
   return {
-    newField: "defaultValue" // or computed from existing data
+    newField: "defaultValue", // or computed from existing data
   };
 }
 ```
@@ -348,7 +358,7 @@ function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
 function computeUpdates(data: FirebaseFirestore.DocumentData) {
   return {
     newFieldName: data.oldFieldName,
-    oldFieldName: FieldValue.delete()
+    oldFieldName: FieldValue.delete(),
   };
 }
 ```
@@ -361,7 +371,7 @@ function computeUpdates(data: FirebaseFirestore.DocumentData) {
   return {
     "settings.theme": data.preferences?.theme ?? "light",
     "settings.language": data.preferences?.language ?? "pl",
-    preferences: FieldValue.delete()
+    preferences: FieldValue.delete(),
   };
 }
 ```
@@ -371,14 +381,15 @@ function computeUpdates(data: FirebaseFirestore.DocumentData) {
 ```typescript
 function computeUpdates(data: FirebaseFirestore.DocumentData) {
   // Convert string array to object map
-  const tagsMap = (data.tags as string[])?.reduce(
-    (acc, tag) => ({ ...acc, [tag]: true }),
-    {}
-  ) ?? {};
+  const tagsMap =
+    (data.tags as string[])?.reduce(
+      (acc, tag) => ({ ...acc, [tag]: true }),
+      {},
+    ) ?? {};
 
   return {
     tagsMap,
-    tags: FieldValue.delete()
+    tags: FieldValue.delete(),
   };
 }
 ```
@@ -405,7 +416,7 @@ export async function rollback(options: MigrationOptions = {}) {
   function computeRollbackUpdates(data: FirebaseFirestore.DocumentData) {
     return {
       oldFieldName: data.newFieldName,
-      newFieldName: FieldValue.delete()
+      newFieldName: FieldValue.delete(),
     };
   }
   // ... rest of migration logic with rollback updates

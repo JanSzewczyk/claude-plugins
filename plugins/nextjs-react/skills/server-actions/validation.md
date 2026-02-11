@@ -35,7 +35,7 @@ export const createUserSchema = z.object({
     .number({ required_error: "Age is required" })
     .int("Age must be a whole number")
     .min(18, "Must be at least 18 years old")
-    .max(120, "Please enter a valid age")
+    .max(120, "Please enter a valid age"),
 });
 
 // Infer TypeScript types
@@ -52,7 +52,7 @@ export type UpdateUserData = z.infer<typeof updateUserSchema>;
 
 // Or make specific fields required
 export const updateUserSchema = createUserSchema.partial().required({
-  name: true // Name is still required for updates
+  name: true, // Name is still required for updates
 });
 ```
 
@@ -62,7 +62,7 @@ export const updateUserSchema = createUserSchema.partial().required({
 export const settingsSchema = z.object({
   theme: z.enum(["light", "dark", "system"]).default("system"),
   notifications: z.boolean().default(true),
-  language: z.string().default("en")
+  language: z.string().default("en"),
 });
 ```
 
@@ -88,7 +88,10 @@ const stringExamples = z.object({
     .string()
     .min(3, "Username must be at least 3 characters")
     .max(20, "Username must be at most 20 characters")
-    .regex(/^[a-z0-9_]+$/, "Username can only contain lowercase letters, numbers, and underscores"),
+    .regex(
+      /^[a-z0-9_]+$/,
+      "Username can only contain lowercase letters, numbers, and underscores",
+    ),
 
   // Email
   email: z.string().email("Invalid email address"),
@@ -106,7 +109,7 @@ const stringExamples = z.object({
   lowercased: z.string().toLowerCase(),
 
   // Non-empty string
-  nonEmpty: z.string().min(1, "Cannot be empty")
+  nonEmpty: z.string().min(1, "Cannot be empty"),
 });
 ```
 
@@ -138,7 +141,7 @@ const numberExamples = z.object({
   // Currency (2 decimal places)
   amount: z
     .number()
-    .multipleOf(0.01, "Amount must have at most 2 decimal places")
+    .multipleOf(0.01, "Amount must have at most 2 decimal places"),
 });
 ```
 
@@ -147,21 +150,21 @@ const numberExamples = z.object({
 ```typescript
 // Enum validation
 const statusSchema = z.enum(["draft", "published", "archived"], {
-  errorMap: () => ({ message: "Please select a valid status" })
+  errorMap: () => ({ message: "Please select a valid status" }),
 });
 
 // Union of literals
 const prioritySchema = z.union([
   z.literal("low"),
   z.literal("medium"),
-  z.literal("high")
+  z.literal("high"),
 ]);
 
 // Native enum
 enum UserRole {
   Admin = "admin",
   User = "user",
-  Guest = "guest"
+  Guest = "guest",
 }
 const roleSchema = z.nativeEnum(UserRole);
 ```
@@ -177,9 +180,7 @@ const dateExamples = z.object({
   birthDate: z.coerce.date(),
 
   // Date in the past
-  birthDate: z
-    .date()
-    .max(new Date(), "Birth date cannot be in the future"),
+  birthDate: z.date().max(new Date(), "Birth date cannot be in the future"),
 
   // Date in the future
   scheduledFor: z
@@ -190,7 +191,7 @@ const dateExamples = z.object({
   eventDate: z
     .date()
     .min(new Date("2024-01-01"), "Date must be after Jan 1, 2024")
-    .max(new Date("2024-12-31"), "Date must be before Dec 31, 2024")
+    .max(new Date("2024-12-31"), "Date must be before Dec 31, 2024"),
 });
 ```
 
@@ -203,14 +204,14 @@ const checkboxExamples = z.object({
 
   // Required to be true (like terms acceptance)
   acceptTerms: z.literal(true, {
-    errorMap: () => ({ message: "You must accept the terms" })
+    errorMap: () => ({ message: "You must accept the terms" }),
   }),
 
   // Boolean with default
   newsletter: z.boolean().default(false),
 
   // Coerce from string (for form checkboxes)
-  rememberMe: z.coerce.boolean()
+  rememberMe: z.coerce.boolean(),
 });
 ```
 
@@ -229,11 +230,11 @@ export const passwordSchema = z
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
       .regex(/[a-z]/, "Password must contain at least one lowercase letter")
       .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string()
+    confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ["confirmPassword"] // Error appears on confirmPassword field
+    path: ["confirmPassword"], // Error appears on confirmPassword field
   });
 ```
 
@@ -244,7 +245,7 @@ export const contactSchema = z
   .object({
     contactMethod: z.enum(["email", "phone"]),
     email: z.string().email().optional(),
-    phone: z.string().optional()
+    phone: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -258,8 +259,8 @@ export const contactSchema = z
     },
     {
       message: "Please provide the selected contact method",
-      path: ["email"] // Or dynamically set based on contactMethod
-    }
+      path: ["email"], // Or dynamically set based on contactMethod
+    },
   );
 ```
 
@@ -272,22 +273,22 @@ export const budgetSchema = z
     categories: z.array(
       z.object({
         name: z.string().min(1, "Category name is required"),
-        amount: z.number().min(0, "Amount cannot be negative")
-      })
-    )
+        amount: z.number().min(0, "Amount cannot be negative"),
+      }),
+    ),
   })
   .refine(
     (data) => {
       const totalAllocated = data.categories.reduce(
         (sum, cat) => sum + cat.amount,
-        0
+        0,
       );
       return totalAllocated <= data.totalBudget;
     },
     {
       message: "Total allocations exceed budget",
-      path: ["categories"]
-    }
+      path: ["categories"],
+    },
   );
 ```
 
@@ -297,11 +298,11 @@ export const budgetSchema = z
 export const dateRangeSchema = z
   .object({
     startDate: z.date(),
-    endDate: z.date()
+    endDate: z.date(),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: "End date must be after start date",
-    path: ["endDate"]
+    path: ["endDate"],
   });
 ```
 
@@ -323,12 +324,12 @@ export const tagsSchema = z.object({
   items: z.array(
     z.object({
       id: z.string().uuid(),
-      quantity: z.number().int().positive()
-    })
+      quantity: z.number().int().positive(),
+    }),
   ),
 
   // Non-empty array
-  categories: z.array(z.string()).nonempty("Select at least one category")
+  categories: z.array(z.string()).nonempty("Select at least one category"),
 });
 ```
 
@@ -339,14 +340,14 @@ const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().length(2, "Use 2-letter state code"),
-  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP code")
+  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP code"),
 });
 
 export const customerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email(),
   billingAddress: addressSchema,
-  shippingAddress: addressSchema.optional()
+  shippingAddress: addressSchema.optional(),
 });
 ```
 
@@ -359,17 +360,17 @@ const paymentSchema = z.discriminatedUnion("method", [
     cardNumber: z.string().length(16, "Card number must be 16 digits"),
     cvv: z.string().length(3, "CVV must be 3 digits"),
     expiryMonth: z.number().min(1).max(12),
-    expiryYear: z.number().min(2024)
+    expiryYear: z.number().min(2024),
   }),
   z.object({
     method: z.literal("bank_transfer"),
     accountNumber: z.string().min(8, "Invalid account number"),
-    routingNumber: z.string().length(9, "Routing number must be 9 digits")
+    routingNumber: z.string().length(9, "Routing number must be 9 digits"),
   }),
   z.object({
     method: z.literal("paypal"),
-    paypalEmail: z.string().email("Invalid PayPal email")
-  })
+    paypalEmail: z.string().email("Invalid PayPal email"),
+  }),
 ]);
 ```
 
@@ -384,7 +385,7 @@ export async function createPost(formData: FormData): ActionResponse<Post> {
   const rawData = {
     title: formData.get("title"),
     content: formData.get("content"),
-    published: formData.get("published") === "true"
+    published: formData.get("published") === "true",
   };
 
   const parsed = postSchema.safeParse(rawData);
@@ -393,7 +394,7 @@ export async function createPost(formData: FormData): ActionResponse<Post> {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -412,10 +413,12 @@ export const productSchema = z.object({
   price: z.coerce.number().positive(), // Converts "19.99" to 19.99
   quantity: z.coerce.number().int().positive(), // Converts "5" to 5
   available: z.coerce.boolean(), // Converts "true"/"on" to true
-  releaseDate: z.coerce.date() // Converts ISO string to Date
+  releaseDate: z.coerce.date(), // Converts ISO string to Date
 });
 
-export async function createProduct(formData: FormData): ActionResponse<Product> {
+export async function createProduct(
+  formData: FormData,
+): ActionResponse<Product> {
   const rawData = Object.fromEntries(formData.entries());
   const parsed = productSchema.safeParse(rawData);
   // ...
@@ -431,11 +434,14 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const uploadSchema = z.object({
   file: z
     .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, "File size must be less than 5MB")
+    .refine(
+      (file) => file.size <= MAX_FILE_SIZE,
+      "File size must be less than 5MB",
+    )
     .refine(
       (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only .jpg, .png, and .webp files are accepted"
-    )
+      "Only .jpg, .png, and .webp files are accepted",
+    ),
 });
 ```
 
@@ -457,7 +463,7 @@ if (!parsed.success) {
   return {
     success: false,
     error: flattened.formErrors[0] || "Validation failed",
-    fieldErrors: flattened.fieldErrors
+    fieldErrors: flattened.fieldErrors,
   };
 }
 ```
@@ -466,42 +472,49 @@ if (!parsed.success) {
 
 ```typescript
 export const userSchema = z.object({
-  email: z.string({
-    required_error: "Email address is required",
-    invalid_type_error: "Email must be a string"
-  }).email({
-    message: "Please enter a valid email address"
-  }),
+  email: z
+    .string({
+      required_error: "Email address is required",
+      invalid_type_error: "Email must be a string",
+    })
+    .email({
+      message: "Please enter a valid email address",
+    }),
 
-  age: z.number({
-    required_error: "Age is required",
-    invalid_type_error: "Age must be a number"
-  }).int({
-    message: "Age must be a whole number"
-  })
+  age: z
+    .number({
+      required_error: "Age is required",
+      invalid_type_error: "Age must be a number",
+    })
+    .int({
+      message: "Age must be a whole number",
+    }),
 });
 ```
 
 ### Error Map for Complex Schemas
 
 ```typescript
-export const formSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        name: z.string(),
-        price: z.number()
-      })
-    )
-    .min(1, "Add at least one item")
-}, {
-  errorMap: (issue, ctx) => {
-    if (issue.code === "too_small" && issue.path[0] === "items") {
-      return { message: "Your cart is empty. Please add at least one item." };
-    }
-    return { message: ctx.defaultError };
-  }
-});
+export const formSchema = z.object(
+  {
+    items: z
+      .array(
+        z.object({
+          name: z.string(),
+          price: z.number(),
+        }),
+      )
+      .min(1, "Add at least one item"),
+  },
+  {
+    errorMap: (issue, ctx) => {
+      if (issue.code === "too_small" && issue.path[0] === "items") {
+        return { message: "Your cart is empty. Please add at least one item." };
+      }
+      return { message: ctx.defaultError };
+    },
+  },
+);
 ```
 
 ---
@@ -514,7 +527,7 @@ export const formSchema = z.object({
 const userSchema = z.object({
   name: z.string().transform((val) => val.trim()),
   email: z.string().email().toLowerCase(),
-  birthDate: z.coerce.date()
+  birthDate: z.coerce.date(),
 });
 
 // Input type (what the form sends)
@@ -576,13 +589,10 @@ export {
   createUserSchema,
   updateUserSchema,
   type CreateUserData,
-  type UpdateUserData
+  type UpdateUserData,
 } from "./user";
 
-export {
-  profileSchema,
-  type ProfileData
-} from "./profile";
+export { profileSchema, type ProfileData } from "./profile";
 ```
 
 ### Shared Schema Utilities
@@ -596,25 +606,27 @@ export const idSchema = z.string().uuid("Invalid ID format");
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20)
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
 export const timestampsSchema = z.object({
   createdAt: z.date(),
-  updatedAt: z.date()
+  updatedAt: z.date(),
 });
 
 // Compose with feature schemas
-export const userSchema = z.object({
-  id: idSchema,
-  name: z.string().min(1),
-  email: z.string().email()
-}).merge(timestampsSchema);
+export const userSchema = z
+  .object({
+    id: idSchema,
+    name: z.string().min(1),
+    email: z.string().email(),
+  })
+  .merge(timestampsSchema);
 ```
 
 ### Schema with Documentation
 
-```typescript
+````typescript
 /**
  * Schema for creating a new blog post
  *
@@ -635,8 +647,8 @@ export const createPostSchema = z.object({
   content: z.string().min(10),
 
   /** Optional tags for categorization */
-  tags: z.array(z.string()).max(5).default([])
+  tags: z.array(z.string()).max(5).default([]),
 });
 
 export type CreatePostData = z.infer<typeof createPostSchema>;
-```
+````

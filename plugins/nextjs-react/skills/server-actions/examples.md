@@ -46,14 +46,14 @@ export async function createPost(data: CreatePostData): ActionResponse<Post> {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
   // 3. Database operation
   const [error, post] = await createPostInDb({
     ...parsed.data,
-    authorId: userId
+    authorId: userId,
   });
 
   if (error) {
@@ -69,7 +69,7 @@ export async function createPost(data: CreatePostData): ActionResponse<Post> {
   return {
     success: true,
     data: post,
-    message: "Post created successfully"
+    message: "Post created successfully",
   };
 }
 ```
@@ -120,7 +120,7 @@ const logger = createLogger({ module: "posts-actions" });
 
 export async function updatePost(
   postId: string,
-  data: UpdatePostData
+  data: UpdatePostData,
 ): ActionResponse<Post> {
   // 1. Authentication
   const { userId } = await auth();
@@ -144,7 +144,7 @@ export async function updatePost(
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -164,7 +164,7 @@ export async function updatePost(
   return {
     success: true,
     data: updatedPost,
-    message: "Post updated successfully"
+    message: "Post updated successfully",
   };
 }
 ```
@@ -229,7 +229,10 @@ For forms that should navigate to a new page after successful submission.
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { updateOnboarding } from "../db/onboarding";
-import { preferencesSchema, type PreferencesFormData } from "../../schemas/preferences";
+import {
+  preferencesSchema,
+  type PreferencesFormData,
+} from "../../schemas/preferences";
 import type { RedirectAction } from "~/lib/action-types";
 import type { Onboarding, UpdateOnboardingDto } from "../../types/onboarding";
 import { createLogger } from "~/lib/logger";
@@ -238,10 +241,13 @@ const logger = createLogger({ module: "onboarding-actions" });
 
 export async function submitPreferences(
   formData: PreferencesFormData,
-  onboarding: Onboarding
+  onboarding: Onboarding,
 ): RedirectAction {
   const { userId } = await auth();
-  logger.info({ userId, onboardingId: onboarding.id }, "Submitting preferences");
+  logger.info(
+    { userId, onboardingId: onboarding.id },
+    "Submitting preferences",
+  );
 
   // 1. Validation (optional if already validated client-side)
   const parsed = preferencesSchema.safeParse(formData);
@@ -249,26 +255,32 @@ export async function submitPreferences(
     return {
       success: false,
       error: "Invalid preferences data",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
   // 2. Prepare update data
   const updateData: UpdateOnboardingDto = {
     currentStep: "budget-setup",
-    preferences: parsed.data
+    preferences: parsed.data,
   };
 
   // 3. Update database
   const [error] = await updateOnboarding(onboarding.id, updateData);
 
   if (error) {
-    logger.error({ onboardingId: onboarding.id, error }, "Failed to save preferences");
+    logger.error(
+      { onboardingId: onboarding.id, error },
+      "Failed to save preferences",
+    );
     return { success: false, error: error.message };
   }
 
   // 4. Redirect to next step (never returns on success)
-  logger.info({ onboardingId: onboarding.id }, "Preferences saved, redirecting");
+  logger.info(
+    { onboardingId: onboarding.id },
+    "Preferences saved, redirecting",
+  );
   redirect("/onboarding/budget-setup");
 }
 ```
@@ -320,7 +332,11 @@ Pattern for wizard-like forms with skip functionality.
 import { redirect } from "next/navigation";
 import { updateOnboarding } from "../db/onboarding";
 import type { RedirectAction } from "~/lib/action-types";
-import type { Investment, Onboarding, UpdateOnboardingDto } from "../../types/onboarding";
+import type {
+  Investment,
+  Onboarding,
+  UpdateOnboardingDto,
+} from "../../types/onboarding";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import { createLogger } from "~/lib/logger";
 
@@ -329,19 +345,25 @@ const logger = createLogger({ module: "onboarding-actions" });
 // Main submission action
 export async function submitInvestments(
   investments: Investment[],
-  onboarding: Onboarding
+  onboarding: Onboarding,
 ): RedirectAction {
-  logger.info({ onboardingId: onboarding.id, count: investments.length }, "Submitting investments");
+  logger.info(
+    { onboardingId: onboarding.id, count: investments.length },
+    "Submitting investments",
+  );
 
   const updateData: UpdateOnboardingDto = {
     currentStep: "complete",
-    investments
+    investments,
   };
 
   const [error] = await updateOnboarding(onboarding.id, updateData);
 
   if (error) {
-    logger.error({ onboardingId: onboarding.id, error }, "Failed to save investments");
+    logger.error(
+      { onboardingId: onboarding.id, error },
+      "Failed to save investments",
+    );
     return { success: false, error: error.message };
   }
 
@@ -355,7 +377,7 @@ export async function skipInvestments(onboarding: Onboarding): RedirectAction {
 
   const updateData: UpdateOnboardingDto = {
     currentStep: "complete",
-    investments: [] // Empty array to indicate skipped
+    investments: [], // Empty array to indicate skipped
   };
 
   const [error] = await updateOnboarding(onboarding.id, updateData);
@@ -364,7 +386,10 @@ export async function skipInvestments(onboarding: Onboarding): RedirectAction {
     return { success: false, error: error.message };
   }
 
-  await setToastCookie("Investments step skipped. You can add accounts later.", "info");
+  await setToastCookie(
+    "Investments step skipped. You can add accounts later.",
+    "info",
+  );
   redirect("/onboarding/complete");
 }
 ```
@@ -390,7 +415,9 @@ import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "settings-actions" });
 
-export async function updateProfile(data: ProfileFormData): ActionResponse<UserProfile> {
+export async function updateProfile(
+  data: ProfileFormData,
+): ActionResponse<UserProfile> {
   const { userId } = await auth();
   if (!userId) {
     return { success: false, error: "Authentication required" };
@@ -403,7 +430,7 @@ export async function updateProfile(data: ProfileFormData): ActionResponse<UserP
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -412,7 +439,10 @@ export async function updateProfile(data: ProfileFormData): ActionResponse<UserP
 
   if (error) {
     logger.error({ userId, error }, "Failed to update profile");
-    await setToastCookie("Failed to update profile. Please try again.", "error");
+    await setToastCookie(
+      "Failed to update profile. Please try again.",
+      "error",
+    );
     return { success: false, error: "Failed to update profile" };
   }
 
@@ -422,7 +452,7 @@ export async function updateProfile(data: ProfileFormData): ActionResponse<UserP
 
   return {
     success: true,
-    data: profile
+    data: profile,
   };
 }
 ```
@@ -449,7 +479,7 @@ const DEFAULT_DURATION = 5000; // 5 seconds
 export async function setToastCookie(
   message: string,
   type: ToastType = "success",
-  duration: number = DEFAULT_DURATION
+  duration: number = DEFAULT_DURATION,
 ) {
   const cookieStore = await cookies();
 
@@ -460,7 +490,7 @@ export async function setToastCookie(
     path: "/",
     httpOnly: false, // Must be accessible to client JS
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
+    secure: process.env.NODE_ENV === "production",
   });
 }
 ```
@@ -482,7 +512,10 @@ import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "admin-actions" });
 
-export async function banUser(targetUserId: string, reason: string): ActionResponse<void> {
+export async function banUser(
+  targetUserId: string,
+  reason: string,
+): ActionResponse<void> {
   // 1. Get current user
   const { userId } = await auth();
   if (!userId) {
@@ -503,14 +536,17 @@ export async function banUser(targetUserId: string, reason: string): ActionRespo
 
   // 4. Validate reason
   if (!reason || reason.length < 10) {
-    return { success: false, error: "Ban reason must be at least 10 characters" };
+    return {
+      success: false,
+      error: "Ban reason must be at least 10 characters",
+    };
   }
 
   // 5. Perform ban
   const [error] = await banUserInDb(targetUserId, {
     bannedBy: userId,
     reason,
-    bannedAt: new Date()
+    bannedAt: new Date(),
   });
 
   if (error) {
@@ -521,7 +557,11 @@ export async function banUser(targetUserId: string, reason: string): ActionRespo
   // 6. Audit log
   logger.info({ adminId: userId, targetUserId, reason }, "User banned");
 
-  return { success: true, data: undefined, message: "User banned successfully" };
+  return {
+    success: true,
+    data: undefined,
+    message: "User banned successfully",
+  };
 }
 ```
 
@@ -542,7 +582,7 @@ import type { ActionResponse } from "~/lib/action-types";
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  message: z.string().min(10, "Message must be at least 10 characters")
+  message: z.string().min(10, "Message must be at least 10 characters"),
 });
 
 type ContactState = Awaited<ActionResponse<{ sent: boolean }>>;
@@ -550,13 +590,13 @@ type ContactState = Awaited<ActionResponse<{ sent: boolean }>>;
 // Action signature for useActionState: (prevState, formData) => newState
 export async function sendContactMessage(
   previousState: ContactState | null,
-  formData: FormData
+  formData: FormData,
 ): ActionResponse<{ sent: boolean }> {
   // Extract form data
   const rawData = {
     name: formData.get("name"),
     email: formData.get("email"),
-    message: formData.get("message")
+    message: formData.get("message"),
   };
 
   // Validate
@@ -565,7 +605,7 @@ export async function sendContactMessage(
     return {
       success: false,
       error: "Please fix the errors below",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -575,16 +615,19 @@ export async function sendContactMessage(
       to: "support@example.com",
       subject: `Contact from ${parsed.data.name}`,
       body: parsed.data.message,
-      replyTo: parsed.data.email
+      replyTo: parsed.data.email,
     });
   } catch (error) {
-    return { success: false, error: "Failed to send message. Please try again." };
+    return {
+      success: false,
+      error: "Failed to send message. Please try again.",
+    };
   }
 
   return {
     success: true,
     data: { sent: true },
-    message: "Message sent successfully!"
+    message: "Message sent successfully!",
   };
 }
 ```
@@ -699,7 +742,9 @@ type BatchDeleteResult = {
   failed: string[];
 };
 
-export async function batchDeletePosts(postIds: string[]): ActionResponse<BatchDeleteResult> {
+export async function batchDeletePosts(
+  postIds: string[],
+): ActionResponse<BatchDeleteResult> {
   // 1. Validate input
   if (!postIds.length) {
     return { success: false, error: "No posts selected" };
@@ -721,11 +766,11 @@ export async function batchDeletePosts(postIds: string[]): ActionResponse<BatchD
     return { success: false, error: "Failed to fetch posts" };
   }
 
-  const unauthorized = posts.filter(post => post.authorId !== userId);
+  const unauthorized = posts.filter((post) => post.authorId !== userId);
   if (unauthorized.length > 0) {
     return {
       success: false,
-      error: `Not authorized to delete ${unauthorized.length} post(s)`
+      error: `Not authorized to delete ${unauthorized.length} post(s)`,
     };
   }
 
@@ -745,7 +790,7 @@ export async function batchDeletePosts(postIds: string[]): ActionResponse<BatchD
   return {
     success: true,
     data: result,
-    message: `${result.deleted} post(s) deleted successfully`
+    message: `${result.deleted} post(s) deleted successfully`,
   };
 }
 ```
@@ -769,9 +814,16 @@ import { createLogger } from "~/lib/logger";
 const logger = createLogger({ module: "upload-actions" });
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+];
 
-export async function uploadFile(formData: FormData): ActionResponse<UploadedFile> {
+export async function uploadFile(
+  formData: FormData,
+): ActionResponse<UploadedFile> {
   // 1. Authentication
   const { userId } = await auth();
   if (!userId) {
@@ -788,7 +840,7 @@ export async function uploadFile(formData: FormData): ActionResponse<UploadedFil
   if (!ALLOWED_TYPES.includes(file.type)) {
     return {
       success: false,
-      error: `Invalid file type. Allowed: ${ALLOWED_TYPES.join(", ")}`
+      error: `Invalid file type. Allowed: ${ALLOWED_TYPES.join(", ")}`,
     };
   }
 
@@ -796,14 +848,17 @@ export async function uploadFile(formData: FormData): ActionResponse<UploadedFil
   if (file.size > MAX_FILE_SIZE) {
     return {
       success: false,
-      error: `File too large. Maximum size: ${MAX_FILE_SIZE / 1024 / 1024}MB`
+      error: `File too large. Maximum size: ${MAX_FILE_SIZE / 1024 / 1024}MB`,
     };
   }
 
   // 5. Upload to storage
   const [uploadError, storageUrl] = await uploadToStorage(file, userId);
   if (uploadError) {
-    logger.error({ userId, fileName: file.name, error: uploadError }, "Upload failed");
+    logger.error(
+      { userId, fileName: file.name, error: uploadError },
+      "Upload failed",
+    );
     return { success: false, error: "Failed to upload file" };
   }
 
@@ -813,11 +868,14 @@ export async function uploadFile(formData: FormData): ActionResponse<UploadedFil
     fileName: file.name,
     fileType: file.type,
     fileSize: file.size,
-    url: storageUrl
+    url: storageUrl,
   });
 
   if (dbError) {
-    logger.error({ userId, storageUrl, error: dbError }, "Failed to create file record");
+    logger.error(
+      { userId, storageUrl, error: dbError },
+      "Failed to create file record",
+    );
     return { success: false, error: "Failed to save file record" };
   }
 
@@ -826,7 +884,7 @@ export async function uploadFile(formData: FormData): ActionResponse<UploadedFil
   return {
     success: true,
     data: fileRecord,
-    message: "File uploaded successfully"
+    message: "File uploaded successfully",
   };
 }
 ```

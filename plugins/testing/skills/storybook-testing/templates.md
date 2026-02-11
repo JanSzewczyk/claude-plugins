@@ -14,13 +14,13 @@ const meta = preview.meta({
   title: "Components/ContactForm",
   component: ContactForm,
   args: {
-    onSubmit: fn()
-  }
+    onSubmit: fn(),
+  },
 });
 
 // Story 1: Empty form (main test story)
 export const EmptyForm = meta.story({
-  args: { defaultValues: {} }
+  args: { defaultValues: {} },
 });
 
 // Rendering tests
@@ -32,42 +32,54 @@ EmptyForm.test("Renders all form fields", async ({ canvas }) => {
 });
 
 // Validation tests
-EmptyForm.test("Shows validation error on empty submit", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await waitFor(async () => {
-    await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
-  });
-});
+EmptyForm.test(
+  "Shows validation error on empty submit",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await waitFor(async () => {
+      await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
+    });
+  },
+);
 
-EmptyForm.test("Shows error on invalid email format", async ({ canvas, userEvent }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "invalid-email");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await waitFor(async () => {
-    await expect(canvas.getByText(/invalid email/i)).toBeInTheDocument();
-  });
-});
+EmptyForm.test(
+  "Shows error on invalid email format",
+  async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "invalid-email");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await waitFor(async () => {
+      await expect(canvas.getByText(/invalid email/i)).toBeInTheDocument();
+    });
+  },
+);
 
-EmptyForm.test("Does not submit with validation errors", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await waitFor(async () => {
-    await expect(canvas.getByText(/required/i)).toBeInTheDocument();
-  });
-  await expect(args.onSubmit).not.toHaveBeenCalled();
-});
+EmptyForm.test(
+  "Does not submit with validation errors",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await waitFor(async () => {
+      await expect(canvas.getByText(/required/i)).toBeInTheDocument();
+    });
+    await expect(args.onSubmit).not.toHaveBeenCalled();
+  },
+);
 
 // Interaction tests
-EmptyForm.test("Submits form successfully with valid data", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/name/i), "John Doe");
-  await userEvent.type(canvas.getByLabelText(/email/i), "john@example.com");
-  await userEvent.type(canvas.getByLabelText(/message/i), "Hello!");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+EmptyForm.test(
+  "Submits form successfully with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/name/i), "John Doe");
+    await userEvent.type(canvas.getByLabelText(/email/i), "john@example.com");
+    await userEvent.type(canvas.getByLabelText(/message/i), "Hello!");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
 
-  await expect(args.onSubmit).toHaveBeenCalledWith({
-    name: "John Doe",
-    email: "john@example.com",
-    message: "Hello!"
-  });
-});
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      name: "John Doe",
+      email: "john@example.com",
+      message: "Hello!",
+    });
+  },
+);
 
 EmptyForm.test("Can clear field values", async ({ canvas, userEvent }) => {
   const emailInput = canvas.getByLabelText(/email/i);
@@ -82,33 +94,45 @@ export const FilledForm = meta.story({
     defaultValues: {
       name: "Jane Doe",
       email: "jane@example.com",
-      message: "Pre-filled message"
-    }
-  }
+      message: "Pre-filled message",
+    },
+  },
 });
 
 FilledForm.test("Displays pre-filled values", async ({ canvas, args }) => {
-  await expect(canvas.getByLabelText(/name/i)).toHaveValue(args.defaultValues.name);
-  await expect(canvas.getByLabelText(/email/i)).toHaveValue(args.defaultValues.email);
-  await expect(canvas.getByLabelText(/message/i)).toHaveValue(args.defaultValues.message);
+  await expect(canvas.getByLabelText(/name/i)).toHaveValue(
+    args.defaultValues.name,
+  );
+  await expect(canvas.getByLabelText(/email/i)).toHaveValue(
+    args.defaultValues.email,
+  );
+  await expect(canvas.getByLabelText(/message/i)).toHaveValue(
+    args.defaultValues.message,
+  );
 });
 
-FilledForm.test("Can modify pre-filled values", async ({ canvas, userEvent }) => {
-  const emailInput = canvas.getByLabelText(/email/i);
-  await userEvent.clear(emailInput);
-  await userEvent.type(emailInput, "new@example.com");
-  await expect(emailInput).toHaveValue("new@example.com");
-});
+FilledForm.test(
+  "Can modify pre-filled values",
+  async ({ canvas, userEvent }) => {
+    const emailInput = canvas.getByLabelText(/email/i);
+    await userEvent.clear(emailInput);
+    await userEvent.type(emailInput, "new@example.com");
+    await expect(emailInput).toHaveValue("new@example.com");
+  },
+);
 
 // Story 3: Loading state
 export const SubmittingForm = meta.story({
-  args: { isSubmitting: true }
+  args: { isSubmitting: true },
 });
 
-SubmittingForm.test("Submit button is disabled during submission", async ({ canvas }) => {
-  const submitBtn = canvas.getByRole("button", { name: /submit/i });
-  await expect(submitBtn).toBeDisabled();
-});
+SubmittingForm.test(
+  "Submit button is disabled during submission",
+  async ({ canvas }) => {
+    const submitBtn = canvas.getByRole("button", { name: /submit/i });
+    await expect(submitBtn).toBeDisabled();
+  },
+);
 
 SubmittingForm.test("Shows loading indicator", async ({ canvas }) => {
   await expect(canvas.getByRole("progressbar")).toBeVisible();
@@ -127,13 +151,13 @@ const meta = preview.meta({
   title: "Components/ItemList",
   component: ItemList,
   args: {
-    onItemClick: fn()
-  }
+    onItemClick: fn(),
+  },
 });
 
 // Story 1: Empty state
 export const EmptyList = meta.story({
-  args: { items: [] }
+  args: { items: [] },
 });
 
 EmptyList.test("Shows empty state message", async ({ canvas }) => {
@@ -146,7 +170,7 @@ EmptyList.test("Does not render table when empty", async ({ canvas }) => {
 
 // Story 2: With data
 export const PopulatedList = meta.story({
-  args: { items: Array.from({ length: 5 }, () => itemBuilder.one()) }
+  args: { items: Array.from({ length: 5 }, () => itemBuilder.one()) },
 });
 
 PopulatedList.test("Renders all items in table", async ({ canvas, args }) => {
@@ -155,21 +179,30 @@ PopulatedList.test("Renders all items in table", async ({ canvas, args }) => {
   await expect(rows.length).toBe(args.items.length + 1);
 });
 
-PopulatedList.test("Clicking item triggers callback", async ({ canvas, userEvent, args }) => {
-  const firstRow = canvas.getAllByRole("row")[1]; // Skip header
-  await userEvent.click(firstRow);
-  await expect(args.onItemClick).toHaveBeenCalledWith(args.items[0]);
-});
+PopulatedList.test(
+  "Clicking item triggers callback",
+  async ({ canvas, userEvent, args }) => {
+    const firstRow = canvas.getAllByRole("row")[1]; // Skip header
+    await userEvent.click(firstRow);
+    await expect(args.onItemClick).toHaveBeenCalledWith(args.items[0]);
+  },
+);
 
 PopulatedList.test("Table has correct column headers", async ({ canvas }) => {
-  await expect(canvas.getByRole("columnheader", { name: /name/i })).toBeVisible();
-  await expect(canvas.getByRole("columnheader", { name: /status/i })).toBeVisible();
-  await expect(canvas.getByRole("columnheader", { name: /actions/i })).toBeVisible();
+  await expect(
+    canvas.getByRole("columnheader", { name: /name/i }),
+  ).toBeVisible();
+  await expect(
+    canvas.getByRole("columnheader", { name: /status/i }),
+  ).toBeVisible();
+  await expect(
+    canvas.getByRole("columnheader", { name: /actions/i }),
+  ).toBeVisible();
 });
 
 // Story 3: Loading state
 export const LoadingList = meta.story({
-  args: { isLoading: true }
+  args: { isLoading: true },
 });
 
 LoadingList.test("Shows loading skeleton", async ({ canvas }) => {
@@ -194,13 +227,13 @@ const meta = preview.meta({
   component: ConfirmDialog,
   args: {
     onConfirm: fn(),
-    onCancel: fn()
-  }
+    onCancel: fn(),
+  },
 });
 
 // Story 1: Closed state (for visual docs)
 export const ClosedDialog = meta.story({
-  args: { isOpen: false }
+  args: { isOpen: false },
 });
 
 // Story 2: Open state (main test story)
@@ -208,17 +241,20 @@ export const OpenDialog = meta.story({
   args: {
     isOpen: true,
     title: "Confirm Action",
-    message: "Are you sure you want to proceed?"
-  }
+    message: "Are you sure you want to proceed?",
+  },
 });
 
 // Rendering tests
-OpenDialog.test("Renders modal with title and message", async ({ canvas, args }) => {
-  const dialog = canvas.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await expect(canvas.getByText(args.title)).toBeVisible();
-  await expect(canvas.getByText(args.message)).toBeVisible();
-});
+OpenDialog.test(
+  "Renders modal with title and message",
+  async ({ canvas, args }) => {
+    const dialog = canvas.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(canvas.getByText(args.title)).toBeVisible();
+    await expect(canvas.getByText(args.message)).toBeVisible();
+  },
+);
 
 OpenDialog.test("Shows confirm and cancel buttons", async ({ canvas }) => {
   await expect(canvas.getByRole("button", { name: /confirm/i })).toBeVisible();
@@ -226,30 +262,43 @@ OpenDialog.test("Shows confirm and cancel buttons", async ({ canvas }) => {
 });
 
 // Interaction tests
-OpenDialog.test("Clicking confirm triggers onConfirm", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /confirm/i }));
-  await expect(args.onConfirm).toHaveBeenCalledTimes(1);
-  await expect(args.onCancel).not.toHaveBeenCalled();
-});
+OpenDialog.test(
+  "Clicking confirm triggers onConfirm",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /confirm/i }));
+    await expect(args.onConfirm).toHaveBeenCalledTimes(1);
+    await expect(args.onCancel).not.toHaveBeenCalled();
+  },
+);
 
-OpenDialog.test("Clicking cancel triggers onCancel", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /cancel/i }));
-  await expect(args.onCancel).toHaveBeenCalledTimes(1);
-  await expect(args.onConfirm).not.toHaveBeenCalled();
-});
+OpenDialog.test(
+  "Clicking cancel triggers onCancel",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /cancel/i }));
+    await expect(args.onCancel).toHaveBeenCalledTimes(1);
+    await expect(args.onConfirm).not.toHaveBeenCalled();
+  },
+);
 
-OpenDialog.test("Pressing Escape triggers onCancel", async ({ userEvent, args }) => {
-  await userEvent.keyboard("{Escape}");
-  await expect(args.onCancel).toHaveBeenCalled();
-});
-
-OpenDialog.test("Clicking backdrop closes modal", async ({ canvasElement, userEvent, args }) => {
-  const backdrop = canvasElement.parentElement?.querySelector("[data-backdrop]");
-  if (backdrop) {
-    await userEvent.click(backdrop);
+OpenDialog.test(
+  "Pressing Escape triggers onCancel",
+  async ({ userEvent, args }) => {
+    await userEvent.keyboard("{Escape}");
     await expect(args.onCancel).toHaveBeenCalled();
-  }
-});
+  },
+);
+
+OpenDialog.test(
+  "Clicking backdrop closes modal",
+  async ({ canvasElement, userEvent, args }) => {
+    const backdrop =
+      canvasElement.parentElement?.querySelector("[data-backdrop]");
+    if (backdrop) {
+      await userEvent.click(backdrop);
+      await expect(args.onCancel).toHaveBeenCalled();
+    }
+  },
+);
 
 // Accessibility tests
 OpenDialog.test("Traps focus within modal", async ({ canvas, userEvent }) => {
@@ -287,34 +336,37 @@ const meta = preview.meta({
   title: "Components/SubmitButton",
   component: SubmitButton,
   args: {
-    onClick: fn()
-  }
+    onClick: fn(),
+  },
 });
 
 // Visual documentation stories (for Storybook UI)
 export const Primary = meta.story({
-  args: { variant: "primary", children: "Primary Button" }
+  args: { variant: "primary", children: "Primary Button" },
 });
 
 export const Secondary = meta.story({
-  args: { variant: "secondary", children: "Secondary Button" }
+  args: { variant: "secondary", children: "Secondary Button" },
 });
 
 export const Destructive = meta.story({
-  args: { variant: "destructive", children: "Delete" }
+  args: { variant: "destructive", children: "Delete" },
 });
 
 // Main test story (if only one state, name after component)
 export const IdleButton = meta.story({
-  args: { children: "Click Me" }
+  args: { children: "Click Me" },
 });
 
 // Rendering tests
-IdleButton.test("Renders button with correct text", async ({ canvas, args }) => {
-  const button = canvas.getByRole("button");
-  await expect(button).toBeVisible();
-  await expect(button).toHaveTextContent(args.children);
-});
+IdleButton.test(
+  "Renders button with correct text",
+  async ({ canvas, args }) => {
+    const button = canvas.getByRole("button");
+    await expect(button).toBeVisible();
+    await expect(button).toHaveTextContent(args.children);
+  },
+);
 
 IdleButton.test("Has correct default variant styles", async ({ canvas }) => {
   const button = canvas.getByRole("button");
@@ -322,35 +374,47 @@ IdleButton.test("Has correct default variant styles", async ({ canvas }) => {
 });
 
 // Interaction tests
-IdleButton.test("Calls onClick when clicked", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button");
-  await userEvent.click(button);
-  await expect(args.onClick).toHaveBeenCalledTimes(1);
-});
+IdleButton.test(
+  "Calls onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button");
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
+);
 
-IdleButton.test("Can be clicked multiple times", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button");
-  await userEvent.click(button);
-  await userEvent.click(button);
-  await userEvent.click(button);
-  await expect(args.onClick).toHaveBeenCalledTimes(3);
-});
+IdleButton.test(
+  "Can be clicked multiple times",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button");
+    await userEvent.click(button);
+    await userEvent.click(button);
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalledTimes(3);
+  },
+);
 
 // Accessibility tests
-IdleButton.test("Can be activated with Enter key", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button");
-  button.focus();
-  await expect(button).toHaveFocus();
-  await userEvent.keyboard("{Enter}");
-  await expect(args.onClick).toHaveBeenCalled();
-});
+IdleButton.test(
+  "Can be activated with Enter key",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button");
+    button.focus();
+    await expect(button).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 
-IdleButton.test("Can be activated with Space key", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button");
-  button.focus();
-  await userEvent.keyboard(" ");
-  await expect(args.onClick).toHaveBeenCalled();
-});
+IdleButton.test(
+  "Can be activated with Space key",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button");
+    button.focus();
+    await userEvent.keyboard(" ");
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 
 IdleButton.test("Has accessible name", async ({ canvas }) => {
   const button = canvas.getByRole("button");
@@ -359,7 +423,7 @@ IdleButton.test("Has accessible name", async ({ canvas }) => {
 
 // Loading state story
 export const LoadingButton = meta.story({
-  args: { isLoading: true, children: "Loading..." }
+  args: { isLoading: true, children: "Loading..." },
 });
 
 LoadingButton.test("Shows loading indicator", async ({ canvas }) => {
@@ -376,14 +440,17 @@ LoadingButton.test("Has aria-busy attribute", async ({ canvas }) => {
   await expect(button).toHaveAttribute("aria-busy", "true");
 });
 
-LoadingButton.test("Does not trigger onClick when clicked", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button"));
-  await expect(args.onClick).not.toHaveBeenCalled();
-});
+LoadingButton.test(
+  "Does not trigger onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+);
 
 // Disabled state story
 export const DisabledButton = meta.story({
-  args: { disabled: true, children: "Disabled" }
+  args: { disabled: true, children: "Disabled" },
 });
 
 DisabledButton.test("Shows disabled state visually", async ({ canvas }) => {
@@ -392,10 +459,13 @@ DisabledButton.test("Shows disabled state visually", async ({ canvas }) => {
   await expect(button).toHaveClass(/opacity-50/);
 });
 
-DisabledButton.test("Does not trigger onClick when clicked", async ({ canvas, userEvent, args }) => {
-  await userEvent.click(canvas.getByRole("button"));
-  await expect(args.onClick).not.toHaveBeenCalled();
-});
+DisabledButton.test(
+  "Does not trigger onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+);
 ```
 
 ## Template 5: Input/TextField Component
@@ -409,13 +479,13 @@ const meta = preview.meta({
   title: "Components/EmailInput",
   component: EmailInput,
   args: {
-    onChange: fn()
-  }
+    onChange: fn(),
+  },
 });
 
 // Story 1: Empty input (main test story)
 export const EmptyInput = meta.story({
-  args: { label: "Email", placeholder: "Enter your email" }
+  args: { label: "Email", placeholder: "Enter your email" },
 });
 
 // Rendering tests
@@ -436,11 +506,14 @@ EmptyInput.test("Typing updates input value", async ({ canvas, userEvent }) => {
   await expect(input).toHaveValue("test@example.com");
 });
 
-EmptyInput.test("Triggers onChange on input", async ({ canvas, userEvent, args }) => {
-  const input = canvas.getByRole("textbox");
-  await userEvent.type(input, "test@example.com");
-  await expect(args.onChange).toHaveBeenCalled();
-});
+EmptyInput.test(
+  "Triggers onChange on input",
+  async ({ canvas, userEvent, args }) => {
+    const input = canvas.getByRole("textbox");
+    await userEvent.type(input, "test@example.com");
+    await expect(args.onChange).toHaveBeenCalled();
+  },
+);
 
 EmptyInput.test("Can clear input value", async ({ canvas, userEvent }) => {
   const input = canvas.getByRole("textbox");
@@ -451,7 +524,7 @@ EmptyInput.test("Can clear input value", async ({ canvas, userEvent }) => {
 
 // Story 2: With value
 export const FilledInput = meta.story({
-  args: { label: "Email", value: "user@example.com" }
+  args: { label: "Email", value: "user@example.com" },
 });
 
 FilledInput.test("Displays provided value", async ({ canvas, args }) => {
@@ -471,8 +544,8 @@ export const ErrorInput = meta.story({
   args: {
     label: "Email",
     value: "invalid",
-    error: "Invalid email address"
-  }
+    error: "Invalid email address",
+  },
 });
 
 ErrorInput.test("Displays error message", async ({ canvas, args }) => {
@@ -491,7 +564,7 @@ ErrorInput.test("Has error styling", async ({ canvas }) => {
 
 // Story 4: Disabled state
 export const DisabledInput = meta.story({
-  args: { label: "Email", disabled: true }
+  args: { label: "Email", disabled: true },
 });
 
 DisabledInput.test("Input is disabled", async ({ canvas }) => {
@@ -499,12 +572,15 @@ DisabledInput.test("Input is disabled", async ({ canvas }) => {
   await expect(input).toBeDisabled();
 });
 
-DisabledInput.test("Cannot type in disabled input", async ({ canvas, userEvent, args }) => {
-  const input = canvas.getByRole("textbox");
-  await userEvent.type(input, "test");
-  await expect(input).toHaveValue("");
-  await expect(args.onChange).not.toHaveBeenCalled();
-});
+DisabledInput.test(
+  "Cannot type in disabled input",
+  async ({ canvas, userEvent, args }) => {
+    const input = canvas.getByRole("textbox");
+    await userEvent.type(input, "test");
+    await expect(input).toHaveValue("");
+    await expect(args.onChange).not.toHaveBeenCalled();
+  },
+);
 ```
 
 ## Template: Select/Dropdown Component
@@ -521,21 +597,21 @@ const meta = preview.meta({
     options: [
       { value: "1", label: "Option 1" },
       { value: "2", label: "Option 2" },
-      { value: "3", label: "Option 3" }
-    ]
-  }
+      { value: "3", label: "Option 3" },
+    ],
+  },
 });
 
 export const Default = meta.story({
-  args: { label: "Choose an option" }
+  args: { label: "Choose an option" },
 });
 
 export const WithDefaultValue = meta.story({
-  args: { label: "Choose an option", value: "2" }
+  args: { label: "Choose an option", value: "2" },
 });
 
 export const Disabled = meta.story({
-  args: { label: "Choose an option", disabled: true }
+  args: { label: "Choose an option", disabled: true },
 });
 
 export const SelectOption = meta.story({
@@ -549,7 +625,7 @@ export const SelectOption = meta.story({
     await userEvent.click(option);
 
     await expect(args.onChange).toHaveBeenCalledWith("2");
-  }
+  },
 });
 ```
 
@@ -605,15 +681,15 @@ const meta = preview.meta({
     tabs: [
       { id: "tab1", label: "Tab 1", content: "Content 1" },
       { id: "tab2", label: "Tab 2", content: "Content 2" },
-      { id: "tab3", label: "Tab 3", content: "Content 3" }
-    ]
-  }
+      { id: "tab3", label: "Tab 3", content: "Content 3" },
+    ],
+  },
 });
 
 export const Default = meta.story({});
 
 export const WithDefaultTab = meta.story({
-  args: { defaultTab: "tab2" }
+  args: { defaultTab: "tab2" },
 });
 
 export const TabNavigation = meta.story({
@@ -632,7 +708,7 @@ export const TabNavigation = meta.story({
     await step("Verify content changed", async () => {
       await expect(canvas.getByText("Content 2")).toBeInTheDocument();
     });
-  }
+  },
 });
 ```
 

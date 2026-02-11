@@ -30,6 +30,7 @@ Test Next.js Route Handlers with real HTTP requests using Playwright. This skill
 - **Error handling patterns** (DbError codes, HTTP status mapping)
 
 Also check `CLAUDE.md` for:
+
 - Server Actions patterns (ActionResponse type)
 - Database error handling (DbError class)
 
@@ -57,6 +58,7 @@ When the user requests API tests:
 ### 1. Analyze the Endpoint
 
 Gather information about:
+
 - HTTP method(s) supported
 - Request body schema (if any)
 - Query parameters
@@ -102,7 +104,7 @@ test.describe("API: [Endpoint Name]", () => {
         headers: {
           // Add auth headers if needed
           // "Authorization": `Bearer ${token}`
-        }
+        },
       });
 
       expect(response.status()).toBe(200);
@@ -115,7 +117,7 @@ test.describe("API: [Endpoint Name]", () => {
 
     test("supports pagination parameters", async ({ request }) => {
       const response = await request.get(
-        `${BASE_URL}${API_ENDPOINT}?page=1&limit=10`
+        `${BASE_URL}${API_ENDPOINT}?page=1&limit=10`,
       );
 
       expect(response.status()).toBe(200);
@@ -129,11 +131,11 @@ test.describe("API: [Endpoint Name]", () => {
       const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
         data: {
           name: "Test Resource",
-          description: "Test description"
+          description: "Test description",
         },
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       expect(response.status()).toBe(201);
@@ -150,8 +152,8 @@ test.describe("API: [Endpoint Name]", () => {
           // Missing required fields
         },
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       expect(response.status()).toBe(400);
@@ -165,12 +167,12 @@ test.describe("API: [Endpoint Name]", () => {
     test("returns 409 for duplicate resource", async ({ request }) => {
       // First create
       await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-        data: { name: "Unique Name" }
+        data: { name: "Unique Name" },
       });
 
       // Second create with same data
       const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-        data: { name: "Unique Name" }
+        data: { name: "Unique Name" },
       });
 
       expect(response.status()).toBe(409);
@@ -180,7 +182,7 @@ test.describe("API: [Endpoint Name]", () => {
   test.describe("Error Handling", () => {
     test("returns 404 for non-existent resource", async ({ request }) => {
       const response = await request.get(
-        `${BASE_URL}${API_ENDPOINT}/non-existent-id`
+        `${BASE_URL}${API_ENDPOINT}/non-existent-id`,
       );
 
       expect(response.status()).toBe(404);
@@ -191,7 +193,7 @@ test.describe("API: [Endpoint Name]", () => {
     test("returns 500 for server errors gracefully", async ({ request }) => {
       // Trigger server error condition if possible
       const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-        data: { triggerError: true }
+        data: { triggerError: true },
       });
 
       // Should return error, not crash
@@ -222,7 +224,7 @@ test.describe("Authenticated API Tests", () => {
 
   test("authenticated request succeeds", async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/protected`, {
-      headers: getAuthHeaders(authToken)
+      headers: getAuthHeaders(authToken),
     });
 
     expect(response.status()).toBe(200);
@@ -256,13 +258,16 @@ test.describe("Validation", () => {
     { payload: {}, error: "name is required" },
     { payload: { name: "" }, error: "name cannot be empty" },
     { payload: { name: "x".repeat(256) }, error: "name too long" },
-    { payload: { name: "valid", amount: "not-a-number" }, error: "amount must be number" }
+    {
+      payload: { name: "valid", amount: "not-a-number" },
+      error: "amount must be number",
+    },
   ];
 
   for (const { payload, error } of invalidPayloads) {
     test(`rejects invalid payload: ${error}`, async ({ request }) => {
       const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-        data: payload
+        data: payload,
       });
 
       expect(response.status()).toBe(400);
@@ -289,7 +294,7 @@ test("returns correct headers", async ({ request }) => {
 ```typescript
 test("enforces rate limiting", async ({ request }) => {
   const requests = Array.from({ length: 20 }, () =>
-    request.get(`${BASE_URL}${API_ENDPOINT}`)
+    request.get(`${BASE_URL}${API_ENDPOINT}`),
   );
 
   const responses = await Promise.all(requests);
@@ -356,7 +361,7 @@ test.describe("CRUD: Resources", () => {
 
   test("CREATE: POST /api/resources", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/resources`, {
-      data: { name: "Test Resource", /* add required fields */ }
+      data: { name: "Test Resource" /* add required fields */ },
     });
 
     expect(response.status()).toBe(201);
@@ -366,7 +371,9 @@ test.describe("CRUD: Resources", () => {
   });
 
   test("READ: GET /api/resources/:id", async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/resources/${createdId}`);
+    const response = await request.get(
+      `${BASE_URL}/api/resources/${createdId}`,
+    );
 
     expect(response.status()).toBe(200);
     const { data } = await response.json();
@@ -374,9 +381,12 @@ test.describe("CRUD: Resources", () => {
   });
 
   test("UPDATE: PUT /api/resources/:id", async ({ request }) => {
-    const response = await request.put(`${BASE_URL}/api/resources/${createdId}`, {
-      data: { name: "Updated Resource" }
-    });
+    const response = await request.put(
+      `${BASE_URL}/api/resources/${createdId}`,
+      {
+        data: { name: "Updated Resource" },
+      },
+    );
 
     expect(response.status()).toBe(200);
     const { data } = await response.json();
@@ -384,7 +394,9 @@ test.describe("CRUD: Resources", () => {
   });
 
   test("DELETE: DELETE /api/resources/:id", async ({ request }) => {
-    const response = await request.delete(`${BASE_URL}/api/resources/${createdId}`);
+    const response = await request.delete(
+      `${BASE_URL}/api/resources/${createdId}`,
+    );
 
     expect(response.status()).toBe(204);
   });
@@ -414,7 +426,7 @@ If your project uses the ActionResponse pattern (check `CLAUDE.md`), use these a
 // Test successful ActionResponse
 test("returns ActionResponse success format", async ({ request }) => {
   const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-    data: validPayload
+    data: validPayload,
   });
 
   expect(response.status()).toBe(200);
@@ -431,7 +443,7 @@ test("returns ActionResponse success format", async ({ request }) => {
 // Test failed ActionResponse with validation errors
 test("returns fieldErrors on validation failure", async ({ request }) => {
   const response = await request.post(`${BASE_URL}${API_ENDPOINT}`, {
-    data: {} // missing required fields
+    data: {}, // missing required fields
   });
 
   expect(response.status()).toBe(400);
@@ -447,8 +459,8 @@ test("returns fieldErrors on validation failure", async ({ request }) => {
   if (body.fieldErrors) {
     expect(body.fieldErrors).toEqual(
       expect.objectContaining({
-        name: expect.arrayContaining([expect.any(String)])
-      })
+        name: expect.arrayContaining([expect.any(String)]),
+      }),
     );
   }
 });
@@ -456,7 +468,7 @@ test("returns fieldErrors on validation failure", async ({ request }) => {
 // Test database error mapping
 test("maps DbError to appropriate HTTP status", async ({ request }) => {
   const response = await request.get(
-    `${BASE_URL}${API_ENDPOINT}/non-existent-id`
+    `${BASE_URL}${API_ENDPOINT}/non-existent-id`,
   );
 
   // DbError.notFound → 404

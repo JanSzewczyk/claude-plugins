@@ -67,10 +67,15 @@ export const Default = meta.story({});
 
 // Rendering & Content Tests
 Default.test("Renders section heading and description", async ({ canvas }) => {
-  const heading = canvas.getByRole("heading", { name: /skills & technologies/i, level: 2 });
+  const heading = canvas.getByRole("heading", {
+    name: /skills & technologies/i,
+    level: 2,
+  });
   await expect(heading).toBeVisible();
 
-  const description = canvas.getByText(/the tools and technologies I work with to bring ideas to life/i);
+  const description = canvas.getByText(
+    /the tools and technologies I work with to bring ideas to life/i,
+  );
   await expect(description).toBeVisible();
 });
 
@@ -92,99 +97,135 @@ Default.test("Shows all category badges", async ({ canvas }) => {
   await expect(canvas.getByText("Other")).toBeVisible();
 });
 
-Default.test("Displays skill cards with correct headings", async ({ canvas }) => {
-  const reactSkill = canvas.getByRole("heading", { name: "React", level: 3 });
-  await expect(reactSkill).toBeVisible();
+Default.test(
+  "Displays skill cards with correct headings",
+  async ({ canvas }) => {
+    const reactSkill = canvas.getByRole("heading", { name: "React", level: 3 });
+    await expect(reactSkill).toBeVisible();
 
-  const reactNativeSkill = canvas.getByRole("heading", { name: "React Native", level: 3 });
-  await expect(reactNativeSkill).toBeVisible();
-});
+    const reactNativeSkill = canvas.getByRole("heading", {
+      name: "React Native",
+      level: 3,
+    });
+    await expect(reactNativeSkill).toBeVisible();
+  },
+);
 
 // Interaction Tests
-Default.test("Skill card hover shows tooltip", async ({ canvas, userEvent }) => {
-  const nextjsCard = canvas.getByRole("heading", { name: "Next.js", level: 3 });
-  await userEvent.hover(nextjsCard);
+Default.test(
+  "Skill card hover shows tooltip",
+  async ({ canvas, userEvent }) => {
+    const nextjsCard = canvas.getByRole("heading", {
+      name: "Next.js",
+      level: 3,
+    });
+    await userEvent.hover(nextjsCard);
 
-  await waitFor(
-    async () => {
-      const tooltip = canvas.queryByText(/full-stack react framework/i);
-      if (tooltip) {
-        await expect(tooltip).toBeVisible();
-      }
-    },
-    { timeout: 2000 }
-  );
-});
+    await waitFor(
+      async () => {
+        const tooltip = canvas.queryByText(/full-stack react framework/i);
+        if (tooltip) {
+          await expect(tooltip).toBeVisible();
+        }
+      },
+      { timeout: 2000 },
+    );
+  },
+);
 
-Default.test("Marquee pauses on tech logo hover", async ({ canvas, userEvent }) => {
-  const reactLogo = canvas.getByText("React");
-  await userEvent.hover(reactLogo);
-  await expect(reactLogo).toBeVisible();
+Default.test(
+  "Marquee pauses on tech logo hover",
+  async ({ canvas, userEvent }) => {
+    const reactLogo = canvas.getByText("React");
+    await userEvent.hover(reactLogo);
+    await expect(reactLogo).toBeVisible();
 
-  await userEvent.unhover(reactLogo);
-  await expect(reactLogo).toBeVisible();
-});
+    await userEvent.unhover(reactLogo);
+    await expect(reactLogo).toBeVisible();
+  },
+);
 
-Default.test("Mobile tab navigation switches content", async ({ canvas, userEvent }) => {
-  const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
-  await expect(frontendTab).toHaveAttribute("data-state", "active");
+Default.test(
+  "Mobile tab navigation switches content",
+  async ({ canvas, userEvent }) => {
+    const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
+    await expect(frontendTab).toHaveAttribute("data-state", "active");
 
-  const mobileTab = canvas.getByRole("tab", { name: /mobile/i });
-  await userEvent.click(mobileTab);
+    const mobileTab = canvas.getByRole("tab", { name: /mobile/i });
+    await userEvent.click(mobileTab);
 
-  await waitFor(
-    async () => {
-      await expect(mobileTab).toHaveAttribute("data-state", "active");
-    },
-    { timeout: 2000 }
-  );
+    await waitFor(
+      async () => {
+        await expect(mobileTab).toHaveAttribute("data-state", "active");
+      },
+      { timeout: 2000 },
+    );
 
-  const reactNativeSkill = canvas.getByRole("heading", { name: "React Native", level: 3 });
-  await expect(reactNativeSkill).toBeVisible();
-});
+    const reactNativeSkill = canvas.getByRole("heading", {
+      name: "React Native",
+      level: 3,
+    });
+    await expect(reactNativeSkill).toBeVisible();
+  },
+);
 
 // Accessibility Tests
-Default.test("Keyboard navigation works with arrow keys", async ({ canvas, userEvent }) => {
-  const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
-  frontendTab.focus();
-  await expect(frontendTab).toHaveFocus();
+Default.test(
+  "Keyboard navigation works with arrow keys",
+  async ({ canvas, userEvent }) => {
+    const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
+    frontendTab.focus();
+    await expect(frontendTab).toHaveFocus();
 
-  await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard("{ArrowRight}");
 
-  await waitFor(async () => {
-    const mobileTab = canvas.getByRole("tab", { name: /mobile/i });
-    await expect(mobileTab).toHaveFocus();
-  });
-});
+    await waitFor(async () => {
+      const mobileTab = canvas.getByRole("tab", { name: /mobile/i });
+      await expect(mobileTab).toHaveFocus();
+    });
+  },
+);
 
-Default.test("Section maintains proper heading hierarchy", async ({ canvas }) => {
-  const mainHeading = canvas.getByRole("heading", { name: /skills & technologies/i, level: 2 });
-  await expect(mainHeading).toBeVisible();
+Default.test(
+  "Section maintains proper heading hierarchy",
+  async ({ canvas }) => {
+    const mainHeading = canvas.getByRole("heading", {
+      name: /skills & technologies/i,
+      level: 2,
+    });
+    await expect(mainHeading).toBeVisible();
 
-  const skillHeadings = canvas.getAllByRole("heading", { level: 3 });
-  await expect(skillHeadings.length).toBeGreaterThan(4);
-});
+    const skillHeadings = canvas.getAllByRole("heading", { level: 3 });
+    await expect(skillHeadings.length).toBeGreaterThan(4);
+  },
+);
 
 // Layout Tests
-Default.test("Desktop Bento grid displays all categories simultaneously", async ({ canvas }) => {
-  await expect(canvas.getByText("Frontend")).toBeVisible();
-  await expect(canvas.getByText("Mobile")).toBeVisible();
-  await expect(canvas.getByText("DevOps & Tools")).toBeVisible();
-  await expect(canvas.getByText("Other")).toBeVisible();
-});
+Default.test(
+  "Desktop Bento grid displays all categories simultaneously",
+  async ({ canvas }) => {
+    await expect(canvas.getByText("Frontend")).toBeVisible();
+    await expect(canvas.getByText("Mobile")).toBeVisible();
+    await expect(canvas.getByText("DevOps & Tools")).toBeVisible();
+    await expect(canvas.getByText("Other")).toBeVisible();
+  },
+);
 
-Default.test("Responsive container has proper structure", async ({ canvasElement }) => {
-  const section = canvasElement.querySelector("#skills");
-  await expect(section).toBeInTheDocument();
+Default.test(
+  "Responsive container has proper structure",
+  async ({ canvasElement }) => {
+    const section = canvasElement.querySelector("#skills");
+    await expect(section).toBeInTheDocument();
 
-  const container = section?.querySelector(".container");
-  await expect(container).toBeInTheDocument();
-});
+    const container = section?.querySelector(".container");
+    await expect(container).toBeInTheDocument();
+  },
+);
 
 // Optional: Keep one visual story for documentation
 export const EmptyState = meta.story({
   name: "Visual Documentation",
-  tags: ["autodocs"]
+  tags: ["autodocs"],
   // No tests - just for visual reference
 });
 ```
@@ -264,7 +305,7 @@ export const TestName = meta.story({
   tags: ["test-only"],
   play: async ({ canvas, userEvent }) => {
     // test logic
-  }
+  },
 });
 ```
 
@@ -297,10 +338,13 @@ play: async ({ canvas, step, userEvent }) => {
 **After (with .test):**
 
 ```typescript
-Default.test("Clicking button shows success message", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button"));
-  await expect(canvas.getByText("Success")).toBeVisible();
-});
+Default.test(
+  "Clicking button shows success message",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(canvas.getByText("Success")).toBeVisible();
+  },
+);
 ```
 
 ## Test Naming Conventions
@@ -336,17 +380,23 @@ const fillContactForm = async (canvas: Canvas, userEvent: UserEvent) => {
 
 export const ContactForm = meta.story({});
 
-ContactForm.test("Submits form with valid data", async ({ canvas, userEvent, args }) => {
-  await fillContactForm(canvas, userEvent);
-  await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+ContactForm.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await fillContactForm(canvas, userEvent);
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 
-ContactForm.test("Shows success message after submission", async ({ canvas, userEvent }) => {
-  await fillContactForm(canvas, userEvent);
-  await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
-  await expect(canvas.getByText("Thank you!")).toBeVisible();
-});
+ContactForm.test(
+  "Shows success message after submission",
+  async ({ canvas, userEvent }) => {
+    await fillContactForm(canvas, userEvent);
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await expect(canvas.getByText("Thank you!")).toBeVisible();
+  },
+);
 ```
 
 ### Pattern 2: Multiple Stories with Different Props
@@ -382,19 +432,22 @@ Prefilled.test("Can modify pre-filled values", async ({ canvas, userEvent }) => 
 For responsive or conditional rendering:
 
 ```typescript
-Default.test("Mobile tab navigation (if tabs present)", async ({ canvas, userEvent }) => {
-  const mobileTab = canvas.queryByRole("tab", { name: /mobile/i });
+Default.test(
+  "Mobile tab navigation (if tabs present)",
+  async ({ canvas, userEvent }) => {
+    const mobileTab = canvas.queryByRole("tab", { name: /mobile/i });
 
-  // Only test if tabs are rendered (mobile viewport)
-  if (mobileTab) {
-    await userEvent.click(mobileTab);
-    await expect(mobileTab).toHaveAttribute("data-state", "active");
-  } else {
-    // Desktop viewport - all categories visible
-    await expect(canvas.getByText("Frontend")).toBeVisible();
-    await expect(canvas.getByText("Mobile")).toBeVisible();
-  }
-});
+    // Only test if tabs are rendered (mobile viewport)
+    if (mobileTab) {
+      await userEvent.click(mobileTab);
+      await expect(mobileTab).toHaveAttribute("data-state", "active");
+    } else {
+      // Desktop viewport - all categories visible
+      await expect(canvas.getByText("Frontend")).toBeVisible();
+      await expect(canvas.getByText("Mobile")).toBeVisible();
+    }
+  },
+);
 ```
 
 ## Type Safety
@@ -439,11 +492,14 @@ Default.test("Shows error message on invalid email", async ({ canvas }) => {
 });
 
 // ❌ Bad - testing multiple unrelated things
-Default.test("Form validation and submission", async ({ canvas, userEvent }) => {
-  await expect(canvas.getByText("Error")).toBeVisible(); // validation
-  await userEvent.click(canvas.getByRole("button")); // submission
-  await expect(args.onSubmit).toHaveBeenCalled(); // callback
-});
+Default.test(
+  "Form validation and submission",
+  async ({ canvas, userEvent }) => {
+    await expect(canvas.getByText("Error")).toBeVisible(); // validation
+    await userEvent.click(canvas.getByRole("button")); // submission
+    await expect(args.onSubmit).toHaveBeenCalled(); // callback
+  },
+);
 ```
 
 ### 2. Group Related Tests

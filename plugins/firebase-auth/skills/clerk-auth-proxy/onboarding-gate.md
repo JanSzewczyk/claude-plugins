@@ -83,8 +83,8 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|api|trpc|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
-  ]
+    "/((?!_next|api|trpc|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+  ],
 };
 ```
 
@@ -166,44 +166,58 @@ import { FieldValue } from "firebase-admin/firestore";
 import { redirect } from "next/navigation";
 import { updateUserMetadata } from "~/features/auth/server/db/user";
 import { updateOnboarding } from "~/features/onboarding/server/db/onboarding";
-import type { Onboarding, UpdateOnboardingDto } from "~/features/onboarding/types/onboarding";
+import type {
+  Onboarding,
+  UpdateOnboardingDto,
+} from "~/features/onboarding/types/onboarding";
 import type { RedirectAction } from "~/lib/action-types";
 import { createLogger } from "~/lib/logger";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 
 const logger = createLogger({ module: "onboarding-actions" });
 
-export async function completeOnboarding(onboarding: Onboarding): RedirectAction {
+export async function completeOnboarding(
+  onboarding: Onboarding,
+): RedirectAction {
   logger.info({ onboardingId: onboarding.id }, "Completing onboarding");
 
   // 1. Update onboarding document in Firestore
   const updateData: UpdateOnboardingDto = {
     completed: true,
-    completedAt: FieldValue.serverTimestamp()
+    completedAt: FieldValue.serverTimestamp(),
   };
 
   const [dbError] = await updateOnboarding(onboarding.id, updateData);
   if (dbError) {
-    logger.error({
-      onboardingId: onboarding.id,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Failed to mark onboarding as completed");
+    logger.error(
+      {
+        onboardingId: onboarding.id,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Failed to mark onboarding as completed",
+    );
     return { success: false, error: dbError.message };
   }
 
-  logger.info({ onboardingId: onboarding.id }, "Onboarding marked completed in DB");
+  logger.info(
+    { onboardingId: onboarding.id },
+    "Onboarding marked completed in DB",
+  );
 
   // 2. Update Clerk user metadata
   const [metadataError] = await updateUserMetadata(onboarding.id, {
-    onboardingComplete: true
+    onboardingComplete: true,
   });
 
   if (metadataError) {
-    logger.error({
-      userId: onboarding.id,
-      errorCode: metadataError.code
-    }, "Failed to update Clerk metadata");
+    logger.error(
+      {
+        userId: onboarding.id,
+        errorCode: metadataError.code,
+      },
+      "Failed to update Clerk metadata",
+    );
     return { success: false, error: "Failed to update session" };
   }
 
@@ -229,7 +243,7 @@ const logger = createLogger({ module: "user-db" });
 
 export async function updateUserMetadata(
   userId: string,
-  metadata: Partial<UserPublicMetadata>
+  metadata: Partial<UserPublicMetadata>,
 ): Promise<[null, User] | [DbError, null]> {
   if (!userId?.trim()) {
     const error = DbError.validation("Invalid userId provided");
@@ -248,18 +262,21 @@ export async function updateUserMetadata(
 
     const client = await clerkClient();
     const updatedUser = await client.users.updateUser(userId, {
-      publicMetadata: metadata
+      publicMetadata: metadata,
     });
 
     logger.info({ userId }, "Clerk user metadata updated successfully");
     return [null, updatedUser];
   } catch (error) {
     const dbError = categorizeDbError(error, "User");
-    logger.error({
-      userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Error updating Clerk user metadata");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Error updating Clerk user metadata",
+    );
     return [dbError, null];
   }
 }
@@ -278,10 +295,11 @@ export const OnboardingSteps = {
   PREFERENCES: "preferences",
   BUDGET_SETUP: "budget-setup",
   BUDGET_DETAILS: "budget-details",
-  COMPLETE: "complete"
+  COMPLETE: "complete",
 } as const;
 
-export type OnboardingStep = typeof OnboardingSteps[keyof typeof OnboardingSteps];
+export type OnboardingStep =
+  (typeof OnboardingSteps)[keyof typeof OnboardingSteps];
 
 export type OnboardingBase = {
   completed: boolean;
@@ -306,12 +324,12 @@ const STEP_ORDER: OnboardingStep[] = [
   "preferences",
   "budget-setup",
   "budget-details",
-  "complete"
+  "complete",
 ];
 
 export async function goToNextStep(
   onboarding: Onboarding,
-  currentStep: OnboardingStep
+  currentStep: OnboardingStep,
 ): RedirectAction {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
   const nextStep = STEP_ORDER[currentIndex + 1];

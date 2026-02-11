@@ -8,7 +8,9 @@ Best practices, common patterns, and anti-patterns for Firestore database operat
 
 ```typescript
 // ✅ Good - Validate before any database operation
-export async function getById(id: string): Promise<[null, Resource] | [DbError, null]> {
+export async function getById(
+  id: string,
+): Promise<[null, Resource] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id provided", RESOURCE), null];
   }
@@ -25,7 +27,9 @@ export async function getById(id: string) {
 
 ```typescript
 // ✅ Good - Explicit error handling with tuples
-export async function getById(id: string): Promise<[null, Resource] | [DbError, null]> {
+export async function getById(
+  id: string,
+): Promise<[null, Resource] | [DbError, null]> {
   try {
     // ...
     return [null, resource];
@@ -120,7 +124,7 @@ import { db } from "~/lib/firebase";
 // ✅ Good - Dedicated transform function
 function transformToBudget(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Budget {
   return {
     id: docId,
@@ -134,12 +138,15 @@ function transformToBudget(
 return [null, transformToBudget(doc.id, data)];
 
 // ❌ Bad - Inline transformation
-return [null, {
-  id: doc.id,
-  ...doc.data(),
-  createdAt: doc.data()?.createdAt?.toDate(),
-  // Duplicated everywhere, easy to miss fields
-}];
+return [
+  null,
+  {
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data()?.createdAt?.toDate(),
+    // Duplicated everywhere, easy to miss fields
+  },
+];
 ```
 
 ### 8. Use FieldValue for Timestamps
@@ -213,11 +220,14 @@ for (const item of items) {
 
 ```typescript
 // ❌ Bad - Mixing async/await with callbacks
-db.collection("items").get().then((snapshot) => {
-  snapshot.docs.forEach(async (doc) => { // async in forEach!
-    await processDoc(doc); // Won't wait properly
+db.collection("items")
+  .get()
+  .then((snapshot) => {
+    snapshot.docs.forEach(async (doc) => {
+      // async in forEach!
+      await processDoc(doc); // Won't wait properly
+    });
   });
-});
 
 // ✅ Good - Consistent async/await
 const snapshot = await db.collection("items").get();
@@ -326,6 +336,7 @@ const snapshot = await db
 ```
 
 Create in `firestore.indexes.json`:
+
 ```json
 {
   "indexes": [
@@ -388,7 +399,8 @@ export async function getPage(startAfterDoc?: DocumentSnapshot) {
 
 // ❌ Bad - Offset pagination (expensive at scale)
 export async function getPage(offset: number) {
-  return db.collection("items")
+  return db
+    .collection("items")
     .orderBy("createdAt")
     .offset(offset) // Reads and discards offset documents
     .limit(20)
@@ -403,7 +415,7 @@ export async function getPage(offset: number) {
 ```typescript
 export async function getBudgetForUser(
   budgetId: string,
-  userId: string
+  userId: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   const [error, budget] = await getBudgetById(budgetId);
 
@@ -451,7 +463,9 @@ export async function createBudget(data: CreateBudgetInput) {
 // Money transfer must be atomic
 export async function transfer(fromId: string, toId: string, amount: number) {
   return db.runTransaction(async (transaction) => {
-    const fromDoc = await transaction.get(db.collection("accounts").doc(fromId));
+    const fromDoc = await transaction.get(
+      db.collection("accounts").doc(fromId),
+    );
     const toDoc = await transaction.get(db.collection("accounts").doc(toId));
 
     if (!fromDoc.exists || !toDoc.exists) {

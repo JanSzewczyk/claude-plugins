@@ -5,6 +5,7 @@
 **Scenario:** Add a `tags` field to all documents in the `budgets` collection.
 
 **Before:**
+
 ```typescript
 // Budget document structure
 {
@@ -18,6 +19,7 @@
 ```
 
 **After:**
+
 ```typescript
 // Budget document structure with tags
 {
@@ -32,6 +34,7 @@
 ```
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/add-tags-to-budgets.ts
 import { db } from "~/lib/firebase";
@@ -59,7 +62,7 @@ export async function addTagsToBudgets(options: { dryRun?: boolean } = {}) {
     processed: 0,
     updated: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   try {
@@ -89,7 +92,7 @@ export async function addTagsToBudgets(options: { dryRun?: boolean } = {}) {
       } else {
         currentBatch.update(doc.ref, {
           tags: [],
-          updatedAt: FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         stats.updated++;
@@ -115,7 +118,10 @@ export async function addTagsToBudgets(options: { dryRun?: boolean } = {}) {
 
       for (const [index, batch] of batches.entries()) {
         await batch.commit();
-        logger.info({ batchIndex: index + 1, total: batches.length }, "Batch committed");
+        logger.info(
+          { batchIndex: index + 1, total: batches.length },
+          "Batch committed",
+        );
       }
     }
 
@@ -144,6 +150,7 @@ if (require.main === module) {
 ```
 
 **Usage:**
+
 ```bash
 # Dry run (preview changes)
 npx tsx scripts/migrations/add-tags-to-budgets.ts --dry-run
@@ -159,6 +166,7 @@ npx tsx scripts/migrations/add-tags-to-budgets.ts
 **Scenario:** Rename `categoryId` to `categoryIds` (string → array) in `expenses` collection.
 
 **Before:**
+
 ```typescript
 {
   id: "expense-1",
@@ -169,6 +177,7 @@ npx tsx scripts/migrations/add-tags-to-budgets.ts
 ```
 
 **After:**
+
 ```typescript
 {
   id: "expense-1",
@@ -179,6 +188,7 @@ npx tsx scripts/migrations/add-tags-to-budgets.ts
 ```
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/rename-category-id.ts
 import { db } from "~/lib/firebase";
@@ -190,16 +200,21 @@ const logger = createLogger({ module: "migration-rename-category" });
 const COLLECTION_NAME = "expenses";
 const BATCH_SIZE = 500;
 
-export async function renameCategoryIdToIds(options: { dryRun?: boolean } = {}) {
+export async function renameCategoryIdToIds(
+  options: { dryRun?: boolean } = {},
+) {
   const { dryRun = true } = options;
 
-  logger.info({ dryRun }, "Starting migration: rename categoryId to categoryIds");
+  logger.info(
+    { dryRun },
+    "Starting migration: rename categoryId to categoryIds",
+  );
 
   const stats = {
     processed: 0,
     updated: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   try {
@@ -227,18 +242,21 @@ export async function renameCategoryIdToIds(options: { dryRun?: boolean } = {}) 
       }
 
       if (dryRun) {
-        logger.info({
-          docId: doc.id,
-          oldValue: data.categoryId,
-          newValue: [data.categoryId]
-        }, "Would rename field");
+        logger.info(
+          {
+            docId: doc.id,
+            oldValue: data.categoryId,
+            newValue: [data.categoryId],
+          },
+          "Would rename field",
+        );
         stats.updated++;
       } else {
         // Add new field, remove old field
         currentBatch.update(doc.ref, {
-          categoryIds: [data.categoryId],  // Convert to array
+          categoryIds: [data.categoryId], // Convert to array
           categoryId: FieldValue.delete(), // Remove old field
-          updatedAt: FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         stats.updated++;
@@ -278,6 +296,7 @@ export async function renameCategoryIdToIds(options: { dryRun?: boolean } = {}) 
 **Scenario:** Convert `amount` from cents (number) to object with currency.
 
 **Before:**
+
 ```typescript
 {
   id: "expense-1",
@@ -287,6 +306,7 @@ export async function renameCategoryIdToIds(options: { dryRun?: boolean } = {}) 
 ```
 
 **After:**
+
 ```typescript
 {
   id: "expense-1",
@@ -299,12 +319,15 @@ export async function renameCategoryIdToIds(options: { dryRun?: boolean } = {}) 
 ```
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/transform-amount-to-object.ts
 import { db } from "~/lib/firebase";
 import { FieldValue } from "firebase-admin/firestore";
 
-export async function transformAmountToObject(options: { dryRun?: boolean; defaultCurrency?: string } = {}) {
+export async function transformAmountToObject(
+  options: { dryRun?: boolean; defaultCurrency?: string } = {},
+) {
   const { dryRun = true, defaultCurrency = "PLN" } = options;
 
   const snapshot = await db.collection("expenses").get();
@@ -326,16 +349,16 @@ export async function transformAmountToObject(options: { dryRun?: boolean; defau
         oldAmount: data.amount,
         newAmount: {
           value: data.amount,
-          currency: data.currency || defaultCurrency
-        }
+          currency: data.currency || defaultCurrency,
+        },
       });
     } else {
       batch.update(doc.ref, {
         amount: {
           value: data.amount,
-          currency: data.currency || defaultCurrency
+          currency: data.currency || defaultCurrency,
         },
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp(),
       });
 
       count++;
@@ -362,6 +385,7 @@ export async function transformAmountToObject(options: { dryRun?: boolean; defau
 **Scenario:** Add computed `totalExpenses` field to user profiles.
 
 **Before:**
+
 ```typescript
 {
   id: "user-1",
@@ -371,6 +395,7 @@ export async function transformAmountToObject(options: { dryRun?: boolean; defau
 ```
 
 **After:**
+
 ```typescript
 {
   id: "user-1",
@@ -381,12 +406,15 @@ export async function transformAmountToObject(options: { dryRun?: boolean; defau
 ```
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/backfill-total-expenses.ts
 import { db } from "~/lib/firebase";
 import { FieldValue } from "firebase-admin/firestore";
 
-export async function backfillTotalExpenses(options: { dryRun?: boolean } = {}) {
+export async function backfillTotalExpenses(
+  options: { dryRun?: boolean } = {},
+) {
   const { dryRun = true } = options;
 
   const usersSnapshot = await db.collection("users").get();
@@ -408,12 +436,12 @@ export async function backfillTotalExpenses(options: { dryRun?: boolean } = {}) 
       console.log({
         userId,
         expenseCount: expensesSnapshot.size,
-        totalExpenses: total
+        totalExpenses: total,
       });
     } else {
       await userDoc.ref.update({
         totalExpenses: total,
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp(),
       });
     }
   }
@@ -429,6 +457,7 @@ export async function backfillTotalExpenses(options: { dryRun?: boolean } = {}) 
 **Scenario:** Remove deprecated `oldStatus` field from all budgets.
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/remove-old-status.ts
 import { db } from "~/lib/firebase";
@@ -452,12 +481,12 @@ export async function removeOldStatusField(options: { dryRun?: boolean } = {}) {
       console.log({
         docId: doc.id,
         oldStatus: doc.data().oldStatus,
-        action: "Would delete oldStatus field"
+        action: "Would delete oldStatus field",
       });
     } else {
       batch.update(doc.ref, {
         oldStatus: FieldValue.delete(),
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp(),
       });
 
       count++;
@@ -483,6 +512,7 @@ export async function removeOldStatusField(options: { dryRun?: boolean } = {}) {
 **Scenario:** Update only budgets where `status === "draft"` to `status === "pending"`.
 
 **Migration Script:**
+
 ```typescript
 // scripts/migrations/update-draft-status.ts
 import { db } from "~/lib/firebase";
@@ -506,12 +536,12 @@ export async function updateDraftStatus(options: { dryRun?: boolean } = {}) {
       console.log({
         docId: doc.id,
         currentStatus: "draft",
-        newStatus: "pending"
+        newStatus: "pending",
       });
     } else {
       batch.update(doc.ref, {
         status: "pending",
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp(),
       });
     }
   }
@@ -560,7 +590,7 @@ export async function migrateSomething(options: MigrationOptions = {}) {
     processed: 0,
     updated: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   try {
@@ -594,7 +624,7 @@ export async function migrateSomething(options: MigrationOptions = {}) {
       } else {
         currentBatch.update(doc.ref, {
           ...updates,
-          updatedAt: FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         stats.updated++;
@@ -619,7 +649,10 @@ export async function migrateSomething(options: MigrationOptions = {}) {
 
       for (const [index, batch] of batches.entries()) {
         await batch.commit();
-        logger.info({ batchIndex: index + 1, total: batches.length }, "Batch committed");
+        logger.info(
+          { batchIndex: index + 1, total: batches.length },
+          "Batch committed",
+        );
       }
     }
 
@@ -662,6 +695,7 @@ if (require.main === module) {
 ## Best Practices
 
 ### 1. Always Use Dry Run First
+
 ```bash
 # Preview changes
 npx tsx scripts/migrations/my-migration.ts --dry-run
@@ -671,6 +705,7 @@ npx tsx scripts/migrations/my-migration.ts
 ```
 
 ### 2. Make Migrations Idempotent
+
 ```typescript
 // Check if already migrated
 if (data.newField !== undefined) {
@@ -680,6 +715,7 @@ if (data.newField !== undefined) {
 ```
 
 ### 3. Use Batched Writes
+
 ```typescript
 // Commit every 500 operations
 if (operationsInBatch >= 500) {
@@ -690,12 +726,14 @@ if (operationsInBatch >= 500) {
 ```
 
 ### 4. Log Everything
+
 ```typescript
 logger.info({ docId, oldValue, newValue }, "Migrating document");
 logger.error({ docId, error }, "Migration failed for document");
 ```
 
 ### 5. Handle Errors Gracefully
+
 ```typescript
 try {
   await batch.commit();
@@ -707,12 +745,14 @@ try {
 ```
 
 ### 6. Backup Before Major Migrations
+
 ```bash
 # Export collection before migration
 gcloud firestore export gs://your-bucket/backup-$(date +%Y%m%d)
 ```
 
 ### 7. Use Queries to Filter
+
 ```typescript
 // Only fetch documents that need migration
 const snapshot = await db

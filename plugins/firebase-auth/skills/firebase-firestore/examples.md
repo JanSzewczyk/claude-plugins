@@ -39,7 +39,7 @@ const logger = createLogger({ module: "budget-db" });
 
 function transformToBudget(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Budget {
   return {
     id: docId,
@@ -57,7 +57,7 @@ function transformToBudget(
  * Get a single budget by ID
  */
 export async function getBudgetById(
-  id: string
+  id: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   // Input validation
   if (!id?.trim()) {
@@ -84,14 +84,16 @@ export async function getBudgetById(
 
     logger.info({ budgetId: id }, "Budget retrieved");
     return [null, transformToBudget(doc.id, data)];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({
-      budgetId: id,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable,
-    }, "Query failed");
+    logger.error(
+      {
+        budgetId: id,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Query failed",
+    );
     return [dbError, null];
   }
 }
@@ -100,7 +102,7 @@ export async function getBudgetById(
  * Get all budgets for a user
  */
 export async function getBudgetsByUserId(
-  userId: string
+  userId: string,
 ): Promise<[null, Budget[]] | [DbError, null]> {
   if (!userId?.trim()) {
     const error = DbError.validation("Invalid userId provided", RESOURCE);
@@ -116,19 +118,21 @@ export async function getBudgetsByUserId(
       .get();
 
     const budgets = snapshot.docs.map((doc) =>
-      transformToBudget(doc.id, doc.data())
+      transformToBudget(doc.id, doc.data()),
     );
 
     logger.info({ userId, count: budgets.length }, "Budgets retrieved");
     return [null, budgets];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({
-      userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable,
-    }, "Query failed");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Query failed",
+    );
     return [dbError, null];
   }
 }
@@ -138,7 +142,7 @@ export async function getBudgetsByUserId(
  */
 export async function getBudgetsPaginated(
   userId: string,
-  options: { limit?: number; startAfter?: string } = {}
+  options: { limit?: number; startAfter?: string } = {},
 ): Promise<[null, { budgets: Budget[]; hasMore: boolean }] | [DbError, null]> {
   const { limit = 10, startAfter } = options;
 
@@ -172,7 +176,6 @@ export async function getBudgetsPaginated(
 
     logger.info({ userId, count: budgets.length, hasMore }, "Paginated query");
     return [null, { budgets, hasMore }];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
     logger.error({ userId, errorCode: dbError.code }, "Pagination failed");
@@ -188,7 +191,7 @@ export async function getBudgetsPaginated(
  * Create a new budget
  */
 export async function createBudget(
-  data: Omit<CreateBudgetDto, "createdAt" | "updatedAt">
+  data: Omit<CreateBudgetDto, "createdAt" | "updatedAt">,
 ): Promise<[null, Budget] | [DbError, null]> {
   // Validate required fields
   if (!data.userId?.trim()) {
@@ -217,13 +220,15 @@ export async function createBudget(
 
     logger.info({ budgetId: docRef.id, userId: data.userId }, "Budget created");
     return [null, budget];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({
-      userId: data.userId,
-      errorCode: dbError.code,
-    }, "Create failed");
+    logger.error(
+      {
+        userId: data.userId,
+        errorCode: dbError.code,
+      },
+      "Create failed",
+    );
     return [dbError, null];
   }
 }
@@ -233,7 +238,7 @@ export async function createBudget(
  */
 export async function createBudgetWithId(
   id: string,
-  data: Omit<CreateBudgetDto, "createdAt" | "updatedAt">
+  data: Omit<CreateBudgetDto, "createdAt" | "updatedAt">,
 ): Promise<[null, Budget] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("id is required", RESOURCE), null];
@@ -263,7 +268,6 @@ export async function createBudgetWithId(
 
     logger.info({ budgetId: id }, "Budget created with ID");
     return [null, budget];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
     logger.error({ budgetId: id, errorCode: dbError.code }, "Create failed");
@@ -280,7 +284,7 @@ export async function createBudgetWithId(
  */
 export async function updateBudget(
   id: string,
-  data: UpdateBudgetDto
+  data: UpdateBudgetDto,
 ): Promise<[null, Budget] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid budget id", RESOURCE), null];
@@ -309,13 +313,15 @@ export async function updateBudget(
 
     logger.info({ budgetId: id }, "Budget updated");
     return [null, budget];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({
-      budgetId: id,
-      errorCode: dbError.code,
-    }, "Update failed");
+    logger.error(
+      {
+        budgetId: id,
+        errorCode: dbError.code,
+      },
+      "Update failed",
+    );
     return [dbError, null];
   }
 }
@@ -325,7 +331,7 @@ export async function updateBudget(
  */
 export async function updateBudgetFields(
   id: string,
-  fields: Partial<Pick<Budget, "name" | "amount" | "status">>
+  fields: Partial<Pick<Budget, "name" | "amount" | "status">>,
 ): Promise<[null, true] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid budget id", RESOURCE), null];
@@ -349,9 +355,11 @@ export async function updateBudgetFields(
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    logger.info({ budgetId: id, fields: Object.keys(fields) }, "Fields updated");
+    logger.info(
+      { budgetId: id, fields: Object.keys(fields) },
+      "Fields updated",
+    );
     return [null, true];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
     logger.error({ budgetId: id, errorCode: dbError.code }, "Update failed");
@@ -367,7 +375,7 @@ export async function updateBudgetFields(
  * Delete a budget
  */
 export async function deleteBudget(
-  id: string
+  id: string,
 ): Promise<[null, true] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid budget id", RESOURCE), null];
@@ -388,13 +396,15 @@ export async function deleteBudget(
 
     logger.info({ budgetId: id }, "Budget deleted");
     return [null, true];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({
-      budgetId: id,
-      errorCode: dbError.code,
-    }, "Delete failed");
+    logger.error(
+      {
+        budgetId: id,
+        errorCode: dbError.code,
+      },
+      "Delete failed",
+    );
     return [dbError, null];
   }
 }
@@ -403,7 +413,7 @@ export async function deleteBudget(
  * Delete all budgets for a user
  */
 export async function deleteUserBudgets(
-  userId: string
+  userId: string,
 ): Promise<[null, number] | [DbError, null]> {
   if (!userId?.trim()) {
     return [DbError.validation("Invalid userId", RESOURCE), null];
@@ -430,7 +440,6 @@ export async function deleteUserBudgets(
 
     logger.info({ userId, count: snapshot.size }, "User budgets deleted");
     return [null, snapshot.size];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
     logger.error({ userId, errorCode: dbError.code }, "Batch delete failed");
@@ -446,7 +455,7 @@ export async function deleteUserBudgets(
  * Create multiple budgets in a batch
  */
 export async function createBudgetsBatch(
-  budgets: Array<Omit<CreateBudgetDto, "createdAt" | "updatedAt">>
+  budgets: Array<Omit<CreateBudgetDto, "createdAt" | "updatedAt">>,
 ): Promise<[null, Budget[]] | [DbError, null]> {
   if (budgets.length === 0) {
     return [null, []];
@@ -485,7 +494,6 @@ export async function createBudgetsBatch(
 
     logger.info({ count: results.length }, "Batch create completed");
     return [null, results];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
     logger.error({ errorCode: dbError.code }, "Batch create failed");
@@ -503,7 +511,7 @@ export async function createBudgetsBatch(
  */
 export async function getActiveBudgetsByUser(
   userId: string,
-  options: { limit?: number } = {}
+  options: { limit?: number } = {},
 ): Promise<[null, Budget[]] | [DbError, null]> {
   const { limit = 20 } = options;
 
@@ -517,11 +525,10 @@ export async function getActiveBudgetsByUser(
       .get();
 
     const budgets = snapshot.docs.map((doc) =>
-      transformToBudget(doc.id, doc.data())
+      transformToBudget(doc.id, doc.data()),
     );
 
     return [null, budgets];
-
   } catch (error) {
     // Check for index error
     if (error instanceof Error && error.message.includes("index")) {
@@ -544,7 +551,7 @@ const EXPENSE_SUBCOLLECTION = "expenses";
  * Get expenses for a budget (subcollection)
  */
 export async function getExpensesByBudget(
-  budgetId: string
+  budgetId: string,
 ): Promise<[null, Expense[]] | [DbError, null]> {
   if (!budgetId?.trim()) {
     return [DbError.validation("Invalid budgetId", "Expense"), null];
@@ -559,11 +566,10 @@ export async function getExpensesByBudget(
       .get();
 
     const expenses = snapshot.docs.map((doc) =>
-      transformToExpense(doc.id, doc.data())
+      transformToExpense(doc.id, doc.data()),
     );
 
     return [null, expenses];
-
   } catch (error) {
     return [categorizeDbError(error, "Expense"), null];
   }
@@ -574,7 +580,7 @@ export async function getExpensesByBudget(
  */
 export async function addExpense(
   budgetId: string,
-  data: Omit<CreateExpenseDto, "createdAt" | "updatedAt">
+  data: Omit<CreateExpenseDto, "createdAt" | "updatedAt">,
 ): Promise<[null, Expense] | [DbError, null]> {
   try {
     const expenseData: CreateExpenseDto = {
@@ -597,7 +603,6 @@ export async function addExpense(
     } as Expense;
 
     return [null, expense];
-
   } catch (error) {
     return [categorizeDbError(error, "Expense"), null];
   }
@@ -613,7 +618,7 @@ export async function addExpense(
 export async function transferBetweenBudgets(
   fromId: string,
   toId: string,
-  amount: number
+  amount: number,
 ): Promise<[null, true] | [DbError, null]> {
   if (amount <= 0) {
     return [DbError.validation("Amount must be positive", RESOURCE), null];
@@ -653,10 +658,12 @@ export async function transferBetweenBudgets(
 
     logger.info({ fromId, toId, amount }, "Transfer completed");
     return [null, true];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({ fromId, toId, amount, errorCode: dbError.code }, "Transfer failed");
+    logger.error(
+      { fromId, toId, amount, errorCode: dbError.code },
+      "Transfer failed",
+    );
     return [dbError, null];
   }
 }
@@ -672,7 +679,7 @@ export async function transferBetweenBudgets(
 export function watchBudget(
   budgetId: string,
   onUpdate: (budget: Budget | null) => void,
-  onError: (error: DbError) => void
+  onError: (error: DbError) => void,
 ): () => void {
   const unsubscribe = db
     .collection(COLLECTION)
@@ -687,7 +694,7 @@ export function watchBudget(
       },
       (error) => {
         onError(categorizeDbError(error, RESOURCE));
-      }
+      },
     );
 
   return unsubscribe;

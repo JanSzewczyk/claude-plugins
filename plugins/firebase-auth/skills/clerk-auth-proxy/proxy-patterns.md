@@ -40,8 +40,8 @@ export default clerkMiddleware(async (auth, req) => {
 export const config = {
   matcher: [
     // Skip Next.js internals, static files, and API routes
-    "/((?!_next|api|trpc|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
-  ]
+    "/((?!_next|api|trpc|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+  ],
 };
 ```
 
@@ -64,7 +64,7 @@ const isPublicRoute = createRouteMatcher([
   "/about",
   "/pricing",
   "/sign-in(.*)",
-  "/sign-up(.*)"
+  "/sign-up(.*)",
 ]);
 
 // API routes
@@ -73,23 +73,23 @@ const isApiRoute = createRouteMatcher(["/api(.*)", "/trpc(.*)"]);
 
 ### Matcher Patterns
 
-| Pattern | Matches |
-|---------|---------|
-| `/path` | Exact path only |
-| `/path(.*)` | Path and all sub-paths |
-| `/path/(.*)` | Only sub-paths (not `/path` itself) |
-| `/(path1\|path2)` | Either path1 or path2 |
+| Pattern           | Matches                             |
+| ----------------- | ----------------------------------- |
+| `/path`           | Exact path only                     |
+| `/path(.*)`       | Path and all sub-paths              |
+| `/path/(.*)`      | Only sub-paths (not `/path` itself) |
+| `/(path1\|path2)` | Either path1 or path2               |
 
 ## Auth Object Properties
 
 ```typescript
 export default clerkMiddleware(async (auth, req) => {
   const {
-    isAuthenticated,     // boolean - is user logged in
-    userId,              // string | null - Clerk user ID
-    sessionClaims,       // CustomJwtSessionClaims | null
-    redirectToSignIn,    // (opts?) => Response - redirect helper
-    protect,             // (opts?) => void - throws if unauthorized
+    isAuthenticated, // boolean - is user logged in
+    userId, // string | null - Clerk user ID
+    sessionClaims, // CustomJwtSessionClaims | null
+    redirectToSignIn, // (opts?) => Response - redirect helper
+    protect, // (opts?) => void - throws if unauthorized
   } = await auth();
 });
 ```
@@ -171,10 +171,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (isApiRoute(req)) {
     const { isAuthenticated } = await auth();
     if (!isAuthenticated) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
   return NextResponse.next();
@@ -192,20 +189,20 @@ export const config = {
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
 
     // Always run for API routes
-    "/(api|trpc)(.*)"
-  ]
+    "/(api|trpc)(.*)",
+  ],
 };
 ```
 
 ### Common Exclusions
 
-| Pattern | Purpose |
-|---------|---------|
-| `_next` | Next.js build output |
-| `api` | API routes (handle separately) |
-| `\\.(?:css\|js)` | Static assets |
-| `\\.(?:png\|jpg\|webp)` | Images |
-| `favicon.ico` | Favicon |
+| Pattern                 | Purpose                        |
+| ----------------------- | ------------------------------ |
+| `_next`                 | Next.js build output           |
+| `api`                   | API routes (handle separately) |
+| `\\.(?:css\|js)`        | Static assets                  |
+| `\\.(?:png\|jpg\|webp)` | Images                         |
+| `favicon.ico`           | Favicon                        |
 
 ## Debugging
 

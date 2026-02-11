@@ -240,16 +240,24 @@ export const env = createEnv({
       .default("true")
       .transform((val) => val === "true"),
 
-    RATE_LIMIT_REQUESTS: z.coerce.number().int().positive()
+    RATE_LIMIT_REQUESTS: z.coerce
+      .number()
+      .int()
+      .positive()
       .optional()
       .default(100),
 
-    RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive()
+    RATE_LIMIT_WINDOW_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
       .optional()
       .default(60),
 
-    RATE_LIMIT_SKIP_IPS: z.string().optional()
-      .transform((val) => val?.split(",").map(s => s.trim()) ?? []),
+    RATE_LIMIT_SKIP_IPS: z
+      .string()
+      .optional()
+      .transform((val) => val?.split(",").map((s) => s.trim()) ?? []),
   },
   // ...
 });
@@ -284,10 +292,7 @@ export const env = createEnv({
       .optional()
       .default("info"),
 
-    LOG_FORMAT: z
-      .enum(["json", "pretty"])
-      .optional()
-      .default("json"),
+    LOG_FORMAT: z.enum(["json", "pretty"]).optional().default("json"),
 
     LOG_INCLUDE_TIMESTAMP: z
       .enum(["true", "false"])
@@ -309,12 +314,8 @@ import pino from "pino";
 export const logger = pino({
   level: env.LOG_LEVEL,
   transport:
-    env.LOG_FORMAT === "pretty"
-      ? { target: "pino-pretty" }
-      : undefined,
-  timestamp: env.LOG_INCLUDE_TIMESTAMP
-    ? pino.stdTimeFunctions.isoTime
-    : false,
+    env.LOG_FORMAT === "pretty" ? { target: "pino-pretty" } : undefined,
+  timestamp: env.LOG_INCLUDE_TIMESTAMP ? pino.stdTimeFunctions.isoTime : false,
 });
 ```
 
@@ -331,14 +332,20 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
 
     // Build
-    ANALYZE: z.enum(["true", "false"]).optional()
+    ANALYZE: z
+      .enum(["true", "false"])
+      .optional()
       .transform((val) => val === "true"),
-    CI: z.enum(["true", "false", "0", "1"]).optional()
+    CI: z
+      .enum(["true", "false", "0", "1"])
+      .optional()
       .transform((val) => val === "true" || val === "1"),
 
     // Logging
-    LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"])
-      .optional().default("info"),
+    LOG_LEVEL: z
+      .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+      .optional()
+      .default("info"),
 
     // Authentication
     CLERK_SECRET_KEY: z.string(),
@@ -382,10 +389,8 @@ export const env = createEnv({
   experimental__runtimeEnv: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
     NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
       process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
     NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL:

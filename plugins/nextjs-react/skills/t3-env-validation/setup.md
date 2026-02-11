@@ -83,10 +83,8 @@ export const env = createEnv({
   experimental__runtimeEnv: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
     NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
       process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
     NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL:
@@ -104,18 +102,18 @@ export const env = createEnv({
 
 ### createEnv Options
 
-| Option | Description | Required |
-|--------|-------------|----------|
-| `server` | Server-side variables schema | No |
-| `client` | Client-side variables schema | No |
-| `shared` | Variables used in both | No |
-| `experimental__runtimeEnv` | Runtime env mapping | Yes |
-| `skipValidation` | Bypass validation | No |
-| `emptyStringAsUndefined` | Treat "" as undefined | No |
-| `onValidationError` | Custom error handler | No |
-| `onInvalidAccess` | Access control handler | No |
+| Option                     | Description                  | Required |
+| -------------------------- | ---------------------------- | -------- |
+| `server`                   | Server-side variables schema | No       |
+| `client`                   | Client-side variables schema | No       |
+| `shared`                   | Variables used in both       | No       |
+| `experimental__runtimeEnv` | Runtime env mapping          | Yes      |
+| `skipValidation`           | Bypass validation            | No       |
+| `emptyStringAsUndefined`   | Treat "" as undefined        | No       |
+| `onValidationError`        | Custom error handler         | No       |
+| `onInvalidAccess`          | Access control handler       | No       |
 
-### experimental__runtimeEnv
+### experimental\_\_runtimeEnv
 
 For the App Router, you have two options:
 
@@ -158,11 +156,11 @@ emptyStringAsUndefined: true,
 
 Effects:
 
-| .env Value | Without Option | With Option |
-|------------|----------------|-------------|
-| `VAR=""` | `""` (empty string) | `undefined` |
-| `VAR=value` | `"value"` | `"value"` |
-| (not set) | `undefined` | `undefined` |
+| .env Value  | Without Option      | With Option |
+| ----------- | ------------------- | ----------- |
+| `VAR=""`    | `""` (empty string) | `undefined` |
+| `VAR=value` | `"value"`           | `"value"`   |
+| (not set)   | `undefined`         | `undefined` |
 
 ## Environment Files
 
@@ -276,13 +274,13 @@ T3 Env provides full TypeScript support:
 import { env } from "~/data/env/server";
 
 // Autocomplete works
-env.FIREBASE_PROJECT_ID  // string
-env.LOG_LEVEL            // "fatal" | "error" | "warn" | "info" | "debug" | "trace"
-env.ANALYZE              // boolean | undefined
-env.CI                   // boolean | undefined
+env.FIREBASE_PROJECT_ID; // string
+env.LOG_LEVEL; // "fatal" | "error" | "warn" | "info" | "debug" | "trace"
+env.ANALYZE; // boolean | undefined
+env.CI; // boolean | undefined
 
 // Type error if variable doesn't exist
-env.NONEXISTENT_VAR  // ❌ Property 'NONEXISTENT_VAR' does not exist
+env.NONEXISTENT_VAR; // ❌ Property 'NONEXISTENT_VAR' does not exist
 ```
 
 ## Validation Errors
@@ -299,7 +297,9 @@ When validation fails:
 
 ```typescript
 export const env = createEnv({
-  server: { /* ... */ },
+  server: {
+    /* ... */
+  },
   experimental__runtimeEnv: process.env,
 
   onValidationError: (error) => {

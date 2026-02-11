@@ -22,12 +22,12 @@ Based on [cc-statusline](https://www.npmjs.com/package/@chongdashu/cc-statusline
 
 ### Safety Hooks
 
-| Hook | Trigger | What it does |
-|------|---------|-------------|
-| **SessionStart** | Session begins | Prints working directory to stderr |
-| **PreToolUse (Bash)** | Before any bash command | Blocks `rm -rf /`, `git push --force`, `drop database`. Allows `git push --force-with-lease`. |
-| **PostToolUse (Edit\|Write)** | After file changes | Auto-formats with Prettier, auto-fixes with ESLint. Skips `node_modules`, `.next`, `dist`, `.claude/`. |
-| **Stop** | Before session ends | Verification prompt (60s): checks all changes complete, no TS errors, follows project patterns. |
+| Hook                          | Trigger                 | What it does                                                                                           |
+| ----------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| **SessionStart**              | Session begins          | Prints working directory to stderr                                                                     |
+| **PreToolUse (Bash)**         | Before any bash command | Blocks `rm -rf /`, `git push --force`, `drop database`. Allows `git push --force-with-lease`.          |
+| **PostToolUse (Edit\|Write)** | After file changes      | Auto-formats with Prettier, auto-fixes with ESLint. Skips `node_modules`, `.next`, `dist`, `.claude/`. |
+| **Stop**                      | Before session ends     | Verification prompt (60s): checks all changes complete, no TS errors, follows project patterns.        |
 
 ## Installation
 
@@ -43,6 +43,7 @@ bash plugins/dev-experience/install.sh --hooks
 ```
 
 The script will:
+
 - Copy `statusline.sh` to your `.claude/` directory and make it executable
 - Create or update `.claude/settings.json` with the statusline config
 - Guide you through hooks installation
@@ -52,12 +53,14 @@ The script will:
 #### Statusline only
 
 1. Copy the script:
+
    ```bash
    cp plugins/dev-experience/statusline/statusline.sh  your-project/.claude/statusline.sh
    chmod +x your-project/.claude/statusline.sh
    ```
 
 2. Add to your `.claude/settings.json`:
+
    ```json
    {
      "statusLine": {
@@ -73,11 +76,13 @@ The script will:
 #### Hooks only
 
 1. Open the hooks reference:
+
    ```bash
    cat plugins/dev-experience/hooks/safety-hooks.json
    ```
 
 2. Merge the `hooks` object into your `.claude/settings.json`:
+
    ```json
    {
      "hooks": {
@@ -111,8 +116,8 @@ Start a new Claude Code session — the statusline should appear at the bottom o
 
 The script supports these environment variables:
 
-| Variable | Effect |
-|----------|--------|
+| Variable     | Effect                  |
+| ------------ | ----------------------- |
 | `NO_COLOR=1` | Disable all ANSI colors |
 
 To modify colors, edit the color helper functions at the top of `statusline.sh`:
@@ -136,12 +141,25 @@ Each hook can be modified independently in your `settings.json`:
 
 ## Requirements
 
-| Dependency | Required | Notes |
-|-----------|----------|-------|
-| bash | Yes | Shell for statusline script |
-| jq | Recommended | JSON parsing; bash fallback available but limited |
-| prettier | For PostToolUse hook | Auto-formatting on save |
-| eslint | For PostToolUse hook | Auto-fix on save |
+| Dependency | Required             | Notes                                             |
+| ---------- | -------------------- | ------------------------------------------------- |
+| bash       | Yes                  | Shell for statusline script                       |
+| jq         | Recommended          | JSON parsing; bash fallback available but limited |
+| prettier   | For PostToolUse hook | Auto-formatting on save                           |
+| eslint     | For PostToolUse hook | Auto-fix on save                                  |
+
+## Troubleshooting
+
+| Problem                            | Solution                                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Statusline not appearing           | Verify `statusline.sh` is executable (`chmod +x .claude/statusline.sh`) and `settings.json` has `statusLine` |
+| Statusline shows "TBD" for context | Context data requires a few API calls before it populates. Wait for the second prompt                        |
+| Cost/tokens show as empty          | Ensure your Claude Code version provides cost data in the statusline input JSON                              |
+| jq not found warning               | Install jq (`brew install jq` on macOS) or the script will use bash fallback with limited features           |
+| PostToolUse hook fails             | Verify `prettier` and `eslint` are available (`npx --yes prettier --version`)                                |
+| PreToolUse blocks a safe command   | Edit the regex pattern in the `PreToolUse` hook in your `settings.json`                                      |
+| Hooks not installed after script   | jq is required for auto-merge. Without jq, follow the manual instructions printed by the script              |
+| Colors look wrong                  | Set `NO_COLOR=1` to disable colors, or edit ANSI color codes in `statusline.sh`                              |
 
 ## Related Plugins
 

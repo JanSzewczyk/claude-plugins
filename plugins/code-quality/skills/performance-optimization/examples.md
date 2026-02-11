@@ -418,8 +418,8 @@ async function getBudgetsWithExpenses(userId: string) {
   const budgetsWithExpenses = await Promise.all(
     budgets.map(async (budget) => ({
       ...budget,
-      expenses: await getExpensesByBudget(budget.id)
-    }))
+      expenses: await getExpensesByBudget(budget.id),
+    })),
   );
 
   return budgetsWithExpenses;
@@ -437,26 +437,27 @@ async function getBudgetsWithExpenses(userId: string) {
   if (budgets.length === 0) return [];
 
   // Query 2: Get all expenses for all budgets
-  const budgetIds = budgets.map(b => b.id);
+  const budgetIds = budgets.map((b) => b.id);
 
   // Firestore "in" query (max 30 items)
-  const expensesSnapshot = await db.collection("expenses")
+  const expensesSnapshot = await db
+    .collection("expenses")
     .where("budgetId", "in", budgetIds.slice(0, 30))
     .orderBy("date", "desc")
     .get();
 
   // Group expenses by budget
   const expensesByBudget = new Map<string, Expense[]>();
-  expensesSnapshot.docs.forEach(doc => {
+  expensesSnapshot.docs.forEach((doc) => {
     const expense = transformExpense(doc);
     const existing = expensesByBudget.get(expense.budgetId) || [];
     expensesByBudget.set(expense.budgetId, [...existing, expense]);
   });
 
   // Combine
-  return budgets.map(budget => ({
+  return budgets.map((budget) => ({
     ...budget,
-    expenses: expensesByBudget.get(budget.id) || []
+    expenses: expensesByBudget.get(budget.id) || [],
   }));
 }
 ```

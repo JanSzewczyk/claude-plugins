@@ -64,7 +64,9 @@ The tuple pattern `[error, data]` provides explicit error handling:
 
 ```typescript
 // Database function
-export async function getUserById(id: string): Promise<[DbError | null, User | null]> {
+export async function getUserById(
+  id: string,
+): Promise<[DbError | null, User | null]> {
   try {
     const user = await db.collection("users").doc(id).get();
     if (!user.exists) {
@@ -150,25 +152,34 @@ return { success: false, error: "Service temporarily unavailable" };
 
 ```typescript
 // CREATE - returns created entity
-async function createUser(data: CreateUserDto): Promise<[DbError | null, User | null]>
+async function createUser(
+  data: CreateUserDto,
+): Promise<[DbError | null, User | null]>;
 
 // READ - returns entity or null
-async function getUserById(id: string): Promise<[DbError | null, User | null]>
+async function getUserById(id: string): Promise<[DbError | null, User | null]>;
 
 // UPDATE - returns updated entity
-async function updateUser(id: string, data: UpdateUserDto): Promise<[DbError | null, User | null]>
+async function updateUser(
+  id: string,
+  data: UpdateUserDto,
+): Promise<[DbError | null, User | null]>;
 
 // DELETE - returns void (null for data)
-async function deleteUser(id: string): Promise<[DbError | null, null]>
+async function deleteUser(id: string): Promise<[DbError | null, null]>;
 
 // LIST - returns array
-async function listUsers(filters?: UserFilters): Promise<[DbError | null, User[] | null]>
+async function listUsers(
+  filters?: UserFilters,
+): Promise<[DbError | null, User[] | null]>;
 ```
 
 ### Input Validation in Database Layer
 
 ```typescript
-export async function getUserById(userId: string): Promise<[DbError | null, User | null]> {
+export async function getUserById(
+  userId: string,
+): Promise<[DbError | null, User | null]> {
   // Validate input before database call
   if (!userId?.trim()) {
     const error = DbError.validation("Invalid userId provided");
@@ -190,7 +201,7 @@ export async function getUserById(userId: string): Promise<[DbError | null, User
 export async function transferFunds(
   fromAccountId: string,
   toAccountId: string,
-  amount: number
+  amount: number,
 ): Promise<[DbError | null, TransferResult | null]> {
   const batch = db.batch();
 
@@ -198,7 +209,7 @@ export async function transferFunds(
     // Validate both accounts exist
     const [fromRef, toRef] = await Promise.all([
       db.collection("accounts").doc(fromAccountId).get(),
-      db.collection("accounts").doc(toAccountId).get()
+      db.collection("accounts").doc(toAccountId).get(),
     ]);
 
     if (!fromRef.exists || !toRef.exists) {
@@ -249,15 +260,18 @@ export async function createUser(data: CreateUserDto): ActionResponse<User> {
         currentUserId,
         email: data.email,
         errorCode: error.code,
-        isRetryable: error.isRetryable
+        isRetryable: error.isRetryable,
       },
-      "Failed to create user"
+      "Failed to create user",
     );
     return { success: false, error: "Failed to create user" };
   }
 
   // Log success
-  logger.info({ currentUserId, newUserId: user.id }, "User created successfully");
+  logger.info(
+    { currentUserId, newUserId: user.id },
+    "User created successfully",
+  );
 
   return { success: true, data: user };
 }
@@ -300,12 +314,15 @@ logger.info({ userId, last4: creditCard.slice(-4) }, "Processing payment");
 ```typescript
 import { revalidatePath } from "next/cache";
 
-export async function updatePost(postId: string, data: UpdatePostDto): ActionResponse<Post> {
+export async function updatePost(
+  postId: string,
+  data: UpdatePostDto,
+): ActionResponse<Post> {
   const [error, post] = await updatePostInDb(postId, data);
   if (error) return { success: false, error: error.message };
 
   // Revalidate specific paths
-  revalidatePath("/posts");           // List page
+  revalidatePath("/posts"); // List page
   revalidatePath(`/posts/${postId}`); // Detail page
 
   return { success: true, data: post };
@@ -336,9 +353,9 @@ export async function deleteCategory(categoryId: string): ActionResponse<void> {
   if (error) return { success: false, error: error.message };
 
   // Revalidate multiple concerns
-  revalidatePath("/categories");      // Category list
-  revalidatePath("/products");        // Products may reference category
-  revalidateTag("categories");        // All cached category data
+  revalidatePath("/categories"); // Category list
+  revalidatePath("/products"); // Products may reference category
+  revalidateTag("categories"); // All cached category data
 
   return { success: true, data: undefined };
 }
@@ -352,11 +369,15 @@ export async function deleteCategory(categoryId: string): ActionResponse<void> {
 
 ```typescript
 // ❌ Bad: No directive - won't work as server action
-export async function myAction() { /* ... */ }
+export async function myAction() {
+  /* ... */
+}
 
 // ✅ Good: File-level directive
-"use server";
-export async function myAction() { /* ... */ }
+("use server");
+export async function myAction() {
+  /* ... */
+}
 
 // ✅ Good: Function-level directive (inline actions)
 export async function Page() {
@@ -402,19 +423,23 @@ export async function deleteUser(userId: string): ActionResponse<void> {
 
 ```typescript
 // ❌ Bad: Using client data directly
-export async function updateProfile(data: ProfileData): ActionResponse<Profile> {
+export async function updateProfile(
+  data: ProfileData,
+): ActionResponse<Profile> {
   const [error, profile] = await updateProfileInDb(data);
   // ...
 }
 
 // ✅ Good: Always validate
-export async function updateProfile(data: ProfileData): ActionResponse<Profile> {
+export async function updateProfile(
+  data: ProfileData,
+): ActionResponse<Profile> {
   const parsed = profileSchema.safeParse(data);
   if (!parsed.success) {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
   const [error, profile] = await updateProfileInDb(parsed.data);
@@ -469,7 +494,10 @@ export async function submitForm(data: FormData): RedirectAction {
 ### 1. Always Verify Ownership
 
 ```typescript
-export async function updatePost(postId: string, data: UpdatePostDto): ActionResponse<Post> {
+export async function updatePost(
+  postId: string,
+  data: UpdatePostDto,
+): ActionResponse<Post> {
   const { userId } = await auth();
   if (!userId) {
     return { success: false, error: "Authentication required" };
@@ -495,17 +523,22 @@ export async function updatePost(postId: string, data: UpdatePostDto): ActionRes
 ```typescript
 import { rateLimit } from "~/lib/rate-limit";
 
-export async function sendVerificationEmail(email: string): ActionResponse<void> {
+export async function sendVerificationEmail(
+  email: string,
+): ActionResponse<void> {
   const { userId } = await auth();
 
   // Rate limit: 3 requests per hour per user
   const { success: allowed } = await rateLimit.check(`verify-email:${userId}`, {
     limit: 3,
-    window: "1h"
+    window: "1h",
   });
 
   if (!allowed) {
-    return { success: false, error: "Too many requests. Please try again later." };
+    return {
+      success: false,
+      error: "Too many requests. Please try again later.",
+    };
   }
 
   // Send email...
@@ -517,16 +550,18 @@ export async function sendVerificationEmail(email: string): ActionResponse<void>
 ```typescript
 import DOMPurify from "isomorphic-dompurify";
 
-export async function createComment(data: CreateCommentDto): ActionResponse<Comment> {
+export async function createComment(
+  data: CreateCommentDto,
+): ActionResponse<Comment> {
   // Sanitize HTML content
   const sanitizedContent = DOMPurify.sanitize(data.content, {
     ALLOWED_TAGS: ["b", "i", "em", "strong", "a"],
-    ALLOWED_ATTR: ["href"]
+    ALLOWED_ATTR: ["href"],
   });
 
   const [error, comment] = await createCommentInDb({
     ...data,
-    content: sanitizedContent
+    content: sanitizedContent,
   });
 
   // ...
@@ -571,7 +606,7 @@ const [statsError, stats] = await getUserStats(userId);
 const [userResult, postsResult, statsResult] = await Promise.all([
   getUser(userId),
   getUserPosts(userId),
-  getUserStats(userId)
+  getUserStats(userId),
 ]);
 ```
 
@@ -595,9 +630,11 @@ for (const id of postIds) {
 }
 
 // ✅ Good: Batch delete
-export async function batchDeletePosts(postIds: string[]): ActionResponse<void> {
+export async function batchDeletePosts(
+  postIds: string[],
+): ActionResponse<void> {
   const batch = db.batch();
-  postIds.forEach(id => {
+  postIds.forEach((id) => {
     batch.delete(db.collection("posts").doc(id));
   });
   await batch.commit();

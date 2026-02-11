@@ -13,7 +13,7 @@ import { createLogger } from "~/lib/logger";
 const logger = createLogger({ module: "user-db" });
 
 export async function getUserById(
-  userId: string
+  userId: string,
 ): Promise<[null, User] | [DbError, null]> {
   // 1. Input validation
   if (!userId?.trim()) {
@@ -46,11 +46,14 @@ export async function getUserById(
   } catch (error) {
     // 6. Categorize unexpected errors
     const dbError = categorizeDbError(error, "User");
-    logger.error({
-      userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Database error");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Database error",
+    );
     return [dbError, null];
   }
 }
@@ -72,7 +75,11 @@ export function categorizeDbError(error: unknown, resource: string): DbError {
         return DbError.permissionDenied();
       case "unavailable":
       case "deadline-exceeded":
-        return new DbError(error.code, `${resource} temporarily unavailable`, true);
+        return new DbError(
+          error.code,
+          `${resource} temporarily unavailable`,
+          true,
+        );
       default:
         return new DbError(error.code, `${resource} operation failed`, false);
     }
@@ -96,9 +103,7 @@ import type { ActionResponse } from "~/lib/action-types";
 
 const logger = createLogger({ module: "budget-actions" });
 
-export async function createBudget(
-  formData: FormData
-): ActionResponse<Budget> {
+export async function createBudget(formData: FormData): ActionResponse<Budget> {
   // 1. Authentication
   const { userId } = await auth();
   if (!userId) {
@@ -109,16 +114,19 @@ export async function createBudget(
   // 2. Validation with field-level errors
   const parsed = createBudgetSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    logger.warn({
-      userId,
-      action: "createBudget",
-      errors: parsed.error.flatten().fieldErrors
-    }, "Validation failed");
+    logger.warn(
+      {
+        userId,
+        action: "createBudget",
+        errors: parsed.error.flatten().fieldErrors,
+      },
+      "Validation failed",
+    );
 
     return {
       success: false,
       error: "Please check the form for errors",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -126,12 +134,15 @@ export async function createBudget(
   const [error, budget] = await createBudgetInDb(userId, parsed.data);
 
   if (error) {
-    logger.error({
-      userId,
-      action: "createBudget",
-      errorCode: error.code,
-      isRetryable: error.isRetryable
-    }, "Failed to create budget");
+    logger.error(
+      {
+        userId,
+        action: "createBudget",
+        errorCode: error.code,
+        isRetryable: error.isRetryable,
+      },
+      "Failed to create budget",
+    );
 
     // User-friendly toast
     await setToastCookie("Failed to create budget. Please try again.", "error");
@@ -400,16 +411,16 @@ export async function POST(request: Request) {
 
     if (!signature) {
       logger.warn({}, "Missing Stripe signature");
-      return NextResponse.json(
-        { error: "Missing signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }
 
     const body = await request.text();
     const event = stripe.webhooks.constructEvent(body, signature, secret);
 
-    logger.info({ eventType: event.type, eventId: event.id }, "Processing webhook");
+    logger.info(
+      { eventType: event.type, eventId: event.id },
+      "Processing webhook",
+    );
 
     // Handle event...
     await handleWebhookEvent(event);
@@ -423,21 +434,18 @@ export async function POST(request: Request) {
 
     if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
       logger.warn({ durationMs }, "Invalid webhook signature");
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    logger.error({
-      durationMs,
-      error: error instanceof Error ? error.message : "Unknown"
-    }, "Webhook processing failed");
-
-    return NextResponse.json(
-      { error: "Processing failed" },
-      { status: 500 }
+    logger.error(
+      {
+        durationMs,
+        error: error instanceof Error ? error.message : "Unknown",
+      },
+      "Webhook processing failed",
     );
+
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }
 ```

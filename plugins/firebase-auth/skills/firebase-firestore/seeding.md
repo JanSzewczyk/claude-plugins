@@ -76,7 +76,7 @@ const logger = createLogger({ module: "seeder" });
  * Check if a collection needs seeding
  */
 export async function shouldSeedCollection(
-  collectionName: string
+  collectionName: string,
 ): Promise<boolean> {
   try {
     const snapshot = await db.collection(collectionName).limit(1).get();
@@ -92,14 +92,9 @@ export async function shouldSeedCollection(
  * Creates missing documents, optionally updates existing ones
  */
 export async function seedCollection<T extends Record<string, unknown>>(
-  config: SeedCollectionConfig<T>
+  config: SeedCollectionConfig<T>,
 ): Promise<SeedStats> {
-  const {
-    collectionName,
-    data,
-    forceUpdate = false,
-    transformItem,
-  } = config;
+  const { collectionName, data, forceUpdate = false, transformItem } = config;
 
   const stats: SeedStats = {
     created: 0,
@@ -111,7 +106,7 @@ export async function seedCollection<T extends Record<string, unknown>>(
 
   logger.info(
     { collectionName, count: data.length, forceUpdate },
-    "Starting seed"
+    "Starting seed",
   );
 
   for (const item of data) {
@@ -153,7 +148,7 @@ export async function seedCollection<T extends Record<string, unknown>>(
       stats.errors++;
       logger.error(
         { collectionName, itemId: item.id, error },
-        "Failed to seed item"
+        "Failed to seed item",
       );
     }
   }
@@ -166,7 +161,7 @@ export async function seedCollection<T extends Record<string, unknown>>(
       skipped: stats.skipped,
       errors: stats.errors,
     },
-    "Seed completed"
+    "Seed completed",
   );
 
   return stats;
@@ -176,7 +171,7 @@ export async function seedCollection<T extends Record<string, unknown>>(
  * Seed multiple collections
  */
 export async function seedDatabase(
-  collections: Array<SeedCollectionConfig<Record<string, unknown>>>
+  collections: Array<SeedCollectionConfig<Record<string, unknown>>>,
 ): Promise<Record<string, SeedStats>> {
   const results: Record<string, SeedStats> = {};
 
@@ -305,7 +300,7 @@ const logger = createLogger({ module: "seed-budget-templates" });
  * Seed budget templates collection
  */
 export async function seedBudgetTemplates(
-  options: { force?: boolean } = {}
+  options: { force?: boolean } = {},
 ): Promise<{ stats: SeedStats; seeded: boolean }> {
   const { force = false } = options;
 
@@ -447,13 +442,14 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { success: false, error: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 ```
 
 Usage:
+
 - `GET /api/seed` - Seed missing data only
 - `GET /api/seed?force=true` - Force re-seed all data
 

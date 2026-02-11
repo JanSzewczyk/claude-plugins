@@ -4,13 +4,13 @@
 
 Tailwind v4 default breakpoints:
 
-| Breakpoint | Min Width | CSS |
-|------------|-----------|-----|
-| `sm` | 640px | `@media (min-width: 640px)` |
-| `md` | 768px | `@media (min-width: 768px)` |
-| `lg` | 1024px | `@media (min-width: 1024px)` |
-| `xl` | 1280px | `@media (min-width: 1280px)` |
-| `2xl` | 1536px | `@media (min-width: 1536px)` |
+| Breakpoint | Min Width | CSS                          |
+| ---------- | --------- | ---------------------------- |
+| `sm`       | 640px     | `@media (min-width: 640px)`  |
+| `md`       | 768px     | `@media (min-width: 768px)`  |
+| `lg`       | 1024px    | `@media (min-width: 1024px)` |
+| `xl`       | 1280px    | `@media (min-width: 1280px)` |
+| `2xl`      | 1536px    | `@media (min-width: 1536px)` |
 
 ### Custom Breakpoints
 
@@ -27,13 +27,15 @@ Tailwind v4 default breakpoints:
 Always start with mobile styles, then add larger breakpoints:
 
 ```tsx
-<div className="
+<div
+  className="
   p-4        /* Mobile (default) */
   sm:p-6     /* Small screens (640px+) */
   md:p-8     /* Medium screens (768px+) */
   lg:p-10    /* Large screens (1024px+) */
   xl:p-12    /* Extra large (1280px+) */
-">
+"
+>
   Responsive padding
 </div>
 ```
@@ -44,7 +46,8 @@ Always start with mobile styles, then add larger breakpoints:
 
 ```tsx
 // Product grid: 1 col mobile → 2 col tablet → 3 col desktop → 4 col wide
-<div className="
+<div
+  className="
   grid
   grid-cols-1
   sm:grid-cols-2
@@ -52,8 +55,9 @@ Always start with mobile styles, then add larger breakpoints:
   xl:grid-cols-4
   gap-4
   md:gap-6
-">
-  {products.map(product => (
+"
+>
+  {products.map((product) => (
     <ProductCard key={product.id} product={product} />
   ))}
 </div>
@@ -86,25 +90,29 @@ function Navigation() {
 
 ```tsx
 <article>
-  <h1 className="
+  <h1
+    className="
     text-2xl
     sm:text-3xl
     md:text-4xl
     lg:text-5xl
     font-bold
     leading-tight
-  ">
+  "
+  >
     Article Title
   </h1>
 
-  <p className="
+  <p
+    className="
     text-base
     md:text-lg
     lg:text-xl
     text-gray-600
     mt-4
     md:mt-6
-  ">
+  "
+  >
     Article excerpt that adjusts size for readability.
   </p>
 </article>
@@ -114,20 +122,23 @@ function Navigation() {
 
 ```tsx
 // Sidebar layout: stacked on mobile, side-by-side on desktop
-<div className="
+<div
+  className="
   flex
   flex-col
   lg:flex-row
   gap-6
   lg:gap-8
-">
+"
+>
   {/* Main content */}
   <main className="flex-1 order-2 lg:order-1">
     <Content />
   </main>
 
   {/* Sidebar */}
-  <aside className="
+  <aside
+    className="
     w-full
     lg:w-80
     order-1
@@ -135,7 +146,8 @@ function Navigation() {
     lg:sticky
     lg:top-4
     lg:self-start
-  ">
+  "
+  >
     <Sidebar />
   </aside>
 </div>
@@ -144,7 +156,8 @@ function Navigation() {
 ### Responsive Card
 
 ```tsx
-<div className="
+<div
+  className="
   bg-white
   rounded-lg
   shadow-sm
@@ -160,7 +173,8 @@ function Navigation() {
   flex-col
   sm:flex-row
   gap-4
-">
+"
+>
   <img
     src={image}
     className="
@@ -213,12 +227,14 @@ function Navigation() {
 
 ```tsx
 // Different display types at different breakpoints
-<div className="
+<div
+  className="
   hidden       /* Hidden by default */
   sm:block     /* Block on small+ */
   lg:flex      /* Flex on large+ */
   xl:grid      /* Grid on xl+ */
-">
+"
+>
   Responsive display
 </div>
 ```
@@ -242,15 +258,19 @@ function Navigation() {
 ### Gap Scaling
 
 ```tsx
-<div className="
+<div
+  className="
   flex
   flex-wrap
   gap-2
   sm:gap-4
   md:gap-6
   lg:gap-8
-">
-  {items.map(item => <Item key={item.id} />)}
+"
+>
+  {items.map((item) => (
+    <Item key={item.id} />
+  ))}
 </div>
 ```
 
@@ -287,7 +307,8 @@ function Navigation() {
 ```tsx
 function Hero() {
   return (
-    <section className="
+    <section
+      className="
       relative
       overflow-hidden
       bg-gradient-to-br
@@ -302,9 +323,11 @@ function Hero() {
       md:py-24
       lg:px-8
       lg:py-32
-    ">
+    "
+    >
       <div className="mx-auto max-w-4xl text-center">
-        <h1 className="
+        <h1
+          className="
           text-3xl
           sm:text-4xl
           md:text-5xl
@@ -312,11 +335,13 @@ function Hero() {
           font-bold
           text-white
           tracking-tight
-        ">
+        "
+        >
           Build amazing products
         </h1>
 
-        <p className="
+        <p
+          className="
           mt-4
           sm:mt-6
           text-lg
@@ -325,11 +350,13 @@ function Hero() {
           text-blue-100
           max-w-2xl
           mx-auto
-        ">
+        "
+        >
           The all-in-one platform for modern teams.
         </p>
 
-        <div className="
+        <div
+          className="
           mt-8
           sm:mt-10
           flex
@@ -337,7 +364,8 @@ function Hero() {
           sm:flex-row
           justify-center
           gap-4
-        ">
+        "
+        >
           <Button size="lg" className="w-full sm:w-auto">
             Get Started
           </Button>
@@ -362,7 +390,8 @@ function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile header */}
-      <header className="
+      <header
+        className="
         lg:hidden
         sticky
         top-0
@@ -371,7 +400,8 @@ function DashboardLayout({ children }) {
         border-b
         px-4
         py-3
-      ">
+      "
+      >
         <div className="flex items-center justify-between">
           <Logo />
           <MobileMenuButton />
@@ -380,7 +410,8 @@ function DashboardLayout({ children }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="
+        <aside
+          className="
           hidden
           lg:flex
           lg:flex-col
@@ -389,7 +420,8 @@ function DashboardLayout({ children }) {
           lg:inset-y-0
           border-r
           bg-white
-        ">
+        "
+        >
           <Logo className="p-4 border-b" />
           <nav className="flex-1 p-4 space-y-1">
             <SidebarNavigation />
@@ -397,16 +429,20 @@ function DashboardLayout({ children }) {
         </aside>
 
         {/* Main content */}
-        <main className="
+        <main
+          className="
           flex-1
           lg:pl-64
-        ">
-          <div className="
+        "
+        >
+          <div
+            className="
             px-4
             py-6
             sm:px-6
             lg:px-8
-          ">
+          "
+          >
             {children}
           </div>
         </main>
@@ -426,14 +462,14 @@ function DashboardLayout({ children }) {
 
 ### Common Device Widths
 
-| Device | Width |
-|--------|-------|
-| iPhone SE | 375px |
-| iPhone 12/13 | 390px |
-| iPad Mini | 768px |
-| iPad Pro | 1024px |
-| Laptop | 1280px |
-| Desktop | 1440px+ |
+| Device       | Width   |
+| ------------ | ------- |
+| iPhone SE    | 375px   |
+| iPhone 12/13 | 390px   |
+| iPad Mini    | 768px   |
+| iPad Pro     | 1024px  |
+| Laptop       | 1280px  |
+| Desktop      | 1440px+ |
 
 ### Responsive Testing Checklist
 

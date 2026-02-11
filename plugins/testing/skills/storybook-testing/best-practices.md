@@ -12,29 +12,32 @@ export const ClickTest = meta.story({
   tags: ["test-only"],
   play: async ({ canvas, userEvent, args }) => {
     /* test 1 */
-  }
+  },
 });
 
 export const HoverTest = meta.story({
   tags: ["test-only"],
   play: async ({ canvas, userEvent }) => {
     /* test 2 */
-  }
+  },
 });
 
 export const ValidationTest = meta.story({
   tags: ["test-only"],
   play: async ({ canvas }) => {
     /* test 3 */
-  }
+  },
 });
 
 // ✅ GOOD - One story with multiple .test() calls (new pattern)
 export const LoginForm = meta.story({});
 
-LoginForm.test("Calls onSubmit when button clicked", async ({ canvas, userEvent, args }) => {
-  /* test 1 */
-});
+LoginForm.test(
+  "Calls onSubmit when button clicked",
+  async ({ canvas, userEvent, args }) => {
+    /* test 1 */
+  },
+);
 
 LoginForm.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
   /* test 2 */
@@ -107,7 +110,7 @@ export const CheckoutJourney = meta.story({
 import preview from "~/.storybook/preview";
 
 const meta = preview.meta({
-  component: MyComponent
+  component: MyComponent,
 });
 
 export const Default = meta.story({});
@@ -297,7 +300,7 @@ export const InternalTest = meta.story({
   tags: ["test-only"],
   play: async ({ canvas }) => {
     // Implementation tests hidden from docs
-  }
+  },
 });
 ```
 

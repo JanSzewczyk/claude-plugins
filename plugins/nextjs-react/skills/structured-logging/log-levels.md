@@ -4,14 +4,14 @@
 
 Pino uses a numeric severity system. Lower numbers = higher severity:
 
-| Level | Number | Description |
-|-------|--------|-------------|
-| `fatal` | 60 | Application crash |
-| `error` | 50 | Operation failed |
-| `warn` | 40 | Warning condition |
-| `info` | 30 | Normal operation |
-| `debug` | 20 | Debug information |
-| `trace` | 10 | Fine-grained trace |
+| Level   | Number | Description        |
+| ------- | ------ | ------------------ |
+| `fatal` | 60     | Application crash  |
+| `error` | 50     | Operation failed   |
+| `warn`  | 40     | Warning condition  |
+| `info`  | 30     | Normal operation   |
+| `debug` | 20     | Debug information  |
+| `trace` | 10     | Fine-grained trace |
 
 When `LOG_LEVEL=info`, only `info`, `warn`, `error`, and `fatal` are logged.
 
@@ -27,7 +27,10 @@ logger.fatal({ error, dbHost }, "Lost database connection, shutting down");
 process.exit(1);
 
 // Critical configuration missing
-logger.fatal({ missingVars: ["DATABASE_URL"] }, "Missing critical environment variables");
+logger.fatal(
+  { missingVars: ["DATABASE_URL"] },
+  "Missing critical environment variables",
+);
 process.exit(1);
 
 // Uncaught exception handler
@@ -43,25 +46,34 @@ process.on("uncaughtException", (error) => {
 
 ```typescript
 // Database operation failed
-logger.error({
-  userId,
-  errorCode: dbError.code,
-  isRetryable: dbError.isRetryable,
-  operation: "createUser"
-}, "Failed to create user");
+logger.error(
+  {
+    userId,
+    errorCode: dbError.code,
+    isRetryable: dbError.isRetryable,
+    operation: "createUser",
+  },
+  "Failed to create user",
+);
 
 // External API failure
-logger.error({
-  service: "stripe",
-  statusCode: response.status,
-  endpoint: "/v1/charges"
-}, "Payment processing failed");
+logger.error(
+  {
+    service: "stripe",
+    statusCode: response.status,
+    endpoint: "/v1/charges",
+  },
+  "Payment processing failed",
+);
 
 // Validation error (unexpected)
-logger.error({
-  userId,
-  invalidFields: ["email", "phone"]
-}, "Data corruption detected");
+logger.error(
+  {
+    userId,
+    invalidFields: ["email", "phone"],
+  },
+  "Data corruption detected",
+);
 ```
 
 ### warn
@@ -70,38 +82,53 @@ logger.error({
 
 ```typescript
 // Resource approaching limit
-logger.warn({
-  currentUsage: 8500,
-  limit: 10000,
-  resource: "apiCalls"
-}, "API rate limit 85% reached");
+logger.warn(
+  {
+    currentUsage: 8500,
+    limit: 10000,
+    resource: "apiCalls",
+  },
+  "API rate limit 85% reached",
+);
 
 // Deprecated feature usage
-logger.warn({
-  feature: "legacyAuth",
-  userId,
-  suggestedMigration: "Use OAuth instead"
-}, "Deprecated authentication method used");
+logger.warn(
+  {
+    feature: "legacyAuth",
+    userId,
+    suggestedMigration: "Use OAuth instead",
+  },
+  "Deprecated authentication method used",
+);
 
 // Slow operation
-logger.warn({
-  operation: "queryUsers",
-  durationMs: 5200,
-  threshold: 3000
-}, "Slow database query detected");
+logger.warn(
+  {
+    operation: "queryUsers",
+    durationMs: 5200,
+    threshold: 3000,
+  },
+  "Slow database query detected",
+);
 
 // Retry happening
-logger.warn({
-  attempt: 2,
-  maxAttempts: 3,
-  operation: "sendEmail"
-}, "Retrying failed operation");
+logger.warn(
+  {
+    attempt: 2,
+    maxAttempts: 3,
+    operation: "sendEmail",
+  },
+  "Retrying failed operation",
+);
 
 // Missing optional data
-logger.warn({
-  userId,
-  missingField: "profilePicture"
-}, "User profile incomplete");
+logger.warn(
+  {
+    userId,
+    missingField: "profilePicture",
+  },
+  "User profile incomplete",
+);
 ```
 
 ### info
@@ -123,10 +150,13 @@ logger.info({ userId, orderId }, "Order placed successfully");
 logger.info({ jobId, recordsProcessed: 150 }, "Batch job completed");
 
 // Configuration loaded
-logger.info({
-  logLevel: "info",
-  environment: "production"
-}, "Application configured");
+logger.info(
+  {
+    logLevel: "info",
+    environment: "production",
+  },
+  "Application configured",
+);
 ```
 
 ### debug
@@ -135,40 +165,55 @@ logger.info({
 
 ```typescript
 // Request details
-logger.debug({
-  method: "POST",
-  path: "/api/users",
-  body: sanitizedBody,
-  headers: safeHeaders
-}, "Incoming request");
+logger.debug(
+  {
+    method: "POST",
+    path: "/api/users",
+    body: sanitizedBody,
+    headers: safeHeaders,
+  },
+  "Incoming request",
+);
 
 // Response details
-logger.debug({
-  statusCode: 200,
-  responseTime: 45,
-  path: "/api/users"
-}, "Request completed");
+logger.debug(
+  {
+    statusCode: 200,
+    responseTime: 45,
+    path: "/api/users",
+  },
+  "Request completed",
+);
 
 // Variable state
-logger.debug({
-  userId,
-  permissions: userPermissions,
-  roles: userRoles
-}, "User permissions loaded");
+logger.debug(
+  {
+    userId,
+    permissions: userPermissions,
+    roles: userRoles,
+  },
+  "User permissions loaded",
+);
 
 // Cache operations
-logger.debug({
-  key: "user:123",
-  hit: true,
-  ttl: 3600
-}, "Cache lookup");
+logger.debug(
+  {
+    key: "user:123",
+    hit: true,
+    ttl: 3600,
+  },
+  "Cache lookup",
+);
 
 // Query details
-logger.debug({
-  collection: "users",
-  filter: { status: "active" },
-  limit: 10
-}, "Executing database query");
+logger.debug(
+  {
+    collection: "users",
+    filter: { status: "active" },
+    limit: 10,
+  },
+  "Executing database query",
+);
 ```
 
 ### trace
@@ -186,21 +231,24 @@ items.forEach((item, index) => {
 });
 
 // Detailed state changes
-logger.trace({
-  stateBefore: oldState,
-  stateAfter: newState,
-  trigger: "userInput"
-}, "State transition");
+logger.trace(
+  {
+    stateBefore: oldState,
+    stateAfter: newState,
+    trigger: "userInput",
+  },
+  "State transition",
+);
 ```
 
 ## Log Level by Environment
 
-| Environment | Recommended Level | Reason |
-|-------------|-------------------|--------|
-| Development | `debug` | Full visibility for debugging |
-| Test | `warn` | Only failures and warnings |
-| Staging | `info` | Normal operations + issues |
-| Production | `info` | Balance of visibility and volume |
+| Environment | Recommended Level | Reason                           |
+| ----------- | ----------------- | -------------------------------- |
+| Development | `debug`           | Full visibility for debugging    |
+| Test        | `warn`            | Only failures and warnings       |
+| Staging     | `info`            | Normal operations + issues       |
+| Production  | `info`            | Balance of visibility and volume |
 
 ```bash
 # .env.local
@@ -252,7 +300,7 @@ Is this very detailed tracing?
 
 ```typescript
 // ❌ Too verbose for info
-logger.info({ i }, "Processing item");  // In a loop of 10000 items
+logger.info({ i }, "Processing item"); // In a loop of 10000 items
 
 // ✅ Better
 logger.debug({ i }, "Processing item");
@@ -266,7 +314,7 @@ logger.info({ totalProcessed: 10000 }, "Batch processing complete");
 try {
   await riskyOperation();
 } catch (error) {
-  return null;  // Error lost!
+  return null; // Error lost!
 }
 
 // ✅ Always log errors
@@ -283,14 +331,14 @@ try {
 ```typescript
 // ❌ Error for expected "not found"
 if (!user) {
-  logger.error({ userId }, "User not found");  // This might be normal!
+  logger.error({ userId }, "User not found"); // This might be normal!
 }
 
 // ✅ Use warn or info depending on context
 if (!user) {
-  logger.warn({ userId }, "User not found");  // If unexpected
+  logger.warn({ userId }, "User not found"); // If unexpected
   // OR
-  logger.info({ userId }, "User lookup returned no results");  // If normal
+  logger.info({ userId }, "User lookup returned no results"); // If normal
 }
 ```
 
@@ -301,8 +349,11 @@ if (!user) {
 logger.info({ password, token }, "User credentials");
 
 // ✅ Redact sensitive data
-logger.info({
-  hasPassword: !!password,
-  tokenPrefix: token?.slice(0, 8)
-}, "User credentials check");
+logger.info(
+  {
+    hasPassword: !!password,
+    tokenPrefix: token?.slice(0, 8),
+  },
+  "User credentials check",
+);
 ```

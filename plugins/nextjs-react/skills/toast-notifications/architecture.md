@@ -53,24 +53,24 @@ import { TOAST_COOKIE_NAME } from "~/lib/toast/constants";
 import type { ToastMessage, ToastType } from "~/lib/toast/types";
 
 const cookieConfig = {
-  maxAge: 5000,        // 5 seconds
-  path: "/",           // Available on all routes
-  httpOnly: false,     // Must be readable by client JS
-  sameSite: "lax",     // Sent with same-site navigations
-  secure: process.env.NODE_ENV === "production"
+  maxAge: 5000, // 5 seconds
+  path: "/", // Available on all routes
+  httpOnly: false, // Must be readable by client JS
+  sameSite: "lax", // Sent with same-site navigations
+  secure: process.env.NODE_ENV === "production",
 };
 
 export async function setToastCookie(
   message: string,
   type: ToastType = "success",
-  duration?: number
+  duration?: number,
 ) {
   const cookieStore = await cookies();
 
   const toastData: ToastMessage = {
     type,
     message,
-    duration
+    duration,
   };
 
   cookieStore.set(TOAST_COOKIE_NAME, JSON.stringify(toastData), cookieConfig);
@@ -177,13 +177,13 @@ Short max-age ensures stale toasts don't appear unexpectedly.
 
 ### Cookie Options
 
-| Option | Value | Reason |
-|--------|-------|--------|
-| `maxAge` | 5000 | Auto-expires if not consumed |
-| `path` | "/" | Available on all routes |
-| `httpOnly` | false | Must be readable by client JS |
-| `sameSite` | "lax" | Sent with same-site navigation |
-| `secure` | prod only | HTTPS in production |
+| Option     | Value     | Reason                         |
+| ---------- | --------- | ------------------------------ |
+| `maxAge`   | 5000      | Auto-expires if not consumed   |
+| `path`     | "/"       | Available on all routes        |
+| `httpOnly` | false     | Must be readable by client JS  |
+| `sameSite` | "lax"     | Sent with same-site navigation |
+| `secure`   | prod only | HTTPS in production            |
 
 ## Why This Approach?
 
@@ -205,12 +205,14 @@ Short max-age ensures stale toasts don't appear unexpectedly.
 ### Cookie Approach (Chosen)
 
 **Pros:**
+
 - Works with redirect()
 - No URL pollution
 - Auto-cleanup with maxAge
 - Design system integration
 
 **Cons:**
+
 - Requires httpOnly: false
 - Cookie size limit (~4KB)
 - Slight complexity
@@ -299,9 +301,9 @@ React.useEffect(() => {
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Toast not showing | Cookie not set | Check server action runs |
-| Toast on wrong page | No pathname dep | Add pathname to useEffect |
-| Toast shows twice | Multiple handlers | Ensure single ToastHandler |
-| Stale toast | Cookie not removed | Check finally block |
+| Issue               | Cause              | Solution                   |
+| ------------------- | ------------------ | -------------------------- |
+| Toast not showing   | Cookie not set     | Check server action runs   |
+| Toast on wrong page | No pathname dep    | Add pathname to useEffect  |
+| Toast shows twice   | Multiple handlers  | Ensure single ToastHandler |
+| Stale toast         | Cookie not removed | Check finally block        |

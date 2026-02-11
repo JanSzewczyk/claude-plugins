@@ -77,7 +77,7 @@ export async function processItems(ids: string[]): ActionResponse {
   } else {
     await setToastCookie(
       `Processed ${successCount} items, ${errorCount} failed`,
-      "warning"
+      "warning",
     );
   }
 
@@ -101,11 +101,11 @@ await setToastCookie("Quick notification", "info");
 await setToastCookie(
   "Important: Your subscription expires in 3 days. Please renew to avoid service interruption.",
   "warning",
-  10000  // 10 seconds
+  10000, // 10 seconds
 );
 
 // Short toast for confirmations
-await setToastCookie("Saved", "success", 2000);  // 2 seconds
+await setToastCookie("Saved", "success", 2000); // 2 seconds
 ```
 
 ## Pattern 5: Toast Before Redirect
@@ -186,7 +186,7 @@ export async function submitForm(data: FormData): ActionResponse {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -236,7 +236,10 @@ export async function completeOnboarding(): RedirectAction {
 
 ```typescript
 // ❌ Bad - exposes internal details
-await setToastCookie(`User ${userId} failed auth with code ${errorCode}`, "error");
+await setToastCookie(
+  `User ${userId} failed auth with code ${errorCode}`,
+  "error",
+);
 
 // ✅ Good - generic user-friendly message
 await setToastCookie("Authentication failed. Please try again.", "error");
@@ -255,8 +258,8 @@ return {
   error: "Validation failed",
   fieldErrors: {
     email: ["Email is required"],
-    password: ["Password must be 8 characters"]
-  }
+    password: ["Password must be 8 characters"],
+  },
 };
 ```
 

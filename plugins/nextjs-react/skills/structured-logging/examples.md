@@ -14,7 +14,7 @@ const COLLECTION_NAME = "budgets";
 
 export async function getBudgetById(
   userId: string,
-  budgetId: string
+  budgetId: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   // Input validation logging
   if (!userId?.trim()) {
@@ -34,7 +34,10 @@ export async function getBudgetById(
 
     const data = doc.data();
     if (data?.userId !== userId) {
-      logger.warn({ userId, budgetId, ownerId: data?.userId }, "Budget access denied");
+      logger.warn(
+        { userId, budgetId, ownerId: data?.userId },
+        "Budget access denied",
+      );
       return [DbError.permissionDenied(), null];
     }
 
@@ -42,19 +45,22 @@ export async function getBudgetById(
     return [null, transformBudget(doc.id, data)];
   } catch (error) {
     const dbError = categorizeDbError(error, "Budget");
-    logger.error({
-      userId,
-      budgetId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Failed to fetch budget");
+    logger.error(
+      {
+        userId,
+        budgetId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Failed to fetch budget",
+    );
     return [dbError, null];
   }
 }
 
 export async function createBudget(
   userId: string,
-  data: CreateBudgetDto
+  data: CreateBudgetDto,
 ): Promise<[null, Budget] | [DbError, null]> {
   logger.info({ userId, budgetName: data.name }, "Creating budget");
 
@@ -63,24 +69,30 @@ export async function createBudget(
       ...data,
       userId,
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
-    logger.info({
-      userId,
-      budgetId: docRef.id,
-      budgetName: data.name
-    }, "Budget created successfully");
+    logger.info(
+      {
+        userId,
+        budgetId: docRef.id,
+        budgetName: data.name,
+      },
+      "Budget created successfully",
+    );
 
     const doc = await docRef.get();
     return [null, transformBudget(doc.id, doc.data()!)];
   } catch (error) {
     const dbError = categorizeDbError(error, "Budget");
-    logger.error({
-      userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Failed to create budget");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Failed to create budget",
+    );
     return [dbError, null];
   }
 }
@@ -103,7 +115,7 @@ import type { Budget } from "../types/budget";
 const logger = createLogger({ module: "budget-actions" });
 
 export async function createBudget(
-  data: CreateBudgetFormData
+  data: CreateBudgetFormData,
 ): ActionResponse<Budget> {
   const { userId } = await auth();
 
@@ -112,25 +124,31 @@ export async function createBudget(
     return { success: false, error: "Unauthorized" };
   }
 
-  logger.info({
-    userId,
-    action: "createBudget",
-    budgetName: data.name
-  }, "Starting budget creation");
+  logger.info(
+    {
+      userId,
+      action: "createBudget",
+      budgetName: data.name,
+    },
+    "Starting budget creation",
+  );
 
   // Validate input
   const parsed = createBudgetSchema.safeParse(data);
   if (!parsed.success) {
-    logger.warn({
-      userId,
-      action: "createBudget",
-      errors: parsed.error.flatten().fieldErrors
-    }, "Validation failed");
+    logger.warn(
+      {
+        userId,
+        action: "createBudget",
+        errors: parsed.error.flatten().fieldErrors,
+      },
+      "Validation failed",
+    );
 
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -138,22 +156,28 @@ export async function createBudget(
   const [error, budget] = await createBudgetDb(userId, parsed.data);
 
   if (error) {
-    logger.error({
-      userId,
-      action: "createBudget",
-      errorCode: error.code,
-      isRetryable: error.isRetryable
-    }, "Budget creation failed");
+    logger.error(
+      {
+        userId,
+        action: "createBudget",
+        errorCode: error.code,
+        isRetryable: error.isRetryable,
+      },
+      "Budget creation failed",
+    );
 
     await setToastCookie("Failed to create budget", "error");
     return { success: false, error: error.message };
   }
 
-  logger.info({
-    userId,
-    action: "createBudget",
-    budgetId: budget.id
-  }, "Budget created successfully");
+  logger.info(
+    {
+      userId,
+      action: "createBudget",
+      budgetId: budget.id,
+    },
+    "Budget created successfully",
+  );
 
   await setToastCookie("Budget created successfully!", "success");
   revalidatePath("/budgets");
@@ -191,16 +215,22 @@ export async function POST(request: Request) {
     const body = await request.text();
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
-    logger.error({
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, "Webhook signature verification failed");
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Webhook signature verification failed",
+    );
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  logger.info({
-    eventType: event.type,
-    eventId: event.id
-  }, "Processing webhook event");
+  logger.info(
+    {
+      eventType: event.type,
+      eventId: event.id,
+    },
+    "Processing webhook event",
+  );
 
   try {
     switch (event.type) {
@@ -215,21 +245,27 @@ export async function POST(request: Request) {
     }
 
     const durationMs = Math.round(performance.now() - startTime);
-    logger.info({
-      eventType: event.type,
-      eventId: event.id,
-      durationMs
-    }, "Webhook processed successfully");
+    logger.info(
+      {
+        eventType: event.type,
+        eventId: event.id,
+        durationMs,
+      },
+      "Webhook processed successfully",
+    );
 
     return NextResponse.json({ received: true });
   } catch (error) {
     const durationMs = Math.round(performance.now() - startTime);
-    logger.error({
-      eventType: event.type,
-      eventId: event.id,
-      durationMs,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, "Webhook processing failed");
+    logger.error(
+      {
+        eventType: event.type,
+        eventId: event.id,
+        durationMs,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Webhook processing failed",
+    );
 
     return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
@@ -257,28 +293,34 @@ export async function GET() {
 
     const durationMs = Math.round(performance.now() - startTime);
 
-    logger.info({
-      expiredSessions,
-      oldLogs,
-      orphanedFiles,
-      durationMs
-    }, "Cleanup job completed");
+    logger.info(
+      {
+        expiredSessions,
+        oldLogs,
+        orphanedFiles,
+        durationMs,
+      },
+      "Cleanup job completed",
+    );
 
     return NextResponse.json({
       success: true,
       cleaned: {
         sessions: expiredSessions,
         logs: oldLogs,
-        files: orphanedFiles
-      }
+        files: orphanedFiles,
+      },
     });
   } catch (error) {
     const durationMs = Math.round(performance.now() - startTime);
 
-    logger.error({
-      durationMs,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, "Cleanup job failed");
+    logger.error(
+      {
+        durationMs,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Cleanup job failed",
+    );
 
     return NextResponse.json({ error: "Cleanup failed" }, { status: 500 });
   }
@@ -317,10 +359,13 @@ export async function completeOnboarding(): RedirectAction {
   // Update database
   const [dbError] = await completeOnboardingInDb(userId);
   if (dbError) {
-    logger.error({
-      userId,
-      errorCode: dbError.code
-    }, "Failed to update onboarding in database");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+      },
+      "Failed to update onboarding in database",
+    );
     return { success: false, error: "Failed to complete onboarding" };
   }
 
@@ -329,16 +374,19 @@ export async function completeOnboarding(): RedirectAction {
     const client = await clerkClient();
     await client.users.updateUserMetadata(userId, {
       publicMetadata: {
-        onboardingComplete: true
-      }
+        onboardingComplete: true,
+      },
     });
 
     logger.info({ userId }, "Onboarding completed successfully");
   } catch (error) {
-    logger.error({
-      userId,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, "Failed to update Clerk metadata");
+    logger.error(
+      {
+        userId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Failed to update Clerk metadata",
+    );
     return { success: false, error: "Failed to update user metadata" };
   }
 
@@ -363,9 +411,12 @@ export async function processNotificationQueue() {
 
   const notifications = await getUnsentNotifications(batchSize);
 
-  logger.debug({
-    notificationCount: notifications.length
-  }, "Fetched notifications to process");
+  logger.debug(
+    {
+      notificationCount: notifications.length,
+    },
+    "Fetched notifications to process",
+  );
 
   for (const notification of notifications) {
     try {
@@ -373,30 +424,39 @@ export async function processNotificationQueue() {
       await markNotificationSent(notification.id);
       processedCount++;
 
-      logger.debug({
-        notificationId: notification.id,
-        userId: notification.userId,
-        type: notification.type
-      }, "Notification sent");
+      logger.debug(
+        {
+          notificationId: notification.id,
+          userId: notification.userId,
+          type: notification.type,
+        },
+        "Notification sent",
+      );
     } catch (error) {
       errorCount++;
 
-      logger.error({
-        notificationId: notification.id,
-        userId: notification.userId,
-        error: error instanceof Error ? error.message : "Unknown error"
-      }, "Failed to send notification");
+      logger.error(
+        {
+          notificationId: notification.id,
+          userId: notification.userId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+        "Failed to send notification",
+      );
 
       await markNotificationFailed(notification.id, error);
     }
   }
 
-  logger.info({
-    processedCount,
-    errorCount,
-    totalCount: notifications.length,
-    successRate: `${Math.round((processedCount / notifications.length) * 100)}%`
-  }, "Notification processing completed");
+  logger.info(
+    {
+      processedCount,
+      errorCount,
+      totalCount: notifications.length,
+      successRate: `${Math.round((processedCount / notifications.length) * 100)}%`,
+    },
+    "Notification processing completed",
+  );
 
   return { processed: processedCount, errors: errorCount };
 }

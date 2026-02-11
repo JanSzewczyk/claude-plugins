@@ -85,11 +85,11 @@ Check `.claude/project-context.md` for the project's type lifecycle pattern. See
 
 **Key principles:**
 
-| Principle | Description |
-| --------- | ----------- |
-| Index planning | Identify frequently queried fields, plan composite indexes, document in comments |
-| Specific queries | Always use filters, ordering, and limits — never fetch entire collections |
-| Cursor pagination | Use `startAfter` for large datasets instead of offset-based |
+| Principle         | Description                                                                      |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Index planning    | Identify frequently queried fields, plan composite indexes, document in comments |
+| Specific queries  | Always use filters, ordering, and limits — never fetch entire collections        |
+| Cursor pagination | Use `startAfter` for large datasets instead of offset-based                      |
 
 ### 5. Migration Strategy
 

@@ -15,40 +15,49 @@ const meta = preview.meta({
   title: "Features/Profile/UserProfileForm",
   component: UserProfileForm,
   args: {
-    onSubmit: fn()
-  }
+    onSubmit: fn(),
+  },
 });
 
 // Main story for form testing
 export const EmptyForm = meta.story({});
 
 // Rendering tests
-EmptyForm.test("Renders all form fields with DS Input components", async ({ canvas }) => {
-  // DS Input components use specific ARIA patterns
-  const emailInput = canvas.getByRole("textbox", { name: /email/i });
-  const nameInput = canvas.getByRole("textbox", { name: /name/i });
-  await expect(emailInput).toBeVisible();
-  await expect(nameInput).toBeVisible();
-});
+EmptyForm.test(
+  "Renders all form fields with DS Input components",
+  async ({ canvas }) => {
+    // DS Input components use specific ARIA patterns
+    const emailInput = canvas.getByRole("textbox", { name: /email/i });
+    const nameInput = canvas.getByRole("textbox", { name: /name/i });
+    await expect(emailInput).toBeVisible();
+    await expect(nameInput).toBeVisible();
+  },
+);
 
 // Validation tests
-EmptyForm.test("Shows DS error message on empty submit", async ({ canvas, userEvent }) => {
-  const submitBtn = canvas.getByRole("button", { name: /submit/i });
-  await userEvent.click(submitBtn);
+EmptyForm.test(
+  "Shows DS error message on empty submit",
+  async ({ canvas, userEvent }) => {
+    const submitBtn = canvas.getByRole("button", { name: /submit/i });
+    await userEvent.click(submitBtn);
 
-  await waitFor(async () => {
-    // DS error messages have specific role
-    await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
-  });
-});
+    await waitFor(async () => {
+      // DS error messages have specific role
+      await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
+    });
+  },
+);
 
 // Interaction tests
-EmptyForm.test("Submits successfully with valid data", async ({ canvas, userEvent, args }) => {
-  const emailInput = canvas.getByRole("textbox", { name: /email/i });
-  await userEvent.type(emailInput, "user@example.com");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+EmptyForm.test(
+  "Submits successfully with valid data",
+  async ({ canvas, userEvent, args }) => {
+    const emailInput = canvas.getByRole("textbox", { name: /email/i });
+    await userEvent.type(emailInput, "user@example.com");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 ```
 
 ## Testing DS Modal/Dialog Components
@@ -64,13 +73,13 @@ const meta = preview.meta({
   component: DeleteConfirmDialog,
   args: {
     onConfirm: fn(),
-    onCancel: fn()
-  }
+    onCancel: fn(),
+  },
 });
 
 // Story: Open modal
 export const OpenDialog = meta.story({
-  args: { isOpen: true }
+  args: { isOpen: true },
 });
 
 // Rendering tests
@@ -93,17 +102,23 @@ OpenDialog.test("Closes on Escape key", async ({ userEvent, args }) => {
   await expect(args.onCancel).toHaveBeenCalled();
 });
 
-OpenDialog.test("Clicking cancel closes dialog", async ({ userEvent, args }) => {
-  const cancelBtn = screen.getByRole("button", { name: /cancel/i });
-  await userEvent.click(cancelBtn);
-  await expect(args.onCancel).toHaveBeenCalled();
-});
+OpenDialog.test(
+  "Clicking cancel closes dialog",
+  async ({ userEvent, args }) => {
+    const cancelBtn = screen.getByRole("button", { name: /cancel/i });
+    await userEvent.click(cancelBtn);
+    await expect(args.onCancel).toHaveBeenCalled();
+  },
+);
 
-OpenDialog.test("Clicking confirm triggers action", async ({ userEvent, args }) => {
-  const confirmBtn = screen.getByRole("button", { name: /confirm/i });
-  await userEvent.click(confirmBtn);
-  await expect(args.onConfirm).toHaveBeenCalled();
-});
+OpenDialog.test(
+  "Clicking confirm triggers action",
+  async ({ userEvent, args }) => {
+    const confirmBtn = screen.getByRole("button", { name: /confirm/i });
+    await userEvent.click(confirmBtn);
+    await expect(args.onConfirm).toHaveBeenCalled();
+  },
+);
 
 // Accessibility tests
 OpenDialog.test("Traps focus within dialog", async ({ userEvent }) => {
@@ -131,8 +146,8 @@ const meta = preview.meta({
   title: "Components/CountrySelect",
   component: CountrySelect,
   args: {
-    onValueChange: fn()
-  }
+    onValueChange: fn(),
+  },
 });
 
 // Main story
@@ -146,37 +161,48 @@ CountrySelect.test("Renders combobox trigger", async ({ canvas }) => {
 });
 
 // Interaction tests
-CountrySelect.test("Opens dropdown on trigger click", async ({ canvas, userEvent }) => {
-  const select = canvas.getByRole("combobox");
-  await userEvent.click(select);
+CountrySelect.test(
+  "Opens dropdown on trigger click",
+  async ({ canvas, userEvent }) => {
+    const select = canvas.getByRole("combobox");
+    await userEvent.click(select);
 
-  // Options appear in portal (document.body) - use screen
-  const option = await screen.findByRole("option", { name: /united states/i });
-  await expect(option).toBeVisible();
-});
+    // Options appear in portal (document.body) - use screen
+    const option = await screen.findByRole("option", {
+      name: /united states/i,
+    });
+    await expect(option).toBeVisible();
+  },
+);
 
-CountrySelect.test("Selects option and updates trigger text", async ({ canvas, userEvent, args }) => {
-  const select = canvas.getByRole("combobox");
-  await userEvent.click(select);
+CountrySelect.test(
+  "Selects option and updates trigger text",
+  async ({ canvas, userEvent, args }) => {
+    const select = canvas.getByRole("combobox");
+    await userEvent.click(select);
 
-  const option = await screen.findByRole("option", { name: /poland/i });
-  await userEvent.click(option);
+    const option = await screen.findByRole("option", { name: /poland/i });
+    await userEvent.click(option);
 
-  await expect(select).toHaveTextContent("Poland");
-  await expect(args.onValueChange).toHaveBeenCalledWith("PL");
-});
+    await expect(select).toHaveTextContent("Poland");
+    await expect(args.onValueChange).toHaveBeenCalledWith("PL");
+  },
+);
 
-CountrySelect.test("Closes dropdown after selection", async ({ canvas, userEvent }) => {
-  const select = canvas.getByRole("combobox");
-  await userEvent.click(select);
+CountrySelect.test(
+  "Closes dropdown after selection",
+  async ({ canvas, userEvent }) => {
+    const select = canvas.getByRole("combobox");
+    await userEvent.click(select);
 
-  const option = await screen.findByRole("option", { name: /poland/i });
-  await userEvent.click(option);
+    const option = await screen.findByRole("option", { name: /poland/i });
+    await userEvent.click(option);
 
-  await waitFor(async () => {
-    await expect(screen.queryByRole("option")).not.toBeInTheDocument();
-  });
-});
+    await waitFor(async () => {
+      await expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    });
+  },
+);
 ```
 
 ## Testing DS Tooltip Components
@@ -189,7 +215,7 @@ import { InfoTooltip } from "./info-tooltip";
 
 const meta = preview.meta({
   title: "Components/InfoTooltip",
-  component: InfoTooltip
+  component: InfoTooltip,
 });
 
 // Main story
@@ -238,26 +264,26 @@ const meta = preview.meta({
   title: "Components/ActionButton",
   component: ActionButton,
   args: {
-    onClick: fn()
-  }
+    onClick: fn(),
+  },
 });
 
 // Visual variant stories (for docs)
 export const Primary = meta.story({
-  args: { variant: "primary", children: "Primary" }
+  args: { variant: "primary", children: "Primary" },
 });
 
 export const Secondary = meta.story({
-  args: { variant: "secondary", children: "Secondary" }
+  args: { variant: "secondary", children: "Secondary" },
 });
 
 export const Destructive = meta.story({
-  args: { variant: "destructive", children: "Delete" }
+  args: { variant: "destructive", children: "Delete" },
 });
 
 // Main test story
 export const IdleButton = meta.story({
-  args: { children: "Action Button" }
+  args: { children: "Action Button" },
 });
 
 // State tests
@@ -268,15 +294,18 @@ IdleButton.test("Is enabled by default", async ({ canvas }) => {
 });
 
 // Interaction tests
-IdleButton.test("Calls onClick when clicked", async ({ canvas, userEvent, args }) => {
-  const button = canvas.getByRole("button");
-  await userEvent.click(button);
-  await expect(args.onClick).toHaveBeenCalledTimes(1);
-});
+IdleButton.test(
+  "Calls onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    const button = canvas.getByRole("button");
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalledTimes(1);
+  },
+);
 
 // Loading state story
 export const LoadingButton = meta.story({
-  args: { isLoading: true, children: "Loading..." }
+  args: { isLoading: true, children: "Loading..." },
 });
 
 LoadingButton.test("Is disabled when loading", async ({ canvas }) => {
@@ -306,36 +335,42 @@ const meta = preview.meta({
   title: "Components/ToastDemo",
   component: ToastDemo,
   args: {
-    onShowToast: fn()
-  }
+    onShowToast: fn(),
+  },
 });
 
 // Main story
 export const ToastDemo = meta.story({});
 
 // Interaction tests
-ToastDemo.test("Shows toast on trigger click", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
+ToastDemo.test(
+  "Shows toast on trigger click",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
 
-  // Toast should appear with role="status" or role="alert"
-  const toast = await canvas.findByRole("status");
-  await expect(toast).toHaveTextContent(/success/i);
-});
+    // Toast should appear with role="status" or role="alert"
+    const toast = await canvas.findByRole("status");
+    await expect(toast).toHaveTextContent(/success/i);
+  },
+);
 
-ToastDemo.test("Auto-dismisses after timeout", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
+ToastDemo.test(
+  "Auto-dismisses after timeout",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
 
-  const toast = await canvas.findByRole("status");
-  await expect(toast).toBeVisible();
+    const toast = await canvas.findByRole("status");
+    await expect(toast).toBeVisible();
 
-  // Wait for auto-dismiss (default 5 seconds for DS)
-  await waitFor(
-    async () => {
-      await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
-    },
-    { timeout: 6000 }
-  );
-});
+    // Wait for auto-dismiss (default 5 seconds for DS)
+    await waitFor(
+      async () => {
+        await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
+      },
+      { timeout: 6000 },
+    );
+  },
+);
 
 ToastDemo.test("Can be dismissed manually", async ({ canvas, userEvent }) => {
   await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
@@ -361,7 +396,7 @@ import { SettingsTabs } from "./settings-tabs";
 
 const meta = preview.meta({
   title: "Components/SettingsTabs",
-  component: SettingsTabs
+  component: SettingsTabs,
 });
 
 // Main story
@@ -371,7 +406,9 @@ export const SettingsTabs = meta.story({});
 SettingsTabs.test("Renders all tab triggers", async ({ canvas }) => {
   await expect(canvas.getByRole("tab", { name: /profile/i })).toBeVisible();
   await expect(canvas.getByRole("tab", { name: /security/i })).toBeVisible();
-  await expect(canvas.getByRole("tab", { name: /notifications/i })).toBeVisible();
+  await expect(
+    canvas.getByRole("tab", { name: /notifications/i }),
+  ).toBeVisible();
 });
 
 SettingsTabs.test("First tab is selected by default", async ({ canvas }) => {
@@ -380,42 +417,51 @@ SettingsTabs.test("First tab is selected by default", async ({ canvas }) => {
 });
 
 // Interaction tests
-SettingsTabs.test("Clicking tab switches content", async ({ canvas, userEvent }) => {
-  const securityTab = canvas.getByRole("tab", { name: /security/i });
-  await userEvent.click(securityTab);
+SettingsTabs.test(
+  "Clicking tab switches content",
+  async ({ canvas, userEvent }) => {
+    const securityTab = canvas.getByRole("tab", { name: /security/i });
+    await userEvent.click(securityTab);
 
-  await waitFor(async () => {
-    await expect(securityTab).toHaveAttribute("aria-selected", "true");
-  });
+    await waitFor(async () => {
+      await expect(securityTab).toHaveAttribute("aria-selected", "true");
+    });
 
-  const panel = canvas.getByRole("tabpanel");
-  await expect(panel).toHaveTextContent(/security settings/i);
-});
+    const panel = canvas.getByRole("tabpanel");
+    await expect(panel).toHaveTextContent(/security settings/i);
+  },
+);
 
-SettingsTabs.test("Deselects previous tab when switching", async ({ canvas, userEvent }) => {
-  const profileTab = canvas.getByRole("tab", { name: /profile/i });
-  const securityTab = canvas.getByRole("tab", { name: /security/i });
+SettingsTabs.test(
+  "Deselects previous tab when switching",
+  async ({ canvas, userEvent }) => {
+    const profileTab = canvas.getByRole("tab", { name: /profile/i });
+    const securityTab = canvas.getByRole("tab", { name: /security/i });
 
-  await expect(profileTab).toHaveAttribute("aria-selected", "true");
+    await expect(profileTab).toHaveAttribute("aria-selected", "true");
 
-  await userEvent.click(securityTab);
+    await userEvent.click(securityTab);
 
-  await waitFor(async () => {
-    await expect(profileTab).toHaveAttribute("aria-selected", "false");
-    await expect(securityTab).toHaveAttribute("aria-selected", "true");
-  });
-});
+    await waitFor(async () => {
+      await expect(profileTab).toHaveAttribute("aria-selected", "false");
+      await expect(securityTab).toHaveAttribute("aria-selected", "true");
+    });
+  },
+);
 
 // Keyboard navigation tests
-SettingsTabs.test("Arrow keys navigate between tabs", async ({ canvas, userEvent }) => {
-  const profileTab = canvas.getByRole("tab", { name: /profile/i });
-  const securityTab = canvas.getByRole("tab", { name: /security/i });
+SettingsTabs.test(
+  "Arrow keys navigate between tabs",
+  async ({ canvas, userEvent }) => {
+    const profileTab = canvas.getByRole("tab", { name: /profile/i });
+    const securityTab = canvas.getByRole("tab", { name: /security/i });
 
-  profileTab.focus();
-  await userEvent.keyboard("{ArrowRight}");
+    profileTab.focus();
+    await userEvent.keyboard("{ArrowRight}");
 
-  await expect(securityTab).toHaveFocus();
-});
+    await expect(securityTab).toHaveFocus();
+  },
+);
 ```
 
 ## Testing DS Checkbox/Switch Components
@@ -429,13 +475,13 @@ const meta = preview.meta({
   title: "Components/NewsletterCheckbox",
   component: NewsletterCheckbox,
   args: {
-    onCheckedChange: fn()
-  }
+    onCheckedChange: fn(),
+  },
 });
 
 // Story 1: Unchecked
 export const UncheckedCheckbox = meta.story({
-  args: { checked: false }
+  args: { checked: false },
 });
 
 UncheckedCheckbox.test("Renders unchecked checkbox", async ({ canvas }) => {
@@ -443,15 +489,18 @@ UncheckedCheckbox.test("Renders unchecked checkbox", async ({ canvas }) => {
   await expect(checkbox).not.toBeChecked();
 });
 
-UncheckedCheckbox.test("Checks on click", async ({ canvas, userEvent, args }) => {
-  const checkbox = canvas.getByRole("checkbox");
-  await userEvent.click(checkbox);
-  await expect(args.onCheckedChange).toHaveBeenCalledWith(true);
-});
+UncheckedCheckbox.test(
+  "Checks on click",
+  async ({ canvas, userEvent, args }) => {
+    const checkbox = canvas.getByRole("checkbox");
+    await userEvent.click(checkbox);
+    await expect(args.onCheckedChange).toHaveBeenCalledWith(true);
+  },
+);
 
 // Story 2: Checked
 export const CheckedCheckbox = meta.story({
-  args: { checked: true }
+  args: { checked: true },
 });
 
 CheckedCheckbox.test("Renders checked checkbox", async ({ canvas }) => {
@@ -459,11 +508,14 @@ CheckedCheckbox.test("Renders checked checkbox", async ({ canvas }) => {
   await expect(checkbox).toBeChecked();
 });
 
-CheckedCheckbox.test("Unchecks on click", async ({ canvas, userEvent, args }) => {
-  const checkbox = canvas.getByRole("checkbox");
-  await userEvent.click(checkbox);
-  await expect(args.onCheckedChange).toHaveBeenCalledWith(false);
-});
+CheckedCheckbox.test(
+  "Unchecks on click",
+  async ({ canvas, userEvent, args }) => {
+    const checkbox = canvas.getByRole("checkbox");
+    await userEvent.click(checkbox);
+    await expect(args.onCheckedChange).toHaveBeenCalledWith(false);
+  },
+);
 ```
 
 ## Common DS Patterns
@@ -487,15 +539,18 @@ DropdownMenu.test("Opens dropdown in portal", async ({ canvas, userEvent }) => {
   await expect(option).toBeVisible();
 });
 
-DropdownMenu.test("Selects option from portal", async ({ canvas, userEvent }) => {
-  const trigger = canvas.getByRole("button");
-  await userEvent.click(trigger);
+DropdownMenu.test(
+  "Selects option from portal",
+  async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button");
+    await userEvent.click(trigger);
 
-  const option = await screen.findByRole("option", { name: /option 1/i });
-  await userEvent.click(option);
+    const option = await screen.findByRole("option", { name: /option 1/i });
+    await userEvent.click(option);
 
-  await expect(trigger).toHaveTextContent("Option 1");
-});
+    await expect(trigger).toHaveTextContent("Option 1");
+  },
+);
 ```
 
 ### ARIA Patterns
@@ -540,25 +595,31 @@ DS components may have animations/transitions. Use `findBy*` queries:
 ```typescript
 export const AnimatedDialog = meta.story({});
 
-AnimatedDialog.test("Dialog appears after animation", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /open/i }));
+AnimatedDialog.test(
+  "Dialog appears after animation",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /open/i }));
 
-  // Wait for dialog to appear (with animation)
-  const dialog = await screen.findByRole("dialog");
-  await expect(dialog).toBeVisible();
-});
+    // Wait for dialog to appear (with animation)
+    const dialog = await screen.findByRole("dialog");
+    await expect(dialog).toBeVisible();
+  },
+);
 
-AnimatedDialog.test("Dialog disappears after close animation", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /open/i }));
-  await screen.findByRole("dialog");
+AnimatedDialog.test(
+  "Dialog disappears after close animation",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /open/i }));
+    await screen.findByRole("dialog");
 
-  await userEvent.keyboard("{Escape}");
+    await userEvent.keyboard("{Escape}");
 
-  // Wait for dialog to disappear (with animation)
-  await waitFor(async () => {
-    await expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-});
+    // Wait for dialog to disappear (with animation)
+    await waitFor(async () => {
+      await expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  },
+);
 ```
 
 ### Focus Management
@@ -567,7 +628,7 @@ DS modals and dialogs manage focus automatically:
 
 ```typescript
 export const FocusManagedDialog = meta.story({
-  args: { isOpen: true }
+  args: { isOpen: true },
 });
 
 FocusManagedDialog.test("Focuses first focusable element on open", async () => {
@@ -577,21 +638,24 @@ FocusManagedDialog.test("Focuses first focusable element on open", async () => {
   await expect(focusedElement).toHaveAttribute("role", "button");
 });
 
-FocusManagedDialog.test("Returns focus to trigger after close", async ({ canvas, userEvent }) => {
-  const trigger = canvas.getByRole("button", { name: /open/i });
+FocusManagedDialog.test(
+  "Returns focus to trigger after close",
+  async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: /open/i });
 
-  // Open dialog
-  await userEvent.click(trigger);
-  await screen.findByRole("dialog");
+    // Open dialog
+    await userEvent.click(trigger);
+    await screen.findByRole("dialog");
 
-  // Close dialog
-  await userEvent.keyboard("{Escape}");
+    // Close dialog
+    await userEvent.keyboard("{Escape}");
 
-  // Focus should return to trigger
-  await waitFor(async () => {
-    await expect(trigger).toHaveFocus();
-  });
-});
+    // Focus should return to trigger
+    await waitFor(async () => {
+      await expect(trigger).toHaveFocus();
+    });
+  },
+);
 ```
 
 ## DS-Specific Best Practices

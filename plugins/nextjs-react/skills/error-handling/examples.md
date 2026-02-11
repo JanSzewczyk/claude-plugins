@@ -19,7 +19,7 @@ const RESOURCE_NAME = "Budget";
 // CREATE
 export async function createBudget(
   userId: string,
-  data: CreateBudgetDto
+  data: CreateBudgetDto,
 ): Promise<[null, Budget] | [DbError, null]> {
   if (!userId?.trim()) {
     const error = DbError.validation("Invalid userId");
@@ -34,7 +34,7 @@ export async function createBudget(
       ...data,
       userId,
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     const doc = await docRef.get();
@@ -44,11 +44,14 @@ export async function createBudget(
     return [null, budget];
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({
-      userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Failed to create budget");
+    logger.error(
+      {
+        userId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Failed to create budget",
+    );
     return [dbError, null];
   }
 }
@@ -56,7 +59,7 @@ export async function createBudget(
 // READ
 export async function getBudgetById(
   userId: string,
-  budgetId: string
+  budgetId: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   if (!userId?.trim() || !budgetId?.trim()) {
     const error = DbError.validation("Invalid userId or budgetId");
@@ -71,7 +74,10 @@ export async function getBudgetById(
 
     if (!doc.exists) {
       const error = DbError.notFound(RESOURCE_NAME);
-      logger.warn({ userId, budgetId, errorCode: error.code }, "Budget not found");
+      logger.warn(
+        { userId, budgetId, errorCode: error.code },
+        "Budget not found",
+      );
       return [error, null];
     }
 
@@ -87,12 +93,15 @@ export async function getBudgetById(
     return [null, transformToBudget(doc.id, data)];
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({
-      userId,
-      budgetId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Failed to fetch budget");
+    logger.error(
+      {
+        userId,
+        budgetId,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Failed to fetch budget",
+    );
     return [dbError, null];
   }
 }
@@ -101,7 +110,7 @@ export async function getBudgetById(
 export async function updateBudget(
   userId: string,
   budgetId: string,
-  data: UpdateBudgetDto
+  data: UpdateBudgetDto,
 ): Promise<[null, Budget] | [DbError, null]> {
   // First verify ownership
   const [existsError, existing] = await getBudgetById(userId, budgetId);
@@ -112,10 +121,13 @@ export async function updateBudget(
   logger.debug({ userId, budgetId }, "Updating budget");
 
   try {
-    await db.collection(COLLECTION_NAME).doc(budgetId).update({
-      ...data,
-      updatedAt: FieldValue.serverTimestamp()
-    });
+    await db
+      .collection(COLLECTION_NAME)
+      .doc(budgetId)
+      .update({
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
     // Fetch updated document
     const doc = await db.collection(COLLECTION_NAME).doc(budgetId).get();
@@ -125,11 +137,14 @@ export async function updateBudget(
     return [null, budget];
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({
-      userId,
-      budgetId,
-      errorCode: dbError.code
-    }, "Failed to update budget");
+    logger.error(
+      {
+        userId,
+        budgetId,
+        errorCode: dbError.code,
+      },
+      "Failed to update budget",
+    );
     return [dbError, null];
   }
 }
@@ -137,7 +152,7 @@ export async function updateBudget(
 // DELETE
 export async function deleteBudget(
   userId: string,
-  budgetId: string
+  budgetId: string,
 ): Promise<[null, void] | [DbError, null]> {
   // Verify ownership first
   const [existsError] = await getBudgetById(userId, budgetId);
@@ -153,11 +168,14 @@ export async function deleteBudget(
     return [null, undefined];
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({
-      userId,
-      budgetId,
-      errorCode: dbError.code
-    }, "Failed to delete budget");
+    logger.error(
+      {
+        userId,
+        budgetId,
+        errorCode: dbError.code,
+      },
+      "Failed to delete budget",
+    );
     return [dbError, null];
   }
 }
@@ -177,7 +195,7 @@ import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import {
   createBudget as createBudgetDb,
   updateBudget as updateBudgetDb,
-  deleteBudget as deleteBudgetDb
+  deleteBudget as deleteBudgetDb,
 } from "../db/budgets";
 import { createBudgetSchema, updateBudgetSchema } from "../schemas/budget";
 import type { ActionResponse, RedirectAction } from "~/lib/action-types";
@@ -187,7 +205,7 @@ const logger = createLogger({ module: "budget-actions" });
 
 // CREATE
 export async function createBudgetAction(
-  formData: FormData
+  formData: FormData,
 ): ActionResponse<Budget> {
   const { userId } = await auth();
 
@@ -199,16 +217,19 @@ export async function createBudgetAction(
   // Validate
   const parsed = createBudgetSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    logger.warn({
-      userId,
-      action: "createBudget",
-      fieldErrors: Object.keys(parsed.error.flatten().fieldErrors)
-    }, "Validation failed");
+    logger.warn(
+      {
+        userId,
+        action: "createBudget",
+        fieldErrors: Object.keys(parsed.error.flatten().fieldErrors),
+      },
+      "Validation failed",
+    );
 
     return {
       success: false,
       error: "Please check the form for errors",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -216,11 +237,14 @@ export async function createBudgetAction(
   const [error, budget] = await createBudgetDb(userId, parsed.data);
 
   if (error) {
-    logger.error({
-      userId,
-      action: "createBudget",
-      errorCode: error.code
-    }, "Create failed");
+    logger.error(
+      {
+        userId,
+        action: "createBudget",
+        errorCode: error.code,
+      },
+      "Create failed",
+    );
 
     await setToastCookie("Failed to create budget", "error");
     return { success: false, error: "Unable to create budget" };
@@ -236,7 +260,7 @@ export async function createBudgetAction(
 // UPDATE
 export async function updateBudgetAction(
   budgetId: string,
-  formData: FormData
+  formData: FormData,
 ): ActionResponse<Budget> {
   const { userId } = await auth();
 
@@ -249,7 +273,7 @@ export async function updateBudgetAction(
     return {
       success: false,
       error: "Invalid data",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -526,18 +550,24 @@ export async function POST(request: Request) {
     const { userId } = await auth();
     const { message, digest, stack, url, userAgent } = await request.json();
 
-    logger.error({
-      source: "client",
-      userId: userId ?? "anonymous",
-      digest,
-      url,
-      userAgent: userAgent?.slice(0, 200),
-      stack: stack?.slice(0, 1000)
-    }, `Client error: ${message}`);
+    logger.error(
+      {
+        source: "client",
+        userId: userId ?? "anonymous",
+        digest,
+        url,
+        userAgent: userAgent?.slice(0, 200),
+        stack: stack?.slice(0, 1000),
+      },
+      `Client error: ${message}`,
+    );
 
     return NextResponse.json({ logged: true });
   } catch (error) {
-    logger.error({ error: "Failed to log client error" }, "Error logging failed");
+    logger.error(
+      { error: "Failed to log client error" },
+      "Error logging failed",
+    );
     return NextResponse.json({ logged: false }, { status: 500 });
   }
 }

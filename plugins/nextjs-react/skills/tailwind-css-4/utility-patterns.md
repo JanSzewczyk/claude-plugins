@@ -264,13 +264,15 @@
 ### Hover & Focus
 
 ```tsx
-<button className="
+<button
+  className="
   bg-blue-500 text-white
   hover:bg-blue-600
   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
   active:bg-blue-700
   transition-colors
-">
+"
+>
   Interactive Button
 </button>
 ```
@@ -294,10 +296,12 @@
 
 ```tsx
 // Only show focus ring on keyboard navigation
-<button className="
+<button
+  className="
   focus:outline-none
   focus-visible:ring-2 focus-visible:ring-blue-500
-">
+"
+>
   Keyboard accessible
 </button>
 ```
@@ -339,13 +343,15 @@
 
 ```tsx
 // Start with mobile, add larger breakpoints
-<div className="
+<div
+  className="
   p-4      // Base (mobile)
   sm:p-6   // 640px+
   md:p-8   // 768px+
   lg:p-10  // 1024px+
   xl:p-12  // 1280px+
-">
+"
+>
   Responsive padding
 </div>
 ```
@@ -366,13 +372,15 @@
 ### Responsive Text
 
 ```tsx
-<h1 className="
+<h1
+  className="
   text-2xl
   sm:text-3xl
   md:text-4xl
   lg:text-5xl
   xl:text-6xl
-">
+"
+>
   Responsive Heading
 </h1>
 ```
@@ -390,13 +398,15 @@
 ### Dark Mode Components
 
 ```tsx
-<div className="
+<div
+  className="
   bg-white dark:bg-gray-800
   border border-gray-200 dark:border-gray-700
   text-gray-900 dark:text-gray-100
   shadow-sm dark:shadow-gray-900/20
   rounded-lg p-6
-">
+"
+>
   <h3 className="text-lg font-semibold">Card Title</h3>
   <p className="text-gray-600 dark:text-gray-400 mt-2">
     Card description with muted text.

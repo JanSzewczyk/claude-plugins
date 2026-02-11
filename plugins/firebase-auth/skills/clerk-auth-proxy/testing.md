@@ -3,6 +3,7 @@
 ## Overview
 
 Testing authentication requires:
+
 1. **Unit tests** - Mock `auth()` function for server actions
 2. **Component tests** - Mock Clerk context for components
 3. **E2E tests** - Use Clerk's testing utilities
@@ -18,12 +19,12 @@ import { updateProfile } from "~/features/user/server/actions/update-profile";
 
 // Mock Clerk's auth
 vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn()
+  auth: vi.fn(),
 }));
 
 // Mock database
 vi.mock("~/features/user/server/db/profile", () => ({
-  updateProfileInDb: vi.fn()
+  updateProfileInDb: vi.fn(),
 }));
 
 import { auth } from "@clerk/nextjs/server";
@@ -39,14 +40,14 @@ describe("updateProfile", () => {
       userId: null,
       isAuthenticated: false,
       sessionClaims: null,
-      redirectToSignIn: vi.fn()
+      redirectToSignIn: vi.fn(),
     } as any);
 
     const result = await updateProfile({ name: "Test" });
 
     expect(result).toEqual({
       success: false,
-      error: "Authentication required"
+      error: "Authentication required",
     });
     expect(updateProfileInDb).not.toHaveBeenCalled();
   });
@@ -55,32 +56,37 @@ describe("updateProfile", () => {
     vi.mocked(auth).mockResolvedValue({
       userId: "user_123",
       isAuthenticated: true,
-      sessionClaims: { metadata: {} }
+      sessionClaims: { metadata: {} },
     } as any);
 
-    vi.mocked(updateProfileInDb).mockResolvedValue([null, { id: "1", name: "Test" }]);
+    vi.mocked(updateProfileInDb).mockResolvedValue([
+      null,
+      { id: "1", name: "Test" },
+    ]);
 
     const result = await updateProfile({ name: "Test" });
 
     expect(result).toEqual({
       success: true,
-      data: { id: "1", name: "Test" }
+      data: { id: "1", name: "Test" },
     });
-    expect(updateProfileInDb).toHaveBeenCalledWith("user_123", { name: "Test" });
+    expect(updateProfileInDb).toHaveBeenCalledWith("user_123", {
+      name: "Test",
+    });
   });
 
   it("checks admin role for admin actions", async () => {
     vi.mocked(auth).mockResolvedValue({
       userId: "user_123",
       isAuthenticated: true,
-      sessionClaims: { metadata: { role: "user" } }
+      sessionClaims: { metadata: { role: "user" } },
     } as any);
 
     const result = await adminAction();
 
     expect(result).toEqual({
       success: false,
-      error: "Admin access required"
+      error: "Admin access required",
     });
   });
 });
@@ -97,9 +103,9 @@ describe("role-based actions", () => {
       sessionClaims: {
         metadata: {
           role: "admin",
-          onboardingComplete: true
-        }
-      }
+          onboardingComplete: true,
+        },
+      },
     } as any);
 
     const result = await adminDeleteUser("target_user");
@@ -114,16 +120,16 @@ describe("role-based actions", () => {
       sessionClaims: {
         metadata: {
           role: "user",
-          onboardingComplete: true
-        }
-      }
+          onboardingComplete: true,
+        },
+      },
     } as any);
 
     const result = await adminDeleteUser("target_user");
 
     expect(result).toEqual({
       success: false,
-      error: "Admin access required"
+      error: "Admin access required",
     });
   });
 });
@@ -172,16 +178,16 @@ const meta = preview.meta({
       user: {
         id: "user_123",
         firstName: "Jan",
-        publicMetadata: { plan: "pro" }
-      }
-    }
-  }
+        publicMetadata: { plan: "pro" },
+      },
+    },
+  },
 });
 
 export const SignedIn = meta.story({
   args: {
-    onLogout: fn()
-  }
+    onLogout: fn(),
+  },
 });
 
 export const AdminUser = meta.story({
@@ -190,10 +196,10 @@ export const AdminUser = meta.story({
       user: {
         id: "admin_123",
         firstName: "Admin",
-        publicMetadata: { role: "admin" }
-      }
-    }
-  }
+        publicMetadata: { role: "admin" },
+      },
+    },
+  },
 });
 ```
 
@@ -209,22 +215,22 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   use: {
-    baseURL: "http://localhost:3000"
+    baseURL: "http://localhost:3000",
   },
   projects: [
     {
       name: "authenticated",
       use: {
-        storageState: "tests/e2e/.auth/user.json"
-      }
+        storageState: "tests/e2e/.auth/user.json",
+      },
     },
     {
       name: "unauthenticated",
       use: {
-        storageState: { cookies: [], origins: [] }
-      }
-    }
-  ]
+        storageState: { cookies: [], origins: [] },
+      },
+    },
+  ],
 });
 ```
 
@@ -272,7 +278,9 @@ test.describe("Protected Routes", () => {
 
     test("shows sign-in page", async ({ page }) => {
       await page.goto("/sign-in");
-      await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: /sign in/i }),
+      ).toBeVisible();
     });
   });
 
@@ -280,7 +288,9 @@ test.describe("Protected Routes", () => {
     test("can access dashboard", async ({ page }) => {
       await page.goto("/dashboard");
       await expect(page).toHaveURL("/dashboard");
-      await expect(page.getByRole("heading", { name: /dashboard/i })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: /dashboard/i }),
+      ).toBeVisible();
     });
 
     test("can access profile", async ({ page }) => {
@@ -376,7 +386,7 @@ For E2E tests, create test users in Clerk dashboard or via API:
 import { createClerkClient } from "@clerk/backend";
 
 const clerk = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY!
+  secretKey: process.env.CLERK_SECRET_KEY!,
 });
 
 async function setupTestUsers() {
@@ -386,8 +396,8 @@ async function setupTestUsers() {
     password: "TestPassword123!",
     publicMetadata: {
       onboardingComplete: true,
-      role: "user"
-    }
+      role: "user",
+    },
   });
 
   // Admin user
@@ -396,8 +406,8 @@ async function setupTestUsers() {
     password: "AdminPassword123!",
     publicMetadata: {
       onboardingComplete: true,
-      role: "admin"
-    }
+      role: "admin",
+    },
   });
 
   // New user (onboarding incomplete)
@@ -405,8 +415,8 @@ async function setupTestUsers() {
     emailAddress: ["test-new@example.com"],
     password: "NewUserPassword123!",
     publicMetadata: {
-      onboardingComplete: false
-    }
+      onboardingComplete: false,
+    },
   });
 }
 ```
@@ -432,12 +442,12 @@ import { createClerkClient } from "@clerk/backend";
 
 export default async function globalTeardown() {
   const clerk = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY!
+    secretKey: process.env.CLERK_SECRET_KEY!,
   });
 
   // Clean up test users if needed
   const testUsers = await clerk.users.getUserList({
-    emailAddress: ["test-user@example.com", "test-admin@example.com"]
+    emailAddress: ["test-user@example.com", "test-admin@example.com"],
   });
 
   for (const user of testUsers.data) {

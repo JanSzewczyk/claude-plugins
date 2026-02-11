@@ -15,7 +15,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "[[ \"$TOOL_INPUT\" =~ 'npm install' ]] && echo '📦 Dependencies updated - remember to run tests' >&2 || true"
+          command: '[[ "$TOOL_INPUT" =~ ''npm install'' ]] && echo ''📦 Dependencies updated - remember to run tests'' >&2 || true'
 ---
 
 You are an elite Node.js developer and dependency management specialist with deep expertise in JavaScript, TypeScript,

@@ -21,6 +21,7 @@ examples:
 Implement Clerk authentication in Next.js 16 using the proxy pattern (not middleware!), manage session claims, and handle user metadata.
 
 > **Reference Files:**
+>
 > - [proxy-patterns.md](./proxy-patterns.md) - Next.js 16 proxy configuration
 > - [session-claims.md](./session-claims.md) - Custom session claims and metadata
 > - [onboarding-gate.md](./onboarding-gate.md) - Onboarding flow patterns
@@ -31,12 +32,13 @@ Implement Clerk authentication in Next.js 16 using the proxy pattern (not middle
 
 **IMPORTANT**: Next.js 16 introduced the proxy pattern which replaces the traditional `middleware.ts` for Clerk.
 
-| Next.js Version | File Name | Runtime |
-|-----------------|-----------|---------|
-| 15 and earlier | `middleware.ts` | Edge Runtime |
-| **16+** | **`proxy.ts`** | **Node.js Runtime** |
+| Next.js Version | File Name       | Runtime             |
+| --------------- | --------------- | ------------------- |
+| 15 and earlier  | `middleware.ts` | Edge Runtime        |
+| **16+**         | **`proxy.ts`**  | **Node.js Runtime** |
 
 The proxy pattern provides:
+
 - Full Node.js runtime (not Edge limitations)
 - Better async/await support
 - Access to all Node.js APIs
@@ -95,8 +97,8 @@ const client = await clerkClient();
 await client.users.updateUser(userId, {
   publicMetadata: {
     onboardingComplete: true,
-    role: "user"
-  }
+    role: "user",
+  },
 });
 ```
 
@@ -108,10 +110,10 @@ The `auth()` function returns:
 
 ```typescript
 interface AuthObject {
-  userId: string | null;           // Clerk user ID
-  isAuthenticated: boolean;        // Is user logged in
-  sessionClaims: CustomJwtSessionClaims | null;  // Custom claims
-  redirectToSignIn: (opts?) => Response;  // Redirect helper
+  userId: string | null; // Clerk user ID
+  isAuthenticated: boolean; // Is user logged in
+  sessionClaims: CustomJwtSessionClaims | null; // Custom claims
+  redirectToSignIn: (opts?) => Response; // Redirect helper
 }
 ```
 
@@ -134,20 +136,20 @@ declare global {
 
 ### Public vs Private Metadata
 
-| Type | Visibility | Use Case |
-|------|------------|----------|
-| `publicMetadata` | Included in session token, readable on client | Onboarding status, roles, preferences |
-| `privateMetadata` | Server-only, never sent to client | Internal flags, sensitive data |
-| `unsafeMetadata` | User-editable via Clerk components | Profile preferences, settings |
+| Type              | Visibility                                    | Use Case                              |
+| ----------------- | --------------------------------------------- | ------------------------------------- |
+| `publicMetadata`  | Included in session token, readable on client | Onboarding status, roles, preferences |
+| `privateMetadata` | Server-only, never sent to client             | Internal flags, sensitive data        |
+| `unsafeMetadata`  | User-editable via Clerk components            | Profile preferences, settings         |
 
 ## File Locations
 
-| Purpose | File |
-|---------|------|
-| Proxy configuration | `proxy.ts` (root) |
-| Session claims types | `types/clerk.d.ts` |
-| Auth helpers | `features/auth/server/db/user.ts` |
-| Providers setup | `components/providers.tsx` |
+| Purpose              | File                              |
+| -------------------- | --------------------------------- |
+| Proxy configuration  | `proxy.ts` (root)                 |
+| Session claims types | `types/clerk.d.ts`                |
+| Auth helpers         | `features/auth/server/db/user.ts` |
+| Providers setup      | `components/providers.tsx`        |
 
 ## Common Patterns
 

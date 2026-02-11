@@ -3,11 +3,13 @@
 ## React Compiler (Project Default)
 
 This project has React Compiler enabled. The compiler automatically:
+
 - Memoizes components
 - Optimizes re-renders
 - Handles dependency tracking
 
 **Manual optimization is only needed for:**
+
 1. External library callbacks
 2. Complex context values
 3. Computations > 100ms
@@ -27,12 +29,12 @@ This project has React Compiler enabled. The compiler automatically:
 
 ### Common Re-render Causes
 
-| Cause | Detection | Solution |
-|-------|-----------|----------|
-| New object/array each render | Profiler shows unnecessary renders | Move outside or memoize |
-| Context changes | All consumers re-render | Split context, memoize value |
-| Parent re-render | Children re-render | Use composition, memo |
-| State too high | Unrelated siblings re-render | Lift state down |
+| Cause                        | Detection                          | Solution                     |
+| ---------------------------- | ---------------------------------- | ---------------------------- |
+| New object/array each render | Profiler shows unnecessary renders | Move outside or memoize      |
+| Context changes              | All consumers re-render            | Split context, memoize value |
+| Parent re-render             | Children re-render                 | Use composition, memo        |
+| State too high               | Unrelated siblings re-render       | Lift state down              |
 
 ## Optimization Patterns
 

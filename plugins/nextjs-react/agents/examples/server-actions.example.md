@@ -8,14 +8,16 @@ Examples of server action patterns for different use cases.
 import type { ActionResponse } from "~/lib/action-types";
 import { schema } from "./schema";
 
-export async function createResource(formData: FormData): ActionResponse<Resource> {
+export async function createResource(
+  formData: FormData,
+): ActionResponse<Resource> {
   // 1. Validate input
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -44,7 +46,7 @@ export async function submitStep(formData: FormData): RedirectAction {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -62,7 +64,9 @@ export async function submitStep(formData: FormData): RedirectAction {
 ## Action With File Upload
 
 ```typescript
-export async function uploadFile(formData: FormData): ActionResponse<{ url: string }> {
+export async function uploadFile(
+  formData: FormData,
+): ActionResponse<{ url: string }> {
   const file = formData.get("file") as File;
 
   if (!file || file.size === 0) {
@@ -107,7 +111,7 @@ export async function updateProfile(formData: FormData): ActionResponse<User> {
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -125,7 +129,9 @@ export async function updateProfile(formData: FormData): ActionResponse<User> {
 ## Action With Optimistic Update Support
 
 ```typescript
-export async function toggleFavorite(resourceId: string): ActionResponse<{ isFavorite: boolean }> {
+export async function toggleFavorite(
+  resourceId: string,
+): ActionResponse<{ isFavorite: boolean }> {
   const { userId } = await auth();
   if (!userId) {
     return { success: false, error: "Unauthorized" };

@@ -3,7 +3,16 @@ name: react-19-compiler
 version: 1.0.0
 lastUpdated: 2026-01-18
 description: React 19 patterns and React Compiler optimization guidance. Understand when to use manual memoization vs letting the compiler optimize, and leverage new hooks like useActionState and useFormStatus.
-tags: [react, react-19, react-compiler, memoization, useActionState, useFormStatus, server-components]
+tags:
+  [
+    react,
+    react-19,
+    react-compiler,
+    memoization,
+    useActionState,
+    useFormStatus,
+    server-components,
+  ]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 context: fork
@@ -21,6 +30,7 @@ examples:
 React 19 patterns and React Compiler optimization guidance for Next.js applications.
 
 > **Reference Files:**
+>
 > - [compiler-guide.md](./compiler-guide.md) - React Compiler capabilities and optimization
 > - [when-to-memoize.md](./when-to-memoize.md) - When manual memoization is still needed
 > - [hooks.md](./hooks.md) - useActionState, useFormStatus patterns
@@ -34,8 +44,8 @@ This project has React Compiler enabled:
 // next.config.ts
 const nextConfig: NextConfig = {
   experimental: {
-    reactCompiler: true
-  }
+    reactCompiler: true,
+  },
 };
 ```
 
@@ -106,6 +116,7 @@ function SubmitButton() {
 ### React Compiler Benefits
 
 The React Compiler:
+
 - **Automatically memoizes** components and values at build time
 - **Eliminates need** for manual `useMemo`, `useCallback`, `React.memo`
 - **Identifies bottlenecks** and applies optimizations intelligently
@@ -121,19 +132,19 @@ See [when-to-memoize.md](./when-to-memoize.md) for details. Key scenarios:
 
 ### New React 19 Hooks
 
-| Hook | Purpose | Key Caveat |
-|------|---------|------------|
-| `useActionState` | Form state management | Accepts async action, returns `[state, action, isPending]` |
-| `useFormStatus` | Form submission status | **Must be called from child component inside `<form>`** |
-| `useOptimistic` | Optimistic UI updates | For instant feedback before server confirmation |
+| Hook             | Purpose                | Key Caveat                                                 |
+| ---------------- | ---------------------- | ---------------------------------------------------------- |
+| `useActionState` | Form state management  | Accepts async action, returns `[state, action, isPending]` |
+| `useFormStatus`  | Form submission status | **Must be called from child component inside `<form>`**    |
+| `useOptimistic`  | Optimistic UI updates  | For instant feedback before server confirmation            |
 
 ## File Locations
 
-| Purpose | Location |
-|---------|----------|
-| Client components | `features/*/components/*.tsx` with `"use client"` |
+| Purpose           | Location                                                |
+| ----------------- | ------------------------------------------------------- |
+| Client components | `features/*/components/*.tsx` with `"use client"`       |
 | Server components | `app/**/*.tsx`, `features/*/components/*.tsx` (default) |
-| Server actions | `features/*/server/actions/*.ts` |
+| Server actions    | `features/*/server/actions/*.ts`                        |
 
 ## React Compiler Configuration
 
@@ -144,8 +155,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    reactCompiler: true
-  }
+    reactCompiler: true,
+  },
 };
 
 export default nextConfig;

@@ -9,14 +9,15 @@ Tailwind CSS v4 introduces significant changes from v3. This guide covers breaki
 ### 1. CSS-First Configuration
 
 **v3 (JavaScript):**
+
 ```javascript
 // tailwind.config.ts
 module.exports = {
-  content: ['./app/**/*.tsx', './components/**/*.tsx'],
+  content: ["./app/**/*.tsx", "./components/**/*.tsx"],
   theme: {
     extend: {
       colors: {
-        brand: '#3b82f6',
+        brand: "#3b82f6",
       },
     },
   },
@@ -25,6 +26,7 @@ module.exports = {
 ```
 
 **v4 (CSS):**
+
 ```css
 /* app/globals.css */
 @import "tailwindcss";
@@ -37,6 +39,7 @@ module.exports = {
 ### 2. Import Statement
 
 **v3:**
+
 ```css
 @tailwind base;
 @tailwind components;
@@ -44,6 +47,7 @@ module.exports = {
 ```
 
 **v4:**
+
 ```css
 @import "tailwindcss";
 ```
@@ -51,16 +55,18 @@ module.exports = {
 ### 3. Content Configuration
 
 **v3:**
+
 ```javascript
 module.exports = {
   content: [
-    './app/**/*.tsx',
-    './node_modules/@szum-tech/design-system/**/*.js',
+    "./app/**/*.tsx",
+    "./node_modules/@szum-tech/design-system/**/*.js",
   ],
 };
 ```
 
 **v4:**
+
 ```css
 /* Automatic detection for app/, components/, etc. */
 /* Explicit for external packages: */
@@ -71,18 +77,20 @@ module.exports = {
 
 ### Ring Utility
 
-| Property | v3 Default | v4 Default | Migration |
-|----------|-----------|-----------|-----------|
-| Width | 3px | 1px | Use `ring-3` for old behavior |
-| Color | blue-500 | currentColor | Add `ring-blue-500` explicitly |
+| Property | v3 Default | v4 Default   | Migration                      |
+| -------- | ---------- | ------------ | ------------------------------ |
+| Width    | 3px        | 1px          | Use `ring-3` for old behavior  |
+| Color    | blue-500   | currentColor | Add `ring-blue-500` explicitly |
 
 **v3:**
+
 ```tsx
 <input className="ring" />
 // 3px blue-500 ring
 ```
 
 **v4:**
+
 ```tsx
 <input className="ring" />
 // 1px currentColor ring
@@ -94,16 +102,18 @@ module.exports = {
 ### Outline Utility
 
 | Property | v3 Default | v4 Default |
-|----------|-----------|-----------|
-| Width | 2px | 1px |
-| Style | (required) | solid |
+| -------- | ---------- | ---------- |
+| Width    | 2px        | 1px        |
+| Style    | (required) | solid      |
 
 **v3:**
+
 ```tsx
 <button className="outline outline-2" />
 ```
 
 **v4:**
+
 ```tsx
 <button className="outline" />
 // 1px solid by default
@@ -115,12 +125,14 @@ module.exports = {
 ### Border Color
 
 **v3:**
+
 ```tsx
 <div className="border" />
 // border-color: gray-200 (default)
 ```
 
 **v4:**
+
 ```tsx
 <div className="border" />
 // border-color: currentColor
@@ -162,7 +174,7 @@ The `theme()` function still works but is less necessary with CSS variables:
 ```css
 /* ❌ Less idiomatic in v4 */
 .custom {
-  color: theme('colors.blue.500');
+  color: theme("colors.blue.500");
 }
 
 /* ✅ Preferred in v4 */
@@ -238,10 +250,10 @@ Delete `tailwind.config.ts` and migrate settings to CSS:
 
 Search and replace in codebase:
 
-| Find | Replace |
-|------|---------|
-| `ring` (standalone) | `ring-3 ring-blue-500` |
-| `focus:ring` | `focus:ring-3 focus:ring-blue-500` |
+| Find                | Replace                            |
+| ------------------- | ---------------------------------- |
+| `ring` (standalone) | `ring-3 ring-blue-500`             |
+| `focus:ring`        | `focus:ring-3 focus:ring-blue-500` |
 
 ### 6. Update Border Colors
 
@@ -259,7 +271,7 @@ Add explicit colors where needed:
 
 ```tsx
 // Outline now has default style
-<button className="outline-2" />  // Works (solid is implicit)
+<button className="outline-2" /> // Works (solid is implicit)
 ```
 
 ## Automated Migration
@@ -271,6 +283,7 @@ npx @tailwindcss/upgrade
 ```
 
 This handles:
+
 - Dependency updates
 - Config file migration
 - Template updates
@@ -329,8 +342,12 @@ If issues arise:
 ```css
 /* Instead of typography plugin, use @layer */
 @layer base {
-  .prose h1 { @apply text-4xl font-bold mb-4; }
-  .prose p { @apply text-lg leading-relaxed mb-4; }
+  .prose h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  .prose p {
+    @apply text-lg leading-relaxed mb-4;
+  }
 }
 ```
 

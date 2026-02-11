@@ -14,7 +14,9 @@ const logger = createLogger({ module: "resource-db" });
 const COLLECTION_NAME = "resources";
 const RESOURCE_NAME = "Resource";
 
-export async function getResourceById(id: string): Promise<[null, Resource] | [DbError, null]> {
+export async function getResourceById(
+  id: string,
+): Promise<[null, Resource] | [DbError, null]> {
   // Input validation
   if (!id?.trim()) {
     const error = DbError.validation("Invalid id provided");
@@ -45,9 +47,9 @@ export async function getResourceById(id: string): Promise<[null, Resource] | [D
       {
         id,
         errorCode: dbError.code,
-        isRetryable: dbError.isRetryable
+        isRetryable: dbError.isRetryable,
       },
-      "Database error"
+      "Database error",
     );
     return [dbError, null];
   }
@@ -59,14 +61,17 @@ export async function getResourceById(id: string): Promise<[null, Resource] | [D
 ```typescript
 export async function getResourcesByUser(
   userId: string,
-  options: { status?: string; limit?: number } = {}
+  options: { status?: string; limit?: number } = {},
 ): Promise<[null, Resource[]] | [DbError, null]> {
   if (!userId?.trim()) {
     return [DbError.validation("Invalid userId"), null];
   }
 
   try {
-    let query = db.collection(COLLECTION_NAME).where("userId", "==", userId).orderBy("createdAt", "desc");
+    let query = db
+      .collection(COLLECTION_NAME)
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc");
 
     if (options.status) {
       query = query.where("status", "==", options.status);
@@ -77,13 +82,18 @@ export async function getResourcesByUser(
     }
 
     const snapshot = await query.get();
-    const resources = snapshot.docs.map((doc) => transformFirestoreToResource(doc.id, doc.data()));
+    const resources = snapshot.docs.map((doc) =>
+      transformFirestoreToResource(doc.id, doc.data()),
+    );
 
     logger.info({ userId, count: resources.length }, "Resources fetched");
     return [null, resources];
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({ userId, errorCode: dbError.code }, "Failed to fetch resources");
+    logger.error(
+      { userId, errorCode: dbError.code },
+      "Failed to fetch resources",
+    );
     return [dbError, null];
   }
 }
@@ -92,7 +102,9 @@ export async function getResourcesByUser(
 ## Create Operation
 
 ```typescript
-export async function createResource(data: CreateResourceDto): Promise<[null, Resource] | [DbError, null]> {
+export async function createResource(
+  data: CreateResourceDto,
+): Promise<[null, Resource] | [DbError, null]> {
   try {
     const docRef = await db.collection(COLLECTION_NAME).add(data);
     const doc = await docRef.get();
@@ -115,7 +127,10 @@ export async function createResource(data: CreateResourceDto): Promise<[null, Re
 ## Update Operation
 
 ```typescript
-export async function updateResource(id: string, data: UpdateResourceDto): Promise<[null, Resource] | [DbError, null]> {
+export async function updateResource(
+  id: string,
+  data: UpdateResourceDto,
+): Promise<[null, Resource] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id"), null];
   }
@@ -132,7 +147,7 @@ export async function updateResource(id: string, data: UpdateResourceDto): Promi
     // Update
     await docRef.update({
       ...data,
-      updatedAt: FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // Fetch updated document
@@ -152,7 +167,9 @@ export async function updateResource(id: string, data: UpdateResourceDto): Promi
 ## Delete Operation
 
 ```typescript
-export async function deleteResource(id: string): Promise<[null, void] | [DbError, null]> {
+export async function deleteResource(
+  id: string,
+): Promise<[null, void] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id"), null];
   }
@@ -179,7 +196,10 @@ export async function deleteResource(id: string): Promise<[null, void] | [DbErro
 ## Transform Helper
 
 ```typescript
-function transformFirestoreToResource(docId: string, data: FirebaseFirestore.DocumentData): Resource {
+function transformFirestoreToResource(
+  docId: string,
+  data: FirebaseFirestore.DocumentData,
+): Resource {
   return {
     id: docId,
     ...data,
@@ -187,7 +207,7 @@ function transformFirestoreToResource(docId: string, data: FirebaseFirestore.Doc
     updatedAt: data.updatedAt?.toDate(),
     createdAt: data.createdAt?.toDate(),
     // Handle custom date fields if any
-    scheduledAt: data.scheduledAt?.toDate()
+    scheduledAt: data.scheduledAt?.toDate(),
   } as Resource;
 }
 ```
@@ -195,7 +215,10 @@ function transformFirestoreToResource(docId: string, data: FirebaseFirestore.Doc
 ## Batch Operations
 
 ```typescript
-export async function batchUpdateStatus(ids: string[], status: string): Promise<[null, number] | [DbError, null]> {
+export async function batchUpdateStatus(
+  ids: string[],
+  status: string,
+): Promise<[null, number] | [DbError, null]> {
   if (ids.length === 0) {
     return [null, 0];
   }
@@ -208,7 +231,7 @@ export async function batchUpdateStatus(ids: string[], status: string): Promise<
       const docRef = db.collection(COLLECTION_NAME).doc(id);
       batch.update(docRef, {
         status,
-        updatedAt: FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp(),
       });
       count++;
     }
@@ -223,3 +246,186 @@ export async function batchUpdateStatus(ids: string[], status: string): Promise<
   }
 }
 ```
+
+## Cursor-Based Pagination
+
+```typescript
+interface PaginatedResult<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export async function getResourcesPaginated(
+  userId: string,
+  options: { limit?: number; cursor?: string } = {},
+): Promise<[null, PaginatedResult<Resource>] | [DbError, null]> {
+  if (!userId?.trim()) {
+    return [DbError.validation("Invalid userId"), null];
+  }
+
+  const pageSize = options.limit ?? 20;
+
+  try {
+    let query = db
+      .collection(COLLECTION_NAME)
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .limit(pageSize + 1); // Fetch one extra to determine hasMore
+
+    // Resume from cursor (document ID)
+    if (options.cursor) {
+      const cursorDoc = await db
+        .collection(COLLECTION_NAME)
+        .doc(options.cursor)
+        .get();
+      if (cursorDoc.exists) {
+        query = query.startAfter(cursorDoc);
+      }
+    }
+
+    const snapshot = await query.get();
+    const docs = snapshot.docs;
+    const hasMore = docs.length > pageSize;
+
+    // Trim to actual page size
+    const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
+    const items = pageDocs.map((doc) =>
+      transformFirestoreToResource(doc.id, doc.data()),
+    );
+
+    const nextCursor = hasMore ? pageDocs[pageDocs.length - 1].id : null;
+
+    logger.info(
+      { userId, count: items.length, hasMore },
+      "Resources page fetched",
+    );
+    return [null, { items, nextCursor, hasMore }];
+  } catch (error) {
+    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    logger.error(
+      { userId, errorCode: dbError.code },
+      "Failed to fetch resources page",
+    );
+    return [dbError, null];
+  }
+}
+```
+
+### Using Pagination in a Server Action
+
+```typescript
+"use server";
+
+export async function loadMoreResources(
+  cursor?: string,
+): ActionResponse<PaginatedResult<Resource>> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const [error, result] = await getResourcesPaginated(userId, {
+    limit: 20,
+    cursor: cursor ?? undefined,
+  });
+
+  if (error) {
+    return { success: false, error: "Unable to load resources" };
+  }
+
+  return { success: true, data: result };
+}
+```
+
+## Transaction — Atomic Transfer Between Resources
+
+```typescript
+export async function transferAmount(
+  userId: string,
+  fromId: string,
+  toId: string,
+  amount: number,
+): Promise<[null, { from: Resource; to: Resource }] | [DbError, null]> {
+  if (amount <= 0) {
+    return [DbError.validation("Amount must be positive"), null];
+  }
+
+  try {
+    const result = await db.runTransaction(async (transaction) => {
+      const fromRef = db.collection(COLLECTION_NAME).doc(fromId);
+      const toRef = db.collection(COLLECTION_NAME).doc(toId);
+
+      const [fromDoc, toDoc] = await Promise.all([
+        transaction.get(fromRef),
+        transaction.get(toRef),
+      ]);
+
+      if (!fromDoc.exists || !toDoc.exists) {
+        throw new Error("NOT_FOUND");
+      }
+
+      const fromData = fromDoc.data()!;
+      const toData = toDoc.data()!;
+
+      if (fromData.userId !== userId || toData.userId !== userId) {
+        throw new Error("PERMISSION_DENIED");
+      }
+
+      if (fromData.amount < amount) {
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+
+      transaction.update(fromRef, {
+        amount: fromData.amount - amount,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      transaction.update(toRef, {
+        amount: toData.amount + amount,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      return {
+        from: transformFirestoreToResource(fromDoc.id, {
+          ...fromData,
+          amount: fromData.amount - amount,
+        }),
+        to: transformFirestoreToResource(toDoc.id, {
+          ...toData,
+          amount: toData.amount + amount,
+        }),
+      };
+    });
+
+    logger.info({ userId, fromId, toId, amount }, "Transfer completed");
+    return [null, result];
+  } catch (error) {
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "NOT_FOUND":
+          return [DbError.notFound(RESOURCE_NAME), null];
+        case "PERMISSION_DENIED":
+          return [DbError.permissionDenied(), null];
+        case "INSUFFICIENT_BALANCE":
+          return [DbError.validation("Insufficient balance"), null];
+      }
+    }
+
+    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    logger.error(
+      { fromId, toId, amount, errorCode: dbError.code },
+      "Transfer failed",
+    );
+    return [dbError, null];
+  }
+}
+```
+
+### Transaction Best Practices
+
+- **Read before write** — all reads must happen before any writes inside a transaction
+- **Keep transactions short** — avoid slow operations (no network calls, no file I/O)
+- **Handle contention** — Firestore retries transactions on conflict (up to a limit)
+- **Idempotency** — transaction function may run multiple times; ensure no side effects outside the transaction
+- **Max 500 writes** per transaction — batch if you need more

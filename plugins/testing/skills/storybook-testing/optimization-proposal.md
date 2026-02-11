@@ -23,7 +23,7 @@ import preview from "~/.storybook/preview";
 const meta = preview.meta({
   title: "Components/LoginForm",
   component: LoginForm,
-  args: { onSubmit: fn() }
+  args: { onSubmit: fn() },
 });
 
 // One story with multiple independent tests
@@ -36,22 +36,28 @@ FormInteractions.test("Renders empty form", async ({ canvas }) => {
 });
 
 // Test 2: Validation - independent scenario
-FormInteractions.test("Shows validation errors on empty submit", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
-});
+FormInteractions.test(
+  "Shows validation errors on empty submit",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
+  },
+);
 
 // Test 3: Success - independent scenario
-FormInteractions.test("Successfully submits valid data", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
-  await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+FormInteractions.test(
+  "Successfully submits valid data",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
 
-  await expect(args.onSubmit).toHaveBeenCalledWith({
-    email: "test@example.com",
-    password: "secret123"
-  });
-});
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      email: "test@example.com",
+      password: "secret123",
+    });
+  },
+);
 ```
 
 **Benefits:**
@@ -88,7 +94,9 @@ export const CheckoutJourney = meta.story({
     // Each step DEPENDS on previous steps
 
     await step("Add items to cart", async () => {
-      await userEvent.click(canvas.getByRole("button", { name: /add to cart/i }));
+      await userEvent.click(
+        canvas.getByRole("button", { name: /add to cart/i }),
+      );
       // Step 2 needs items in cart
     });
 
@@ -106,7 +114,7 @@ export const CheckoutJourney = meta.story({
       await userEvent.click(canvas.getByRole("button", { name: /pay/i }));
       await expect(canvas.getByText(/order confirmed/i)).toBeInTheDocument();
     });
-  }
+  },
 });
 ```
 
@@ -134,15 +142,15 @@ export const CheckoutJourney = meta.story({
 
 ## Decision Matrix: `.test()` vs `play`
 
-| Criteria | `.test()` (Primary) | `play` (Secondary) |
-|----------|-------------------|-------------------|
-| **Independent tests** | ✅ Perfect | ❌ Overkill |
-| **Dependent steps** | ❌ Wrong | ✅ Perfect |
-| **Number of tests** | Many (5-10) | One (1 flow) |
-| **Each test isolation** | ✅ Yes | ❌ No |
-| **Debugging** | ✅ Easy | ⚠️ Hard |
-| **Code reuse** | ✅ Good | ⚠️ Difficult |
-| **UI presentation** | 📋 List of tests | 📖 Story steps |
+| Criteria                | `.test()` (Primary) | `play` (Secondary) |
+| ----------------------- | ------------------- | ------------------ |
+| **Independent tests**   | ✅ Perfect          | ❌ Overkill        |
+| **Dependent steps**     | ❌ Wrong            | ✅ Perfect         |
+| **Number of tests**     | Many (5-10)         | One (1 flow)       |
+| **Each test isolation** | ✅ Yes              | ❌ No              |
+| **Debugging**           | ✅ Easy             | ⚠️ Hard            |
+| **Code reuse**          | ✅ Good             | ⚠️ Difficult       |
+| **UI presentation**     | 📋 List of tests    | 📖 Story steps     |
 
 ---
 
@@ -188,7 +196,7 @@ import preview from "~/.storybook/preview";
 const meta = preview.meta({
   title: "Components/LoginForm",
   component: LoginForm,
-  args: { onSubmit: fn() }
+  args: { onSubmit: fn() },
 });
 
 export const FormInteractions = meta.story({});
@@ -199,22 +207,28 @@ FormInteractions.test("Renders empty form", async ({ canvas }) => {
 });
 
 // Test 2: Validation - independent
-FormInteractions.test("Shows validation error on empty submit", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(canvas.getByText(/error/i)).toBeInTheDocument();
-});
+FormInteractions.test(
+  "Shows validation error on empty submit",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(canvas.getByText(/error/i)).toBeInTheDocument();
+  },
+);
 
 // Test 3: Success - independent
-FormInteractions.test("Submits successfully with valid data", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
-  await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+FormInteractions.test(
+  "Submits successfully with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
 
-  await expect(args.onSubmit).toHaveBeenCalledWith({
-    email: "test@example.com",
-    password: "secret123"
-  });
-});
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      email: "test@example.com",
+      password: "secret123",
+    });
+  },
+);
 ```
 
 **Benefits:** 1 story, 3 independent tests, 50% fewer stories
@@ -230,36 +244,42 @@ FormInteractions.test("Submits successfully with valid data", async ({ canvas, u
 
 // 1. Visual documentation stories (no tests)
 export const Empty = meta.story({
-  tags: ["autodocs"]
+  tags: ["autodocs"],
   // Just visual - no play or test
 });
 
 export const Prefilled = meta.story({
   tags: ["autodocs"],
-  args: { defaultValues: { email: "user@example.com" } }
+  args: { defaultValues: { email: "user@example.com" } },
 });
 
 // 2. Complete interaction tests using .test()
 export const FormInteractions = meta.story({
-  tags: ["test-only"]
+  tags: ["test-only"],
 });
 
 FormInteractions.test("Renders empty form", async ({ canvas }) => {
   await expect(canvas.getByRole("form")).toBeInTheDocument();
 });
 
-FormInteractions.test("Validates required fields", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  await expect(canvas.getByText(/required/i)).toBeInTheDocument();
-});
+FormInteractions.test(
+  "Validates required fields",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(canvas.getByText(/required/i)).toBeInTheDocument();
+  },
+);
 
-FormInteractions.test("Submits successfully", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
-  await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
-  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+FormInteractions.test(
+  "Submits successfully",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
 
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 
 // 3. Optional: Complex multi-step flow (use play ONLY if truly dependent)
 export const MultiStepFlow = meta.story({
@@ -285,7 +305,7 @@ export const MultiStepFlow = meta.story({
       // Prerequisites: all fields filled
       await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
     });
-  }
+  },
 });
 ```
 
@@ -294,14 +314,17 @@ export const MultiStepFlow = meta.story({
 ## Guidelines by Component Type
 
 ### Simple Components (Button, Badge, Icon)
+
 - Use `.test()` method
 - Keep it minimal
 
 ### Forms and Input Components
+
 - **Primary:** Use `.test()` for validation, submission, etc.
 - **Optional:** Use `play` only if flow is truly multi-step and dependent
 
 ### Complex Interactive Components
+
 - Use `.test()` for individual features
 - Use `play` ONLY for complete workflows (checkouts, wizards)
 
@@ -322,10 +345,10 @@ When converting old `play` stories to `.test()`:
 
 ## Key Takeaways
 
-| Pattern | Use When | Example |
-|---------|----------|---------|
+| Pattern       | Use When                            | Example                                    |
+| ------------- | ----------------------------------- | ------------------------------------------ |
 | **`.test()`** | Multiple independent test scenarios | Form validation, button clicks, edge cases |
-| **`play`** | One complete multi-step flow | Checkout, wizard, onboarding |
-| **Hybrid** | Mix of documentation + tests | Complex forms with visual variants |
+| **`play`**    | One complete multi-step flow        | Checkout, wizard, onboarding               |
+| **Hybrid**    | Mix of documentation + tests        | Complex forms with visual variants         |
 
 **Default to `.test()`. Use `play` only when steps are truly dependent.**

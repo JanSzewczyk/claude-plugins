@@ -5,6 +5,7 @@
 **Scenario:** Test the POST /api/budgets endpoint that creates a new budget.
 
 **Route Handler:**
+
 ```typescript
 // app/api/budgets/route.ts
 import { NextResponse } from "next/server";
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
 ```
 
 **Test File:**
+
 ```typescript
 // tests/e2e/api/budgets.spec.ts
 import { test, expect } from "@playwright/test";
@@ -47,14 +49,14 @@ test.describe("POST /api/budgets", () => {
       headers: {
         "Content-Type": "application/json",
         // Add auth cookie/header based on your auth setup
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+        Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
       },
       data: {
         name: "Monthly Budget",
         amount: 5000,
         currency: "PLN",
-        period: "monthly"
-      }
+        period: "monthly",
+      },
     });
 
     expect(response.status()).toBe(201);
@@ -65,7 +67,7 @@ test.describe("POST /api/budgets", () => {
       name: "Monthly Budget",
       amount: 5000,
       currency: "PLN",
-      period: "monthly"
+      period: "monthly",
     });
     expect(body.data).toHaveProperty("id");
     expect(body.data).toHaveProperty("createdAt");
@@ -74,13 +76,13 @@ test.describe("POST /api/budgets", () => {
   test("returns 401 for unauthenticated request", async ({ request }) => {
     const response = await request.post("http://localhost:3000/api/budgets", {
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
         // No auth cookie
       },
       data: {
         name: "Monthly Budget",
-        amount: 5000
-      }
+        amount: 5000,
+      },
     });
 
     expect(response.status()).toBe(401);
@@ -93,12 +95,12 @@ test.describe("POST /api/budgets", () => {
     const response = await request.post("http://localhost:3000/api/budgets", {
       headers: {
         "Content-Type": "application/json",
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+        Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
       },
       data: {
         name: "", // Invalid: empty name
-        amount: -100 // Invalid: negative amount
-      }
+        amount: -100, // Invalid: negative amount
+      },
     });
 
     expect(response.status()).toBe(400);
@@ -118,6 +120,7 @@ test.describe("POST /api/budgets", () => {
 **Scenario:** Test GET /api/expenses endpoint with filtering.
 
 **Route Handler:**
+
 ```typescript
 // app/api/expenses/route.ts
 export async function GET(request: Request) {
@@ -134,7 +137,7 @@ export async function GET(request: Request) {
   const [error, expenses] = await getExpenses(userId, {
     categoryId,
     startDate: startDate ? new Date(startDate) : undefined,
-    endDate: endDate ? new Date(endDate) : undefined
+    endDate: endDate ? new Date(endDate) : undefined,
   });
 
   if (error) {
@@ -146,6 +149,7 @@ export async function GET(request: Request) {
 ```
 
 **Test File:**
+
 ```typescript
 // tests/e2e/api/expenses.spec.ts
 import { test, expect } from "@playwright/test";
@@ -154,8 +158,8 @@ test.describe("GET /api/expenses", () => {
   test("returns all expenses without filters", async ({ request }) => {
     const response = await request.get("http://localhost:3000/api/expenses", {
       headers: {
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-      }
+        Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+      },
     });
 
     expect(response.status()).toBe(200);
@@ -172,15 +176,17 @@ test.describe("GET /api/expenses", () => {
       `http://localhost:3000/api/expenses?categoryId=${categoryId}`,
       {
         headers: {
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-        }
-      }
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+      },
     );
 
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body.data.every((expense: any) => expense.categoryId === categoryId)).toBe(true);
+    expect(
+      body.data.every((expense: any) => expense.categoryId === categoryId),
+    ).toBe(true);
   });
 
   test("filters expenses by date range", async ({ request }) => {
@@ -191,9 +197,9 @@ test.describe("GET /api/expenses", () => {
       `http://localhost:3000/api/expenses?startDate=${startDate}&endDate=${endDate}`,
       {
         headers: {
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-        }
-      }
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+      },
     );
 
     expect(response.status()).toBe(200);
@@ -215,11 +221,12 @@ test.describe("GET /api/expenses", () => {
 **Scenario:** Test PATCH /api/budgets/[id] endpoint.
 
 **Route Handler:**
+
 ```typescript
 // app/api/budgets/[id]/route.ts
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   const { userId } = await auth();
   if (!userId) {
@@ -232,7 +239,7 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -250,6 +257,7 @@ export async function PATCH(
 ```
 
 **Test File:**
+
 ```typescript
 // tests/e2e/api/budgets-update.spec.ts
 import { test, expect } from "@playwright/test";
@@ -262,13 +270,13 @@ test.describe("PATCH /api/budgets/[id]", () => {
     const response = await request.post("http://localhost:3000/api/budgets", {
       headers: {
         "Content-Type": "application/json",
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+        Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
       },
       data: {
         name: "Test Budget",
         amount: 1000,
-        currency: "PLN"
-      }
+        currency: "PLN",
+      },
     });
 
     const body = await response.json();
@@ -281,13 +289,13 @@ test.describe("PATCH /api/budgets/[id]", () => {
       {
         headers: {
           "Content-Type": "application/json",
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
         },
         data: {
           name: "Updated Budget",
-          amount: 2000
-        }
-      }
+          amount: 2000,
+        },
+      },
     );
 
     expect(response.status()).toBe(200);
@@ -296,7 +304,7 @@ test.describe("PATCH /api/budgets/[id]", () => {
     expect(body.data).toMatchObject({
       id: budgetId,
       name: "Updated Budget",
-      amount: 2000
+      amount: 2000,
     });
   });
 
@@ -306,12 +314,12 @@ test.describe("PATCH /api/budgets/[id]", () => {
       {
         headers: {
           "Content-Type": "application/json",
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
         },
         data: {
-          name: "Updated Budget"
-        }
-      }
+          name: "Updated Budget",
+        },
+      },
     );
 
     expect(response.status()).toBe(404);
@@ -329,6 +337,7 @@ test.describe("PATCH /api/budgets/[id]", () => {
 **Scenario:** Test DELETE /api/expenses/[id] endpoint.
 
 **Test File:**
+
 ```typescript
 // tests/e2e/api/expenses-delete.spec.ts
 import { test, expect } from "@playwright/test";
@@ -336,17 +345,20 @@ import { test, expect } from "@playwright/test";
 test.describe("DELETE /api/expenses/[id]", () => {
   test("deletes expense successfully", async ({ request }) => {
     // First, create an expense
-    const createResponse = await request.post("http://localhost:3000/api/expenses", {
-      headers: {
-        "Content-Type": "application/json",
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
+    const createResponse = await request.post(
+      "http://localhost:3000/api/expenses",
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+        data: {
+          amount: 50,
+          categoryId: "food",
+          description: "Lunch",
+        },
       },
-      data: {
-        amount: 50,
-        categoryId: "food",
-        description: "Lunch"
-      }
-    });
+    );
 
     const { data: expense } = await createResponse.json();
 
@@ -355,9 +367,9 @@ test.describe("DELETE /api/expenses/[id]", () => {
       `http://localhost:3000/api/expenses/${expense.id}`,
       {
         headers: {
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-        }
-      }
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+      },
     );
 
     expect(deleteResponse.status()).toBe(204);
@@ -367,22 +379,24 @@ test.describe("DELETE /api/expenses/[id]", () => {
       `http://localhost:3000/api/expenses/${expense.id}`,
       {
         headers: {
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-        }
-      }
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+      },
     );
 
     expect(getResponse.status()).toBe(404);
   });
 
-  test("returns 404 when deleting non-existent expense", async ({ request }) => {
+  test("returns 404 when deleting non-existent expense", async ({
+    request,
+  }) => {
     const response = await request.delete(
       "http://localhost:3000/api/expenses/non-existent-id",
       {
         headers: {
-          "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-        }
-      }
+          Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+        },
+      },
     );
 
     expect(response.status()).toBe(404);
@@ -397,6 +411,7 @@ test.describe("DELETE /api/expenses/[id]", () => {
 **Scenario:** Verify CORS headers and caching headers.
 
 **Test File:**
+
 ```typescript
 // tests/e2e/api/headers.spec.ts
 import { test, expect } from "@playwright/test";
@@ -419,8 +434,8 @@ test.describe("API Headers", () => {
   test("includes content-type header", async ({ request }) => {
     const response = await request.get("http://localhost:3000/api/budgets", {
       headers: {
-        "Cookie": `__session=${process.env.TEST_SESSION_TOKEN}`
-      }
+        Cookie: `__session=${process.env.TEST_SESSION_TOKEN}`,
+      },
     });
 
     expect(response.headers()["content-type"]).toContain("application/json");
@@ -433,22 +448,26 @@ test.describe("API Headers", () => {
 ## Test Utilities
 
 ### Auth Helper
+
 ```typescript
 // tests/utils/auth.ts
 export async function getAuthHeaders() {
   // For Clerk
   const token = process.env.TEST_SESSION_TOKEN;
   return {
-    "Cookie": `__session=${token}`
+    Cookie: `__session=${token}`,
   };
 }
 
 // Usage
 const headers = await getAuthHeaders();
-const response = await request.get("http://localhost:3000/api/budgets", { headers });
+const response = await request.get("http://localhost:3000/api/budgets", {
+  headers,
+});
 ```
 
 ### Base URL Helper
+
 ```typescript
 // tests/utils/api.ts
 export const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
@@ -462,6 +481,7 @@ const response = await request.get(apiUrl("/api/budgets"));
 ```
 
 ### Response Assertion Helpers
+
 ```typescript
 // tests/utils/assertions.ts
 export async function expectSuccessResponse(response: any, status = 200) {
@@ -471,7 +491,11 @@ export async function expectSuccessResponse(response: any, status = 200) {
   return body.data;
 }
 
-export async function expectErrorResponse(response: any, status: number, errorMessage?: string) {
+export async function expectErrorResponse(
+  response: any,
+  status: number,
+  errorMessage?: string,
+) {
   expect(response.status()).toBe(status);
   const body = await response.json();
   expect(body).toHaveProperty("error");

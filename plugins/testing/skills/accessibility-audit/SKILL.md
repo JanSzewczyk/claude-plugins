@@ -31,6 +31,13 @@ This skill helps you:
 - Improve screen reader compatibility
 - Document accessibility features
 
+> **Reference Files:**
+>
+> - [examples.md](./examples.md) - Practical audit examples
+> - [screen-reader-testing.md](./screen-reader-testing.md) - Screen reader testing guide
+> - [mobile-accessibility.md](./mobile-accessibility.md) - Mobile accessibility patterns
+> - [motion-animation.md](./motion-animation.md) - Motion and animation accessibility
+
 ## Tools Used
 
 - **Storybook a11y addon** - Automated checks in Storybook
@@ -44,6 +51,7 @@ When the user requests an accessibility audit:
 ### 1. Analyze the Component
 
 Read the component code and identify:
+
 - Interactive elements (buttons, links, inputs)
 - Images and media
 - Form elements and labels
@@ -60,9 +68,9 @@ Check the Accessibility panel in Storybook for the component's stories.
 ```typescript
 // Verify a11y addon is configured in .storybook/main.ts
 addons: [
-  '@storybook/addon-a11y',
+  "@storybook/addon-a11y",
   // ...
-]
+];
 ```
 
 #### Using Playwright with axe-core
@@ -95,8 +103,8 @@ test.describe("Accessibility: [ComponentName]", () => {
 
     // Test Tab navigation
     await page.keyboard.press("Tab");
-    const focusedElement = await page.evaluate(() =>
-      document.activeElement?.tagName
+    const focusedElement = await page.evaluate(
+      () => document.activeElement?.tagName,
     );
     expect(focusedElement).toBeTruthy();
 
@@ -113,23 +121,27 @@ test.describe("Accessibility: [ComponentName]", () => {
 
 ```markdown
 ## 1.1 Text Alternatives
+
 - [ ] All images have meaningful alt text
 - [ ] Decorative images have alt=""
 - [ ] Icon buttons have aria-label
 - [ ] Complex images have long descriptions
 
 ## 1.2 Time-based Media
+
 - [ ] Videos have captions
 - [ ] Audio has transcripts
 - [ ] No auto-playing media
 
 ## 1.3 Adaptable
+
 - [ ] Content is structured with proper headings (h1-h6)
 - [ ] Lists use proper list markup
 - [ ] Tables have headers and captions
 - [ ] Reading order is logical
 
 ## 1.4 Distinguishable
+
 - [ ] Color contrast ratio >= 4.5:1 for normal text
 - [ ] Color contrast ratio >= 3:1 for large text
 - [ ] Information not conveyed by color alone
@@ -141,23 +153,27 @@ test.describe("Accessibility: [ComponentName]", () => {
 
 ```markdown
 ## 2.1 Keyboard Accessible
+
 - [ ] All functionality available via keyboard
 - [ ] No keyboard traps
 - [ ] Focus visible on all interactive elements
 - [ ] Logical tab order
 
 ## 2.2 Enough Time
+
 - [ ] Users can extend time limits
 - [ ] Users can pause moving content
 - [ ] No content that flashes more than 3 times/second
 
 ## 2.3 Navigable
+
 - [ ] Skip links available for navigation
 - [ ] Page has descriptive title
 - [ ] Focus order preserves meaning
 - [ ] Link purpose clear from text
 
 ## 2.4 Input Modalities
+
 - [ ] Touch targets at least 44x44px
 - [ ] Functionality not dependent on motion
 ```
@@ -166,15 +182,18 @@ test.describe("Accessibility: [ComponentName]", () => {
 
 ```markdown
 ## 3.1 Readable
+
 - [ ] Page language specified (lang attribute)
 - [ ] Abbreviations explained
 
 ## 3.2 Predictable
+
 - [ ] No unexpected context changes on focus
 - [ ] Navigation consistent across pages
 - [ ] Components identified consistently
 
 ## 3.3 Input Assistance
+
 - [ ] Error messages are descriptive
 - [ ] Labels or instructions provided
 - [ ] Error prevention for important actions
@@ -185,6 +204,7 @@ test.describe("Accessibility: [ComponentName]", () => {
 
 ```markdown
 ## 4.1 Compatible
+
 - [ ] Valid HTML markup
 - [ ] ARIA attributes used correctly
 - [ ] Name, role, value programmatically determined
@@ -337,7 +357,7 @@ test.describe("Accessibility: [ComponentName]", () => {
 
 ### 5. Audit Report Format
 
-```markdown
+````markdown
 # Accessibility Audit Report
 
 **Component:** [ComponentName]
@@ -345,6 +365,7 @@ test.describe("Accessibility: [ComponentName]", () => {
 **WCAG Level:** AA
 
 ## Summary
+
 - **Critical Issues:** X
 - **Serious Issues:** X
 - **Moderate Issues:** X
@@ -353,11 +374,13 @@ test.describe("Accessibility: [ComponentName]", () => {
 ## Critical Issues (Must Fix)
 
 ### 1. [Issue Title]
+
 - **WCAG Criterion:** X.X.X - [Name]
 - **Location:** [file:line]
 - **Description:** [What's wrong]
 - **Impact:** [Who is affected]
 - **Fix:**
+
   ```typescript
   // Before
   <bad code>
@@ -365,10 +388,12 @@ test.describe("Accessibility: [ComponentName]", () => {
   // After
   <good code>
   ```
+````
 
 ## Serious Issues
 
 ### 2. [Issue Title]
+
 ...
 
 ## Recommendations
@@ -381,7 +406,8 @@ test.describe("Accessibility: [ComponentName]", () => {
 - ✅ Color contrast meets requirements
 - ✅ Form labels present
 - ✅ Keyboard navigation works
-```
+
+````
 
 ### 6. Storybook Accessibility Tests
 
@@ -441,7 +467,7 @@ export const WithIcon: Story = {
     await expect(button).toBeVisible();
   }
 };
-```
+````
 
 ## Running Audits
 

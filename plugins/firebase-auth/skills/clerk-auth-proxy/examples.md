@@ -14,7 +14,7 @@ import { createLogger } from "~/lib/logger";
 const logger = createLogger({ module: "user-actions" });
 
 export async function updateProfile(
-  data: ProfileFormData
+  data: ProfileFormData,
 ): ActionResponse<Profile> {
   // 1. Authentication check
   const { userId, isAuthenticated } = await auth();
@@ -30,7 +30,7 @@ export async function updateProfile(
     return {
       success: false,
       error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors
+      fieldErrors: parsed.error.flatten().fieldErrors,
     };
   }
 
@@ -56,7 +56,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { ActionResponse } from "~/lib/action-types";
 
 export async function adminDeleteUser(
-  targetUserId: string
+  targetUserId: string,
 ): ActionResponse<void> {
   const { userId, sessionClaims } = await auth();
 
@@ -94,9 +94,7 @@ import { redirect } from "next/navigation";
 import type { RedirectAction } from "~/lib/action-types";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 
-export async function createBudget(
-  data: BudgetFormData
-): RedirectAction {
+export async function createBudget(data: BudgetFormData): RedirectAction {
   const { userId } = await auth();
 
   if (!userId) {
@@ -233,10 +231,7 @@ export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const [error, budgets] = await getBudgetsByUser(userId);
@@ -244,7 +239,7 @@ export async function GET() {
   if (error) {
     return NextResponse.json(
       { error: "Failed to fetch budgets" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -255,10 +250,7 @@ export async function POST(request: Request) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -268,7 +260,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -277,7 +269,7 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json(
         { error: "Failed to create budget" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -285,7 +277,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       { error: "Invalid request body" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }
@@ -325,7 +317,7 @@ export async function POST(req: Request) {
     evt = wh.verify(body, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
-      "svix-signature": svix_signature
+      "svix-signature": svix_signature,
     }) as WebhookEvent;
   } catch {
     return new Response("Invalid signature", { status: 400 });
@@ -488,15 +480,21 @@ export async function sensitiveAction(): ActionResponse {
   const { userId, sessionClaims } = await auth();
 
   if (!userId) {
-    logger.warn({ action: "sensitiveAction" }, "Unauthenticated access attempt");
+    logger.warn(
+      { action: "sensitiveAction" },
+      "Unauthenticated access attempt",
+    );
     return { success: false, error: "Authentication required" };
   }
 
-  logger.info({
-    userId,
-    role: sessionClaims?.metadata?.role,
-    action: "sensitiveAction"
-  }, "Sensitive action accessed");
+  logger.info(
+    {
+      userId,
+      role: sessionClaims?.metadata?.role,
+      action: "sensitiveAction",
+    },
+    "Sensitive action accessed",
+  );
 
   // ... action logic
 }

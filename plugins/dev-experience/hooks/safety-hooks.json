@@ -1,5 +1,6 @@
 {
   "$schema": "Hooks configuration for Claude Code settings.json — copy relevant sections into your .claude/settings.json",
+  "version": "1.1.0",
   "hooks": {
     "SessionStart": [
       {

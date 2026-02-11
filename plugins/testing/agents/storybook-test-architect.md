@@ -100,12 +100,12 @@ Your prompt includes both approved stories and approved tests (possibly with mod
 
 ## Decision Framework: Story vs Test
 
-| Create STORY when | Create TEST when |
-|-------------------|------------------|
+| Create STORY when                                 | Create TEST when                              |
+| ------------------------------------------------- | --------------------------------------------- |
 | Different visual state (disabled, loading, error) | Testing behavior (clicks, typing, validation) |
-| Different args/props needed | Testing callbacks (onClick, onSubmit) |
-| Worth documenting visually | Testing accessibility (ARIA, focus) |
-| Substantially different rendering | Testing edge cases (empty, long text) |
+| Different args/props needed                       | Testing callbacks (onClick, onSubmit)         |
+| Worth documenting visually                        | Testing accessibility (ARIA, focus)           |
+| Substantially different rendering                 | Testing edge cases (empty, long text)         |
 
 **Anti-pattern:** Separate stories for each test. **Use:** One story + multiple `.test()` calls.
 

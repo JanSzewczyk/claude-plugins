@@ -51,7 +51,7 @@ export class DbError extends Error {
       isNotFound?: boolean;
       isAlreadyExists?: boolean;
       isPermissionDenied?: boolean;
-    } = {}
+    } = {},
   ) {
     super(message);
     this.name = "DbError";
@@ -71,12 +71,9 @@ export class DbError extends Error {
    * Resource not found in database
    */
   static notFound(resourceName: string): DbError {
-    return new DbError(
-      `${resourceName} not found`,
-      "not-found",
-      resourceName,
-      { isNotFound: true }
-    );
+    return new DbError(`${resourceName} not found`, "not-found", resourceName, {
+      isNotFound: true,
+    });
   }
 
   /**
@@ -87,19 +84,18 @@ export class DbError extends Error {
       `${resourceName} already exists`,
       "already-exists",
       resourceName,
-      { isAlreadyExists: true }
+      { isAlreadyExists: true },
     );
   }
 
   /**
    * Input validation failed
    */
-  static validation(message: string, resourceName: string = "Resource"): DbError {
-    return new DbError(
-      message,
-      "validation",
-      resourceName
-    );
+  static validation(
+    message: string,
+    resourceName: string = "Resource",
+  ): DbError {
+    return new DbError(message, "validation", resourceName);
   }
 
   /**
@@ -109,7 +105,7 @@ export class DbError extends Error {
     return new DbError(
       `${resourceName} data is invalid or corrupted`,
       "data-corruption",
-      resourceName
+      resourceName,
     );
   }
 
@@ -121,7 +117,7 @@ export class DbError extends Error {
       `Permission denied for ${resourceName}`,
       "permission-denied",
       resourceName,
-      { isPermissionDenied: true }
+      { isPermissionDenied: true },
     );
   }
 
@@ -133,7 +129,7 @@ export class DbError extends Error {
       originalMessage || `Database error for ${resourceName}`,
       "internal",
       resourceName,
-      { isRetryable: true }
+      { isRetryable: true },
     );
   }
 }
@@ -141,7 +137,10 @@ export class DbError extends Error {
 /**
  * Categorizes Firestore errors into structured DbError
  */
-export function categorizeDbError(error: unknown, resourceName: string): DbError {
+export function categorizeDbError(
+  error: unknown,
+  resourceName: string,
+): DbError {
   // Handle Firestore errors with code property
   if (error && typeof error === "object" && "code" in error) {
     const firestoreError = error as { code: string; message?: string };
@@ -162,14 +161,14 @@ export function categorizeDbError(error: unknown, resourceName: string): DbError
 
     // Check if retryable
     const isRetryable = RETRYABLE_ERROR_CODES.includes(
-      code as (typeof RETRYABLE_ERROR_CODES)[number]
+      code as (typeof RETRYABLE_ERROR_CODES)[number],
     );
 
     return new DbError(
       firestoreError.message || `Database error: ${code}`,
       code,
       resourceName,
-      { isRetryable }
+      { isRetryable },
     );
   }
 
@@ -206,7 +205,7 @@ type QueryResult<T> = Promise<[null, T] | [DbError, null]>;
 
 ```typescript
 export async function getResourceById(
-  id: string
+  id: string,
 ): Promise<[null, Resource] | [DbError, null]> {
   // 1. Input validation
   if (!id?.trim()) {
@@ -237,15 +236,17 @@ export async function getResourceById(
     // 5. Success
     logger.info({ resourceId: id }, "Resource retrieved");
     return [null, transformToResource(doc.id, data)];
-
   } catch (error) {
     // 6. Categorize and log error
     const dbError = categorizeDbError(error, RESOURCE_NAME);
-    logger.error({
-      resourceId: id,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable
-    }, "Query failed");
+    logger.error(
+      {
+        resourceId: id,
+        errorCode: dbError.code,
+        isRetryable: dbError.isRetryable,
+      },
+      "Query failed",
+    );
     return [dbError, null];
   }
 }
@@ -255,7 +256,7 @@ export async function getResourceById(
 
 ```typescript
 export async function createResource(
-  data: CreateResourceDto
+  data: CreateResourceDto,
 ): Promise<[null, Resource] | [DbError, null]> {
   try {
     const docRef = await db.collection(COLLECTION).add(data);
@@ -270,7 +271,6 @@ export async function createResource(
 
     logger.info({ resourceId: docRef.id }, "Resource created");
     return [null, resource];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
     logger.error({ errorCode: dbError.code }, "Create failed");
@@ -284,7 +284,7 @@ export async function createResource(
 ```typescript
 export async function updateResource(
   id: string,
-  data: UpdateResourceDto
+  data: UpdateResourceDto,
 ): Promise<[null, Resource] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id", RESOURCE_NAME), null];
@@ -308,7 +308,6 @@ export async function updateResource(
     // Return updated resource (requires re-read for merged state)
     const updated = await docRef.get();
     return [null, transformToResource(id, updated.data()!)];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
     logger.error({ resourceId: id, errorCode: dbError.code }, "Update failed");
@@ -321,7 +320,7 @@ export async function updateResource(
 
 ```typescript
 export async function deleteResource(
-  id: string
+  id: string,
 ): Promise<[null, true] | [DbError, null]> {
   if (!id?.trim()) {
     return [DbError.validation("Invalid id", RESOURCE_NAME), null];
@@ -340,7 +339,6 @@ export async function deleteResource(
 
     logger.info({ resourceId: id }, "Resource deleted");
     return [null, true];
-
   } catch (error) {
     const dbError = categorizeDbError(error, RESOURCE_NAME);
     logger.error({ resourceId: id, errorCode: dbError.code }, "Delete failed");
@@ -356,7 +354,7 @@ export async function deleteResource(
 ```typescript
 export async function updateBudget(
   budgetId: string,
-  formData: FormData
+  formData: FormData,
 ): ActionResponse<Budget> {
   const { userId } = await auth();
   if (!userId) {
@@ -420,7 +418,7 @@ async function loadBudget(budgetId: string) {
 ```typescript
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   const [error, resource] = await getResourceById(params.id);
 
@@ -428,19 +426,13 @@ export async function GET(
     if (error.isNotFound) {
       return NextResponse.json(
         { error: "Resource not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     if (error.isPermissionDenied) {
-      return NextResponse.json(
-        { error: "Permission denied" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ data: resource });
@@ -457,47 +449,59 @@ import { createLogger } from "~/lib/logger";
 const logger = createLogger({ module: "budget-db" });
 
 // Validation error
-logger.warn({
-  userId,
-  errorCode: error.code
-}, "Validation failed");
+logger.warn(
+  {
+    userId,
+    errorCode: error.code,
+  },
+  "Validation failed",
+);
 
 // Not found
-logger.warn({
-  userId,
-  budgetId,
-  errorCode: error.code
-}, "Budget not found");
+logger.warn(
+  {
+    userId,
+    budgetId,
+    errorCode: error.code,
+  },
+  "Budget not found",
+);
 
 // Database error
-logger.error({
-  userId,
-  budgetId,
-  errorCode: dbError.code,
-  isRetryable: dbError.isRetryable
-}, "Database query failed");
+logger.error(
+  {
+    userId,
+    budgetId,
+    errorCode: dbError.code,
+    isRetryable: dbError.isRetryable,
+  },
+  "Database query failed",
+);
 
 // Success
-logger.info({
-  userId,
-  budgetId
-}, "Budget retrieved successfully");
+logger.info(
+  {
+    userId,
+    budgetId,
+  },
+  "Budget retrieved successfully",
+);
 ```
 
 ## Error Code Reference
 
-| Code | Description | Retryable | Factory Method |
-|------|-------------|-----------|----------------|
-| `not-found` | Document doesn't exist | No | `DbError.notFound()` |
-| `already-exists` | Document already exists | No | `DbError.alreadyExists()` |
-| `permission-denied` | No access to resource | No | `DbError.permissionDenied()` |
-| `validation` | Input validation failed | No | `DbError.validation()` |
-| `data-corruption` | Invalid document data | No | `DbError.dataCorruption()` |
-| `unavailable` | Service temporarily unavailable | Yes | via `categorizeDbError()` |
-| `deadline-exceeded` | Operation timed out | Yes | via `categorizeDbError()` |
-| `resource-exhausted` | Quota exceeded | Yes | via `categorizeDbError()` |
-| `aborted` | Operation aborted | Yes | via `categorizeDbError()` |
-| `internal` | Internal server error | Yes | `DbError.internal()` |
+| Code                 | Description                     | Retryable | Factory Method               |
+| -------------------- | ------------------------------- | --------- | ---------------------------- |
+| `not-found`          | Document doesn't exist          | No        | `DbError.notFound()`         |
+| `already-exists`     | Document already exists         | No        | `DbError.alreadyExists()`    |
+| `permission-denied`  | No access to resource           | No        | `DbError.permissionDenied()` |
+| `validation`         | Input validation failed         | No        | `DbError.validation()`       |
+| `data-corruption`    | Invalid document data           | No        | `DbError.dataCorruption()`   |
+| `unavailable`        | Service temporarily unavailable | Yes       | via `categorizeDbError()`    |
+| `deadline-exceeded`  | Operation timed out             | Yes       | via `categorizeDbError()`    |
+| `resource-exhausted` | Quota exceeded                  | Yes       | via `categorizeDbError()`    |
+| `aborted`            | Operation aborted               | Yes       | via `categorizeDbError()`    |
+| `internal`           | Internal server error           | Yes       | `DbError.internal()`         |
 
 ## Best Practices
 

@@ -5,6 +5,7 @@
 **Scenario:** User wants to ensure a custom Button component meets WCAG 2.1 AA standards.
 
 **Component Code:**
+
 ```tsx
 // components/Button.tsx
 export function Button({ onClick, children }) {
@@ -19,12 +20,14 @@ export function Button({ onClick, children }) {
 **Audit Findings:**
 
 ❌ **Critical Issues:**
+
 1. Using `<div>` instead of `<button>` - not keyboard accessible
 2. No focus indicator
 3. Missing accessible name for icon-only buttons
 4. No disabled state handling
 
 **Fixed Code:**
+
 ```tsx
 // components/Button.tsx
 import { cn } from "~/utils/cn";
@@ -54,12 +57,10 @@ export function Button({
         "disabled:opacity-50 disabled:cursor-not-allowed",
         variant === "primary" && "bg-blue-600 text-white",
         variant === "secondary" && "bg-gray-200 text-gray-900",
-        className
+        className,
       )}
     >
-      {isLoading && (
-        <span className="sr-only">Loading...</span>
-      )}
+      {isLoading && <span className="sr-only">Loading...</span>}
       {children}
     </button>
   );
@@ -67,6 +68,7 @@ export function Button({
 ```
 
 **WCAG Compliance Checklist:**
+
 - ✅ Semantic HTML (`<button>`)
 - ✅ Keyboard accessible (native button behavior)
 - ✅ Visible focus indicator (ring)
@@ -82,6 +84,7 @@ export function Button({
 **Scenario:** LoginForm component needs accessibility improvements.
 
 **Before:**
+
 ```tsx
 export function LoginForm() {
   return (
@@ -101,6 +104,7 @@ export function LoginForm() {
 ❌ Missing autocomplete attributes
 
 **After:**
+
 ```tsx
 export function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -143,13 +147,20 @@ export function LoginForm() {
           className="w-full px-3 py-2 border rounded"
         />
         {errors.password && (
-          <span id="password-error" role="alert" className="text-red-600 text-sm">
+          <span
+            id="password-error"
+            role="alert"
+            className="text-red-600 text-sm"
+          >
             {errors.password}
           </span>
         )}
       </div>
 
-      <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded">
+      <button
+        type="submit"
+        className="w-full py-2 bg-blue-600 text-white rounded"
+      >
         Log in
       </button>
     </form>
@@ -158,6 +169,7 @@ export function LoginForm() {
 ```
 
 **Improvements:**
+
 - ✅ Explicit `<label>` elements with `htmlFor`
 - ✅ `aria-invalid` for invalid fields
 - ✅ `aria-describedby` linking errors to inputs
@@ -172,6 +184,7 @@ export function LoginForm() {
 **Scenario:** Product card with images needs proper alt text.
 
 **Before:**
+
 ```tsx
 <div className="product-card">
   <img src="/product.jpg" />
@@ -184,6 +197,7 @@ export function LoginForm() {
 ❌ Decorative vs informative not distinguished
 
 **After:**
+
 ```tsx
 <div className="product-card">
   {/* Informative image - describe what's shown */}
@@ -195,15 +209,12 @@ export function LoginForm() {
   <h3>Product Name</h3>
 
   {/* Decorative background pattern - empty alt */}
-  <img
-    src="/pattern.svg"
-    alt=""
-    role="presentation"
-  />
+  <img src="/pattern.svg" alt="" role="presentation" />
 </div>
 ```
 
 **Guidelines:**
+
 - ✅ Informative images: Descriptive alt text
 - ✅ Decorative images: Empty alt (`alt=""`) + `role="presentation"`
 - ✅ Complex images: Consider `aria-describedby` for longer descriptions
@@ -216,13 +227,10 @@ export function LoginForm() {
 **Scenario:** Toast notifications need to announce to screen readers.
 
 **Before:**
+
 ```tsx
 export function Toast({ message }: { message: string }) {
-  return (
-    <div className="toast">
-      {message}
-    </div>
-  );
+  return <div className="toast">{message}</div>;
 }
 ```
 
@@ -230,10 +238,11 @@ export function Toast({ message }: { message: string }) {
 ❌ Screen readers don't announce dynamic updates
 
 **After:**
+
 ```tsx
 export function Toast({
   message,
-  type = "info"
+  type = "info",
 }: {
   message: string;
   type?: "success" | "error" | "warning" | "info";
@@ -246,7 +255,7 @@ export function Toast({
       className={cn(
         "toast p-4 rounded shadow-lg",
         type === "error" && "bg-red-100 text-red-900",
-        type === "success" && "bg-green-100 text-green-900"
+        type === "success" && "bg-green-100 text-green-900",
       )}
     >
       {/* Visual icon for sighted users */}
@@ -260,16 +269,18 @@ export function Toast({
 ```
 
 **Key ARIA attributes:**
+
 - ✅ `role="status"` - Identifies as status message
 - ✅ `aria-live="polite"` - Announces when user is idle
 - ✅ `aria-atomic="true"` - Reads entire message on update
 - ✅ `aria-hidden="true"` on decorative icons
 
 **For errors, use assertive:**
+
 ```tsx
 <div
   role="alert"
-  aria-live="assertive"  // Interrupts screen reader
+  aria-live="assertive" // Interrupts screen reader
   className="error-toast"
 >
   {errorMessage}
@@ -283,15 +294,14 @@ export function Toast({
 **Scenario:** Modal dialog needs proper focus management.
 
 **Before:**
+
 ```tsx
 export function Modal({ isOpen, onClose, children }) {
   if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content">
-        {children}
-      </div>
+      <div className="modal-content">{children}</div>
     </div>
   );
 }
@@ -304,6 +314,7 @@ export function Modal({ isOpen, onClose, children }) {
 ❌ No accessible name
 
 **After:**
+
 ```tsx
 import { useEffect, useRef } from "react";
 
@@ -311,7 +322,7 @@ export function Modal({
   isOpen,
   onClose,
   title,
-  children
+  children,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -333,10 +344,12 @@ export function Modal({
       const handleTab = (e: KeyboardEvent) => {
         if (e.key === "Tab" && modalRef.current) {
           const focusableElements = modalRef.current.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
           );
           const first = focusableElements[0] as HTMLElement;
-          const last = focusableElements[focusableElements.length - 1] as HTMLElement;
+          const last = focusableElements[
+            focusableElements.length - 1
+          ] as HTMLElement;
 
           if (e.shiftKey && document.activeElement === first) {
             e.preventDefault();
@@ -397,6 +410,7 @@ export function Modal({
 ```
 
 **Accessibility features:**
+
 - ✅ `role="dialog"` and `aria-modal="true"`
 - ✅ `aria-labelledby` points to title
 - ✅ Focus trap (Tab cycles within modal)
@@ -409,6 +423,7 @@ export function Modal({
 ## Common Accessibility Patterns
 
 ### Skip Links
+
 ```tsx
 <a href="#main-content" className="sr-only focus:not-sr-only">
   Skip to main content
@@ -416,6 +431,7 @@ export function Modal({
 ```
 
 ### Screen Reader Only Text
+
 ```tsx
 <span className="sr-only">Loading...</span>
 
@@ -445,6 +461,7 @@ export function Modal({
 ```
 
 ### Accessible Icon Buttons
+
 ```tsx
 <button aria-label="Delete item">
   <TrashIcon aria-hidden="true" />
@@ -452,6 +469,7 @@ export function Modal({
 ```
 
 ### Loading States
+
 ```tsx
 <button disabled aria-busy="true">
   <span className="sr-only">Loading...</span>
@@ -464,11 +482,13 @@ export function Modal({
 ## Testing Checklist
 
 ### Automated Tests
+
 - [ ] Run axe-core via Playwright
 - [ ] Check Storybook a11y addon
 - [ ] Validate with WAVE browser extension
 
 ### Manual Tests
+
 - [ ] Keyboard navigation (Tab, Enter, Space, Arrow keys)
 - [ ] Screen reader (NVDA/JAWS on Windows, VoiceOver on Mac)
 - [ ] High contrast mode
@@ -476,6 +496,7 @@ export function Modal({
 - [ ] Color contrast (use contrast checker)
 
 ### WCAG 2.1 AA Quick Check
+
 - [ ] 1.1.1 - All non-text content has alt text
 - [ ] 2.1.1 - All functionality via keyboard
 - [ ] 2.4.7 - Focus indicator visible

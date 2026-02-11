@@ -4,11 +4,11 @@
 
 React 19 introduces several new hooks for improved form handling and state management:
 
-| Hook | Purpose | Location |
-|------|---------|----------|
-| `useActionState` | Form state management with actions | `react` |
-| `useFormStatus` | Track form submission status | `react-dom` |
-| `useOptimistic` | Optimistic UI updates | `react` |
+| Hook             | Purpose                            | Location    |
+| ---------------- | ---------------------------------- | ----------- |
+| `useActionState` | Form state management with actions | `react`     |
+| `useFormStatus`  | Track form submission status       | `react-dom` |
+| `useOptimistic`  | Optimistic UI updates              | `react`     |
 
 ## useActionState
 
@@ -463,6 +463,7 @@ function NewForm() {
 ```
 
 Benefits of React 19 pattern:
+
 - No need for `preventDefault()`
 - Progressive enhancement (works without JS)
 - Cleaner state management

@@ -3,6 +3,7 @@
 # Custom Claude Code statusline - Created: 2025-12-24T08:30:00.000Z
 # Theme: detailed | Colors: true | Features: directory, git, model, context, usage, tokens, burnrate
 STATUSLINE_VERSION="1.4.0"
+ASSET_VERSION="1.1.0"
 
 input=$(cat)
 

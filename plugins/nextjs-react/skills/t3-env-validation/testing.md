@@ -140,9 +140,7 @@ describe("environment validation", () => {
   });
 
   it("should transform boolean strings", () => {
-    const schema = z
-      .enum(["true", "false"])
-      .transform((val) => val === "true");
+    const schema = z.enum(["true", "false"]).transform((val) => val === "true");
 
     expect(schema.parse("true")).toBe(true);
     expect(schema.parse("false")).toBe(false);

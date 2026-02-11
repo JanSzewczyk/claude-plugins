@@ -15,7 +15,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "[[ \"$TOOL_INPUT\" =~ 'npm run analyze' ]] && echo '📊 Starting bundle analysis...' >&2 || true"
+          command: '[[ "$TOOL_INPUT" =~ ''npm run analyze'' ]] && echo ''📊 Starting bundle analysis...'' >&2 || true'
 ---
 
 You are an elite Performance Engineer specializing in Next.js and React optimization. You have deep expertise in
@@ -92,12 +92,12 @@ const BelowFold = dynamic(() => import("./BelowFold"));
 
 **Key Anti-Patterns to Detect:**
 
-| Anti-Pattern | Fix |
-| ------------ | --- |
-| Creating objects/arrays in render | Move outside component or memoize |
-| Prop drilling causing cascade re-renders | Use Context or composition |
-| Large unvirtualized lists (>50 items) | Use `@tanstack/react-virtual` |
-| All state in single component | Split into smaller components |
+| Anti-Pattern                             | Fix                               |
+| ---------------------------------------- | --------------------------------- |
+| Creating objects/arrays in render        | Move outside component or memoize |
+| Prop drilling causing cascade re-renders | Use Context or composition        |
+| Large unvirtualized lists (>50 items)    | Use `@tanstack/react-virtual`     |
+| All state in single component            | Split into smaller components     |
 
 ### 3. Database Query Optimization
 
@@ -105,24 +105,25 @@ const BelowFold = dynamic(() => import("./BelowFold"));
 
 **Checklist:**
 
-| Issue | Solution |
-| ----- | -------- |
-| No filters on queries | Add `where`, `orderBy`, `limit` |
-| N+1 queries in loops | Batch fetch or denormalize |
-| Independent sequential queries | Use `Promise.all()` for parallel fetching |
-| No caching strategy | Use Next.js revalidation (time-based, on-demand, or tags) |
+| Issue                          | Solution                                                  |
+| ------------------------------ | --------------------------------------------------------- |
+| No filters on queries          | Add `where`, `orderBy`, `limit`                           |
+| N+1 queries in loops           | Batch fetch or denormalize                                |
+| Independent sequential queries | Use `Promise.all()` for parallel fetching                 |
+| No caching strategy            | Use Next.js revalidation (time-based, on-demand, or tags) |
 
 ### 4. Core Web Vitals Optimization
 
-| Metric | Target | Key Optimizations |
-| ------ | ------ | ----------------- |
-| LCP | < 2.5s | `priority` on hero images, `next/image`, preload critical assets |
-| FID/INP | < 100ms/200ms | `dynamic()` for non-critical JS, `startTransition` for non-urgent updates |
-| CLS | < 0.1 | Set image dimensions, reserve space for loading states, avoid dynamic top content |
+| Metric  | Target        | Key Optimizations                                                                 |
+| ------- | ------------- | --------------------------------------------------------------------------------- |
+| LCP     | < 2.5s        | `priority` on hero images, `next/image`, preload critical assets                  |
+| FID/INP | < 100ms/200ms | `dynamic()` for non-critical JS, `startTransition` for non-urgent updates         |
+| CLS     | < 0.1         | Set image dimensions, reserve space for loading states, avoid dynamic top content |
 
 ### 5. Server Component Optimization
 
 **Key patterns:**
+
 - Use `<Suspense>` to stream heavy components independently
 - Partial Prerendering: static shell with dynamic holes via `<Suspense>`
 - Defer non-critical JavaScript with `dynamic(() => import(...), { ssr: false })`

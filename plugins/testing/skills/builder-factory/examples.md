@@ -18,28 +18,30 @@ export const userBuilder = build<User>({
     firstName: perBuild(() => faker.person.firstName()),
     lastName: perBuild(() => faker.person.lastName()),
     role: "user",
-    isActive: true
+    isActive: true,
   },
   traits: {
     admin: {
       overrides: {
         role: "admin",
-        email: perBuild(() => faker.internet.email({ provider: "company.com" }))
-      }
+        email: perBuild(() =>
+          faker.internet.email({ provider: "company.com" }),
+        ),
+      },
     },
     inactive: {
       overrides: {
-        isActive: false
-      }
+        isActive: false,
+      },
     },
     guest: {
       overrides: {
         role: "guest",
         firstName: "Guest",
-        lastName: perBuild(() => faker.string.numeric(4))
-      }
-    }
-  }
+        lastName: perBuild(() => faker.string.numeric(4)),
+      },
+    },
+  },
 });
 
 // Usage examples:
@@ -60,11 +62,15 @@ export const orderBuilder = build<Order>({
   fields: {
     id: sequence(),
     userId: sequence(),
-    products: perBuild(() => Array.from({ length: 3 }, () => productBuilder.one())),
+    products: perBuild(() =>
+      Array.from({ length: 3 }, () => productBuilder.one()),
+    ),
     totalAmount: 0,
-    status: perBuild(() => faker.helpers.arrayElement(["pending", "processing"])),
+    status: perBuild(() =>
+      faker.helpers.arrayElement(["pending", "processing"]),
+    ),
     createdAt: perBuild(() => faker.date.recent()),
-    shippingAddress: perBuild(() => addressBuilder.one())
+    shippingAddress: perBuild(() => addressBuilder.one()),
   },
   postBuild: (order) => {
     order.totalAmount = order.products.reduce((sum, p) => sum + p.price, 0);
@@ -73,10 +79,12 @@ export const orderBuilder = build<Order>({
   traits: {
     bigOrder: {
       overrides: {
-        products: perBuild(() => Array.from({ length: 10 }, () => productBuilder.one()))
-      }
-    }
-  }
+        products: perBuild(() =>
+          Array.from({ length: 10 }, () => productBuilder.one()),
+        ),
+      },
+    },
+  },
 });
 ```
 
@@ -89,8 +97,8 @@ export const addressBuilder = build<Address>({
     street: perBuild(() => faker.location.streetAddress()),
     city: perBuild(() => faker.location.city()),
     zipCode: perBuild(() => faker.location.zipCode()),
-    country: "USA" // Check project-context.md for your locale
-  }
+    country: "USA", // Check project-context.md for your locale
+  },
 });
 
 // User builder with address
@@ -98,15 +106,15 @@ export const userBuilder = build<User>({
   fields: {
     id: sequence(),
     name: perBuild(() => faker.person.fullName()),
-    address: perBuild(() => addressBuilder.one())
-  }
+    address: perBuild(() => addressBuilder.one()),
+  },
 });
 
 // Override nested
 const user = userBuilder.one({
   overrides: {
-    address: addressBuilder.one({ overrides: { city: "New York" } })
-  }
+    address: addressBuilder.one({ overrides: { city: "New York" } }),
+  },
 });
 ```
 
@@ -117,27 +125,30 @@ const user = userBuilder.one({
 ```typescript
 import { build, sequence, perBuild } from "@jackfranklin/test-data-bot";
 import { faker } from "@faker-js/faker"; // Check project-context.md for locale
-import type { Resource, ResourceBase } from "~/features/resource/types/resource";
+import type {
+  Resource,
+  ResourceBase,
+} from "~/features/resource/types/resource";
 
 // Base type builder (for DTOs)
 export const resourceBaseBuilder = build<ResourceBase>({
   fields: {
     name: perBuild(() => faker.commerce.productName()),
     status: "active",
-    category: perBuild(() => faker.commerce.department())
+    category: perBuild(() => faker.commerce.department()),
   },
   traits: {
     inactive: {
       overrides: {
-        status: "inactive"
-      }
+        status: "inactive",
+      },
     },
     pending: {
       overrides: {
-        status: "pending"
-      }
-    }
-  }
+        status: "pending",
+      },
+    },
+  },
 });
 
 // Application type builder (with id and timestamps)
@@ -148,20 +159,20 @@ export const resourceBuilder = build<Resource>({
     status: "active",
     category: perBuild(() => faker.commerce.department()),
     createdAt: perBuild(() => faker.date.past()),
-    updatedAt: perBuild(() => faker.date.recent())
+    updatedAt: perBuild(() => faker.date.recent()),
   },
   traits: {
     inactive: {
       overrides: {
-        status: "inactive"
-      }
+        status: "inactive",
+      },
     },
     pending: {
       overrides: {
-        status: "pending"
-      }
-    }
-  }
+        status: "pending",
+      },
+    },
+  },
 });
 ```
 
@@ -173,7 +184,8 @@ export const createTestUsers = {
   guest: () => userBuilder.one({ traits: ["guest"] }),
   inactive: () => userBuilder.one({ traits: ["inactive"] }),
   withCustomEmail: (email: string) => userBuilder.one({ overrides: { email } }),
-  list: (count: number) => Array.from({ length: count }, () => userBuilder.one())
+  list: (count: number) =>
+    Array.from({ length: count }, () => userBuilder.one()),
 };
 
 // Usage
@@ -189,7 +201,7 @@ export const accountBuilder = build<Account>({
     id: sequence(),
     balance: perBuild(() => faker.number.int({ min: 0, max: 10000 })),
     type: "basic",
-    creditLimit: 0
+    creditLimit: 0,
   },
   postBuild: (account) => {
     switch (account.type) {
@@ -206,7 +218,7 @@ export const accountBuilder = build<Account>({
   },
   traits: {
     premium: { overrides: { type: "premium" } },
-    vip: { overrides: { type: "vip" } }
-  }
+    vip: { overrides: { type: "vip" } },
+  },
 });
 ```

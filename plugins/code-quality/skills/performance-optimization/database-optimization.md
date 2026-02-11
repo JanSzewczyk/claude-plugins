@@ -18,10 +18,11 @@ const query = db.collection("budgets");
 
 // ❌ Bad: Client-side filtering
 const allDocs = await db.collection("budgets").get();
-const filtered = allDocs.docs.filter(d => d.data().userId === userId);
+const filtered = allDocs.docs.filter((d) => d.data().userId === userId);
 
 // ✅ Good: Server-side filtering with limit
-const query = db.collection("budgets")
+const query = db
+  .collection("budgets")
   .where("userId", "==", userId)
   .orderBy("createdAt", "desc")
   .limit(20);
@@ -34,9 +35,10 @@ const query = db.collection("budgets")
 async function getPagedResults(
   userId: string,
   pageSize: number = 20,
-  lastDoc?: QueryDocumentSnapshot
+  lastDoc?: QueryDocumentSnapshot,
 ) {
-  let query = db.collection("budgets")
+  let query = db
+    .collection("budgets")
     .where("userId", "==", userId)
     .orderBy("createdAt", "desc")
     .limit(pageSize);
@@ -50,7 +52,7 @@ async function getPagedResults(
   return {
     items: snapshot.docs.map(transform),
     lastDoc: snapshot.docs[snapshot.docs.length - 1],
-    hasMore: snapshot.docs.length === pageSize
+    hasMore: snapshot.docs.length === pageSize,
   };
 }
 ```
@@ -104,19 +106,20 @@ async function getBudgetsWithExpenses(userId: string) {
 // ✅ Good: Batch query
 async function getBudgetsWithExpenses(userId: string) {
   const budgets = await getBudgets(userId);
-  const budgetIds = budgets.map(b => b.id);
+  const budgetIds = budgets.map((b) => b.id);
 
   // Single query for all expenses
-  const allExpenses = await db.collection("expenses")
-    .where("budgetId", "in", budgetIds.slice(0, 30))  // Firestore "in" limit
+  const allExpenses = await db
+    .collection("expenses")
+    .where("budgetId", "in", budgetIds.slice(0, 30)) // Firestore "in" limit
     .get();
 
   // Group by budget
   const expensesByBudget = groupBy(allExpenses, "budgetId");
 
-  return budgets.map(budget => ({
+  return budgets.map((budget) => ({
     ...budget,
-    expenses: expensesByBudget[budget.id] || []
+    expenses: expensesByBudget[budget.id] || [],
   }));
 }
 ```
@@ -128,9 +131,9 @@ async function getBudgetsWithExpenses(userId: string) {
 interface Budget {
   id: string;
   name: string;
-  totalExpenses: number;      // Denormalized
-  expenseCount: number;       // Denormalized
-  lastExpenseDate: Date;      // Denormalized
+  totalExpenses: number; // Denormalized
+  expenseCount: number; // Denormalized
+  lastExpenseDate: Date; // Denormalized
 }
 
 // Update on expense create/update/delete
@@ -146,7 +149,7 @@ async function addExpense(budgetId: string, amount: number) {
   batch.update(budgetRef, {
     totalExpenses: FieldValue.increment(amount),
     expenseCount: FieldValue.increment(1),
-    lastExpenseDate: new Date()
+    lastExpenseDate: new Date(),
   });
 
   await batch.commit();
@@ -173,7 +176,7 @@ async function loadDashboard(userId: string) {
     getUser(userId),
     getBudgets(userId),
     getRecentExpenses(userId),
-    getNotifications(userId)
+    getNotifications(userId),
   ]);
   return { user, budgets, expenses, notifications };
 }
@@ -186,7 +189,7 @@ async function loadDashboard(userId: string) {
   const results = await Promise.allSettled([
     getUser(userId),
     getBudgets(userId),
-    getNotifications(userId)
+    getNotifications(userId),
   ]);
 
   const [userResult, budgetsResult, notificationsResult] = results;
@@ -194,10 +197,11 @@ async function loadDashboard(userId: string) {
   return {
     user: userResult.status === "fulfilled" ? userResult.value : null,
     budgets: budgetsResult.status === "fulfilled" ? budgetsResult.value : [],
-    notifications: notificationsResult.status === "fulfilled"
-      ? notificationsResult.value
-      : [],
-    errors: results.filter(r => r.status === "rejected")
+    notifications:
+      notificationsResult.status === "fulfilled"
+        ? notificationsResult.value
+        : [],
+    errors: results.filter((r) => r.status === "rejected"),
   };
 }
 ```
@@ -250,7 +254,7 @@ const logger = createLogger({ module: "db-performance" });
 
 export async function measureQuery<T>(
   name: string,
-  queryFn: () => Promise<T>
+  queryFn: () => Promise<T>,
 ): Promise<T> {
   const start = performance.now();
 
@@ -285,7 +289,8 @@ const budgets = await measureQuery("getBudgets", () => getBudgets(userId));
 const all = await db.collection("logs").get();
 
 // ✅ Safe: Always limit
-const recent = await db.collection("logs")
+const recent = await db
+  .collection("logs")
   .orderBy("timestamp", "desc")
   .limit(100)
   .get();
@@ -296,10 +301,11 @@ const recent = await db.collection("logs")
 ```typescript
 // ❌ Bad: Fetches all, filters on client
 const allUsers = await db.collection("users").get();
-const activeUsers = allUsers.docs.filter(d => d.data().active);
+const activeUsers = allUsers.docs.filter((d) => d.data().active);
 
 // ✅ Good: Filter on server
-const activeUsers = await db.collection("users")
+const activeUsers = await db
+  .collection("users")
   .where("active", "==", true)
   .get();
 ```
@@ -308,7 +314,8 @@ const activeUsers = await db.collection("users")
 
 ```typescript
 // ❌ Bad: Complex query with high read cost
-const query = db.collection("expenses")
+const query = db
+  .collection("expenses")
   .where("userId", "==", userId)
   .where("amount", ">", 100)
   .where("category", "in", ["food", "transport", "entertainment"])
@@ -316,7 +323,8 @@ const query = db.collection("expenses")
 
 // ✅ Better: Simplify or denormalize
 // Consider storing "highValue" boolean for amounts > 100
-const query = db.collection("expenses")
+const query = db
+  .collection("expenses")
   .where("userId", "==", userId)
   .where("highValue", "==", true)
   .orderBy("date", "desc")

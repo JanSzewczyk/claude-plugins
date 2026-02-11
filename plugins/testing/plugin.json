@@ -40,6 +40,11 @@
       "name": "playwright-cli",
       "description": "Browser automation, web testing, screenshots, form filling, tracing.",
       "path": "./skills/playwright-cli"
+    },
+    {
+      "name": "unit-testing",
+      "description": "Unit testing patterns with Vitest — mocking, async testing, parameterized tests, coverage.",
+      "path": "./skills/unit-testing"
     }
   ]
 }

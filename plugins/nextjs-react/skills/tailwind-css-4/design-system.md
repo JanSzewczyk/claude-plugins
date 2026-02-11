@@ -14,6 +14,7 @@ This project uses `@szum-tech/design-system`, a shadcn/ui-based design system th
 ```
 
 The import order is important:
+
 1. `tailwindcss` - Base Tailwind utilities
 2. Design system CSS - Component styles and tokens
 3. `@source` - Scan design system for class names
@@ -102,9 +103,7 @@ The design system provides CSS custom properties that can be used directly:
 
 ```tsx
 // Using design system radius
-<div className="rounded-radius">
-  Uses --radius token
-</div>
+<div className="rounded-radius">Uses --radius token</div>
 ```
 
 ## Common Patterns
@@ -119,11 +118,7 @@ function ContactForm() {
     <form className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-        />
+        <Input id="email" type="email" placeholder="you@example.com" />
       </div>
 
       <div className="space-y-2">
@@ -151,7 +146,7 @@ import { Card } from "@szum-tech/design-system";
 function ProductGrid({ products }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map(product => (
+      {products.map((product) => (
         <Card key={product.id} className="p-0 overflow-hidden">
           <img
             src={product.image}
@@ -160,12 +155,8 @@ function ProductGrid({ products }) {
           />
           <div className="p-4">
             <h3 className="font-semibold text-lg">{product.name}</h3>
-            <p className="text-muted-foreground mt-1">
-              {product.description}
-            </p>
-            <p className="text-lg font-bold mt-4">
-              ${product.price}
-            </p>
+            <p className="text-muted-foreground mt-1">{product.description}</p>
+            <p className="text-lg font-bold mt-4">${product.price}</p>
           </div>
         </Card>
       ))}
@@ -238,7 +229,7 @@ function UsersTable({ users }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map(user => (
+          {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
@@ -287,11 +278,7 @@ export function PrimaryButton({
     <Button
       variant="primary"
       disabled={disabled || loading}
-      className={cn(
-        "min-w-[120px]",
-        loading && "cursor-wait",
-        className
-      )}
+      className={cn("min-w-[120px]", loading && "cursor-wait", className)}
       {...props}
     >
       {loading ? (
@@ -324,7 +311,7 @@ interface CustomCardProps {
 export function CustomCard({
   variant = "default",
   children,
-  className
+  className,
 }: CustomCardProps) {
   return (
     <Card
@@ -338,7 +325,7 @@ export function CustomCard({
           "border-2 border-primary shadow-none": variant === "bordered",
         },
         // Additional className
-        className
+        className,
       )}
     >
       {children}
@@ -365,18 +352,16 @@ Usage:
 
 ```tsx
 // Handles conflicts correctly
-cn("px-4 py-2", "px-6")
+cn("px-4 py-2", "px-6");
 // Result: "py-2 px-6" (not "px-4 py-2 px-6")
 
 // Conditional classes
-cn(
-  "base-class",
-  isActive && "active-class",
-  { "conditional-class": condition }
-)
+cn("base-class", isActive && "active-class", {
+  "conditional-class": condition,
+});
 
 // Merging with props
-cn("default-styles", className)
+cn("default-styles", className);
 ```
 
 ## Dark Mode

@@ -7,6 +7,7 @@
 Updated ALL documentation to enforce **critical pattern**: `userEvent` must ALWAYS be destructured from test function parameters, NEVER imported from `storybook/test`.
 
 **Old (Wrong) Pattern:**
+
 ```typescript
 import { expect, fn, userEvent } from "storybook/test";
 Story.test("Test", async ({ canvas }) => {
@@ -15,6 +16,7 @@ Story.test("Test", async ({ canvas }) => {
 ```
 
 **New (Correct) Pattern:**
+
 ```typescript
 import { expect, fn } from "storybook/test";
 Story.test("Test", async ({ canvas, userEvent }) => {
@@ -178,21 +180,21 @@ Default.test("Shows tooltip on hover", async () => { ... });
 export const Default = meta.story({
   play: async ({ canvas }) => {
     /* test 1 */
-  }
+  },
 });
 
 export const TestScenario1 = meta.story({
   tags: ["test-only"],
   play: async ({ canvas }) => {
     /* test 2 */
-  }
+  },
 });
 
 export const TestScenario2 = meta.story({
   tags: ["test-only"],
   play: async ({ canvas }) => {
     /* test 3 */
-  }
+  },
 });
 
 // ... 7 more test stories
@@ -248,7 +250,7 @@ For existing stories:
 
    ```typescript
    export const Default = meta.story({
-     tags: ["autodocs"] // Show in docs
+     tags: ["autodocs"], // Show in docs
    });
    ```
 
@@ -260,13 +262,16 @@ For existing stories:
      tags: ["test-only"],
      play: async ({ canvas, userEvent }) => {
        /* ... */
-     }
+     },
    });
 
    // After: .test() call
-   Default.test("Hover interaction shows tooltip", async ({ canvas, userEvent }) => {
-     /* same logic */
-   });
+   Default.test(
+     "Hover interaction shows tooltip",
+     async ({ canvas, userEvent }) => {
+       /* same logic */
+     },
+   );
    ```
 
 3. Remove `step()` calls if not needed:

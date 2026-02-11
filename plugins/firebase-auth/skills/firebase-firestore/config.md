@@ -187,7 +187,7 @@ export class DbError extends Error {
 
 export function categorizeDbError(
   error: unknown,
-  resourceName: string
+  resourceName: string,
 ): DbError {
   // ... (see errors.md for full implementation)
 }
@@ -223,7 +223,7 @@ const logger = createLogger({ module: "budget-db" });
 // Transform function
 function transformToBudget(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Budget {
   return {
     id: docId,
@@ -235,7 +235,7 @@ function transformToBudget(
 
 // Query functions...
 export async function getBudgetById(
-  id: string
+  id: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   // ... implementation
 }
@@ -338,17 +338,21 @@ import type { WithDates, CreateDto } from "~/lib/firebase";
 ### Common Issues
 
 **"Could not load the default credentials"**
+
 - Check environment variables are set correctly
 - Verify private key has correct format (with newlines)
 
 **"Permission denied"**
+
 - Verify service account has Firestore access
 - Check Firestore security rules (if applicable)
 
 **"Project not found"**
+
 - Verify `FIREBASE_PROJECT_ID` matches Firebase project
 
 **"Multiple app instances"**
+
 - Ensure singleton pattern is used
 - Check for multiple initializations in hot reload
 

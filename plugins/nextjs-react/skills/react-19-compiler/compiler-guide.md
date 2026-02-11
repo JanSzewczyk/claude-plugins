@@ -5,6 +5,7 @@
 React Compiler automatically optimizes your React application at build time by handling memoization that would otherwise need to be done manually.
 
 **Key benefits:**
+
 - Eliminates need for manual `useMemo()`, `useCallback()`, `React.memo()`
 - Applies optimizations automatically during build
 - Reduces boilerplate and maintenance burden
@@ -91,12 +92,12 @@ React Compiler runs at build time and:
 
 The compiler optimizes:
 
-| Pattern | Manual Code | Compiler Handles |
-|---------|-------------|------------------|
-| Expensive computations | `useMemo(() => compute(a), [a])` | ✅ Automatically |
-| Callback references | `useCallback((x) => fn(x), [fn])` | ✅ Automatically |
-| Component re-renders | `memo(Component)` | ✅ Automatically |
-| Object/array literals | `useMemo(() => ({ a, b }), [a, b])` | ✅ Automatically |
+| Pattern                | Manual Code                         | Compiler Handles |
+| ---------------------- | ----------------------------------- | ---------------- |
+| Expensive computations | `useMemo(() => compute(a), [a])`    | ✅ Automatically |
+| Callback references    | `useCallback((x) => fn(x), [fn])`   | ✅ Automatically |
+| Component re-renders   | `memo(Component)`                   | ✅ Automatically |
+| Object/array literals  | `useMemo(() => ({ a, b }), [a, b])` | ✅ Automatically |
 
 ## Verifying Compiler Is Active
 
@@ -122,21 +123,21 @@ import reactCompiler from "eslint-plugin-react-compiler";
 export default [
   {
     plugins: {
-      "react-compiler": reactCompiler
+      "react-compiler": reactCompiler,
     },
     rules: {
-      "react-compiler/react-compiler": "error"
-    }
-  }
+      "react-compiler/react-compiler": "error",
+    },
+  },
 ];
 ```
 
 ### Key Lint Rules
 
-| Rule | Purpose |
-|------|---------|
+| Rule                          | Purpose                                      |
+| ----------------------------- | -------------------------------------------- |
 | `preserve-manual-memoization` | Warns when manual memoization is unnecessary |
-| `rules-of-hooks` | Ensures hooks are used correctly |
+| `rules-of-hooks`              | Ensures hooks are used correctly             |
 
 ## Common Patterns
 

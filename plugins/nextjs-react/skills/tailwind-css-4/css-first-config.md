@@ -14,6 +14,7 @@ Tailwind CSS v4 introduces CSS-first configuration, replacing the JavaScript-bas
 ```
 
 This single import provides:
+
 - All Tailwind utility classes
 - CSS reset (Preflight)
 - Default theme values
@@ -167,6 +168,7 @@ The `@source` directive tells Tailwind where to scan for class names.
 ### When to Use
 
 Use `@source` when you have class names in:
+
 - External packages (design systems, UI libraries)
 - Content files (MDX, Markdown)
 - Non-standard file locations
@@ -187,7 +189,12 @@ Organize custom styles into Tailwind's layer system.
     @apply text-gray-900 dark:text-gray-100;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-semibold;
   }
 }
@@ -304,7 +311,7 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          500: '#3b82f6',
+          500: "#3b82f6",
         },
       },
     },
@@ -326,7 +333,7 @@ module.exports = {
 module.exports = {
   theme: {
     fontFamily: {
-      display: ['Poppins', 'sans-serif'],
+      display: ["Poppins", "sans-serif"],
     },
   },
 };
@@ -345,9 +352,9 @@ module.exports = {
 // v3
 module.exports = {
   content: [
-    './app/**/*.tsx',
-    './components/**/*.tsx',
-    './node_modules/@szum-tech/design-system/**/*.js',
+    "./app/**/*.tsx",
+    "./components/**/*.tsx",
+    "./node_modules/@szum-tech/design-system/**/*.js",
   ],
 };
 ```

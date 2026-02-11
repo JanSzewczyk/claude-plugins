@@ -22,14 +22,14 @@ Create production-ready Firestore database queries with TypeScript, proper type 
 
 ## Quick Reference
 
-| Document                      | Purpose                                     |
-| ----------------------------- | ------------------------------------------- |
-| [types.md](./types.md)        | Type utilities and lifecycle patterns       |
-| [errors.md](./errors.md)      | DbError class and error categorization      |
-| [config.md](./config.md)      | Firebase Admin SDK configuration            |
-| [examples.md](./examples.md)  | Complete CRUD operation examples            |
-| [patterns.md](./patterns.md)  | Best practices and anti-patterns            |
-| [seeding.md](./seeding.md)    | Database seeding patterns                   |
+| Document                     | Purpose                                |
+| ---------------------------- | -------------------------------------- |
+| [types.md](./types.md)       | Type utilities and lifecycle patterns  |
+| [errors.md](./errors.md)     | DbError class and error categorization |
+| [config.md](./config.md)     | Firebase Admin SDK configuration       |
+| [examples.md](./examples.md) | Complete CRUD operation examples       |
+| [patterns.md](./patterns.md) | Best practices and anti-patterns       |
+| [seeding.md](./seeding.md)   | Database seeding patterns              |
 
 ## Instructions
 
@@ -95,7 +95,7 @@ All database queries return tuples for explicit error handling:
 
 ```typescript
 export async function getResourceById(
-  id: string
+  id: string,
 ): Promise<[null, Resource] | [DbError, null]> {
   // Input validation
   if (!id?.trim()) {
@@ -125,7 +125,7 @@ Convert Firestore documents to application types:
 ```typescript
 function transformToResource(
   docId: string,
-  data: FirebaseFirestore.DocumentData
+  data: FirebaseFirestore.DocumentData,
 ): Resource {
   return {
     id: docId,
@@ -164,7 +164,7 @@ const COLLECTION = "budgets";
 const RESOURCE = "Budget";
 
 export async function getBudgetById(
-  id: string
+  id: string,
 ): Promise<[null, Budget] | [DbError, null]> {
   if (!id?.trim()) {
     const error = DbError.validation("Invalid budget id");
@@ -195,7 +195,7 @@ export async function getBudgetById(
 ```typescript
 export async function updateBudget(
   budgetId: string,
-  data: UpdateBudgetDto
+  data: UpdateBudgetDto,
 ): ActionResponse<Budget> {
   const { userId } = await auth();
   if (!userId) {
