@@ -1,31 +1,35 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "szum-tech",
   "description": "Szum-Tech shared skills and agents for Claude Code",
+  "owner": {
+    "name": "Szum Tech Team"
+  },
   "plugins": [
     {
       "name": "nextjs-react",
       "description": "React & Next.js full-stack development — React 19, App Router, Tailwind CSS v4, Server Actions",
-      "path": "./plugins/nextjs-react"
+      "source": "./plugins/nextjs-react"
     },
     {
       "name": "testing",
       "description": "Testing strategies, Storybook interaction tests, Playwright E2E, accessibility audits",
-      "path": "./plugins/testing"
+      "source": "./plugins/testing"
     },
     {
       "name": "code-quality",
       "description": "Code review, performance analysis, bundle optimization, dependency management",
-      "path": "./plugins/code-quality"
+      "source": "./plugins/code-quality"
     },
     {
       "name": "firebase-auth",
       "description": "Firebase Firestore, database architecture, Clerk authentication proxy",
-      "path": "./plugins/firebase-auth"
+      "source": "./plugins/firebase-auth"
     },
     {
       "name": "dev-experience",
       "description": "Statusline (context/cost/token tracking), safety hooks, auto-formatting",
-      "path": "./plugins/dev-experience"
+      "source": "./plugins/dev-experience"
     }
   ]
 }
