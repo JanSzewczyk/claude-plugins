@@ -27,7 +27,6 @@ Default.test("Renders all skills and categories correctly", async ({ canvas, ste
 
 // 9 separate stories with play functions
 export const SkillCardHoverInteraction = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas, step, userEvent }) => {
     await step("Hover over a non-featured skill card", async () => { ... });
     await step("Unhover to hide tooltip", async () => { ... });
@@ -35,7 +34,6 @@ export const SkillCardHoverInteraction = meta.story({
 });
 
 export const MarqueeInteraction = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas, step, userEvent }) => {
     await step("Verify marquee tech logos are visible", async () => { ... });
     await step("Hover over tech logo to pause marquee", async () => { ... });
@@ -287,7 +285,7 @@ export const CheckoutFlow = meta.story({
 
 ### Step 1: Identify Test Stories
 
-Find stories tagged with `test-only` that have `play` functions.
+Find stories that have `play` functions which can be converted to `.test()` calls.
 
 ### Step 2: Group by Component State
 
@@ -302,7 +300,6 @@ Organize tests by what component state they're testing:
 
 ```typescript
 export const TestName = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas, userEvent }) => {
     // test logic
   },

@@ -54,7 +54,6 @@ export const StoryName = meta.story({
   parameters: {
     /* story parameters */
   },
-  tags: ["test-only"], // Optional tags
   play: async (context) => {
     /* optional: for complex multi-step flows */
   },
@@ -174,7 +173,6 @@ Button.test(
 // ✅ Use play for complete user journey
 export const CheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
-  tags: ["test-only"],
   play: async ({ canvas, step, userEvent }) => {
     await step("Add items to cart", async () => {
       /* ... */
@@ -421,23 +419,6 @@ export const CompleteFlow = meta.story({
       await expect(canvas.getByText(/success/i)).toBeVisible();
     });
   },
-});
-```
-
-## Story Tags
-
-Control story visibility and behavior:
-
-```typescript
-export const TestOnlyStory = meta.story({
-  tags: ["test-only"], // Hidden from Storybook sidebar, runs in tests
-  play: async ({ canvas }) => {
-    // Test assertions
-  },
-});
-
-export const DocsStory = meta.story({
-  tags: ["autodocs"], // Include in auto-generated docs
 });
 ```
 

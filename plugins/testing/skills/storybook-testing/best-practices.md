@@ -9,21 +9,18 @@
 ```typescript
 // ❌ BAD - Multiple test stories (old pattern)
 export const ClickTest = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas, userEvent, args }) => {
     /* test 1 */
   },
 });
 
 export const HoverTest = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas, userEvent }) => {
     /* test 2 */
   },
 });
 
 export const ValidationTest = meta.story({
-  tags: ["test-only"],
   play: async ({ canvas }) => {
     /* test 3 */
   },
@@ -87,7 +84,6 @@ ContactForm.test("Keyboard navigation works", async ({ canvas, userEvent }) => {
 // ⚠️ Use play for complete user flows (10% of cases)
 export const CheckoutJourney = meta.story({
   name: "Complete Checkout Flow",
-  tags: ["test-only"],
   play: async ({ canvas, step, userEvent }) => {
     await step("Add items to cart", async () => { ... });
     await step("Enter shipping info", async () => { ... });
@@ -290,18 +286,6 @@ export const InitialState = meta.story({ ... });
 export const ValidationErrors = meta.story({ ... });
 export const SuccessfulSubmission = meta.story({ ... });
 export const ServerError = meta.story({ ... });
-```
-
-### 10. Use Test-Only Tag for Hidden Tests
-
-```typescript
-// Stories that should run in tests but not appear in Storybook UI
-export const InternalTest = meta.story({
-  tags: ["test-only"],
-  play: async ({ canvas }) => {
-    // Implementation tests hidden from docs
-  },
-});
 ```
 
 ## Common Pitfalls

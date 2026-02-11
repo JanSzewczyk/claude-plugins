@@ -162,7 +162,6 @@ Use `play` function **only** for:
 // Example: Use play for complete user journey
 export const CompleteCheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
-  tags: ["test-only"],
   play: async ({ canvas, step, userEvent }) => {
     await step("Add to cart", async () => {
       /* ... */

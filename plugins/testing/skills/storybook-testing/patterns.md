@@ -414,7 +414,6 @@ Default.test("Escape key closes modal", async ({ canvas, userEvent, args }) => {
 ```typescript
 export const CompleteSignUpFlow = meta.story({
   name: "Complete Sign-up Journey",
-  tags: ["test-only"],
   args: { onSubmit: fn() },
   play: async ({ canvas, userEvent, args, step }) => {
     await step("User sees welcome message", async () => {

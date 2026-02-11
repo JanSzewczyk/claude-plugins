@@ -88,7 +88,6 @@ import { expect, fn } from "storybook/test";
 
 export const CheckoutJourney = meta.story({
   name: "Complete Checkout Flow",
-  tags: ["test-only"], // Hidden from docs
   args: { onSubmit: fn() },
   play: async ({ canvas, userEvent, args, step }) => {
     // Each step DEPENDS on previous steps
@@ -254,9 +253,7 @@ export const Prefilled = meta.story({
 });
 
 // 2. Complete interaction tests using .test()
-export const FormInteractions = meta.story({
-  tags: ["test-only"],
-});
+export const FormInteractions = meta.story({});
 
 FormInteractions.test("Renders empty form", async ({ canvas }) => {
   await expect(canvas.getByRole("form")).toBeInTheDocument();
@@ -284,7 +281,6 @@ FormInteractions.test(
 // 3. Optional: Complex multi-step flow (use play ONLY if truly dependent)
 export const MultiStepFlow = meta.story({
   name: "Complete Signup Flow",
-  tags: ["test-only"],
   play: async ({ canvas, userEvent, step }) => {
     await step("Fill email", async () => {
       // Prerequisites: none
