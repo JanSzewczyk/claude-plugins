@@ -5,6 +5,9 @@
   "author": {
     "name": "Szum Tech Team"
   },
-  "agents": "./agents/",
+  "agents": [
+    "./agents/testing-strategist.md",
+    "./agents/storybook-test-architect.md"
+  ],
   "skills": "./skills/"
 }

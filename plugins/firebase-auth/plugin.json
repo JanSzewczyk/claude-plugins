@@ -5,6 +5,6 @@
   "author": {
     "name": "Szum Tech Team"
   },
-  "agents": "./agents/",
+  "agents": ["./agents/database-architect.md"],
   "skills": "./skills/"
 }

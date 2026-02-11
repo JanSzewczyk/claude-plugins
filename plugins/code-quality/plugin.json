@@ -5,6 +5,10 @@
   "author": {
     "name": "Szum Tech Team"
   },
-  "agents": "./agents/",
+  "agents": [
+    "./agents/code-reviewer.md",
+    "./agents/performance-analyzer.md",
+    "./agents/library-updater.md"
+  ],
   "skills": "./skills/"
 }

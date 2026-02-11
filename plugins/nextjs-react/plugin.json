@@ -5,6 +5,9 @@
   "author": {
     "name": "Szum Tech Team"
   },
-  "agents": "./agents/",
+  "agents": [
+    "./agents/frontend-expert.md",
+    "./agents/nextjs-backend-engineer.md"
+  ],
   "skills": "./skills/"
 }
