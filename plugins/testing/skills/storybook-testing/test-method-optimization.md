@@ -547,8 +547,8 @@ await waitFor(async () => {
 });
 
 // ❌ Bad - missing await
-userEvent.click(button); // ⚠️ Not awaited!
-expect(canvas.getByText("Success")).toBeVisible(); // ⚠️ Might fail
+userEvent.click(button); // ⚠️ Not awaited! (WRONG!)
+expect(canvas.getByText("Success")).toBeVisible(); // ⚠️ Might fail (WRONG!)
 ```
 
 ## Summary

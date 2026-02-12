@@ -965,7 +965,7 @@ Story.test("Test", async ({ canvas, userEvent }) => {
 // ❌ WRONG - Missing await causes flaky tests
 Story.test("Test", async ({ canvas, userEvent }) => {
   userEvent.click(button); // Missing await
-  expect(canvas.getByText("Success")).toBeVisible(); // Missing await
+  expect(canvas.getByText("Success")).toBeVisible(); // Missing await (WRONG!)
 });
 ```
 

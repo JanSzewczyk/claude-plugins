@@ -354,8 +354,8 @@ FormInteractions.test(
       await userEvent.click(canvas.getByRole("button", { name: /log in/i }));
     });
 
-    await step("Verify onSubmit was called with correct data", () => {
-      expect(args.onSubmit).toHaveBeenCalledWith({
+    await step("Verify onSubmit was called with correct data", async () => {
+      await expect(args.onSubmit).toHaveBeenCalledWith({
         email: "user@example.com",
         password: "password123",
       });
@@ -377,11 +377,11 @@ FormInteractions.test(
 
     await step("Verify error message is shown", async () => {
       const errorMessage = await canvas.findByText(/invalid email address/i);
-      expect(errorMessage).toBeInTheDocument();
+      await expect(errorMessage).toBeInTheDocument();
     });
 
-    await step("Verify onSubmit was NOT called", () => {
-      expect(args.onSubmit).not.toHaveBeenCalled();
+    await step("Verify onSubmit was NOT called", async () => {
+      await expect(args.onSubmit).not.toHaveBeenCalled();
     });
   },
 );
@@ -396,8 +396,8 @@ FormInteractions.test(
     const errorMessage = await canvas.findByText(
       /password must be at least 8 characters/i,
     );
-    expect(errorMessage).toBeInTheDocument();
-    expect(args.onSubmit).not.toHaveBeenCalled();
+    await expect(errorMessage).toBeInTheDocument();
+    await expect(args.onSubmit).not.toHaveBeenCalled();
   },
 );
 
@@ -406,13 +406,15 @@ FormInteractions.test(
   async ({ canvas, userEvent, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: /log in/i }));
 
-    expect(
-      await canvas.findByText(/invalid email address/i),
-    ).toBeInTheDocument();
-    expect(
-      await canvas.findByText(/password must be at least 8 characters/i),
-    ).toBeInTheDocument();
-    expect(args.onSubmit).not.toHaveBeenCalled();
+    const emailError = await canvas.findByText(/invalid email address/i);
+    await expect(emailError).toBeInTheDocument();
+
+    const passwordError = await canvas.findByText(
+      /password must be at least 8 characters/i,
+    );
+    await expect(passwordError).toBeInTheDocument();
+
+    await expect(args.onSubmit).not.toHaveBeenCalled();
   },
 );
 ```
@@ -539,10 +541,10 @@ export const DialogInteractions = meta.story({
 DialogInteractions.test(
   "Calls onConfirm when confirm button clicked",
   async ({ canvas, userEvent, args, step }) => {
-    await step("Verify dialog is visible", () => {
+    await step("Verify dialog is visible", async () => {
       const dialog = canvas.getByRole("dialog");
-      expect(dialog).toBeInTheDocument();
-      expect(canvas.getByText("Confirm Action")).toBeInTheDocument();
+      await expect(dialog).toBeInTheDocument();
+      await expect(canvas.getByText("Confirm Action")).toBeInTheDocument();
     });
 
     await step("Click confirm button", async () => {
@@ -550,9 +552,9 @@ DialogInteractions.test(
       await userEvent.click(confirmButton);
     });
 
-    await step("Verify callbacks", () => {
-      expect(args.onConfirm).toHaveBeenCalledTimes(1);
-      expect(args.onCancel).not.toHaveBeenCalled();
+    await step("Verify callbacks", async () => {
+      await expect(args.onConfirm).toHaveBeenCalledTimes(1);
+      await expect(args.onCancel).not.toHaveBeenCalled();
     });
   },
 );
@@ -563,8 +565,8 @@ DialogInteractions.test(
     const cancelButton = canvas.getByRole("button", { name: /cancel/i });
     await userEvent.click(cancelButton);
 
-    expect(args.onCancel).toHaveBeenCalledTimes(1);
-    expect(args.onConfirm).not.toHaveBeenCalled();
+    await expect(args.onCancel).toHaveBeenCalledTimes(1);
+    await expect(args.onConfirm).not.toHaveBeenCalled();
   },
 );
 
@@ -574,16 +576,16 @@ DialogInteractions.test(
     // Tab to first button (Cancel)
     await userEvent.tab();
     const cancelButton = canvas.getByRole("button", { name: /cancel/i });
-    expect(cancelButton).toHaveFocus();
+    await expect(cancelButton).toHaveFocus();
 
     // Tab to second button (Confirm)
     await userEvent.tab();
     const confirmButton = canvas.getByRole("button", { name: /confirm/i });
-    expect(confirmButton).toHaveFocus();
+    await expect(confirmButton).toHaveFocus();
 
     // Press Enter on confirm
     await userEvent.keyboard("{Enter}");
-    expect(args.onConfirm).toHaveBeenCalled();
+    await expect(args.onConfirm).toHaveBeenCalled();
   },
 );
 ```
@@ -642,10 +644,10 @@ SelectOption.test("Selects and triggers onChange", async ({ canvas, userEvent, a
   await userEvent.selectOptions(select, "option2");
 
   // Verify onChange was called
-  expect(args.onChange).toHaveBeenCalledWith("option2");
+  await expect(args.onChange).toHaveBeenCalledWith("option2");
 
   // Verify selected value
-  expect(select).toHaveValue("option2");
+  await expect(select).toHaveValue("option2");
 });
 ```
 
@@ -690,7 +692,7 @@ canvas.getByRole("button", { name: /submit/i });
 canvas.getByLabelText(/email/i);
 
 // Verify ARIA attributes
-expect(button).toHaveAttribute("aria-busy", "true");
+await expect(button).toHaveAttribute("aria-busy", "true");
 ```
 
 ### 4. Wait for Async Updates
