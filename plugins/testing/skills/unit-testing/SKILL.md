@@ -23,6 +23,7 @@ Write comprehensive unit tests using Vitest for TypeScript projects. Covers util
 
 > **Reference Files:**
 >
+> - [mocking.md](./mocking.md) - **NEW:** Comprehensive mocking guide (vi.fn, vi.mock, vi.spyOn, patterns)
 > - [examples.md](./examples.md) - Practical code examples for common scenarios
 > - [patterns.md](./patterns.md) - Best practices, anti-patterns, and guidelines
 
@@ -31,13 +32,37 @@ Write comprehensive unit tests using Vitest for TypeScript projects. Covers util
 This skill uses **Vitest** as the test runner for unit tests. Vitest provides:
 
 - Native TypeScript and ESM support
-- Jest-compatible API (`describe`, `it`, `expect`)
+- Jest-compatible API (`describe`, `test`, `expect`)
 - Built-in mocking (`vi.mock`, `vi.fn`, `vi.spyOn`)
 - Watch mode with instant feedback
 - Coverage reporting via `@vitest/coverage-v8`
-- Parameterized tests with `it.each`
+- Parameterized tests with `test.each`
 
 Unit tests target **isolated logic** - functions, utilities, schemas, server actions (with mocked dependencies), and hooks. They do NOT render full components in a browser (use Storybook testing for that).
+
+## Global Test Utilities
+
+This project has **global test utilities enabled**, so you don't need to import them:
+
+```typescript
+// ❌ NOT NEEDED - Don't import these
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+
+// ✅ AUTOMATIC - Just use them directly
+describe("myFunction", () => {
+  test("does something", () => {
+    expect(result).toBe(expected);
+  });
+});
+```
+
+**Available globally:**
+
+- `describe`, `test` (same as `it`), `expect`
+- `beforeEach`, `afterEach`, `beforeAll`, `afterAll`
+- `vi` (mock utilities)
+
+**Setup:** This is configured in `vitest.config.ts` with `globals: true` and `tsconfig.json` with `"types": ["vitest/globals"]`.
 
 ## Workflow
 
@@ -64,19 +89,19 @@ import { describe, it, expect } from "vitest";
 import { formatCurrency } from "./format-currency";
 
 describe("formatCurrency", () => {
-  it("formats USD by default", () => {
+  test("formats USD by default", () => {
     expect(formatCurrency(1234.56)).toBe("$1,234.56");
   });
 
-  it("formats with specified currency", () => {
+  test("formats with specified currency", () => {
     expect(formatCurrency(1000, "EUR")).toBe("\u20AC1,000.00");
   });
 
-  it("handles zero", () => {
+  test("handles zero", () => {
     expect(formatCurrency(0)).toBe("$0.00");
   });
 
-  it("handles negative amounts", () => {
+  test("handles negative amounts", () => {
     expect(formatCurrency(-50)).toBe("-$50.00");
   });
 });
@@ -108,8 +133,6 @@ src/
 ### Test File Structure
 
 ```typescript
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
 // Import the module under test
 import { myFunction } from "./my-module";
 
@@ -126,7 +149,7 @@ describe("myFunction", () => {
   });
 
   describe("happy path", () => {
-    it("returns expected result for valid input", () => {
+    test("returns expected result for valid input", () => {
       // Arrange
       const input = { name: "Test" };
 
@@ -139,7 +162,7 @@ describe("myFunction", () => {
   });
 
   describe("error handling", () => {
-    it("throws on invalid input", () => {
+    test("throws on invalid input", () => {
       expect(() => myFunction(null)).toThrow("Input is required");
     });
   });
@@ -148,19 +171,19 @@ describe("myFunction", () => {
 
 ## Key Patterns
 
-### describe / it / expect
+### describe / test / expect
 
 ```typescript
 describe("ModuleName", () => {
   describe("functionName", () => {
-    it("does something specific", () => {
+    test("does something specific", () => {
       expect(result).toBe(expected);
     });
   });
 });
 ```
 
-Use nested `describe` blocks to group related tests. Use `it` (or `test`) for individual cases.
+Use nested `describe` blocks to group related tests. Use `test` for individual test cases.
 
 ### beforeEach / afterEach
 
@@ -177,7 +200,7 @@ describe("UserService", () => {
     vi.restoreAllMocks();
   });
 
-  it("creates a user", () => {
+  test("creates a user", () => {
     // service is fresh for each test
   });
 });
@@ -193,8 +216,6 @@ describe("UserService", () => {
 Mock entire modules at the top of the test file:
 
 ```typescript
-import { vi } from "vitest";
-
 // Mock a module — factory function returns the mock shape
 vi.mock("~/lib/database", () => ({
   db: {
@@ -206,6 +227,8 @@ vi.mock("~/lib/database", () => ({
 // Access the mocked module in tests
 import { db } from "~/lib/database";
 ```
+
+> **See [mocking.md](./mocking.md) for comprehensive mocking guide with vi.mock, vi.fn, vi.spyOn, and best practices.**
 
 ### Mocking with vi.fn
 
@@ -242,17 +265,17 @@ spy.mockRestore(); // restore original
 ### Async Testing
 
 ```typescript
-it("fetches user data", async () => {
+test("fetches user data", async () => {
   const user = await fetchUser("123");
 
   expect(user).toEqual({ id: "123", name: "Alice" });
 });
 
-it("rejects with error for missing user", async () => {
+test("rejects with error for missing user", async () => {
   await expect(fetchUser("unknown")).rejects.toThrow("User not found");
 });
 
-it("resolves with the created record", async () => {
+test("resolves with the created record", async () => {
   await expect(createRecord({ name: "Test" })).resolves.toMatchObject({
     id: expect.any(String),
     name: "Test",
@@ -260,10 +283,10 @@ it("resolves with the created record", async () => {
 });
 ```
 
-### Parameterized Tests with it.each
+### Parameterized Tests with test.each
 
 ```typescript
-it.each([
+test.each([
   { input: 0, expected: "zero" },
   { input: 1, expected: "one" },
   { input: 2, expected: "two" },
@@ -273,7 +296,7 @@ it.each([
 });
 
 // Table syntax
-it.each`
+test.each`
   amount  | currency | expected
   ${1000} | ${"USD"} | ${"$1,000.00"}
   ${1000} | ${"EUR"} | ${"\u20AC1,000.00"}
@@ -291,8 +314,6 @@ it.each`
 ### Server Actions with Mocked Database
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 // Mock the database module
 vi.mock("~/lib/database", () => ({
   db: {
@@ -315,7 +336,7 @@ describe("createBudget", () => {
     vi.clearAllMocks();
   });
 
-  it("creates a budget for authenticated user", async () => {
+  test("creates a budget for authenticated user", async () => {
     // Arrange
     vi.mocked(getCurrentUser).mockResolvedValue({ id: "user-1", role: "user" });
     vi.mocked(db.insert).mockResolvedValue({
@@ -340,7 +361,7 @@ describe("createBudget", () => {
     );
   });
 
-  it("returns error when user is not authenticated", async () => {
+  test("returns error when user is not authenticated", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
 
     const result = await createBudget({ name: "Groceries", limit: 500 });
@@ -369,28 +390,26 @@ vi.mock("~/lib/drizzle", () => ({
 Pure functions are the easiest to test - no mocking needed:
 
 ```typescript
-import { describe, it, expect } from "vitest";
-
 import { slugify } from "./slugify";
 
 describe("slugify", () => {
-  it("converts spaces to hyphens", () => {
+  test("converts spaces to hyphens", () => {
     expect(slugify("hello world")).toBe("hello-world");
   });
 
-  it("lowercases all characters", () => {
+  test("lowercases all characters", () => {
     expect(slugify("Hello World")).toBe("hello-world");
   });
 
-  it("removes special characters", () => {
+  test("removes special characters", () => {
     expect(slugify("hello@world!")).toBe("helloworld");
   });
 
-  it("trims leading and trailing whitespace", () => {
+  test("trims leading and trailing whitespace", () => {
     expect(slugify("  hello  ")).toBe("hello");
   });
 
-  it("handles empty string", () => {
+  test("handles empty string", () => {
     expect(slugify("")).toBe("");
   });
 });
@@ -408,6 +427,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
+    globals: true, // Enable global test utilities (no imports needed)
     environment: "node", // or "jsdom" for React hooks
     include: ["src/**/*.test.{ts,tsx}"],
     exclude: ["node_modules", ".next", "tests/e2e"],
@@ -425,6 +445,18 @@ export default defineConfig({
   },
 });
 ```
+
+**TypeScript Configuration** (`tsconfig.json`):
+
+```json
+{
+  "compilerOptions": {
+    "types": ["vitest/globals"]
+  }
+}
+```
+
+This enables TypeScript to recognize global test utilities without imports.
 
 ## Running Tests
 
@@ -447,6 +479,161 @@ npm run test:unit -- --coverage
 # Run with verbose output
 npm run test:unit -- --reporter=verbose
 ```
+
+## 🎭 Mocking in Vitest
+
+> **See [mocking.md](./mocking.md) for comprehensive mocking documentation.**
+
+Vitest provides powerful mocking capabilities for isolating code under test.
+
+### Quick Mocking Reference
+
+**1. Mock Functions** - Use `vi.fn()` for standalone mocks:
+
+```typescript
+const mockCallback = vi.fn();
+
+test("tracks calls", () => {
+  mockCallback("hello", 123);
+
+  expect(mockCallback).toHaveBeenCalledWith("hello", 123);
+  expect(mockCallback).toHaveBeenCalledTimes(1);
+});
+```
+
+**2. Mock Modules** - Use `vi.mock()` to replace entire modules:
+
+```typescript
+vi.mock("~/lib/database", () => ({
+  db: {
+    query: vi.fn().mockResolvedValue([{ id: 1 }]),
+    insert: vi.fn().mockResolvedValue({ id: "new-id" }),
+  },
+}));
+
+import { db } from "~/lib/database";
+
+test("uses mocked database", async () => {
+  const result = await db.query("SELECT * FROM users");
+
+  expect(db.query).toHaveBeenCalled();
+  expect(result).toEqual([{ id: 1 }]);
+});
+```
+
+**3. Spy on Methods** - Use `vi.spyOn()` for existing methods:
+
+```typescript
+import * as utils from "./utils";
+
+test("spies on method", () => {
+  const spy = vi.spyOn(utils, "calculateTax");
+
+  utils.calculateTax(100, 0.2);
+
+  expect(spy).toHaveBeenCalledWith(100, 0.2);
+  spy.mockRestore();
+});
+```
+
+**4. Hoisted Mocks** - Use `vi.hoisted()` for shared state:
+
+```typescript
+const mocks = vi.hoisted(() => ({
+  getUser: vi.fn(),
+}));
+
+vi.mock("~/lib/users", () => ({
+  getUser: mocks.getUser,
+}));
+
+test("configures hoisted mock", async () => {
+  mocks.getUser.mockResolvedValue({ id: "123", name: "John" });
+
+  const user = await getUser("123");
+
+  expect(user.name).toBe("John");
+});
+```
+
+**5. Async Mocking** - Mock promises and async functions:
+
+```typescript
+const mockFetch = vi.fn();
+
+test("mocks async success", async () => {
+  mockFetch.mockResolvedValue({ data: "success" });
+
+  const result = await mockFetch();
+
+  expect(result).toEqual({ data: "success" });
+});
+
+test("mocks async error", async () => {
+  mockFetch.mockRejectedValue(new Error("Failed"));
+
+  await expect(mockFetch()).rejects.toThrow("Failed");
+});
+```
+
+**6. Partial Module Mocking** - Keep original exports:
+
+```typescript
+vi.mock(import("./utils"), async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual, // Keep all original exports
+    formatDate: vi.fn().mockReturnValue("2024-01-01"), // Mock this one
+  };
+});
+```
+
+### Common Mocking Patterns
+
+**Database Mocking:**
+
+```typescript
+vi.mock("~/lib/database", () => ({
+  db: {
+    users: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+}));
+```
+
+**Authentication Mocking:**
+
+```typescript
+vi.mock("~/lib/auth", () => ({
+  getCurrentUser: vi.fn(),
+  verifySession: vi.fn(),
+}));
+```
+
+**Third-Party Libraries:**
+
+```typescript
+vi.mock("uuid", () => ({
+  v4: vi.fn(() => "fixed-uuid-for-testing"),
+}));
+```
+
+### Best Practices
+
+1. ✅ **Clear mocks between tests** - Use `beforeEach(() => vi.clearAllMocks())`
+2. ✅ **Use `vi.mocked()` for type safety** - `vi.mocked(fn).mockResolvedValue(...)`
+3. ✅ **Mock at module boundaries** - Mock external dependencies, not internal utilities
+4. ✅ **Use `vi.hoisted()` for shared mocks** - Access variables in factory functions
+5. ✅ **Restore mocks in `afterEach`** - Use `vi.restoreAllMocks()`
+6. ✅ **Test both success and error paths** - Mock different scenarios
+
+> **See [mocking.md](./mocking.md) for complete examples, patterns, and advanced techniques.**
 
 ## Questions to Ask
 
