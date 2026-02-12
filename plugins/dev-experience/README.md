@@ -71,12 +71,12 @@ bash plugins/dev-experience/install.sh --target ~/Projects/my-app --all
 
 ### Install Options
 
-| Flag             | Description                                          |
-| ---------------- | ---------------------------------------------------- |
-| `--all`          | Install everything (default when no flags given)     |
-| `--statusline`   | Install statusline only                              |
-| `--hooks`        | Install safety hooks only                            |
-| `--target <path>`| Target project directory (default: current directory) |
+| Flag              | Description                                           |
+| ----------------- | ----------------------------------------------------- |
+| `--all`           | Install everything (default when no flags given)      |
+| `--statusline`    | Install statusline only                               |
+| `--hooks`         | Install safety hooks only                             |
+| `--target <path>` | Target project directory (default: current directory) |
 
 ### Manual
 

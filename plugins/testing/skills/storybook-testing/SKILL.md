@@ -32,8 +32,8 @@ components.
 
 > **Reference Files:**
 >
-> - [test-method-optimization.md](./test-method-optimization.md) - **NEW:** `.test()` method guide and optimization
->   patterns
+> - [mocking.md](./mocking.md) - **NEW:** Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
+> - [test-method-optimization.md](./test-method-optimization.md) - `.test()` method guide and optimization patterns
 > - [patterns.md](./patterns.md) - Testing patterns and examples
 > - [best-practices.md](./best-practices.md) - Best practices and common pitfalls
 > - [examples.md](./examples.md) - Practical code examples
@@ -326,9 +326,104 @@ npm run test:storybook  # Run component tests
 npm run storybook:dev   # View in Storybook UI
 ```
 
+## Mocking in Storybook
+
+Storybook provides powerful mocking capabilities for isolated component testing. See [mocking.md](./mocking.md) for comprehensive guide.
+
+### Quick Mocking Reference
+
+**1. Mock Callback Functions** - Use `fn()` from `storybook/test`:
+
+```typescript
+import { fn } from "storybook/test";
+
+const meta = preview.meta({
+  component: Button,
+  args: {
+    onClick: fn(), // Mock and spy on clicks
+  },
+});
+```
+
+**2. Mock External Modules** - Use `sb.mock()` in `.storybook/preview.ts`:
+
+```typescript
+import { sb } from "storybook/test";
+
+sb.mock(import("uuid"));
+sb.mock(import("~/lib/session"));
+```
+
+**3. Mock API Requests** - Use MSW (Mock Service Worker):
+
+```typescript
+import { http, HttpResponse } from "msw";
+
+export const Story = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/users", () => HttpResponse.json([...])),
+      ],
+    },
+  },
+});
+```
+
+**4. Mock Next.js Hooks** - Use `@storybook/nextjs/navigation.mock`:
+
+```typescript
+import { getRouter } from "@storybook/nextjs/navigation.mock";
+
+// Mock route params, search params, navigation
+parameters: {
+  nextjs: {
+    appDirectory: true,
+    navigation: {
+      segments: [["id", "123"]],
+      query: { search: "test" },
+    },
+  },
+}
+```
+
+**5. Mock React Context** - Use decorators:
+
+```typescript
+decorators: [
+  (Story) => (
+    <AuthContext.Provider value={{ user: mockUser }}>
+      <Story />
+    </AuthContext.Provider>
+  ),
+];
+```
+
+> **See [mocking.md](./mocking.md) for complete examples, patterns, and best practices.**
+
 ## Questions to Ask
+
+Before writing tests, consider:
+
+### Interactions & Behavior
 
 - What user interactions should be tested?
 - Are there specific edge cases to cover?
 - What validation rules should be tested?
-- Are there server actions that need mocking?
+- What keyboard navigation should work?
+
+### Mocking Requirements
+
+- **Functions:** Do callbacks need to be mocked with `fn()`?
+- **Modules:** Are there external dependencies (uuid, analytics) to mock with `sb.mock()`?
+- **APIs:** Does the component fetch data that needs MSW mocking?
+- **Next.js:** Does it use `useRouter`, `useParams`, or `useSearchParams`?
+- **Context:** Does it consume React Context that needs mocking?
+- **Data:** Should I use test builders or inline mock data?
+
+### Test Coverage
+
+- What are the critical user paths?
+- What error states should be tested?
+- Are there loading states to verify?
+- What accessibility requirements must be met?

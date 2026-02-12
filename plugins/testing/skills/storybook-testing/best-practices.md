@@ -368,6 +368,273 @@ args: {
 }
 ```
 
+## 🎭 Mocking Best Practices
+
+> **See [mocking.md](./mocking.md) for comprehensive mocking documentation.**
+
+### 1. Always Use `fn()` for Callback Props ✅
+
+```typescript
+import { fn } from "storybook/test";
+
+// ❌ BAD - Can't spy on function calls
+const meta = preview.meta({
+  component: Button,
+  args: {
+    onClick: () => console.log("clicked"),
+  },
+});
+
+// ✅ GOOD - Mockable and spyable
+const meta = preview.meta({
+  component: Button,
+  args: {
+    onClick: fn(),
+  },
+});
+```
+
+### 2. Destructure `userEvent` from Parameters ✅
+
+```typescript
+// ❌ BAD - Importing breaks Storybook timing
+import { userEvent } from "storybook/test";
+
+Story.test("Test", async ({ canvas }) => {
+  await userEvent.click(button);
+});
+
+// ✅ GOOD - Get from parameters
+Story.test("Test", async ({ canvas, userEvent }) => {
+  await userEvent.click(button);
+});
+```
+
+**Why:** The `userEvent` from parameters is properly integrated with Storybook's timing and rendering system.
+
+### 3. Use MSW for Network Requests, Not `fn()` ✅
+
+```typescript
+import { http, HttpResponse } from "msw";
+
+// ❌ BAD - fn() doesn't intercept real fetch/axios
+const meta = preview.meta({
+  args: {
+    fetchUsers: fn().mockResolvedValue([...]),
+  },
+});
+
+// ✅ GOOD - MSW intercepts network requests
+export const Story = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/users", () => HttpResponse.json([...])),
+      ],
+    },
+  },
+});
+```
+
+**When to use each:**
+
+- **`fn()`:** Mock callback props passed to your component
+- **MSW:** Mock actual HTTP requests made by your component
+
+### 4. Mock Modules in `.storybook/preview.ts`, Not Story Files ✅
+
+```typescript
+// ❌ BAD - Don't mock in story files
+// component.stories.tsx
+import { sb } from "storybook/test";
+sb.mock(import("~/lib/session")); // Won't work here!
+
+// ✅ GOOD - Mock in preview.ts
+// .storybook/preview.ts
+import { sb } from "storybook/test";
+
+sb.mock(import("~/lib/session"));
+sb.mock(import("uuid"));
+
+export default definePreview({
+  /* ... */
+});
+```
+
+**Why:** Mocks must be registered globally before any stories load.
+
+### 5. Use `beforeEach` for Mock Configuration ✅
+
+```typescript
+import { mocked } from "storybook/test";
+import { getCurrentUser } from "~/lib/session";
+
+// ✅ GOOD - Configure mocks in beforeEach
+const meta = preview.meta({
+  component: Dashboard,
+  beforeEach: async () => {
+    mocked(getCurrentUser).mockResolvedValue({ id: "123", name: "John" });
+  },
+});
+
+// Override for specific story
+export const AdminUser = meta.story({
+  beforeEach: async () => {
+    mocked(getCurrentUser).mockResolvedValue({ id: "456", role: "admin" });
+  },
+});
+```
+
+**Benefits:**
+
+- Clean separation between mock setup and tests
+- Easy to override per story
+- Runs before each story render
+
+### 6. Use Specific MSW Handlers Per Story ✅
+
+```typescript
+// ✅ GOOD - Each story controls its own responses
+export const LoadedData = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/data", () => HttpResponse.json({ data: [...] })),
+      ],
+    },
+  },
+});
+
+export const LoadingState = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/data", async () => {
+          await delay("infinite");
+          return HttpResponse.json([]);
+        }),
+      ],
+    },
+  },
+});
+
+export const ErrorState = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/data", () => new HttpResponse(null, { status: 500 })),
+      ],
+    },
+  },
+});
+```
+
+### 7. Mock Context with Decorators ✅
+
+```typescript
+// ✅ GOOD - Use decorators for context
+export const AuthenticatedUser = meta.story({
+  decorators: [
+    (Story) => (
+      <AuthContext.Provider value={{ user: mockUser }}>
+        <Story />
+      </AuthContext.Provider>
+    ),
+  ],
+});
+
+// ❌ BAD - Trying to mock context via props
+args: {
+  authContext: mockUser // This won't work
+}
+```
+
+### 8. Test One Behavior Per `.test()` ✅
+
+```typescript
+// ❌ BAD - Testing multiple behaviors
+Story.test("Everything", async ({ canvas, userEvent, args }) => {
+  // Test 1: Rendering
+  await expect(canvas.getByText("Title")).toBeVisible();
+
+  // Test 2: Interaction
+  await userEvent.click(button);
+  await expect(args.onClick).toHaveBeenCalled();
+
+  // Test 3: Validation
+  await expect(canvas.getByText("Error")).toBeVisible();
+});
+
+// ✅ GOOD - Separate tests
+Story.test("Renders title", async ({ canvas }) => {
+  await expect(canvas.getByText("Title")).toBeVisible();
+});
+
+Story.test(
+  "Clicking triggers callback",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(button);
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
+
+Story.test("Shows validation error", async ({ canvas }) => {
+  await expect(canvas.getByText("Error")).toBeVisible();
+});
+```
+
+### 9. Prefer Builders Over Inline Mock Data ✅
+
+```typescript
+// ❌ BAD - Duplicated inline data
+export const Story1 = meta.story({
+  args: {
+    user: { id: "123", name: "John Doe", email: "john@example.com" },
+  },
+});
+
+export const Story2 = meta.story({
+  args: {
+    user: { id: "456", name: "Jane Smith", email: "jane@example.com" },
+  },
+});
+
+// ✅ GOOD - Reusable builder
+import { userBuilder } from "~/features/users/test/builders";
+
+export const Story1 = meta.story({
+  args: {
+    user: userBuilder.one(),
+  },
+});
+
+export const Story2 = meta.story({
+  args: {
+    user: userBuilder.one({ name: "Jane Smith" }),
+  },
+});
+```
+
+**Invoke `/builder-factory` skill if builder doesn't exist.**
+
+### 10. Reset Mocks Between Stories ✅
+
+```typescript
+// ✅ GOOD - beforeEach resets for each story
+const meta = preview.meta({
+  component: Form,
+  beforeEach: async ({ args }) => {
+    // Each story gets fresh mocks
+    args.onSubmit.mockReset();
+    args.onSubmit.mockResolvedValue({ success: true });
+  },
+});
+```
+
+**Why:** Prevents test pollution and ensures isolation.
+
+---
+
 ## Story Categories Checklist
 
 For each component, consider:

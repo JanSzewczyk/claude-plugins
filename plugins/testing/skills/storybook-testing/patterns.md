@@ -447,3 +447,318 @@ export const CompleteSignUpFlow = meta.story({
 
 > **Note:** Use `play` function with `step()` for complete user journeys that should be viewed as ONE cohesive flow. For
 > individual test scenarios, use `.test()` method.
+
+## Pattern 12: Mocking API Requests (MSW)
+
+✅ **Use MSW to mock network requests per story:**
+
+```typescript
+import { http, HttpResponse, delay } from "msw";
+
+// Success state
+export const LoadedUsers = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/users", () => {
+          return HttpResponse.json([
+            { id: 1, name: "John Doe" },
+            { id: 2, name: "Jane Smith" },
+          ]);
+        }),
+      ],
+    },
+  },
+});
+
+LoadedUsers.test("Displays list of users", async ({ canvas }) => {
+  const john = await canvas.findByText("John Doe");
+  await expect(john).toBeVisible();
+});
+
+// Error state
+export const ErrorState = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/users", async () => {
+          await delay(500);
+          return new HttpResponse(null, { status: 500 });
+        }),
+      ],
+    },
+  },
+});
+
+ErrorState.test("Shows error message", async ({ canvas }) => {
+  const error = await canvas.findByText(/failed to load/i);
+  await expect(error).toBeVisible();
+});
+
+// Loading state
+export const LoadingState = meta.story({
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/users", async () => {
+          await delay("infinite");
+          return HttpResponse.json([]);
+        }),
+      ],
+    },
+  },
+});
+
+LoadingState.test("Shows loading indicator", async ({ canvas }) => {
+  const spinner = canvas.getByRole("status");
+  await expect(spinner).toBeVisible();
+});
+```
+
+> **See [mocking.md](./mocking.md) for complete MSW documentation including GraphQL mocking.**
+
+## Pattern 13: Mocking External Modules
+
+✅ **Mock external dependencies with `sb.mock()` and configure with `beforeEach`:**
+
+```typescript
+import { expect, mocked } from "storybook/test";
+
+import preview from "~/.storybook/preview";
+
+// These modules are mocked via sb.mock() in .storybook/preview.ts
+import { v4 as uuidv4 } from "uuid";
+import { getCurrentUser } from "~/lib/session";
+
+import { UserProfile } from "./user-profile";
+
+const meta = preview.meta({
+  component: UserProfile,
+  // Configure mocks before each story
+  beforeEach: async () => {
+    mocked(uuidv4).mockReturnValue("fixed-uuid-123");
+    mocked(getCurrentUser).mockResolvedValue({
+      id: "user-123",
+      name: "John Doe",
+      email: "john@example.com",
+    });
+  },
+});
+
+export const LoggedInUser = meta.story({});
+
+LoggedInUser.test("Displays current user info", async ({ canvas }) => {
+  const userName = await canvas.findByText("John Doe");
+  await expect(userName).toBeVisible();
+
+  const userEmail = await canvas.findByText("john@example.com");
+  await expect(userEmail).toBeVisible();
+});
+
+LoggedInUser.test("Uses UUID for tracking", async () => {
+  await expect(uuidv4).toHaveBeenCalled();
+});
+
+// Override mock for specific story
+export const GuestUser = meta.story({
+  beforeEach: async () => {
+    mocked(getCurrentUser).mockResolvedValue(null);
+  },
+});
+
+GuestUser.test("Shows guest message", async ({ canvas }) => {
+  const guestMessage = await canvas.findByText(/welcome guest/i);
+  await expect(guestMessage).toBeVisible();
+});
+```
+
+> **See [mocking.md](./mocking.md) for module mocking setup in `.storybook/preview.ts`.**
+
+## Pattern 14: Mocking Callback Props
+
+✅ **Use `fn()` to mock and spy on callbacks:**
+
+```typescript
+import { expect, fn } from "storybook/test";
+
+import preview from "~/.storybook/preview";
+
+import { SearchForm } from "./search-form";
+
+const meta = preview.meta({
+  component: SearchForm,
+  args: {
+    onSearch: fn(),
+    onClear: fn(),
+  },
+});
+
+export const SearchForm = meta.story({});
+
+SearchForm.test(
+  "Calls onSearch with query value",
+  async ({ canvas, userEvent, args }) => {
+    const searchInput = canvas.getByRole("textbox");
+    await userEvent.type(searchInput, "storybook");
+
+    const searchButton = canvas.getByRole("button", { name: /search/i });
+    await userEvent.click(searchButton);
+
+    await expect(args.onSearch).toHaveBeenCalledWith("storybook");
+    await expect(args.onSearch).toHaveBeenCalledTimes(1);
+  },
+);
+
+SearchForm.test(
+  "Calls onClear when clear button clicked",
+  async ({ canvas, userEvent, args }) => {
+    const clearButton = canvas.getByRole("button", { name: /clear/i });
+    await userEvent.click(clearButton);
+
+    await expect(args.onClear).toHaveBeenCalled();
+    await expect(args.onSearch).not.toHaveBeenCalled();
+  },
+);
+```
+
+## Pattern 15: Mocking React Context
+
+✅ **Use decorators to provide mock context values:**
+
+```typescript
+import { createContext } from "react";
+
+import preview from "~/.storybook/preview";
+
+import { Dashboard } from "./dashboard";
+
+const AuthContext = createContext<{ user: User | null }>({ user: null });
+
+const meta = preview.meta({
+  component: Dashboard,
+});
+
+// Authenticated user story
+export const AuthenticatedUser = meta.story({
+  decorators: [
+    (Story) => (
+      <AuthContext.Provider
+        value={{
+          user: {
+            id: "user-123",
+            name: "John Doe",
+            role: "admin",
+          },
+        }}
+      >
+        <Story />
+      </AuthContext.Provider>
+    ),
+  ],
+});
+
+AuthenticatedUser.test("Shows user dashboard", async ({ canvas }) => {
+  const welcome = await canvas.findByText(/welcome, john doe/i);
+  await expect(welcome).toBeVisible();
+
+  const adminPanel = canvas.getByRole("link", { name: /admin panel/i });
+  await expect(adminPanel).toBeVisible();
+});
+
+// Unauthenticated user story
+export const UnauthenticatedUser = meta.story({
+  decorators: [
+    (Story) => (
+      <AuthContext.Provider value={{ user: null }}>
+        <Story />
+      </AuthContext.Provider>
+    ),
+  ],
+});
+
+UnauthenticatedUser.test("Shows login prompt", async ({ canvas }) => {
+  const loginButton = canvas.getByRole("button", { name: /sign in/i });
+  await expect(loginButton).toBeVisible();
+});
+```
+
+## Pattern 16: Mocking Next.js Hooks
+
+✅ **Mock Next.js navigation hooks in parameters:**
+
+```typescript
+import { expect } from "storybook/test";
+import { redirect, getRouter } from "@storybook/nextjs/navigation.mock";
+
+import preview from "~/.storybook/preview";
+
+import { ProductPage } from "./product-page";
+
+const meta = preview.meta({
+  component: ProductPage,
+  parameters: {
+    nextjs: {
+      appDirectory: true,
+      navigation: {
+        // Mock useParams()
+        segments: [
+          ["category", "electronics"],
+          ["id", "prod-123"],
+        ],
+        // Mock useSearchParams()
+        query: {
+          sort: "price",
+          filter: "inStock",
+        },
+      },
+    },
+  },
+});
+
+export const ProductPage = meta.story({});
+
+ProductPage.test("Displays product from params", async ({ canvas }) => {
+  // Component uses useParams(): { category: "electronics", id: "prod-123" }
+  const productTitle = await canvas.findByText(/product prod-123/i);
+  await expect(productTitle).toBeVisible();
+});
+
+ProductPage.test("Applies filters from search params", async ({ canvas }) => {
+  // Component uses useSearchParams(): { sort: "price", filter: "inStock" }
+  const sortLabel = canvas.getByText(/sorted by price/i);
+  await expect(sortLabel).toBeVisible();
+});
+
+ProductPage.test("Back button navigates", async ({ canvas, userEvent }) => {
+  const backButton = canvas.getByRole("button", { name: /back/i });
+  await userEvent.click(backButton);
+
+  await expect(getRouter().back).toHaveBeenCalled();
+});
+```
+
+> **See [mocking.md](./mocking.md) for complete Next.js mocking documentation.**
+
+---
+
+## Summary: When to Use Each Pattern
+
+| Pattern                   | Use Case                 | Method                        |
+| ------------------------- | ------------------------ | ----------------------------- |
+| **Initial State**         | Test default rendering   | `.test()` per check           |
+| **Prefilled Values**      | Test with preset data    | Separate story + `.test()`    |
+| **Validation**            | Form validation rules    | `.test()` per rule            |
+| **User Interactions**     | Clicks, typing, changes  | `.test()` per interaction     |
+| **Async Actions**         | Loading, success, errors | Separate stories + `.test()`  |
+| **Conditional Rendering** | Show/hide based on state | Separate stories + `.test()`  |
+| **Accessibility**         | Keyboard, ARIA, focus    | `.test()` per a11y check      |
+| **Error States**          | Error handling           | Separate story + `.test()`    |
+| **Keyboard Nav**          | Tab, Enter, Escape       | `.test()` per key combo       |
+| **Complete Flow**         | Multi-step journey       | `play` function with `step()` |
+| **API Mocking**           | Network requests         | MSW in `parameters`           |
+| **Module Mocking**        | External dependencies    | `sb.mock()` + `beforeEach`    |
+| **Callback Mocking**      | Event handlers           | `fn()` in args                |
+| **Context Mocking**       | React Context            | Decorators                    |
+| **Next.js Mocking**       | Routing, params          | `nextjs` parameters           |
+
+**Golden Rule:** Use `.test()` for individual test cases. Use `play` for complete user journeys.
