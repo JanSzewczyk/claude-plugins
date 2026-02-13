@@ -1,22 +1,22 @@
 # Builder Examples
 
-Complete examples of test-data-bot builders for various use cases.
+Complete examples of mimicry-js builders for various use cases.
 
 > **Note:** Check `.claude/project-context.md` for your specific Faker locale and project types.
 
 ## Complete Builder with Traits
 
 ```typescript
-import { build, sequence, perBuild } from "@jackfranklin/test-data-bot";
+import { build, sequence, oneOf } from "mimicry-js";
 import { faker } from "@faker-js/faker"; // Check project-context.md for locale
 import type { User } from "~/types/user";
 
 export const userBuilder = build<User>({
   fields: {
     id: sequence(),
-    email: perBuild(() => faker.internet.email()),
-    firstName: perBuild(() => faker.person.firstName()),
-    lastName: perBuild(() => faker.person.lastName()),
+    email: () => faker.internet.email(),
+    firstName: () => faker.person.firstName(),
+    lastName: () => faker.person.lastName(),
     role: "user",
     isActive: true,
   },
@@ -24,9 +24,7 @@ export const userBuilder = build<User>({
     admin: {
       overrides: {
         role: "admin",
-        email: perBuild(() =>
-          faker.internet.email({ provider: "company.com" }),
-        ),
+        email: () => faker.internet.email({ provider: "company.com" }),
       },
     },
     inactive: {
@@ -38,7 +36,7 @@ export const userBuilder = build<User>({
       overrides: {
         role: "guest",
         firstName: "Guest",
-        lastName: perBuild(() => faker.string.numeric(4)),
+        lastName: () => faker.string.numeric(4),
       },
     },
   },
@@ -46,15 +44,17 @@ export const userBuilder = build<User>({
 
 // Usage examples:
 // userBuilder.one()
-// userBuilder.one({ traits: ["admin"] })
+// userBuilder.one({ traits: "admin" })
 // userBuilder.one({ traits: ["admin", "inactive"] })
 // userBuilder.one({ overrides: { firstName: "Jan" } })
+// userBuilder.many(5)
+// userBuilder.many(3, { traits: "admin" })
 ```
 
 ## Builder with postBuild Hook
 
 ```typescript
-import { build, sequence, perBuild } from "@jackfranklin/test-data-bot";
+import { build, sequence, oneOf } from "mimicry-js";
 import { faker } from "@faker-js/faker"; // Check project-context.md for locale
 import type { Order } from "~/types/order";
 
@@ -62,15 +62,11 @@ export const orderBuilder = build<Order>({
   fields: {
     id: sequence(),
     userId: sequence(),
-    products: perBuild(() =>
-      Array.from({ length: 3 }, () => productBuilder.one()),
-    ),
+    products: () => productBuilder.many(3),
     totalAmount: 0,
-    status: perBuild(() =>
-      faker.helpers.arrayElement(["pending", "processing"]),
-    ),
-    createdAt: perBuild(() => faker.date.recent()),
-    shippingAddress: perBuild(() => addressBuilder.one()),
+    status: oneOf("pending", "processing"),
+    createdAt: () => faker.date.recent(),
+    shippingAddress: () => addressBuilder.one(),
   },
   postBuild: (order) => {
     order.totalAmount = order.products.reduce((sum, p) => sum + p.price, 0);
@@ -79,9 +75,7 @@ export const orderBuilder = build<Order>({
   traits: {
     bigOrder: {
       overrides: {
-        products: perBuild(() =>
-          Array.from({ length: 10 }, () => productBuilder.one()),
-        ),
+        products: () => productBuilder.many(10),
       },
     },
   },
@@ -91,12 +85,15 @@ export const orderBuilder = build<Order>({
 ## Nested Builders
 
 ```typescript
+import { build, sequence } from "mimicry-js";
+import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+
 // Address builder
 export const addressBuilder = build<Address>({
   fields: {
-    street: perBuild(() => faker.location.streetAddress()),
-    city: perBuild(() => faker.location.city()),
-    zipCode: perBuild(() => faker.location.zipCode()),
+    street: () => faker.location.streetAddress(),
+    city: () => faker.location.city(),
+    zipCode: () => faker.location.zipCode(),
     country: "USA", // Check project-context.md for your locale
   },
 });
@@ -105,8 +102,8 @@ export const addressBuilder = build<Address>({
 export const userBuilder = build<User>({
   fields: {
     id: sequence(),
-    name: perBuild(() => faker.person.fullName()),
-    address: perBuild(() => addressBuilder.one()),
+    name: () => faker.person.fullName(),
+    address: () => addressBuilder.one(),
   },
 });
 
@@ -123,7 +120,7 @@ const user = userBuilder.one({
 > **Note:** Check project-context.md for your specific database type patterns (Firestore, PostgreSQL, MongoDB, etc.)
 
 ```typescript
-import { build, sequence, perBuild } from "@jackfranklin/test-data-bot";
+import { build, sequence, oneOf } from "mimicry-js";
 import { faker } from "@faker-js/faker"; // Check project-context.md for locale
 import type {
   Resource,
@@ -133,9 +130,9 @@ import type {
 // Base type builder (for DTOs)
 export const resourceBaseBuilder = build<ResourceBase>({
   fields: {
-    name: perBuild(() => faker.commerce.productName()),
+    name: () => faker.commerce.productName(),
     status: "active",
-    category: perBuild(() => faker.commerce.department()),
+    category: () => faker.commerce.department(),
   },
   traits: {
     inactive: {
@@ -154,12 +151,12 @@ export const resourceBaseBuilder = build<ResourceBase>({
 // Application type builder (with id and timestamps)
 export const resourceBuilder = build<Resource>({
   fields: {
-    id: perBuild(() => faker.string.uuid()),
-    name: perBuild(() => faker.commerce.productName()),
+    id: () => faker.string.uuid(),
+    name: () => faker.commerce.productName(),
     status: "active",
-    category: perBuild(() => faker.commerce.department()),
-    createdAt: perBuild(() => faker.date.past()),
-    updatedAt: perBuild(() => faker.date.recent()),
+    category: () => faker.commerce.department(),
+    createdAt: () => faker.date.past(),
+    updatedAt: () => faker.date.recent(),
   },
   traits: {
     inactive: {
@@ -180,12 +177,11 @@ export const resourceBuilder = build<Resource>({
 
 ```typescript
 export const createTestUsers = {
-  admin: () => userBuilder.one({ traits: ["admin"] }),
-  guest: () => userBuilder.one({ traits: ["guest"] }),
-  inactive: () => userBuilder.one({ traits: ["inactive"] }),
+  admin: () => userBuilder.one({ traits: "admin" }),
+  guest: () => userBuilder.one({ traits: "guest" }),
+  inactive: () => userBuilder.one({ traits: "inactive" }),
   withCustomEmail: (email: string) => userBuilder.one({ overrides: { email } }),
-  list: (count: number) =>
-    Array.from({ length: count }, () => userBuilder.one()),
+  list: (count: number) => userBuilder.many(count),
 };
 
 // Usage
@@ -196,10 +192,12 @@ const users = createTestUsers.list(5);
 ## Computed Fields with postBuild
 
 ```typescript
+import { build, sequence, int } from "mimicry-js";
+
 export const accountBuilder = build<Account>({
   fields: {
     id: sequence(),
-    balance: perBuild(() => faker.number.int({ min: 0, max: 10000 })),
+    balance: int(0, 10000),
     type: "basic",
     creditLimit: 0,
   },
@@ -221,4 +219,56 @@ export const accountBuilder = build<Account>({
     vip: { overrides: { type: "vip" } },
   },
 });
+```
+
+## Deterministic Tests with Seed
+
+```typescript
+import { build, sequence, oneOf, int, seed } from "mimicry-js";
+
+const userBuilder = build<User>({
+  fields: {
+    id: sequence(),
+    role: oneOf("admin", "user", "guest"),
+    score: int(0, 100),
+  },
+});
+
+// Set seed for reproducible results
+seed(42);
+const users = userBuilder.many(3); // Always same results with same seed
+```
+
+## Builder with withPrev (Dependent Values)
+
+```typescript
+import { build, withPrev } from "mimicry-js";
+
+export const timeEntryBuilder = build<TimeEntry>({
+  fields: {
+    startedAt: withPrev((prev?: number) => {
+      const timestamp = prev ?? new Date("2025-01-01").getTime();
+      return timestamp + 3600000; // +1 hour from previous
+    }),
+    duration: int(30, 120),
+  },
+});
+
+// Generates entries with incrementing timestamps
+const entries = timeEntryBuilder.many(5);
+```
+
+## Builder with Reset
+
+```typescript
+const builder = build<Item>({
+  fields: {
+    id: sequence(), // 1, 2, 3...
+    name: unique(["Alpha", "Beta", "Gamma"]),
+  },
+});
+
+builder.many(3); // ids: 1, 2, 3
+builder.reset(); // Reset sequence and unique counters
+builder.many(3); // ids: 1, 2, 3 again
 ```

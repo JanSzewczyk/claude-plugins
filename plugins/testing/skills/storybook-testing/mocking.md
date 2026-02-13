@@ -639,7 +639,7 @@ export default definePreview({
 
 ## Mock Data with Builders
 
-**Use Case:** Generate consistent, reusable mock data for stories and tests using test-data-bot builders.
+**Use Case:** Generate consistent, reusable mock data for stories and tests using mimicry-js builders.
 
 ### Using Builder Factories
 

@@ -1,9 +1,9 @@
 ---
 name: builder-factory
-version: 3.0.0
-lastUpdated: 2026-01-18
-description: Generate test-data-bot factory builders for TypeScript types to create mock data for tests and Storybook. Use when creating mock data, test fixtures, or Storybook story data.
-tags: [testing, factories, mock-data, test-data-bot, faker, typescript]
+version: 4.0.0
+lastUpdated: 2026-02-13
+description: Generate mimicry-js factory builders for TypeScript types to create mock data for tests and Storybook. Use when creating mock data, test fixtures, or Storybook story data.
+tags: [testing, factories, mock-data, mimicry-js, faker, typescript]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep
 user-invocable: true
@@ -16,7 +16,7 @@ examples:
 
 # Builder Factory Generator
 
-Generate test-data-bot factory builders for TypeScript types.
+Generate mimicry-js factory builders for TypeScript types.
 
 > **Reference Files:**
 >
@@ -33,7 +33,7 @@ Generate test-data-bot factory builders for TypeScript types.
 
 ## Context
 
-Builders using `@jackfranklin/test-data-bot` and `@faker-js/faker` for:
+Builders using `mimicry-js` and `@faker-js/faker` for:
 
 - Unit tests (Vitest)
 - Storybook stories
@@ -81,7 +81,7 @@ export const userProfileBuilder = build<UserProfile>({...});
 ## Basic Template
 
 ```typescript
-import { build, sequence, perBuild } from "@jackfranklin/test-data-bot";
+import { build, sequence, oneOf } from "mimicry-js";
 import { faker } from "@faker-js/faker"; // Check project-context.md for locale
 import type { YourType } from "~/features/[feature]/types/your-type";
 
@@ -97,13 +97,13 @@ import type { YourType } from "~/features/[feature]/types/your-type";
  * });
  *
  * @example
- * const items = Array.from({ length: 5 }, () => yourTypeBuilder.one());
+ * const items = yourTypeBuilder.many(5);
  */
 export const yourTypeBuilder = build<YourType>({
   fields: {
     id: sequence(),
-    name: perBuild(() => faker.person.fullName()),
-    email: perBuild(() => faker.internet.email()),
+    name: () => faker.person.fullName(),
+    email: () => faker.internet.email(),
     status: "active",
   },
 });
@@ -111,10 +111,30 @@ export const yourTypeBuilder = build<YourType>({
 
 ## Key Methods
 
+### Builder Methods
+
+- `.one(options?)` - Generate a single instance
+- `.many(count, options?)` - Generate an array of instances
+- `.reset()` - Reset state of `sequence`, `unique`, and custom iterators
+
+### Field Generators
+
 - `sequence()` - Auto-incremented number (1, 2, 3...)
 - `sequence((n) => \`prefix-\${n}\`)` - Custom sequence
-- `perBuild(() => ...)` - Fresh value each time
+- `oneOf("a", "b", "c")` - Random value from options
+- `unique(["a", "b", "c"])` - Each value exactly once, throws when exhausted
+- `bool()` - Random `true` / `false`
+- `int()` / `int(max)` / `int(min, max)` - Random integer (default 1-1000)
+- `float()` / `float(max)` / `float(min, max)` - Random float (default 0-1)
+- `withPrev((prev?) => value)` - Access previous build value
+- `fixed(fn)` - Prevent calling a function value (keeps it as-is)
+- `() => value` - Plain function called fresh each build (replaces `perBuild`)
 - Static values don't need wrapper
+
+### Deterministic Random
+
+- `seed(value)` - Set seed for reproducible `oneOf`, `int`, `float`, `bool`
+- `getSeed()` - Get current seed value
 
 ## Traits (Variants)
 
@@ -136,7 +156,7 @@ export const userBuilder = build<User>({
 });
 
 // Usage
-userBuilder.one({ traits: ["admin"] });
+userBuilder.one({ traits: "admin" });
 userBuilder.one({ traits: ["admin", "inactive"] });
 ```
 
@@ -145,9 +165,7 @@ userBuilder.one({ traits: ["admin", "inactive"] });
 ```typescript
 export const orderBuilder = build<Order>({
   fields: {
-    products: perBuild(() =>
-      Array.from({ length: 3 }, () => productBuilder.one()),
-    ),
+    products: () => productBuilder.many(3),
     totalAmount: 0,
   },
   postBuild: (order) => {
@@ -163,7 +181,7 @@ export const orderBuilder = build<Order>({
 export const userBuilder = build<User>({
   fields: {
     id: sequence(),
-    address: perBuild(() => addressBuilder.one()),
+    address: () => addressBuilder.one(),
   },
 });
 ```
@@ -176,7 +194,7 @@ Check project-context.md for the specific type lifecycle pattern. Common pattern
 // Base type builder (without id, timestamps)
 export const resourceBaseBuilder = build<ResourceBase>({
   fields: {
-    name: perBuild(() => faker.commerce.productName()),
+    name: () => faker.commerce.productName(),
     status: "active",
   },
 });
@@ -184,20 +202,22 @@ export const resourceBaseBuilder = build<ResourceBase>({
 // Application type builder (with id, timestamps)
 export const resourceBuilder = build<Resource>({
   fields: {
-    id: perBuild(() => faker.string.uuid()),
-    name: perBuild(() => faker.commerce.productName()),
+    id: () => faker.string.uuid(),
+    name: () => faker.commerce.productName(),
     status: "active",
-    createdAt: perBuild(() => faker.date.past()),
-    updatedAt: perBuild(() => faker.date.recent()),
+    createdAt: () => faker.date.past(),
+    updatedAt: () => faker.date.recent(),
   },
 });
 ```
 
 ## Important Notes
 
-- Always use `@jackfranklin/test-data-bot` (NOT Fishery)
+- Always use `mimicry-js` (NOT test-data-bot or Fishery)
 - Check project-context.md for Faker locale configuration
-- Use `sequence()` for IDs
-- Use `perBuild()` for values that should be fresh each time
-- Static values don't need `perBuild()` wrapper
+- Use `sequence()` for numeric IDs, `() => faker.string.uuid()` for UUIDs
+- Use plain functions `() => ...` for values that should be fresh each time (no `perBuild` needed)
+- Use built-in generators (`oneOf`, `int`, `bool`) where they replace simple Faker calls
+- Use `.many(count)` instead of `Array.from({ length: count }, () => builder.one())`
+- Static values don't need function wrapper
 - Include JSDoc with usage examples
