@@ -272,3 +272,79 @@ builder.many(3); // ids: 1, 2, 3
 builder.reset(); // Reset sequence and unique counters
 builder.many(3); // ids: 1, 2, 3 again
 ```
+
+## Generator Placement: Top-Level vs Arrow Functions
+
+mimicry-js generators are field-level descriptors resolved by the library. They only work at the top level of `fields` or in static nested objects. Inside arrow functions, use Faker instead.
+
+### Correct: Generators at top level, Faker inside arrow functions
+
+```typescript
+import { build, sequence, oneOf, int, bool } from "mimicry-js";
+import { faker } from "@faker-js/faker";
+
+export const productBuilder = build<Product>({
+  fields: {
+    // Top level — mimicry-js generators work here
+    id: sequence(),
+    status: oneOf("draft", "published", "archived"),
+    rating: int(1, 5),
+    featured: bool(),
+
+    // Arrow function — use Faker for random selection
+    metadata: () => ({
+      source: faker.helpers.arrayElement(["import", "manual", "api"]),
+      tags: faker.helpers.arrayElements(["sale", "new", "popular"], {
+        min: 1,
+        max: 2,
+      }),
+      priority: faker.number.int({ min: 1, max: 10 }),
+    }),
+
+    // Nested builder — arrow function for fresh data each call
+    category: () => categoryBuilder.one(),
+  },
+});
+```
+
+### Correct: Static nested objects (generators work recursively)
+
+```typescript
+import { build, sequence, oneOf } from "mimicry-js";
+
+export const accountBuilder = build<Account>({
+  fields: {
+    id: sequence(),
+    // Static nested object — mimicry-js processes recursively
+    address: {
+      street: oneOf("123 Main St", "456 Elm Ave"),
+      city: oneOf("New York", "Los Angeles"),
+      zipCode: sequence((n) => String(10000 + n)),
+    },
+    // Static nested object with generators
+    settings: {
+      theme: oneOf("light", "dark"),
+      language: oneOf("en", "pl", "de"),
+    },
+  },
+});
+```
+
+### Wrong: Generators inside arrow functions
+
+```typescript
+// DO NOT do this — generators won't be resolved
+export const productBuilder = build<Product>({
+  fields: {
+    metadata: () => ({
+      source: oneOf("import", "manual"), // WRONG — returns descriptor object
+      priority: int(1, 10), // WRONG — returns descriptor object
+    }),
+    items: () =>
+      Array.from({ length: 3 }, () => ({
+        id: sequence(), // WRONG — won't auto-increment
+        type: oneOf("a", "b"), // WRONG — returns descriptor object
+      })),
+  },
+});
+```

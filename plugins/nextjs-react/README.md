@@ -23,11 +23,6 @@ React & Next.js full-stack development — agents and skills for building modern
 | **toast-notifications** | `/toast-notifications` | Cookie-based toast notification system for Server Actions                                                 |
 | **error-handling**      | `/error-handling`      | DbError patterns, error boundaries, standardized error responses                                          |
 
-### Examples
-
-- `agents/examples/server-actions.example.md` — Server Action implementation example
-- `agents/examples/database-queries.example.md` — Database query patterns example
-
 ## Installation
 
 ### 1. Copy agents
@@ -35,9 +30,6 @@ React & Next.js full-stack development — agents and skills for building modern
 ```bash
 cp plugins/nextjs-react/agents/frontend-expert.md       your-project/.claude/agents/
 cp plugins/nextjs-react/agents/nextjs-backend-engineer.md your-project/.claude/agents/
-
-# Optional: copy example outputs
-cp -r plugins/nextjs-react/agents/examples/              your-project/.claude/agents/examples/
 ```
 
 ### 2. Copy skills

@@ -5,6 +5,8 @@ Mapping field types to appropriate mimicry-js generators and Faker methods.
 > **Note:** Check `.claude/project-context.md` for locale-specific values (currency, country, etc.)
 >
 > **Tip:** Prefer mimicry-js built-in generators (`int`, `float`, `bool`, `oneOf`) over Faker for simple random values.
+>
+> **Important:** mimicry-js generators (`oneOf`, `sequence`, `int`, `float`, `bool`, `unique`, `withPrev`) only work at the **top level** of `fields` or inside **static nested objects**. Inside arrow functions `() => ...`, use Faker equivalents instead. See SKILL.md "Best Practices" for details.
 
 ## Identifiers
 
@@ -89,12 +91,16 @@ isPredefined: true;
 ## Enums/Unions
 
 ```typescript
-// Using mimicry-js oneOf (preferred)
+// At top level of fields: use mimicry-js oneOf (preferred — integrates with seed())
 status: oneOf("active", "inactive", "pending");
 role: oneOf("admin", "user", "guest");
 
-// Using Faker (for larger sets or weighted selection)
-status: () => faker.helpers.arrayElement(["active", "inactive", "pending"]);
+// Inside arrow functions / nested objects returned by functions: use Faker
+profile: () => ({
+  theme: faker.helpers.arrayElement(["light", "dark", "system"]),
+});
+
+// For weighted selection (only available via Faker)
 role: () =>
   faker.helpers.weightedArrayElement([
     { value: "user", weight: 8 },
