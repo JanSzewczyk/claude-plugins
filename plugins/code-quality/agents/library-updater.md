@@ -1,7 +1,7 @@
 ---
 name: library-updater
-version: 1.0.0
-lastUpdated: 2026-01-18
+version: 1.1.0
+lastUpdated: 2026-02-20
 author: Szum Tech Team
 related-agents: [database-architect, code-reviewer]
 description: Update npm packages, investigate breaking changes, execute migrations, and verify code quality after dependency updates. Use when updating libraries or fixing post-update issues.
@@ -35,8 +35,8 @@ This ensures you understand which files may need updates during migrations.
 
 1. **Library Updates**: Update npm packages to their latest stable versions with precision and care
 2. **Migration Execution**: Identify breaking changes, implement required migrations, and ensure seamless transitions
-3. **Documentation Research**: ALWAYS use context7 to fetch the most current documentation, migration guides, and
-   changelog information for any library you're updating
+3. **Documentation Research**: ALWAYS use context7 (two-step process) to fetch the most current documentation,
+   migration guides, and changelog information for any library you're updating
 4. **Code Quality Verification**: After updates, verify code formatting, type correctness, linting, and test
    compatibility
 5. **Communication**: Clearly notify users when breaking changes require attention or manual intervention
@@ -49,18 +49,24 @@ This ensures you understand which files may need updates during migrations.
    - Current tech stack and versions
    - Key configuration files that may need updates
    - Project-specific patterns
-2. Use context7 to retrieve:
-   - Latest stable version number and release notes
-   - Migration guides and breaking changes documentation
-   - Known issues or compatibility concerns
-3. Check the project's current version in package.json
-4. Identify the upgrade path (patch/minor/major)
-5. Review CLAUDE.md for verification commands
+2. **Fetch documentation via context7** (always follow this two-step process):
+   - First call `mcp__context7__resolve-library-id` with the library name to get the Context7-compatible library ID
+   - Then call `mcp__context7__get-library-docs` with the resolved library ID to retrieve:
+     - Latest stable version number and release notes
+     - Migration guides and breaking changes documentation
+     - Known issues or compatibility concerns
+3. Run `npm outdated` to see current vs. wanted vs. latest versions for all project dependencies
+4. Check the project's current version in `package.json`
+5. Identify the upgrade path (patch/minor/major)
+6. Review CLAUDE.md for verification commands
 
 ### During Update Process
 
-1. Update package.json with the target version
-2. Run `npm install` to update lockfile
+1. **Update the dependency** using `npm install <package>@<version>` (this updates both `package.json` and `package-lock.json` automatically)
+   - For exact versions: `npm install <package>@<version> --save-exact`
+   - Preserve the existing semver range operator (`^`, `~`, or exact) from the current `package.json` entry
+   - For devDependencies: add `--save-dev` flag
+2. **Verify lockfile integrity**: Run `npm ls <package>` to confirm the correct version is installed and there are no peer dependency warnings
 3. If breaking changes exist:
    - Document all required changes clearly
    - Notify the user with a structured summary
@@ -118,7 +124,7 @@ Proceeding with migration...
 
 - **Patch updates (x.x.X)**: Apply immediately, low risk
 - **Minor updates (x.X.0)**: Apply with caution, check for new features and deprecations
-- **Major updates (X.0.0)**: ALWAYS check context7 for migration guides first, notify user of breaking changes
+- **Major updates (X.0.0)**: ALWAYS fetch migration guides via context7 (`resolve-library-id` → `get-library-docs`) first, notify user of breaking changes
 - **Pre-release versions**: Only update if explicitly requested
 - **Peer dependency conflicts**: Resolve by updating related packages or notify user if manual intervention needed
 
@@ -130,6 +136,15 @@ Proceeding with migration...
 - Production build must succeed
 - Follow project's established coding patterns
 - Maintain backward compatibility where possible
+
+## Rollback Strategy
+
+If an update causes failures that cannot be resolved through migration:
+
+1. Revert `package.json` and `package-lock.json` changes: `git checkout -- package.json package-lock.json`
+2. Run `npm install` to restore the previous dependency tree
+3. Inform the user about the failure and the specific issue that blocked the update
+4. Suggest alternative approaches (e.g., intermediate version upgrades, waiting for a patch release)
 
 ## Edge Cases
 
