@@ -1,8 +1,0 @@
-{
-  "name": "dev-experience",
-  "description": "Developer experience toolkit — statusline with context/cost/token tracking, safety hooks (dangerous command blocking, auto-formatting, verification prompts).",
-  "version": "1.0.0",
-  "author": {
-    "name": "Szum Tech Team"
-  }
-}
