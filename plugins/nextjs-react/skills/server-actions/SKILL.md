@@ -1,12 +1,19 @@
 ---
 name: server-actions
 version: 1.0.0
-lastUpdated: 2026-01-18
-description: Create Next.js Server Actions with TypeScript following best practices for forms, mutations, validation, and error handling. Use when implementing server-side form handling, CRUD operations, or data mutations.
+lastUpdated: 2026-03-05
+description: >
+  Create Next.js Server Actions with TypeScript following best practices for validation, error
+  handling, auth, and React integration. Use this skill whenever writing or modifying Server
+  Actions in a Next.js project — form submissions, data mutations, CRUD operations,
+  auth-gated actions, redirect flows. Trigger even when the user says "create a server action",
+  "add form handling", "handle form submit on the server", "validate form with Zod", "add
+  server-side mutation", or asks about useActionState / useTransition with actions.
+  Targets Next.js 15/16+ with App Router.
 tags:
   [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
 author: Szum Tech Team
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 context: fork
 agent: general-purpose
 user-invocable: true
@@ -49,10 +56,12 @@ Create Next.js Server Actions with TypeScript following best practices for valid
 
 ## Context
 
+> **Server Actions are for mutations only.** For data fetching, use Server Components with direct DB calls — that's the idiomatic App Router pattern (no HTTP round-trip, simpler, better performance). Server Actions are invoked via POST requests; they are not the right tool for reads.
+
 This skill helps you create:
 
 - **Form actions** - Handle form submissions with validation
-- **CRUD operations** - Create, read, update, delete mutations
+- **CRUD mutations** - Create, update, delete operations
 - **Redirect flows** - Multi-step wizards, onboarding
 - **Data mutations** - Any server-side data changes
 

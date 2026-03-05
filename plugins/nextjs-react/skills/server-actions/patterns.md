@@ -319,7 +319,7 @@ export async function updatePost(
   data: UpdatePostDto,
 ): ActionResponse<Post> {
   const [error, post] = await updatePostInDb(postId, data);
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to update post" };
 
   // Revalidate specific paths
   revalidatePath("/posts"); // List page
@@ -336,7 +336,7 @@ import { revalidateTag } from "next/cache";
 
 export async function createPost(data: CreatePostDto): ActionResponse<Post> {
   const [error, post] = await createPostInDb(data);
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to create post" };
 
   // Revalidate all data tagged with "posts"
   revalidateTag("posts");
@@ -350,7 +350,7 @@ export async function createPost(data: CreatePostDto): ActionResponse<Post> {
 ```typescript
 export async function deleteCategory(categoryId: string): ActionResponse<void> {
   const [error] = await deleteCategoryFromDb(categoryId);
-  if (error) return { success: false, error: error.message };
+  if (error) return { success: false, error: "Failed to delete category" };
 
   // Revalidate multiple concerns
   revalidatePath("/categories"); // Category list
@@ -373,8 +373,8 @@ export async function myAction() {
   /* ... */
 }
 
-// ✅ Good: File-level directive
-("use server");
+// ✅ Good: File-level directive at top of file
+// "use server"   ← must be the very first statement, no parentheses
 export async function myAction() {
   /* ... */
 }
@@ -518,7 +518,40 @@ export async function updatePost(
 }
 ```
 
-### 2. Rate Limiting
+### 2. Use Next.js Built-in Error Helpers (Next.js 15+)
+
+Next.js 15 introduced `forbidden()` and `unauthorized()` for throwing standardized HTTP responses in Server Actions and Server Components. Use them instead of returning error objects when the issue is purely about access:
+
+```typescript
+import { forbidden, unauthorized } from "next/navigation";
+
+export async function updatePost(
+  postId: string,
+  data: UpdatePostDto,
+): ActionResponse<Post> {
+  const { userId } = await auth();
+  if (!userId) {
+    unauthorized(); // throws — renders nearest unauthorized.tsx boundary
+  }
+
+  const [fetchError, post] = await getPostById(postId);
+  if (fetchError) return { success: false, error: "Post not found" };
+
+  if (post.authorId !== userId) {
+    forbidden(); // throws — renders nearest forbidden.tsx boundary
+  }
+
+  // ...
+}
+```
+
+> When to use each:
+>
+> - `unauthorized()` — user is not logged in at all
+> - `forbidden()` — user is logged in but lacks permission
+> - `return { success: false, error: "..." }` — business logic errors that the form should display inline
+
+### 3. Rate Limiting
 
 ```typescript
 import { rateLimit } from "~/lib/rate-limit";

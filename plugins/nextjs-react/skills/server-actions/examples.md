@@ -76,29 +76,25 @@ export async function createPost(data: CreatePostData): ActionResponse<Post> {
 
 ### Read (Single Item)
 
+> **Note:** Server Actions are for **mutations only**. For data fetching, use Server Components with direct DB calls — this is both faster (no HTTP round-trip) and the idiomatic App Router pattern.
+
 ```typescript
-// features/posts/server/actions/get-post.ts
-"use server";
+// app/posts/[id]/page.tsx — Server Component (correct pattern for reads)
+import { notFound } from "next/navigation";
+import { getPostById } from "~/features/posts/server/db/posts";
 
-import { getPostById } from "../db/posts";
-import type { ActionResponse } from "~/lib/action-types";
-import type { Post } from "../../types/post";
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-export async function getPost(postId: string): ActionResponse<Post> {
-  if (!postId) {
-    return { success: false, error: "Post ID is required" };
-  }
+export default async function PostPage({ params }: PageProps) {
+  const { id } = await params;
+  const [error, post] = await getPostById(id);
 
-  const [error, post] = await getPostById(postId);
+  if (error?.isNotFound) notFound();
+  if (error) throw error;
 
-  if (error) {
-    if (error.isNotFound) {
-      return { success: false, error: "Post not found" };
-    }
-    return { success: false, error: "Failed to fetch post" };
-  }
-
-  return { success: true, data: post };
+  return <PostDetail post={post} />;
 }
 ```
 
@@ -244,6 +240,9 @@ export async function submitPreferences(
   onboarding: Onboarding,
 ): RedirectAction {
   const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Authentication required" };
+  }
   logger.info(
     { userId, onboardingId: onboarding.id },
     "Submitting preferences",
