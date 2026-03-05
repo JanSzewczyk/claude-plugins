@@ -2,7 +2,13 @@
 name: error-handling
 version: 1.0.0
 lastUpdated: 2026-01-18
-description: Comprehensive error handling patterns for Next.js applications. Covers database errors (DbError), server action errors, React error boundaries, toast notifications for user feedback, and structured logging.
+description: >
+  Comprehensive error handling for Next.js applications. Use when user asks to
+  "add error handling", "handle database errors", "add error boundaries",
+  "DbError", "categorizeDbError", "retry failed requests", "handle useActionState
+  errors", "toast on error", "log errors", "handle Firestore errors". Covers the
+  DbError contract (database layer), ActionResponse (server actions), React error
+  boundaries, toast notifications, and structured logging.
 tags: [error-handling, DbError, error-boundary, toast, logging, server-actions]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
@@ -74,7 +80,7 @@ Comprehensive error handling patterns for Next.js applications.
 ### Database Layer (DbError)
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 
 // Tuple pattern - always return [error, data]
 export async function getById(
@@ -105,7 +111,7 @@ import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import type { ActionResponse } from "~/lib/action-types";
 
 export async function createItem(data: FormData): ActionResponse<Item> {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     return { success: false, error: "Unauthorized" };
   }
@@ -200,9 +206,38 @@ Return ActionResponse with generic message
 Client displays toast + handles state
 ```
 
+## DbError Contract
+
+The `DbError` contract defines what every database layer implementation must provide. **This is a TypeScript interface — the concrete implementation lives in the `firebase-firestore` skill.**
+
+```typescript
+// The contract every DB layer must fulfill
+interface DbErrorContract {
+  // Boolean flags for type-safe error branching
+  readonly isRetryable: boolean;
+  readonly isNotFound: boolean;
+  readonly isAlreadyExists: boolean;
+  readonly isPermissionDenied: boolean;
+  readonly code: string;
+  readonly message: string;
+}
+
+// Static factory methods every DB layer must expose
+interface DbErrorStatic {
+  notFound(resourceName: string): DbErrorContract;
+  alreadyExists(resourceName: string): DbErrorContract;
+  validation(message: string, resourceName?: string): DbErrorContract;
+  dataCorruption(resourceName: string): DbErrorContract;
+  permissionDenied(resourceName: string): DbErrorContract;
+}
+```
+
+The `categorizeDbError(error, resourceName)` function maps raw DB errors to this contract.
+**Firestore implementation:** See `firebase-firestore/errors.md`.
+
 ## Related Skills
 
-- `firebase-firestore` - DbError class and database patterns
+- `firebase-firestore` - Firestore implementation of the DbError contract (DbError class + categorizeDbError)
 - `server-actions` - ActionResponse types and patterns
 - `toast-notifications` - User feedback via toasts
 - `structured-logging` - Pino logging patterns

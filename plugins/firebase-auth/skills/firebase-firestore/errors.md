@@ -1,6 +1,18 @@
-# Firebase Error Handling
+# Firebase Firestore — DbError Implementation
 
-Structured error handling for Firestore database operations.
+## Role in the Error Handling Architecture
+
+This file implements the **DbError contract** defined in the `error-handling` skill. The contract requires:
+
+- **Boolean properties** for type-safe error branching: `isRetryable`, `isNotFound`, `isAlreadyExists`, `isPermissionDenied`
+- **Static factory methods**: `notFound()`, `alreadyExists()`, `validation()`, `dataCorruption()`, `permissionDenied()`
+- **`categorizeDbError(error, resourceName)`** — maps raw Firestore errors to DbError instances
+
+> **Note:** Other DB layers (PostgreSQL, MySQL, etc.) can implement the same contract with their own error mappings. The server action and page loader layers only depend on the contract, not on Firestore specifics.
+
+The `DbError` class below is the **Firestore-specific implementation** of that contract.
+
+---
 
 ## DbError Class
 

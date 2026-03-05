@@ -2,7 +2,12 @@
 name: firebase-firestore
 version: 1.0.0
 lastUpdated: 2026-01-18
-description: Create Firebase Firestore database queries with TypeScript, proper type lifecycle, error handling, and best practices for Next.js applications.
+description: >
+  Firestore database layer for Next.js. Use when user asks to "Firestore query",
+  "Firebase Admin SDK", "CRUD for Firestore", "seed Firestore",
+  FieldValue.serverTimestamp(), Firestore transactions, "db collection query",
+  "implement database queries", "Firestore error handling", "DbError for
+  Firestore". Implements the DbError contract defined in the error-handling skill.
 tags: [firebase, firestore, database, typescript, error-handling, server-only]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__*
@@ -90,6 +95,10 @@ type UpdateResourceDto = UpdateDto<ResourceBase>;
 See [types.md](./types.md) for complete type utilities.
 
 ### Error Handling Pattern
+
+> **DbError Contract:** The `DbError` class and `categorizeDbError()` in this skill implement the
+> universal DbError contract defined in the `error-handling` skill. Consumers branch on boolean
+> properties (`isNotFound`, `isRetryable`, `isPermissionDenied`) without knowing this is Firestore.
 
 All database queries return tuples for explicit error handling:
 
@@ -246,5 +255,6 @@ async function loadBudget(budgetId: string) {
 
 ## Related Skills
 
+- `error-handling` - Defines the DbError contract that this skill implements (error boundaries, retry, server action error patterns)
 - `server-actions` - For implementing server actions that use these queries
 - `db-migration` - For migrating Firestore data

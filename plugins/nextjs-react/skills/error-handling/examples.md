@@ -2,14 +2,19 @@
 
 ## Complete CRUD Error Handling
 
+> **Note — DB Layer Examples:** The database layer examples below use Firestore-specific imports
+> (`~/lib/firebase/errors`, `~/lib/firebase`, `firebase-admin/firestore`). For a different DB layer,
+> replace these with your own implementation of the DbError contract. See the `firebase-firestore`
+> skill for the complete Firestore implementation.
+
 ### Database Layer
 
 ```typescript
 // features/budget/server/db/budgets.ts
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeDbError, DbError } from "~/lib/db/errors"; // ~/lib/firebase/errors for Firestore
 import { createLogger } from "~/lib/logger";
-import { db } from "~/lib/firebase";
-import { FieldValue } from "firebase-admin/firestore";
+import { db } from "~/lib/db"; // ~/lib/firebase for Firestore
+import { FieldValue } from "firebase-admin/firestore"; // Firestore-specific
 import type { Budget, CreateBudgetDto, UpdateBudgetDto } from "../types/budget";
 
 const logger = createLogger({ module: "budget-db" });
@@ -85,7 +90,7 @@ export async function getBudgetById(
 
     // Check ownership
     if (data.userId !== userId) {
-      const error = DbError.permissionDenied();
+      const error = DbError.permissionDenied("Budget");
       logger.warn({ userId, budgetId, ownerId: data.userId }, "Access denied");
       return [error, null];
     }
@@ -187,7 +192,6 @@ export async function deleteBudget(
 // features/budget/server/actions/budget-actions.ts
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createLogger } from "~/lib/logger";
@@ -207,7 +211,7 @@ const logger = createLogger({ module: "budget-actions" });
 export async function createBudgetAction(
   formData: FormData,
 ): ActionResponse<Budget> {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     logger.warn({ action: "createBudget" }, "Unauthorized");
@@ -262,7 +266,7 @@ export async function updateBudgetAction(
   budgetId: string,
   formData: FormData,
 ): ActionResponse<Budget> {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     return { success: false, error: "Please sign in" };
@@ -302,7 +306,7 @@ export async function updateBudgetAction(
 
 // DELETE with redirect
 export async function deleteBudgetAction(budgetId: string): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     await setToastCookie("Please sign in", "error");
@@ -335,7 +339,6 @@ export async function deleteBudgetAction(budgetId: string): RedirectAction {
 
 ```typescript
 // app/budgets/[id]/page.tsx
-import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { getBudgetById } from "~/features/budget/server/db/budgets";
 import { BudgetDetails } from "~/features/budget/components/budget-details";
@@ -345,7 +348,7 @@ interface PageProps {
 }
 
 export default async function BudgetPage({ params }: PageProps) {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     redirect("/sign-in");
@@ -380,9 +383,7 @@ export default async function BudgetPage({ params }: PageProps) {
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@szum-tech/design-system";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
 
 export default function BudgetError({
   error,
@@ -401,26 +402,20 @@ export default function BudgetError({
   const isTemporary = error.message.includes("temporarily");
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 p-8">
-      <AlertCircle className="h-12 w-12 text-destructive" />
-
-      <h2 className="text-xl font-semibold">
+    <div>
+      <h2>
         {isTemporary ? "Service Temporarily Unavailable" : "Unable to Load Budget"}
       </h2>
 
-      <p className="text-muted-foreground text-center max-w-md">
+      <p>
         {isTemporary
           ? "We're experiencing some issues. Please try again in a moment."
           : "There was a problem loading this budget. It may have been deleted or you may not have access."}
       </p>
 
-      <div className="flex gap-2">
-        <Button onClick={reset}>
-          Try Again
-        </Button>
-        <Button variant="outline" onClick={() => router.push("/budgets")}>
-          Back to Budgets
-        </Button>
+      <div>
+        <button onClick={reset}>Try Again</button>
+        <button onClick={() => router.push("/budgets")}>Back to Budgets</button>
       </div>
     </div>
   );
@@ -435,16 +430,14 @@ export default function BudgetError({
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Button, Input, Label, Card } from "@szum-tech/design-system";
-import { AlertCircle } from "lucide-react";
 import { createBudgetAction } from "../server/actions/budget-actions";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full">
+    <button type="submit" disabled={pending}>
       {pending ? "Creating..." : "Create Budget"}
-    </Button>
+    </button>
   );
 }
 
@@ -452,58 +445,47 @@ export function BudgetForm() {
   const [state, formAction] = useActionState(createBudgetAction, null);
 
   return (
-    <Card className="p-6">
-      <form action={formAction} className="space-y-4">
-        {/* General error banner */}
-        {state?.error && !state.fieldErrors && (
-          <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
-            <AlertCircle className="h-4 w-4" />
-            <span>{state.error}</span>
-          </div>
+    <form action={formAction}>
+      {/* General error banner */}
+      {state?.error && !state.fieldErrors && (
+        <div role="alert">{state.error}</div>
+      )}
+
+      {/* Name field */}
+      <div>
+        <label htmlFor="name">Budget Name</label>
+        <input
+          id="name"
+          name="name"
+          placeholder="e.g., Monthly Groceries"
+          aria-invalid={!!state?.fieldErrors?.name}
+          aria-describedby={state?.fieldErrors?.name ? "name-error" : undefined}
+        />
+        {state?.fieldErrors?.name && (
+          <p id="name-error">{state.fieldErrors.name[0]}</p>
         )}
+      </div>
 
-        {/* Name field */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Budget Name</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="e.g., Monthly Groceries"
-            aria-invalid={!!state?.fieldErrors?.name}
-            aria-describedby={state?.fieldErrors?.name ? "name-error" : undefined}
-            className={state?.fieldErrors?.name ? "border-destructive" : ""}
-          />
-          {state?.fieldErrors?.name && (
-            <p id="name-error" className="text-sm text-destructive">
-              {state.fieldErrors.name[0]}
-            </p>
-          )}
-        </div>
+      {/* Amount field */}
+      <div>
+        <label htmlFor="amount">Amount</label>
+        <input
+          id="amount"
+          name="amount"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="0.00"
+          aria-invalid={!!state?.fieldErrors?.amount}
+          aria-describedby={state?.fieldErrors?.amount ? "amount-error" : undefined}
+        />
+        {state?.fieldErrors?.amount && (
+          <p id="amount-error">{state.fieldErrors.amount[0]}</p>
+        )}
+      </div>
 
-        {/* Amount field */}
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            aria-invalid={!!state?.fieldErrors?.amount}
-            aria-describedby={state?.fieldErrors?.amount ? "amount-error" : undefined}
-            className={state?.fieldErrors?.amount ? "border-destructive" : ""}
-          />
-          {state?.fieldErrors?.amount && (
-            <p id="amount-error" className="text-sm text-destructive">
-              {state.fieldErrors.amount[0]}
-            </p>
-          )}
-        </div>
-
-        <SubmitButton />
-      </form>
-    </Card>
+      <SubmitButton />
+    </form>
   );
 }
 ```
@@ -513,23 +495,13 @@ export function BudgetForm() {
 ```typescript
 // app/budgets/[id]/not-found.tsx
 import Link from "next/link";
-import { Button } from "@szum-tech/design-system";
-import { FileQuestion } from "lucide-react";
 
 export default function BudgetNotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 p-8">
-      <FileQuestion className="h-16 w-16 text-muted-foreground" />
-
-      <h2 className="text-2xl font-semibold">Budget Not Found</h2>
-
-      <p className="text-muted-foreground text-center max-w-md">
-        The budget you're looking for doesn't exist or has been deleted.
-      </p>
-
-      <Button asChild>
-        <Link href="/budgets">View All Budgets</Link>
-      </Button>
+    <div>
+      <h2>Budget Not Found</h2>
+      <p>The budget you're looking for doesn't exist or has been deleted.</p>
+      <Link href="/budgets">View All Budgets</Link>
     </div>
   );
 }
@@ -541,13 +513,12 @@ export default function BudgetNotFound() {
 // app/api/log-error/route.ts
 import { NextResponse } from "next/server";
 import { createLogger } from "~/lib/logger";
-import { auth } from "@clerk/nextjs/server";
 
 const logger = createLogger({ module: "client-error" });
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const userId = await getCurrentUserId(); // your auth helper (optional)
     const { message, digest, stack, url, userAgent } = await request.json();
 
     logger.error(

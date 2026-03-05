@@ -7,7 +7,7 @@
 Always return `[error, data]` tuple from database functions.
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "user-db" });
@@ -62,31 +62,25 @@ export async function getUserById(
 ### Error Categorization
 
 ```typescript
-// lib/firebase/errors.ts
+// lib/db/errors.ts — generic structure (full Firestore implementation: see firebase-firestore/errors.md)
 export function categorizeDbError(error: unknown, resource: string): DbError {
-  if (error instanceof FirebaseError) {
-    switch (error.code) {
-      case "not-found":
-        return DbError.notFound(resource);
-      case "already-exists":
-        return DbError.alreadyExists(resource);
-      case "permission-denied":
-      case "unauthenticated":
-        return DbError.permissionDenied();
-      case "unavailable":
-      case "deadline-exceeded":
-        return new DbError(
-          error.code,
-          `${resource} temporarily unavailable`,
-          true,
-        );
-      default:
-        return new DbError(error.code, `${resource} operation failed`, false);
-    }
+  // Each DB layer maps its own error types to DbError.
+  // The implementation checks DB-specific error codes/classes and returns
+  // the appropriate DbError with correct boolean flags set.
+  if (error && typeof error === "object" && "code" in error) {
+    const { code } = error as { code: string };
+    if (code === "not-found") return DbError.notFound(resource);
+    if (code === "already-exists") return DbError.alreadyExists(resource);
+    if (code === "permission-denied" || code === "unauthenticated")
+      return DbError.permissionDenied(resource);
+    // Add DB-layer-specific retryable codes here (e.g. "unavailable", "deadline-exceeded")
   }
-  return new DbError("unknown", `Unexpected error with ${resource}`, false);
+  if (error instanceof Error) return DbError.internal(resource, error.message);
+  return DbError.internal(resource);
 }
 ```
+
+> **Firestore-specific implementation** (using `FirebaseError` class and Firestore error codes) is in `firebase-firestore/errors.md`.
 
 ## Pattern 2: Server Action Errors
 
@@ -95,7 +89,6 @@ export function categorizeDbError(error: unknown, resource: string): DbError {
 ```typescript
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { createLogger } from "~/lib/logger";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
@@ -104,8 +97,8 @@ import type { ActionResponse } from "~/lib/action-types";
 const logger = createLogger({ module: "budget-actions" });
 
 export async function createBudget(formData: FormData): ActionResponse<Budget> {
-  // 1. Authentication
-  const { userId } = await auth();
+  // 1. Authentication (adapt to your auth provider: Clerk, NextAuth, Auth.js, etc.)
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     logger.warn({ action: "createBudget" }, "Unauthorized access attempt");
     return { success: false, error: "Please sign in to continue" };
@@ -170,7 +163,7 @@ import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import type { RedirectAction } from "~/lib/action-types";
 
 export async function deleteBudget(budgetId: string): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     await setToastCookie("Please sign in", "error");
     return redirect("/sign-in");
@@ -199,7 +192,6 @@ export async function deleteBudget(budgetId: string): RedirectAction {
 
 ```typescript
 // app/budgets/[id]/page.tsx
-import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { getBudgetById } from "~/features/budget/server/db/budgets";
 
@@ -208,7 +200,7 @@ export default async function BudgetPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     redirect("/sign-in");
   }
@@ -249,7 +241,6 @@ export default async function BudgetPage({
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@szum-tech/design-system";
 
 export default function Error({
   error,
@@ -272,16 +263,12 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-2xl font-bold">Something went wrong</h1>
-      <p className="text-muted-foreground">
-        We're sorry, but something unexpected happened.
-      </p>
-      <div className="flex gap-2">
-        <Button onClick={reset}>Try again</Button>
-        <Button variant="outline" onClick={() => window.location.href = "/"}>
-          Go home
-        </Button>
+    <div>
+      <h1>Something went wrong</h1>
+      <p>We're sorry, but something unexpected happened.</p>
+      <div>
+        <button onClick={reset}>Try again</button>
+        <button onClick={() => window.location.href = "/"}>Go home</button>
       </div>
     </div>
   );
@@ -295,7 +282,6 @@ export default function Error({
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@szum-tech/design-system";
 import { useRouter } from "next/navigation";
 
 export default function BudgetsError({
@@ -312,18 +298,12 @@ export default function BudgetsError({
   }, [error]);
 
   return (
-    <div className="p-8 text-center">
-      <h2 className="text-xl font-semibold mb-4">
-        Unable to load budgets
-      </h2>
-      <p className="text-muted-foreground mb-6">
-        There was a problem loading your budgets. Please try again.
-      </p>
-      <div className="flex justify-center gap-2">
-        <Button onClick={reset}>Retry</Button>
-        <Button variant="outline" onClick={() => router.push("/")}>
-          Back to Dashboard
-        </Button>
+    <div>
+      <h2>Unable to load budgets</h2>
+      <p>There was a problem loading your budgets. Please try again.</p>
+      <div>
+        <button onClick={reset}>Retry</button>
+        <button onClick={() => router.push("/")}>Back to Dashboard</button>
       </div>
     </div>
   );
@@ -338,24 +318,21 @@ export default function BudgetsError({
 "use client";
 
 import { useActionState } from "react";
-import { Button, Input, Label } from "@szum-tech/design-system";
 import { createBudget } from "../server/actions/create-budget";
 
 export function BudgetForm() {
   const [state, formAction, isPending] = useActionState(createBudget, null);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction}>
       {/* General error message */}
       {state?.error && !state.fieldErrors && (
-        <div className="bg-destructive/10 text-destructive p-3 rounded-md">
-          {state.error}
-        </div>
+        <div role="alert">{state.error}</div>
       )}
 
       <div>
-        <Label htmlFor="name">Budget Name</Label>
-        <Input
+        <label htmlFor="name">Budget Name</label>
+        <input
           id="name"
           name="name"
           disabled={isPending}
@@ -364,15 +341,13 @@ export function BudgetForm() {
         />
         {/* Field-level error */}
         {state?.fieldErrors?.name && (
-          <p id="name-error" className="text-sm text-destructive mt-1">
-            {state.fieldErrors.name[0]}
-          </p>
+          <p id="name-error">{state.fieldErrors.name[0]}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="amount">Amount</Label>
-        <Input
+        <label htmlFor="amount">Amount</label>
+        <input
           id="amount"
           name="amount"
           type="number"
@@ -380,15 +355,13 @@ export function BudgetForm() {
           aria-invalid={!!state?.fieldErrors?.amount}
         />
         {state?.fieldErrors?.amount && (
-          <p className="text-sm text-destructive mt-1">
-            {state.fieldErrors.amount[0]}
-          </p>
+          <p>{state.fieldErrors.amount[0]}</p>
         )}
       </div>
 
-      <Button type="submit" disabled={isPending}>
+      <button type="submit" disabled={isPending}>
         {isPending ? "Creating..." : "Create Budget"}
-      </Button>
+      </button>
     </form>
   );
 }

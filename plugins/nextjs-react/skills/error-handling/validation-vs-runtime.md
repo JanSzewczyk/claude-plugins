@@ -51,7 +51,7 @@ const logger = createLogger({ module: "budget-actions" });
 export async function createBudgetAction(
   formData: FormData,
 ): ActionResponse<Budget> {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     return { success: false, error: "Please sign in to continue" };
   }
@@ -85,7 +85,7 @@ export async function createBudgetAction(
 Business rules go beyond schema validation. They enforce domain-specific constraints that depend on existing data or application state.
 
 ```typescript
-import { DbError } from "~/lib/firebase/errors";
+import { DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "budget-db" });
@@ -179,6 +179,7 @@ catch (error) {
 ```typescript
 // Firestore unavailable, deadline exceeded, internal errors
 catch (error) {
+  // Firestore-specific: FirebaseError check — for other DB layers, replace with your own error class
   if (error instanceof FirebaseError) {
     // "unavailable", "deadline-exceeded", "internal"
     const dbError = categorizeDbError(error, "Budget");
@@ -330,7 +331,6 @@ This example shows how validation errors and runtime errors are handled differen
 ```typescript
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createLogger } from "~/lib/logger";
@@ -363,7 +363,7 @@ export async function createBudgetAction(
   formData: FormData,
 ): ActionResponse<Budget> {
   // ── Authentication ──────────────────────────────────────────
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     logger.warn({ action: "createBudget" }, "Unauthorized access attempt");
     return { success: false, error: "Please sign in to continue" };
@@ -471,8 +471,6 @@ export async function createBudgetAction(
 "use client";
 
 import { useActionState } from "react";
-import { Button, Input, Label, Card, Select } from "@szum-tech/design-system";
-import { AlertCircle } from "lucide-react";
 import { createBudgetAction } from "../server/actions/budget-actions";
 
 export function CreateBudgetForm() {
@@ -482,91 +480,74 @@ export function CreateBudgetForm() {
   );
 
   return (
-    <Card className="p-6">
-      <form action={formAction} className="space-y-4">
-        {/*
-          General error banner - shown for:
-          - Business rule violations (no fieldErrors, but has error)
-          - Runtime errors (generic message from server)
-        */}
-        {state?.error && !state.fieldErrors && (
-          <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{state.error}</span>
-          </div>
+    <form action={formAction}>
+      {/*
+        General error banner - shown for:
+        - Business rule violations (no fieldErrors, but has error)
+        - Runtime errors (generic message from server)
+      */}
+      {state?.error && !state.fieldErrors && (
+        <div role="alert">{state.error}</div>
+      )}
+
+      {/* Name field - shows inline validation errors from Zod */}
+      <div>
+        <label htmlFor="name">Budget Name</label>
+        <input
+          id="name"
+          name="name"
+          disabled={isPending}
+          aria-invalid={!!state?.fieldErrors?.name}
+          aria-describedby={state?.fieldErrors?.name ? "name-error" : undefined}
+        />
+        {state?.fieldErrors?.name && (
+          <p id="name-error">{state.fieldErrors.name[0]}</p>
         )}
+      </div>
 
-        {/* Name field - shows inline validation errors from Zod */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Budget Name</Label>
-          <Input
-            id="name"
-            name="name"
-            disabled={isPending}
-            aria-invalid={!!state?.fieldErrors?.name}
-            aria-describedby={
-              state?.fieldErrors?.name ? "name-error" : undefined
-            }
-            className={state?.fieldErrors?.name ? "border-destructive" : ""}
-          />
-          {state?.fieldErrors?.name && (
-            <p id="name-error" className="text-sm text-destructive">
-              {state.fieldErrors.name[0]}
-            </p>
-          )}
-        </div>
+      {/* Amount field */}
+      <div>
+        <label htmlFor="amount">Amount</label>
+        <input
+          id="amount"
+          name="amount"
+          type="number"
+          step="0.01"
+          min="0"
+          disabled={isPending}
+          aria-invalid={!!state?.fieldErrors?.amount}
+          aria-describedby={state?.fieldErrors?.amount ? "amount-error" : undefined}
+        />
+        {state?.fieldErrors?.amount && (
+          <p id="amount-error">{state.fieldErrors.amount[0]}</p>
+        )}
+      </div>
 
-        {/* Amount field */}
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            disabled={isPending}
-            aria-invalid={!!state?.fieldErrors?.amount}
-            aria-describedby={
-              state?.fieldErrors?.amount ? "amount-error" : undefined
-            }
-            className={state?.fieldErrors?.amount ? "border-destructive" : ""}
-          />
-          {state?.fieldErrors?.amount && (
-            <p id="amount-error" className="text-sm text-destructive">
-              {state.fieldErrors.amount[0]}
-            </p>
-          )}
-        </div>
+      {/* Category field */}
+      <div>
+        <label htmlFor="category">Category</label>
+        <select
+          id="category"
+          name="category"
+          disabled={isPending}
+          aria-invalid={!!state?.fieldErrors?.category}
+        >
+          <option value="">Select a category</option>
+          <option value="housing">Housing</option>
+          <option value="food">Food</option>
+          <option value="transport">Transport</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="other">Other</option>
+        </select>
+        {state?.fieldErrors?.category && (
+          <p>{state.fieldErrors.category[0]}</p>
+        )}
+      </div>
 
-        {/* Category field */}
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            id="category"
-            name="category"
-            disabled={isPending}
-            aria-invalid={!!state?.fieldErrors?.category}
-          >
-            <option value="">Select a category</option>
-            <option value="housing">Housing</option>
-            <option value="food">Food</option>
-            <option value="transport">Transport</option>
-            <option value="entertainment">Entertainment</option>
-            <option value="other">Other</option>
-          </Select>
-          {state?.fieldErrors?.category && (
-            <p className="text-sm text-destructive">
-              {state.fieldErrors.category[0]}
-            </p>
-          )}
-        </div>
-
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Creating..." : "Create Budget"}
-        </Button>
-      </form>
-    </Card>
+      <button type="submit" disabled={isPending}>
+        {isPending ? "Creating..." : "Create Budget"}
+      </button>
+    </form>
   );
 }
 ```

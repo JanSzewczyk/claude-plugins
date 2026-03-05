@@ -101,7 +101,7 @@ async function withRetry<T>(
 Use this pattern in the database layer to retry only transient errors while immediately returning permanent failures:
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "budget-db" });
@@ -372,7 +372,7 @@ async function fetchWithTimeout<T>(
 export async function syncExternalData(
   resourceId: string,
 ): ActionResponse<void> {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
     return { success: false, error: "Unauthorized" };
   }
@@ -408,7 +408,7 @@ export async function syncExternalData(
 When a service fails, fall back to cached or reduced-functionality responses instead of showing errors:
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "dashboard-loader" });
@@ -455,7 +455,7 @@ export async function getDashboardSummary(
 
 // Server component that renders degraded state
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
   if (!userId) redirect("/sign-in");
 
   const summary = await getDashboardSummary(userId);
