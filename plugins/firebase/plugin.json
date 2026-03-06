@@ -1,0 +1,10 @@
+{
+  "name": "firebase",
+  "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team"
+  },
+  "agents": ["./agents/database-architect.md"],
+  "skills": "./skills/"
+}

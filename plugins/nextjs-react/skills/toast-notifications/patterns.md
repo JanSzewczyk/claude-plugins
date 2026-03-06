@@ -131,41 +131,29 @@ export async function handleAction(): RedirectAction {
 }
 ```
 
-## Pattern 6: Toast in Authentication Flows
+## Pattern 6: Toast for Auth/Access Feedback
 
-Use toasts to communicate auth state changes.
+When access is denied, use toast to explain before redirecting.
 
 ```typescript
 "use server";
 
-import { auth, signOut } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 
-export async function handleSignOut() {
-  const { userId } = await auth();
-
-  if (userId) {
-    await setToastCookie("You have been signed out", "info");
-  }
-
-  await signOut({ redirectTo: "/" });
-}
-
 export async function requireAuth(): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     await setToastCookie("Please sign in to continue", "warning");
     return redirect("/sign-in");
   }
 
-  // User is authenticated, continue...
   return redirect("/dashboard");
 }
 ```
 
-## Pattern 7: Toast in Validation Errors
+## Pattern 7: Toast for Validation Feedback
 
 Use toasts for general validation messages, fieldErrors for specific fields.
 
@@ -194,7 +182,7 @@ export async function submitForm(data: FormData): ActionResponse {
 }
 ```
 
-## Pattern 8: Toast in Multi-Step Flows
+## Pattern 8: Toast in Multi-Step Flows (guidance between steps)
 
 Use toasts to guide users through multi-step processes.
 

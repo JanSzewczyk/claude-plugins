@@ -2,7 +2,12 @@
 name: toast-notifications
 version: 1.0.0
 lastUpdated: 2026-01-18
-description: Cookie-based toast notification system for server-to-client messaging. Use with Server Actions to provide user feedback after redirects.
+description: >
+  Cookie-based toast notification system for Next.js. Use when user asks to
+  "show toast", "toast notification", "user feedback after action", "toast after
+  redirect", "success message", "error message after form submit",
+  "setToastCookie", "notify user", "flash message", "toast from server action",
+  "show notification after redirect", "display toast after delete".
 tags: [toast, notifications, server-actions, user-feedback, cookies]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
@@ -114,15 +119,15 @@ The `ToastHandler` is included in `components/providers.tsx`:
 
 ```typescript
 // components/providers.tsx
-import { Toaster } from "@szum-tech/design-system";
+// import { Toaster } from "your-toast-library"; // sonner, react-hot-toast, etc.
 import { ToastHandler } from "~/lib/toast/components/toast-handler";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <Toaster />
-      <ToastHandler />
+      <YourToaster />   {/* Your toast library's container component */}
+      <ToastHandler />  {/* Reads cookie on route change, triggers toasts */}
     </>
   );
 }

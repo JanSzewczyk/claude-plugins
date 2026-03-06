@@ -133,7 +133,6 @@ export async function createItem(data: FormData): ActionResponse<Item> {
     return { success: false, error: "Unable to create item" };
   }
 
-  await setToastCookie("Item created!", "success");
   return { success: true, data: item };
 }
 ```

@@ -83,8 +83,9 @@ export async function setToastCookie(
 "use client";
 
 import * as React from "react";
-import Cookies from "js-cookie";
-import { toast } from "@szum-tech/design-system";
+import Cookies from "js-cookie"; // npm install js-cookie @types/js-cookie
+// Adapt to your toast library (sonner, react-hot-toast, shadcn/ui toast, etc.)
+// e.g. import { toast } from "sonner";
 import { usePathname } from "next/navigation";
 import { TOAST_COOKIE_NAME } from "~/lib/toast/constants";
 import type { ToastMessage } from "~/lib/toast/types";
@@ -98,24 +99,26 @@ export function ToastHandler() {
 
     try {
       const toastData = JSON.parse(toastCookie) as ToastMessage;
+      const opts = { duration: toastData.duration };
 
+      // Call your toast library here — adapt method names as needed
       switch (toastData.type) {
         case "success":
-          toast.success(toastData.message, { duration: toastData.duration });
+          toast.success(toastData.message, opts);
           break;
         case "error":
-          toast.error(toastData.message, { duration: toastData.duration });
+          toast.error(toastData.message, opts);
           break;
         case "warning":
-          toast.warning(toastData.message, { duration: toastData.duration });
+          toast.warning(toastData.message, opts);
           break;
         case "info":
-          toast.info(toastData.message, { duration: toastData.duration });
+          toast.info(toastData.message, opts);
           break;
         default:
-          toast(toastData.message, { duration: toastData.duration });
+          toast(toastData.message, opts);
       }
-    } catch (error) {
+    } catch {
       console.error("Failed to parse toast cookie");
     } finally {
       Cookies.remove(TOAST_COOKIE_NAME, { path: "/" });
@@ -130,14 +133,14 @@ export function ToastHandler() {
 
 ```typescript
 // components/providers.tsx
-import { Toaster } from "@szum-tech/design-system";
+// import { Toaster } from "your-toast-library"; // sonner, react-hot-toast, etc.
 import { ToastHandler } from "~/lib/toast/components/toast-handler";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      <Toaster />        {/* Renders toast container */}
+      <YourToaster />    {/* Your toast library's container */}
       <ToastHandler />   {/* Reads cookies, triggers toasts */}
     </>
   );
@@ -209,7 +212,7 @@ Short max-age ensures stale toasts don't appear unexpectedly.
 - Works with redirect()
 - No URL pollution
 - Auto-cleanup with maxAge
-- Design system integration
+- Works with any toast library
 
 **Cons:**
 

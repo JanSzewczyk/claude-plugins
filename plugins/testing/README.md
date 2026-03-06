@@ -20,6 +20,7 @@ Testing strategies, Storybook interaction tests, Playwright E2E, API testing, ac
 | **api-test**            | `/api-test`            | Testing Next.js Route Handlers with Playwright — real HTTP requests, response validation                                        |
 | **accessibility-audit** | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                           |
 | **playwright-cli**      | `/playwright-cli`      | Browser automation — web testing, screenshots, form filling, request mocking, tracing, video recording                          |
+| **unit-testing**        | `/unit-testing`        | Vitest unit tests for TypeScript — mocking, async testing, parameterized tests, server action testing, coverage                 |
 
 ## Installation
 

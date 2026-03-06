@@ -6,7 +6,6 @@
 // features/budget/server/actions/create-budget.ts
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
@@ -14,7 +13,7 @@ import { createBudgetInDb } from "../db/budgets";
 import type { RedirectAction } from "~/lib/action-types";
 
 export async function createBudget(formData: FormData): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     await setToastCookie("Please sign in to continue", "error");
@@ -51,7 +50,6 @@ export async function createBudget(formData: FormData): RedirectAction {
 // features/budget/server/actions/delete-budget.ts
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
@@ -59,7 +57,7 @@ import { deleteBudgetInDb, getBudgetById } from "../db/budgets";
 import type { RedirectAction } from "~/lib/action-types";
 
 export async function deleteBudget(budgetId: string): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     await setToastCookie("Unauthorized", "error");
@@ -95,41 +93,29 @@ export async function deleteBudget(budgetId: string): RedirectAction {
 "use client";
 
 import { useActionState } from "react";
-import { Button, Input, Label } from "@szum-tech/design-system";
 import { updateProfile } from "../server/actions/update-profile";
 
 export function ProfileForm({ user }: { user: User }) {
   const [state, formAction, isPending] = useActionState(updateProfile, null);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction}>
       <div>
-        <Label htmlFor="name">Name</Label>
-        <Input
-          id="name"
-          name="name"
-          defaultValue={user.name}
-          disabled={isPending}
-        />
+        <label htmlFor="name">Name</label>
+        <input id="name" name="name" defaultValue={user.name} disabled={isPending} />
         {state?.fieldErrors?.name && (
-          <p className="text-red-500 text-sm">{state.fieldErrors.name[0]}</p>
+          <p>{state.fieldErrors.name[0]}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          defaultValue={user.email}
-          disabled={isPending}
-        />
+        <label htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" defaultValue={user.email} disabled={isPending} />
       </div>
 
-      <Button type="submit" disabled={isPending}>
+      <button type="submit" disabled={isPending}>
         {isPending ? "Saving..." : "Save Changes"}
-      </Button>
+      </button>
     </form>
   );
 }
@@ -137,7 +123,6 @@ export function ProfileForm({ user }: { user: User }) {
 // features/settings/server/actions/update-profile.ts
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import { updateUserProfile } from "../db/users";
@@ -147,7 +132,7 @@ export async function updateProfile(
   _prevState: unknown,
   formData: FormData
 ): ActionResponse {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     await setToastCookie("Please sign in", "error");
@@ -187,7 +172,6 @@ export async function updateProfile(
 // features/onboarding/server/actions/complete-step.ts
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import { updateOnboarding } from "../db/onboarding";
@@ -195,7 +179,7 @@ import { OnboardingSteps } from "../types/onboarding";
 import type { RedirectAction } from "~/lib/action-types";
 
 export async function completeWelcomeStep(): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     return redirect("/sign-in");
@@ -214,7 +198,7 @@ export async function completeWelcomeStep(): RedirectAction {
 }
 
 export async function completeOnboarding(): RedirectAction {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
     return redirect("/sign-in");
@@ -231,26 +215,6 @@ export async function completeOnboarding(): RedirectAction {
   // Welcome message
   await setToastCookie("Welcome! Your account is ready.", "success", 8000);
   return redirect("/dashboard");
-}
-```
-
-## Authentication Actions with Toast
-
-```typescript
-// features/auth/server/actions/sign-out.ts
-"use server";
-
-import { auth, signOut } from "@clerk/nextjs/server";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-export async function signOutAction() {
-  const { userId } = await auth();
-
-  if (userId) {
-    await setToastCookie("You have been signed out", "info");
-  }
-
-  await signOut({ redirectTo: "/" });
 }
 ```
 

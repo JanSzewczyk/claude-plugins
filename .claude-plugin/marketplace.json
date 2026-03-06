@@ -22,14 +22,9 @@
       "source": "./plugins/code-quality"
     },
     {
-      "name": "firebase-auth",
-      "description": "Firebase Firestore, database architecture, Clerk authentication proxy",
-      "source": "./plugins/firebase-auth"
-    },
-    {
-      "name": "dev-experience",
-      "description": "Statusline (context/cost/token tracking), safety hooks, auto-formatting",
-      "source": "./plugins/dev-experience"
+      "name": "firebase",
+      "description": "Firebase Firestore database patterns, data migrations, and database architecture",
+      "source": "./plugins/firebase"
     }
   ]
 }

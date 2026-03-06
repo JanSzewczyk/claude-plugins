@@ -13,15 +13,17 @@ React & Next.js full-stack development — agents and skills for building modern
 
 ### Skills
 
-| Skill                   | Invoke with            | Description                                                                                               |
-| ----------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| **react-19-compiler**   | `/react-19-compiler`   | React 19 hooks, React Compiler optimization, memoization decisions                                        |
-| **server-actions**      | `/server-actions`      | Next.js Server Actions — form handling, Zod validation, React Hook Form integration, ActionResponse types |
-| **tailwind-css-4**      | `/tailwind-css-4`      | Tailwind CSS v4 — CSS-first config, `@theme` directive, design system integration, responsive patterns    |
-| **t3-env-validation**   | `/t3-env-validation`   | Type-safe env vars with `@t3-oss/env-nextjs` and Zod                                                      |
-| **structured-logging**  | `/structured-logging`  | Pino structured logging — context enrichment, log levels, dev pretty-printing                             |
-| **toast-notifications** | `/toast-notifications` | Cookie-based toast notification system for Server Actions                                                 |
-| **error-handling**      | `/error-handling`      | DbError patterns, error boundaries, standardized error responses                                          |
+| Skill                       | Invoke with                | Description                                                                                                             |
+| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **react-19-compiler**       | `/react-19-compiler`       | React 19 hooks, React Compiler optimization, memoization decisions                                                      |
+| **server-actions**          | `/server-actions`          | Next.js Server Actions — form handling, Zod validation, React Hook Form integration, ActionResponse types               |
+| **tailwind-css-4**          | `/tailwind-css-4`          | Tailwind CSS v4 — CSS-first config, `@theme` directive, design system integration, responsive patterns                  |
+| **t3-env-validation**       | `/t3-env-validation`       | Type-safe env vars with `@t3-oss/env-nextjs` and Zod                                                                    |
+| **structured-logging**      | `/structured-logging`      | Pino structured logging — context enrichment, log levels, dev pretty-printing                                           |
+| **toast-notifications**     | `/toast-notifications`     | Cookie-based toast notification system for Server Actions                                                               |
+| **error-handling**          | `/error-handling`          | DbError patterns, error boundaries, standardized error responses                                                        |
+| **design-system-component** | `/design-system-component` | File structure, types, styles (CVA), context, store, barrel exports, and Storybook for React + TS + Tailwind components |
+| **szum-tech-design-system** | `/szum-tech-design-system` | Complete reference for `@szum-tech/design-system` — color tokens, typography, all components, animations, icons         |
 
 ## Installation
 
@@ -35,13 +37,15 @@ cp plugins/nextjs-react/agents/nextjs-backend-engineer.md your-project/.claude/a
 ### 2. Copy skills
 
 ```bash
-cp -r plugins/nextjs-react/skills/react-19-compiler     your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/server-actions         your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/tailwind-css-4         your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/t3-env-validation      your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/structured-logging     your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/toast-notifications    your-project/.claude/skills/
-cp -r plugins/nextjs-react/skills/error-handling         your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/react-19-compiler          your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/server-actions              your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/tailwind-css-4              your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/t3-env-validation           your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/structured-logging          your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/toast-notifications         your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/error-handling              your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/design-system-component     your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/szum-tech-design-system     your-project/.claude/skills/
 ```
 
 Or copy everything at once:
@@ -100,4 +104,4 @@ ls your-project/.claude/skills/server-actions/SKILL.md
 
 - [**testing**](../testing/) — Storybook tests, Playwright E2E, accessibility audits
 - [**code-quality**](../code-quality/) — Code review, performance analysis
-- [**dev-experience**](../dev-experience/) — Statusline, safety hooks
+- [**firebase**](../firebase/) — Firebase Firestore patterns and database architecture

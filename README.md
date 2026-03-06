@@ -4,13 +4,12 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 
 ## Available Plugins
 
-| Plugin                                          | What's inside                                                               | Install                                     |
-| ----------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------- |
-| [**nextjs-react**](./plugins/nextjs-react/)     | 2 agents + 7 skills for React 19 & Next.js full-stack development           | [Guide](./plugins/nextjs-react/README.md)   |
-| [**testing**](./plugins/testing/)               | 2 agents + 5 skills for Storybook, Playwright, accessibility, test strategy | [Guide](./plugins/testing/README.md)        |
-| [**code-quality**](./plugins/code-quality/)     | 3 agents + 1 skill for code review, performance, dependency management      | [Guide](./plugins/code-quality/README.md)   |
-| [**firebase-auth**](./plugins/firebase-auth/)   | 1 agent + 3 skills for Firebase Firestore, migrations, Clerk auth           | [Guide](./plugins/firebase-auth/README.md)  |
-| [**dev-experience**](./plugins/dev-experience/) | Statusline (cost/tokens/context tracking), safety hooks, auto-formatting    | [Guide](./plugins/dev-experience/README.md) |
+| Plugin                                      | What's inside                                                                   | Install                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------- |
+| [**nextjs-react**](./plugins/nextjs-react/) | 2 agents + 9 skills for React 19 & Next.js full-stack development               | [Guide](./plugins/nextjs-react/README.md) |
+| [**testing**](./plugins/testing/)           | 2 agents + 6 skills for Storybook, Playwright, accessibility, test strategy     | [Guide](./plugins/testing/README.md)      |
+| [**code-quality**](./plugins/code-quality/) | 3 agents + 1 skill for code review, performance, dependency management          | [Guide](./plugins/code-quality/README.md) |
+| [**firebase**](./plugins/firebase/)         | 1 agent + 2 skills for Firebase Firestore, database architecture and migrations | [Guide](./plugins/firebase/README.md)     |
 
 ## Installation
 
@@ -28,8 +27,7 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 /plugin install testing@szum-tech
 /plugin install nextjs-react@szum-tech
 /plugin install code-quality@szum-tech
-/plugin install firebase-auth@szum-tech
-/plugin install dev-experience@szum-tech
+/plugin install firebase@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -59,11 +57,11 @@ This opens a tabbed interface (Discover, Installed, Marketplaces) where you can 
 
 Plugins can be installed at different scopes:
 
-| Scope       | Applies to              | Command                                                    |
-| ----------- | ----------------------- | ---------------------------------------------------------- |
-| **user**    | All your projects       | `/plugin install testing@szum-tech --scope user` (default) |
-| **project** | Current project (team)  | `/plugin install testing@szum-tech --scope project`        |
-| **local**   | Current project (local) | `/plugin install testing@szum-tech --scope local`          |
+| Scope       | Applies to              | Command                                                         |
+| ----------- | ----------------------- | --------------------------------------------------------------- |
+| **user**    | All your projects       | `/plugin install nextjs-react@szum-tech --scope user` (default) |
+| **project** | Current project (team)  | `/plugin install nextjs-react@szum-tech --scope project`        |
+| **local**   | Current project (local) | `/plugin install nextjs-react@szum-tech --scope local`          |
 
 #### Pre-configure for your team
 
@@ -102,12 +100,6 @@ cp -r claude-plugins/plugins/<plugin-name>/agents/*.md  your-project/.claude/age
 cp -r claude-plugins/plugins/<plugin-name>/skills/*      your-project/.claude/skills/
 ```
 
-Or install the dev-experience plugin with the automated script:
-
-```bash
-bash claude-plugins/plugins/dev-experience/install.sh --all
-```
-
 #### 3. Verify installation
 
 ```bash
@@ -124,18 +116,15 @@ What are you doing?
 │
 ├── Building UI / styling / components
 │   └── Agent: frontend-expert (nextjs-react)
-│       Skills: react-19-compiler, tailwind-css-4
+│       Skills: react-19-compiler, tailwind-css-4, design-system-component, szum-tech-design-system
 │
 ├── Server actions / API routes / database ops
 │   └── Agent: nextjs-backend-engineer (nextjs-react)
 │       Skills: server-actions, t3-env-validation, structured-logging, error-handling, toast-notifications
 │
 ├── Database design / data modeling / migrations
-│   └── Agent: database-architect (firebase-auth)
+│   └── Agent: database-architect (firebase)
 │       Skills: firebase-firestore, db-migration
-│
-├── Authentication / Clerk / session management
-│   └── Skill: clerk-auth-proxy (firebase-auth)
 │
 ├── Writing tests
 │   ├── Planning test strategy → Agent: testing-strategist (testing)
@@ -152,33 +141,31 @@ What are you doing?
 │   └── Agent: performance-analyzer (code-quality)
 │       Skill: performance-optimization
 │
-├── Updating dependencies
-│   └── Agent: library-updater (code-quality)
-│
-└── Developer experience / safety
-    └── Plugin: dev-experience (statusline, hooks)
+└── Updating dependencies
+    └── Agent: library-updater (code-quality)
 ```
 
 ### Quick Reference
 
-| I want to...               | Use this                         |
-| -------------------------- | -------------------------------- |
-| Build a React component    | `frontend-expert` agent          |
-| Create a server action     | `nextjs-backend-engineer` agent  |
-| Write Storybook tests      | `storybook-test-architect` agent |
-| Plan which tests to write  | `testing-strategist` agent       |
-| Write unit tests           | `/unit-testing` skill            |
-| Review code quality        | `code-reviewer` agent            |
-| Optimize performance       | `performance-analyzer` agent     |
-| Run an accessibility audit | `/accessibility-audit` skill     |
-| Design a database schema   | `database-architect` agent       |
-| Write a migration script   | `/db-migration` skill            |
-| Set up Clerk auth          | `/clerk-auth-proxy` skill        |
-| Update npm packages        | `library-updater` agent          |
-| Add environment variables  | `/t3-env-validation` skill       |
-| Add logging to my code     | `/structured-logging` skill      |
-| Handle errors properly     | `/error-handling` skill          |
-| Test an API endpoint       | `/api-test` skill                |
+| I want to...                        | Use this                         |
+| ----------------------------------- | -------------------------------- |
+| Build a React component             | `frontend-expert` agent          |
+| Build with @szum-tech/design-system | `/szum-tech-design-system` skill |
+| Create a design system component    | `/design-system-component` skill |
+| Create a server action              | `nextjs-backend-engineer` agent  |
+| Write Storybook tests               | `storybook-test-architect` agent |
+| Plan which tests to write           | `testing-strategist` agent       |
+| Write unit tests                    | `/unit-testing` skill            |
+| Review code quality                 | `code-reviewer` agent            |
+| Optimize performance                | `performance-analyzer` agent     |
+| Run an accessibility audit          | `/accessibility-audit` skill     |
+| Design a database schema            | `database-architect` agent       |
+| Write a migration script            | `/db-migration` skill            |
+| Update npm packages                 | `library-updater` agent          |
+| Add environment variables           | `/t3-env-validation` skill       |
+| Add logging to my code              | `/structured-logging` skill      |
+| Handle errors properly              | `/error-handling` skill          |
+| Test an API endpoint                | `/api-test` skill                |
 
 ## How Plugins Work
 
@@ -226,23 +213,17 @@ claude-plugins/
       plugin.json
       agents/
       skills/
-    firebase-auth/                  # Firebase & Clerk auth
+    firebase/                       # Firebase & database architecture
       plugin.json
       agents/
       skills/
-    dev-experience/                 # Statusline & hooks
-      plugin.json
-      install.sh
-      statusline/
-      hooks/
 ```
 
 ## Compatibility
 
 - **Claude Code** CLI
 - Agents use `model: sonnet` by default (configurable in frontmatter)
-- Skills are framework-aware — most target **Next.js 16+**, **React 19+**, **TypeScript 5.9+**
-- dev-experience statusline requires **bash** (jq optional but recommended)
+- Skills are framework-aware — most target **Next.js 15+**, **React 19+**, **TypeScript 5.7+**
 
 ## License
 
