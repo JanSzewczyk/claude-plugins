@@ -66,15 +66,15 @@ The tuple pattern `[error, data]` provides explicit error handling:
 // Database function
 export async function getUserById(
   id: string,
-): Promise<[DbError | null, User | null]> {
+): Promise<[ServiceError | null, User | null]> {
   try {
     const user = await db.collection("users").doc(id).get();
     if (!user.exists) {
-      return [DbError.notFound("User"), null];
+      return [ServiceError.notFound("User"), null];
     }
     return [null, transformUser(user)];
   } catch (error) {
-    return [categorizeDbError(error, "User"), null];
+    return [categorizeServiceError(error, "User"), null];
   }
 }
 
@@ -154,24 +154,24 @@ return { success: false, error: "Service temporarily unavailable" };
 // CREATE - returns created entity
 async function createUser(
   data: CreateUserDto,
-): Promise<[DbError | null, User | null]>;
+): Promise<[ServiceError | null, User | null]>;
 
 // READ - returns entity or null
-async function getUserById(id: string): Promise<[DbError | null, User | null]>;
+async function getUserById(id: string): Promise<[ServiceError | null, User | null]>;
 
 // UPDATE - returns updated entity
 async function updateUser(
   id: string,
   data: UpdateUserDto,
-): Promise<[DbError | null, User | null]>;
+): Promise<[ServiceError | null, User | null]>;
 
 // DELETE - returns void (null for data)
-async function deleteUser(id: string): Promise<[DbError | null, null]>;
+async function deleteUser(id: string): Promise<[ServiceError | null, null]>;
 
 // LIST - returns array
 async function listUsers(
   filters?: UserFilters,
-): Promise<[DbError | null, User[] | null]>;
+): Promise<[ServiceError | null, User[] | null]>;
 ```
 
 ### Input Validation in Database Layer
@@ -179,10 +179,10 @@ async function listUsers(
 ```typescript
 export async function getUserById(
   userId: string,
-): Promise<[DbError | null, User | null]> {
+): Promise<[ServiceError | null, User | null]> {
   // Validate input before database call
   if (!userId?.trim()) {
-    const error = DbError.validation("Invalid userId provided");
+    const error = ServiceError.validation("Invalid userId provided");
     logger.warn({ userId, errorCode: error.code }, "Invalid userId");
     return [error, null];
   }
@@ -190,7 +190,7 @@ export async function getUserById(
   try {
     // ... database operation
   } catch (error) {
-    return [categorizeDbError(error, "User"), null];
+    return [categorizeServiceError(error, "User"), null];
   }
 }
 ```
@@ -202,7 +202,7 @@ export async function transferFunds(
   fromAccountId: string,
   toAccountId: string,
   amount: number,
-): Promise<[DbError | null, TransferResult | null]> {
+): Promise<[ServiceError | null, TransferResult | null]> {
   const batch = db.batch();
 
   try {
@@ -213,12 +213,12 @@ export async function transferFunds(
     ]);
 
     if (!fromRef.exists || !toRef.exists) {
-      return [DbError.notFound("Account"), null];
+      return [ServiceError.notFound("Account"), null];
     }
 
     const fromBalance = fromRef.data()!.balance;
     if (fromBalance < amount) {
-      return [DbError.validation("Insufficient funds"), null];
+      return [ServiceError.validation("Insufficient funds"), null];
     }
 
     // Batch updates
@@ -229,7 +229,7 @@ export async function transferFunds(
 
     return [null, { fromAccountId, toAccountId, amount }];
   } catch (error) {
-    return [categorizeDbError(error, "Transfer"), null];
+    return [categorizeServiceError(error, "Transfer"), null];
   }
 }
 ```

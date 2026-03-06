@@ -10,9 +10,9 @@ Best practices, common patterns, and anti-patterns for Firestore database operat
 // ✅ Good - Validate before any database operation
 export async function getById(
   id: string,
-): Promise<[null, Resource] | [DbError, null]> {
+): Promise<[null, Resource] | [ServiceError, null]> {
   if (!id?.trim()) {
-    return [DbError.validation("Invalid id provided", RESOURCE), null];
+    return [ServiceError.validation("Invalid id provided", RESOURCE), null];
   }
   // ... proceed with query
 }
@@ -29,12 +29,12 @@ export async function getById(id: string) {
 // ✅ Good - Explicit error handling with tuples
 export async function getById(
   id: string,
-): Promise<[null, Resource] | [DbError, null]> {
+): Promise<[null, Resource] | [ServiceError, null]> {
   try {
     // ...
     return [null, resource];
   } catch (error) {
-    return [categorizeDbError(error, RESOURCE), null];
+    return [categorizeServiceError(error, RESOURCE), null];
   }
 }
 
@@ -56,12 +56,12 @@ export async function getById(id: string): Promise<Resource> {
 const doc = await db.collection(COLLECTION).doc(id).get();
 
 if (!doc.exists) {
-  return [DbError.notFound(RESOURCE), null];
+  return [ServiceError.notFound(RESOURCE), null];
 }
 
 const data = doc.data();
 if (!data) {
-  return [DbError.dataCorruption(RESOURCE), null];
+  return [ServiceError.dataCorruption(RESOURCE), null];
 }
 
 return [null, transform(doc.id, data)];
@@ -76,14 +76,14 @@ return transform(doc.id, doc.data()!); // May crash
 ```typescript
 // ✅ Good - Structured logging with context
 if (!doc.exists) {
-  const error = DbError.notFound(RESOURCE);
+  const error = ServiceError.notFound(RESOURCE);
   logger.warn({ resourceId: id, errorCode: error.code }, "Resource not found");
   return [error, null];
 }
 
 // ❌ Bad - No logging
 if (!doc.exists) {
-  return [DbError.notFound(RESOURCE), null]; // Silent failure
+  return [ServiceError.notFound(RESOURCE), null]; // Silent failure
 }
 ```
 
@@ -253,9 +253,9 @@ try {
 try {
   await db.collection("items").doc(id).delete();
 } catch (error) {
-  const dbError = categorizeDbError(error, RESOURCE);
-  logger.error({ id, errorCode: dbError.code }, "Delete failed");
-  return [dbError, null];
+  const serviceError = categorizeServiceError(error, RESOURCE);
+  logger.error({ id, errorCode: serviceError.code }, "Delete failed");
+  return [serviceError, null];
 }
 ```
 
@@ -416,7 +416,7 @@ export async function getPage(offset: number) {
 export async function getBudgetForUser(
   budgetId: string,
   userId: string,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   const [error, budget] = await getBudgetById(budgetId);
 
   if (error) return [error, null];
@@ -424,7 +424,7 @@ export async function getBudgetForUser(
   // Verify ownership
   if (budget.userId !== userId) {
     logger.warn({ budgetId, userId }, "Unauthorized access attempt");
-    return [DbError.permissionDenied(RESOURCE), null];
+    return [ServiceError.permissionDenied(RESOURCE), null];
   }
 
   return [null, budget];

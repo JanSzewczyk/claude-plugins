@@ -186,7 +186,7 @@ Refer to the following skills for detailed patterns and code examples:
 
 - **`react-19-compiler` skill** — React Compiler optimization, unnecessary memoization, `useActionState`, `useFormStatus` in child components, Server Components by default
 - **`server-actions` skill** — `ActionResponse<T>` / `RedirectAction` types, Zod validation, `fieldErrors`, toast notifications
-- **`firebase-firestore` skill** — Tuple error pattern `[DbError | null, Data | null]`, type lifecycle (Base → DB → Application → DTOs), structured logging
+- **`firebase-firestore` skill** — Tuple error pattern `[ServiceError | null, Data | null]`, type lifecycle (Base → DB → Application → DTOs), structured logging
 - **`clerk-auth-proxy` skill** — `proxy.ts` not `middleware.ts`, server-side `auth()`, session claims
 
 **Quick validation checklist:**

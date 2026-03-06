@@ -862,7 +862,7 @@ export async function uploadFile(
   }
 
   // 6. Create database record
-  const [dbError, fileRecord] = await createFileRecord({
+  const [serviceError, fileRecord] = await createFileRecord({
     userId,
     fileName: file.name,
     fileType: file.type,
@@ -870,9 +870,9 @@ export async function uploadFile(
     url: storageUrl,
   });
 
-  if (dbError) {
+  if (serviceError) {
     logger.error(
-      { userId, storageUrl, error: dbError },
+      { userId, storageUrl, error: serviceError },
       "Failed to create file record",
     );
     return { success: false, error: "Failed to save file record" };

@@ -129,24 +129,24 @@ logger.info(`User ${userId} authenticated`);
 ### Error Logging
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
 
 try {
   await updateUser(userId, data);
 } catch (error) {
-  const dbError = categorizeDbError(error, "User");
+  const serviceError = categorizeServiceError(error, "User");
 
   logger.error(
     {
       userId,
-      errorCode: dbError.code,
-      isRetryable: dbError.isRetryable,
+      errorCode: serviceError.code,
+      isRetryable: serviceError.isRetryable,
       operation: "updateUser",
     },
     "Failed to update user",
   );
 
-  return [dbError, null];
+  return [serviceError, null];
 }
 ```
 
@@ -163,22 +163,22 @@ export async function getUserById(id: string) {
 
     if (!user.exists) {
       logger.warn({ userId: id }, "User not found");
-      return [DbError.notFound("User"), null];
+      return [ServiceError.notFound("User"), null];
     }
 
     logger.info({ userId: id }, "User fetched successfully");
     return [null, transformUser(user)];
   } catch (error) {
-    const dbError = categorizeDbError(error, "User");
+    const serviceError = categorizeServiceError(error, "User");
     logger.error(
       {
         userId: id,
-        errorCode: dbError.code,
-        isRetryable: dbError.isRetryable,
+        errorCode: serviceError.code,
+        isRetryable: serviceError.isRetryable,
       },
       "Database error fetching user",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 ```

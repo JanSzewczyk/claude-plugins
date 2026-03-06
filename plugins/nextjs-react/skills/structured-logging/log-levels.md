@@ -49,8 +49,8 @@ process.on("uncaughtException", (error) => {
 logger.error(
   {
     userId,
-    errorCode: dbError.code,
-    isRetryable: dbError.isRetryable,
+    errorCode: serviceError.code,
+    isRetryable: serviceError.isRetryable,
     operation: "createUser",
   },
   "Failed to create user",

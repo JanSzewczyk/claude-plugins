@@ -7,17 +7,17 @@
 Always return `[error, data]` tuple from database functions.
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your service layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "user-db" });
 
 export async function getUserById(
   userId: string,
-): Promise<[null, User] | [DbError, null]> {
+): Promise<[null, User] | [ServiceError, null]> {
   // 1. Input validation
   if (!userId?.trim()) {
-    const error = DbError.validation("Invalid userId provided");
+    const error = ServiceError.validation("Invalid userId provided");
     logger.warn({ userId, errorCode: error.code }, "Invalid input");
     return [error, null];
   }
@@ -28,7 +28,7 @@ export async function getUserById(
 
     // 3. Not found check
     if (!doc.exists) {
-      const error = DbError.notFound("User");
+      const error = ServiceError.notFound("User");
       logger.warn({ userId, errorCode: error.code }, "User not found");
       return [error, null];
     }
@@ -36,7 +36,7 @@ export async function getUserById(
     // 4. Data integrity check
     const data = doc.data();
     if (!data) {
-      const error = DbError.dataCorruption("User");
+      const error = ServiceError.dataCorruption("User");
       logger.error({ userId, errorCode: error.code }, "Data undefined");
       return [error, null];
     }
@@ -45,16 +45,16 @@ export async function getUserById(
     return [null, transformToUser(doc.id, data)];
   } catch (error) {
     // 6. Categorize unexpected errors
-    const dbError = categorizeDbError(error, "User");
+    const serviceError = categorizeServiceError(error, "User");
     logger.error(
       {
         userId,
-        errorCode: dbError.code,
-        isRetryable: dbError.isRetryable,
+        errorCode: serviceError.code,
+        isRetryable: serviceError.isRetryable,
       },
       "Database error",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 ```
@@ -62,21 +62,25 @@ export async function getUserById(
 ### Error Categorization
 
 ```typescript
-// lib/db/errors.ts — generic structure (full Firestore implementation: see firebase-firestore/errors.md)
-export function categorizeDbError(error: unknown, resource: string): DbError {
-  // Each DB layer maps its own error types to DbError.
-  // The implementation checks DB-specific error codes/classes and returns
-  // the appropriate DbError with correct boolean flags set.
+// lib/services/errors.ts — generic structure (full Firestore implementation: see firebase-firestore/errors.md)
+export function categorizeServiceError(
+  error: unknown,
+  resource: string,
+): ServiceError {
+  // Each service layer maps its own error types to ServiceError.
+  // The implementation checks service-specific error codes/classes and returns
+  // the appropriate ServiceError with correct boolean flags set.
   if (error && typeof error === "object" && "code" in error) {
     const { code } = error as { code: string };
-    if (code === "not-found") return DbError.notFound(resource);
-    if (code === "already-exists") return DbError.alreadyExists(resource);
+    if (code === "not-found") return ServiceError.notFound(resource);
+    if (code === "already-exists") return ServiceError.alreadyExists(resource);
     if (code === "permission-denied" || code === "unauthenticated")
-      return DbError.permissionDenied(resource);
+      return ServiceError.permissionDenied(resource);
     // Add DB-layer-specific retryable codes here (e.g. "unavailable", "deadline-exceeded")
   }
-  if (error instanceof Error) return DbError.internal(resource, error.message);
-  return DbError.internal(resource);
+  if (error instanceof Error)
+    return ServiceError.internal(resource, error.message);
+  return ServiceError.internal(resource);
 }
 ```
 

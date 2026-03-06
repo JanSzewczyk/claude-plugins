@@ -78,37 +78,37 @@ export async function serverAction() {
 ### Database Errors
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "user-db" });
 
 export async function getUserById(
   id: string,
-): Promise<[DbError | null, User | null]> {
+): Promise<[ServiceError | null, User | null]> {
   try {
     const doc = await db.collection("users").doc(id).get();
 
     if (!doc.exists) {
       logger.warn({ userId: id }, "User not found");
-      return [DbError.notFound("User"), null];
+      return [ServiceError.notFound("User"), null];
     }
 
     return [null, transformUser(doc)];
   } catch (error) {
-    const dbError = categorizeDbError(error, "User");
+    const serviceError = categorizeServiceError(error, "User");
 
     logger.error(
       {
         userId: id,
-        errorCode: dbError.code,
-        isRetryable: dbError.isRetryable,
-        isNotFound: dbError.isNotFound,
+        errorCode: serviceError.code,
+        isRetryable: serviceError.isRetryable,
+        isNotFound: serviceError.isNotFound,
       },
       "Database error",
     );
 
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 ```

@@ -4,14 +4,14 @@
 
 > **Note — DB Layer Examples:** The database layer examples below use Firestore-specific imports
 > (`~/lib/firebase/errors`, `~/lib/firebase`, `firebase-admin/firestore`). For a different DB layer,
-> replace these with your own implementation of the DbError contract. See the `firebase-firestore`
+> replace these with your own implementation of the ServiceError contract. See the `firebase-firestore`
 > skill for the complete Firestore implementation.
 
 ### Database Layer
 
 ```typescript
 // features/budget/server/db/budgets.ts
-import { categorizeDbError, DbError } from "~/lib/db/errors"; // ~/lib/firebase/errors for Firestore
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // ~/lib/firebase/errors for Firestore
 import { createLogger } from "~/lib/logger";
 import { db } from "~/lib/db"; // ~/lib/firebase for Firestore
 import { FieldValue } from "firebase-admin/firestore"; // Firestore-specific
@@ -25,9 +25,9 @@ const RESOURCE_NAME = "Budget";
 export async function createBudget(
   userId: string,
   data: CreateBudgetDto,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   if (!userId?.trim()) {
-    const error = DbError.validation("Invalid userId");
+    const error = ServiceError.validation("Invalid userId");
     logger.warn({ errorCode: error.code }, "Create budget: invalid userId");
     return [error, null];
   }
@@ -48,16 +48,16 @@ export async function createBudget(
     logger.info({ userId, budgetId: budget.id }, "Budget created");
     return [null, budget];
   } catch (error) {
-    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    const serviceError = categorizeServiceError(error, RESOURCE_NAME);
     logger.error(
       {
         userId,
-        errorCode: dbError.code,
-        isRetryable: dbError.isRetryable,
+        errorCode: serviceError.code,
+        isRetryable: serviceError.isRetryable,
       },
       "Failed to create budget",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 
@@ -65,9 +65,9 @@ export async function createBudget(
 export async function getBudgetById(
   userId: string,
   budgetId: string,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   if (!userId?.trim() || !budgetId?.trim()) {
-    const error = DbError.validation("Invalid userId or budgetId");
+    const error = ServiceError.validation("Invalid userId or budgetId");
     logger.warn({ userId, budgetId, errorCode: error.code }, "Invalid input");
     return [error, null];
   }
@@ -78,7 +78,7 @@ export async function getBudgetById(
     const doc = await db.collection(COLLECTION_NAME).doc(budgetId).get();
 
     if (!doc.exists) {
-      const error = DbError.notFound(RESOURCE_NAME);
+      const error = ServiceError.notFound(RESOURCE_NAME);
       logger.warn(
         { userId, budgetId, errorCode: error.code },
         "Budget not found",
@@ -90,24 +90,24 @@ export async function getBudgetById(
 
     // Check ownership
     if (data.userId !== userId) {
-      const error = DbError.permissionDenied("Budget");
+      const error = ServiceError.permissionDenied("Budget");
       logger.warn({ userId, budgetId, ownerId: data.userId }, "Access denied");
       return [error, null];
     }
 
     return [null, transformToBudget(doc.id, data)];
   } catch (error) {
-    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    const serviceError = categorizeServiceError(error, RESOURCE_NAME);
     logger.error(
       {
         userId,
         budgetId,
-        errorCode: dbError.code,
-        isRetryable: dbError.isRetryable,
+        errorCode: serviceError.code,
+        isRetryable: serviceError.isRetryable,
       },
       "Failed to fetch budget",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 
@@ -116,7 +116,7 @@ export async function updateBudget(
   userId: string,
   budgetId: string,
   data: UpdateBudgetDto,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   // First verify ownership
   const [existsError, existing] = await getBudgetById(userId, budgetId);
   if (existsError) {
@@ -141,16 +141,16 @@ export async function updateBudget(
     logger.info({ userId, budgetId }, "Budget updated");
     return [null, budget];
   } catch (error) {
-    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    const serviceError = categorizeServiceError(error, RESOURCE_NAME);
     logger.error(
       {
         userId,
         budgetId,
-        errorCode: dbError.code,
+        errorCode: serviceError.code,
       },
       "Failed to update budget",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 
@@ -158,7 +158,7 @@ export async function updateBudget(
 export async function deleteBudget(
   userId: string,
   budgetId: string,
-): Promise<[null, void] | [DbError, null]> {
+): Promise<[null, void] | [ServiceError, null]> {
   // Verify ownership first
   const [existsError] = await getBudgetById(userId, budgetId);
   if (existsError) {
@@ -172,16 +172,16 @@ export async function deleteBudget(
     logger.info({ userId, budgetId }, "Budget deleted");
     return [null, undefined];
   } catch (error) {
-    const dbError = categorizeDbError(error, RESOURCE_NAME);
+    const serviceError = categorizeServiceError(error, RESOURCE_NAME);
     logger.error(
       {
         userId,
         budgetId,
-        errorCode: dbError.code,
+        errorCode: serviceError.code,
       },
       "Failed to delete budget",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 ```

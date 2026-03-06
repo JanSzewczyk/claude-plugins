@@ -6,19 +6,19 @@
 
 These errors are temporary and may succeed on a subsequent attempt:
 
-| Error Type             | DbError Property    | Example                                       |
-| ---------------------- | ------------------- | --------------------------------------------- |
-| Network failure        | `isRetryable: true` | Connection reset, DNS resolution failure      |
-| Timeout                | `isRetryable: true` | `deadline-exceeded`, request took too long    |
-| Rate limit (429)       | `isRetryable: true` | Too many requests to API or database          |
-| Service unavailable    | `isRetryable: true` | Firestore `unavailable`, third-party API down |
-| Temporary server error | `isRetryable: true` | 502/503/504 from upstream services            |
+| Error Type             | ServiceError Property | Example                                       |
+| ---------------------- | --------------------- | --------------------------------------------- |
+| Network failure        | `isRetryable: true`   | Connection reset, DNS resolution failure      |
+| Timeout                | `isRetryable: true`   | `deadline-exceeded`, request took too long    |
+| Rate limit (429)       | `isRetryable: true`   | Too many requests to API or database          |
+| Service unavailable    | `isRetryable: true`   | Firestore `unavailable`, third-party API down |
+| Temporary server error | `isRetryable: true`   | 502/503/504 from upstream services            |
 
 ### Non-Retryable Errors (Permanent)
 
 These errors will fail every time regardless of retries:
 
-| Error Type             | DbError Property           | Why Not Retry                           |
+| Error Type             | ServiceError Property      | Why Not Retry                           |
 | ---------------------- | -------------------------- | --------------------------------------- |
 | Validation failure     | `code: "validation"`       | Input is invalid, retrying won't fix it |
 | Not found              | `isNotFound: true`         | Resource doesn't exist                  |
@@ -96,12 +96,12 @@ async function withRetry<T>(
 }
 ```
 
-## Retry Helper Using DbError.isRetryable
+## Retry Helper Using ServiceError.isRetryable
 
 Use this pattern in the database layer to retry only transient errors while immediately returning permanent failures:
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "budget-db" });
@@ -110,10 +110,10 @@ const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
 
 async function withDbRetry<T>(
-  operation: () => Promise<[null, T] | [DbError, null]>,
+  operation: () => Promise<[null, T] | [ServiceError, null]>,
   context: { resource: string; action: string; userId?: string },
-): Promise<[null, T] | [DbError, null]> {
-  let lastError: DbError | null = null;
+): Promise<[null, T] | [ServiceError, null]> {
+  let lastError: ServiceError | null = null;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const [error, data] = await operation();
@@ -172,9 +172,9 @@ async function withDbRetry<T>(
 export async function getBudgetById(
   userId: string,
   budgetId: string,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   if (!userId?.trim() || !budgetId?.trim()) {
-    return [DbError.validation("Invalid userId or budgetId"), null];
+    return [ServiceError.validation("Invalid userId or budgetId"), null];
   }
 
   return withDbRetry(
@@ -183,18 +183,18 @@ export async function getBudgetById(
         const doc = await db.collection("budgets").doc(budgetId).get();
 
         if (!doc.exists) {
-          return [DbError.notFound("Budget"), null];
+          return [ServiceError.notFound("Budget"), null];
         }
 
         const data = doc.data()!;
         if (data.userId !== userId) {
-          return [DbError.permissionDenied(), null];
+          return [ServiceError.permissionDenied(), null];
         }
 
         return [null, transformToBudget(doc.id, data)];
       } catch (error) {
-        const dbError = categorizeDbError(error, "Budget");
-        return [dbError, null];
+        const serviceError = categorizeServiceError(error, "Budget");
+        return [serviceError, null];
       }
     },
     { resource: "Budget", action: "getById", userId },
@@ -408,7 +408,7 @@ export async function syncExternalData(
 When a service fails, fall back to cached or reduced-functionality responses instead of showing errors:
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "dashboard-loader" });

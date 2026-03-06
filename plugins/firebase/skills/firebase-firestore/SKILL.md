@@ -6,8 +6,8 @@ description: >
   Firestore database layer for Next.js. Use when user asks to "Firestore query",
   "Firebase Admin SDK", "CRUD for Firestore", "seed Firestore",
   FieldValue.serverTimestamp(), Firestore transactions, "db collection query",
-  "implement database queries", "Firestore error handling", "DbError for
-  Firestore". Implements the DbError contract defined in the error-handling skill.
+  "implement database queries", "Firestore error handling", "ServiceError for
+  Firestore". Implements the ServiceError contract defined in the error-handling skill.
 tags: [firebase, firestore, database, typescript, error-handling, server-only]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__*
@@ -27,14 +27,14 @@ Create production-ready Firestore database queries with TypeScript, proper type 
 
 ## Quick Reference
 
-| Document                     | Purpose                                |
-| ---------------------------- | -------------------------------------- |
-| [types.md](./types.md)       | Type utilities and lifecycle patterns  |
-| [errors.md](./errors.md)     | DbError class and error categorization |
-| [config.md](./config.md)     | Firebase Admin SDK configuration       |
-| [examples.md](./examples.md) | Complete CRUD operation examples       |
-| [patterns.md](./patterns.md) | Best practices and anti-patterns       |
-| [seeding.md](./seeding.md)   | Database seeding patterns              |
+| Document                     | Purpose                                     |
+| ---------------------------- | ------------------------------------------- |
+| [types.md](./types.md)       | Type utilities and lifecycle patterns       |
+| [errors.md](./errors.md)     | ServiceError class and error categorization |
+| [config.md](./config.md)     | Firebase Admin SDK configuration            |
+| [examples.md](./examples.md) | Complete CRUD operation examples            |
+| [patterns.md](./patterns.md) | Best practices and anti-patterns            |
+| [seeding.md](./seeding.md)   | Database seeding patterns                   |
 
 ## Instructions
 
@@ -48,8 +48,8 @@ Create production-ready Firestore database queries with TypeScript, proper type 
 
 1. **Define types** using the type lifecycle pattern (Base → Firestore → Application → DTOs)
 2. **Create transform function** to convert Firestore data to application types
-3. **Implement queries** with tuple return pattern `[DbError | null, Data | null]`
-4. **Add error handling** using `DbError` class and `categorizeDbError`
+3. **Implement queries** with tuple return pattern `[ServiceError | null, Data | null]`
+4. **Add error handling** using `ServiceError` class and `categorizeServiceError()`
 5. **Include logging** with structured context at all error points
 6. **Test edge cases** (empty inputs, not found, permissions)
 
@@ -96,8 +96,8 @@ See [types.md](./types.md) for complete type utilities.
 
 ### Error Handling Pattern
 
-> **DbError Contract:** The `DbError` class and `categorizeDbError()` in this skill implement the
-> universal DbError contract defined in the `error-handling` skill. Consumers branch on boolean
+> **ServiceError Contract:** The `ServiceError` class and `categorizeServiceError()` in this skill implement the
+> universal `ServiceError` contract defined in the `error-handling` skill. Consumers branch on boolean
 > properties (`isNotFound`, `isRetryable`, `isPermissionDenied`) without knowing this is Firestore.
 
 All database queries return tuples for explicit error handling:
@@ -105,22 +105,22 @@ All database queries return tuples for explicit error handling:
 ```typescript
 export async function getResourceById(
   id: string,
-): Promise<[null, Resource] | [DbError, null]> {
+): Promise<[null, Resource] | [ServiceError, null]> {
   // Input validation
   if (!id?.trim()) {
-    return [DbError.validation("Invalid id provided"), null];
+    return [ServiceError.validation("Invalid id provided"), null];
   }
 
   try {
     const doc = await db.collection(COLLECTION).doc(id).get();
 
     if (!doc.exists) {
-      return [DbError.notFound(RESOURCE_NAME), null];
+      return [ServiceError.notFound(RESOURCE_NAME), null];
     }
 
     return [null, transformToResource(doc.id, doc.data()!)];
   } catch (error) {
-    return [categorizeDbError(error, RESOURCE_NAME), null];
+    return [categorizeServiceError(error, RESOURCE_NAME), null];
   }
 }
 ```
@@ -164,7 +164,7 @@ Before implementing database queries, clarify:
 ```typescript
 import "server-only";
 import { db } from "~/lib/firebase";
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
 import { createLogger } from "~/lib/logger";
 import type { Budget } from "../types/budget";
 
@@ -174,9 +174,9 @@ const RESOURCE = "Budget";
 
 export async function getBudgetById(
   id: string,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   if (!id?.trim()) {
-    const error = DbError.validation("Invalid budget id");
+    const error = ServiceError.validation("Invalid budget id");
     logger.warn({ errorCode: error.code }, "Validation failed");
     return [error, null];
   }
@@ -186,15 +186,15 @@ export async function getBudgetById(
 
     if (!doc.exists) {
       logger.warn({ budgetId: id }, "Budget not found");
-      return [DbError.notFound(RESOURCE), null];
+      return [ServiceError.notFound(RESOURCE), null];
     }
 
     logger.info({ budgetId: id }, "Budget retrieved");
     return [null, transformToBudget(doc.id, doc.data()!)];
   } catch (error) {
-    const dbError = categorizeDbError(error, RESOURCE);
-    logger.error({ budgetId: id, errorCode: dbError.code }, "Query failed");
-    return [dbError, null];
+    const serviceError = categorizeServiceError(error, RESOURCE);
+    logger.error({ budgetId: id, errorCode: serviceError.code }, "Query failed");
+    return [serviceError, null];
   }
 }
 ```
@@ -255,6 +255,6 @@ async function loadBudget(budgetId: string) {
 
 ## Related Skills
 
-- `error-handling` - Defines the DbError contract that this skill implements (error boundaries, retry, server action error patterns)
+- `error-handling` — Defines the `ServiceError` contract that this skill implements (error boundaries, retry, server action error patterns)
 - `server-actions` - For implementing server actions that use these queries
 - `db-migration` - For migrating Firestore data

@@ -9,7 +9,7 @@ lib/
 └── firebase/
     ├── index.ts          # Main export (db instance)
     ├── types.ts          # Type utilities
-    ├── errors.ts         # DbError class
+    ├── errors.ts         # ServiceError class
     ├── seeder.ts         # Seeding utilities (optional)
     └── auto-seed.ts      # Auto-seeding orchestrator (optional)
 ```
@@ -181,14 +181,14 @@ export type UpdateDto<T> = Partial<{
 // lib/firebase/errors.ts
 import "server-only";
 
-export class DbError extends Error {
+export class ServiceError extends Error {
   // ... (see errors.md for full implementation)
 }
 
-export function categorizeDbError(
+export function categorizeServiceError(
   error: unknown,
   resourceName: string,
-): DbError {
+): ServiceError {
   // ... (see errors.md for full implementation)
 }
 ```
@@ -204,7 +204,7 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { db } from "~/lib/firebase";
-import { categorizeDbError, DbError } from "~/lib/firebase/errors";
+import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
 import { createLogger } from "~/lib/logger";
 
 import type {
@@ -236,7 +236,7 @@ function transformToBudget(
 // Query functions...
 export async function getBudgetById(
   id: string,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   // ... implementation
 }
 ```
@@ -308,7 +308,7 @@ import "server-only";
 
 // Re-export everything from single entry point
 export { db } from "./client";
-export { DbError, categorizeDbError } from "./errors";
+export { ServiceError, categorizeServiceError } from "./errors";
 export type {
   WithFirestoreTimestamps,
   WithDates,
@@ -321,7 +321,7 @@ export type {
 
 ```typescript
 // In feature modules
-import { db, DbError, categorizeDbError } from "~/lib/firebase";
+import { db, ServiceError, categorizeServiceError } from "~/lib/firebase";
 import type { WithDates, CreateDto } from "~/lib/firebase";
 ```
 

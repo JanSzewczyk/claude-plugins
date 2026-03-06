@@ -3,13 +3,18 @@ name: error-handling
 version: 1.0.0
 lastUpdated: 2026-01-18
 description: >
-  Comprehensive error handling for Next.js applications. Use when user asks to
-  "add error handling", "handle database errors", "add error boundaries",
-  "DbError", "categorizeDbError", "retry failed requests", "handle useActionState
-  errors", "toast on error", "log errors", "handle Firestore errors". Covers the
-  DbError contract (database layer), ActionResponse (server actions), React error
-  boundaries, toast notifications, and structured logging.
-tags: [error-handling, DbError, error-boundary, toast, logging, server-actions]
+  Comprehensive error handling for Next.js applications — use whenever adding or
+  fixing error handling, building database or service layer operations, writing
+  server actions, or making an app production-ready. Covers ServiceError (typed
+  error contract for any external service: DB, API, network), tuple return pattern
+  [error, data], ActionResponse for server actions, React error boundaries, toast
+  notifications, retry with exponential backoff, and circuit breaker patterns.
+  Trigger on: "add error handling", "handle database errors", "handle service
+  errors", "retry failed requests", "error boundary", "handle action errors",
+  "toast on error", "log errors", "circuit breaker", "graceful degradation",
+  "categorizeServiceError", "ServiceError".
+tags:
+  [error-handling, ServiceError, error-boundary, toast, logging, server-actions]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 context: fork
@@ -38,7 +43,7 @@ Comprehensive error handling patterns for Next.js applications.
 **Principles:**
 
 1. **Never expose internal errors to users** - Log details server-side, show friendly messages client-side
-2. **Use typed errors** - DbError class for database, ActionResponse for server actions
+2. **Use typed errors** - ServiceError class for any service layer, ActionResponse for server actions
 3. **Fail gracefully** - Error boundaries, fallback UI, retry mechanisms
 4. **Log everything** - Structured logging with context for debugging
 5. **Provide feedback** - Toast notifications for user-facing errors
@@ -61,10 +66,10 @@ Comprehensive error handling patterns for Next.js applications.
 └─────────────────────────────────────────────────────────────┘
                               ↑
 ┌─────────────────────────────────────────────────────────────┐
-│                   Database Layer                             │
-│  • DbError class (typed errors)                              │
+│                   Service Layer                              │
+│  • ServiceError class (typed errors)                         │
 │  • Tuple pattern [error, data]                               │
-│  • categorizeDbError() helper                                │
+│  • categorizeServiceError() helper                           │
 └─────────────────────────────────────────────────────────────┘
                               ↑
 ┌─────────────────────────────────────────────────────────────┐
@@ -77,29 +82,29 @@ Comprehensive error handling patterns for Next.js applications.
 
 ## Quick Reference
 
-### Database Layer (DbError)
+### Service Layer (ServiceError)
 
 ```typescript
-import { categorizeDbError, DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your service layer (e.g. ~/lib/firebase/errors for Firestore)
 
 // Tuple pattern - always return [error, data]
 export async function getById(
   id: string,
-): Promise<[null, Data] | [DbError, null]> {
+): Promise<[null, Data] | [ServiceError, null]> {
   if (!id?.trim()) {
-    return [DbError.validation("Invalid id"), null];
+    return [ServiceError.validation("Invalid id"), null];
   }
 
   try {
     const doc = await db.collection("items").doc(id).get();
     if (!doc.exists) {
-      return [DbError.notFound("Item"), null];
+      return [ServiceError.notFound("Item"), null];
     }
     return [null, transform(doc)];
   } catch (error) {
-    const dbError = categorizeDbError(error, "Item");
-    logger.error({ errorCode: dbError.code, id }, "Database error");
-    return [dbError, null];
+    const serviceError = categorizeServiceError(error, "Item");
+    logger.error({ errorCode: serviceError.code, id }, "Database error");
+    return [serviceError, null];
   }
 }
 ```
@@ -164,7 +169,7 @@ export default function Error({
 }
 ```
 
-## DbError Properties
+## ServiceError Contract
 
 | Property             | Type    | Description                                                 |
 | -------------------- | ------- | ----------------------------------------------------------- |
@@ -178,11 +183,11 @@ export default function Error({
 ## Static Factory Methods
 
 ```typescript
-DbError.notFound("User"); // Resource not found
-DbError.alreadyExists("Budget"); // Resource already exists
-DbError.validation("Invalid input"); // Validation failed
-DbError.dataCorruption("Event"); // Document exists but data invalid
-DbError.permissionDenied(); // Auth/permission issue
+ServiceError.notFound("User"); // Resource not found
+ServiceError.alreadyExists("Budget"); // Resource already exists
+ServiceError.validation("Invalid input"); // Validation failed
+ServiceError.dataCorruption("Event"); // Document exists but data invalid
+ServiceError.permissionDenied(); // Auth/permission issue
 ```
 
 ## Error Response Flow
@@ -190,7 +195,7 @@ DbError.permissionDenied(); // Auth/permission issue
 ```
 Database Error
     ↓
-categorizeDbError() → DbError with properties
+categorizeServiceError() → ServiceError with properties
     ↓
 Log error with context (logger.error)
     ↓
@@ -205,13 +210,13 @@ Return ActionResponse with generic message
 Client displays toast + handles state
 ```
 
-## DbError Contract
+## ServiceError Contract
 
-The `DbError` contract defines what every database layer implementation must provide. **This is a TypeScript interface — the concrete implementation lives in the `firebase-firestore` skill.**
+The `ServiceError` contract defines what every service layer implementation must provide. **This is a TypeScript interface — the Firestore concrete implementation lives in the `firebase-firestore` skill.**
 
 ```typescript
-// The contract every DB layer must fulfill
-interface DbErrorContract {
+// The contract every service layer must fulfill
+interface ServiceErrorContract {
   // Boolean flags for type-safe error branching
   readonly isRetryable: boolean;
   readonly isNotFound: boolean;
@@ -221,22 +226,22 @@ interface DbErrorContract {
   readonly message: string;
 }
 
-// Static factory methods every DB layer must expose
-interface DbErrorStatic {
-  notFound(resourceName: string): DbErrorContract;
-  alreadyExists(resourceName: string): DbErrorContract;
-  validation(message: string, resourceName?: string): DbErrorContract;
-  dataCorruption(resourceName: string): DbErrorContract;
-  permissionDenied(resourceName: string): DbErrorContract;
+// Static factory methods every service layer must expose
+interface ServiceErrorStatic {
+  notFound(resourceName: string): ServiceErrorContract;
+  alreadyExists(resourceName: string): ServiceErrorContract;
+  validation(message: string, resourceName?: string): ServiceErrorContract;
+  dataCorruption(resourceName: string): ServiceErrorContract;
+  permissionDenied(resourceName: string): ServiceErrorContract;
 }
 ```
 
-The `categorizeDbError(error, resourceName)` function maps raw DB errors to this contract.
+The `categorizeServiceError(error, resourceName)` function maps raw service errors to this contract.
 **Firestore implementation:** See `firebase-firestore/errors.md`.
 
 ## Related Skills
 
-- `firebase-firestore` - Firestore implementation of the DbError contract (DbError class + categorizeDbError)
-- `server-actions` - ActionResponse types and patterns
-- `toast-notifications` - User feedback via toasts
-- `structured-logging` - Pino logging patterns
+- `firebase-firestore` — Firestore implementation of the ServiceError contract (`ServiceError` class + `categorizeServiceError`)
+- `server-actions` — ActionResponse types and patterns
+- `toast-notifications` — User feedback via toasts
+- `structured-logging` — Pino logging patterns

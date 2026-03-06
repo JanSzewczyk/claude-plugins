@@ -27,12 +27,12 @@ Test Next.js Route Handlers with real HTTP requests using Playwright. This skill
 - **Authentication method** (Clerk, NextAuth, JWT, API Key)
 - **Auth testing pattern** (test tokens, session cookies, headers)
 - **API response format** (ActionResponse, custom format)
-- **Error handling patterns** (DbError codes, HTTP status mapping)
+- **Error handling patterns** (ServiceError codes, HTTP status mapping)
 
 Also check `CLAUDE.md` for:
 
 - Server Actions patterns (ActionResponse type)
-- Database error handling (DbError class)
+- Database error handling (ServiceError class)
 
 ## Context
 
@@ -466,12 +466,12 @@ test("returns fieldErrors on validation failure", async ({ request }) => {
 });
 
 // Test database error mapping
-test("maps DbError to appropriate HTTP status", async ({ request }) => {
+test("maps ServiceError to appropriate HTTP status", async ({ request }) => {
   const response = await request.get(
     `${BASE_URL}${API_ENDPOINT}/non-existent-id`,
   );
 
-  // DbError.notFound → 404
+  // ServiceError.notFound → 404
   expect(response.status()).toBe(404);
   const body = await response.json();
   expect(body.success).toBe(false);

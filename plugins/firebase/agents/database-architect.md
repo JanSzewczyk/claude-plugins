@@ -108,7 +108,7 @@ See `db-migration` skill for migration script templates.
 
 ### 6. Error Handling
 
-Follow the project's error handling pattern from project-context.md. See `error-handling` and `firebase-firestore` skills for tuple return pattern and `DbError` class usage.
+Follow the project's error handling pattern from project-context.md. See `error-handling` and `firebase-firestore` skills for tuple return pattern and `ServiceError` class usage.
 
 ## Design Process
 

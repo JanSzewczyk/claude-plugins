@@ -85,7 +85,7 @@ export async function createBudgetAction(
 Business rules go beyond schema validation. They enforce domain-specific constraints that depend on existing data or application state.
 
 ```typescript
-import { DbError } from "~/lib/db/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "budget-db" });
@@ -93,13 +93,13 @@ const logger = createLogger({ module: "budget-db" });
 export async function createBudget(
   userId: string,
   data: CreateBudgetDto,
-): Promise<[null, Budget] | [DbError, null]> {
+): Promise<[null, Budget] | [ServiceError, null]> {
   // Schema validation already passed at this point
 
   // Business rule: user cannot exceed 20 budgets
   const existingCount = await countUserBudgets(userId);
   if (existingCount >= 20) {
-    const error = DbError.validation(
+    const error = ServiceError.validation(
       "You have reached the maximum of 20 budgets",
     );
     logger.warn(
@@ -112,7 +112,7 @@ export async function createBudget(
   // Business rule: budget name must be unique per user
   const [, existing] = await getBudgetByName(userId, data.name);
   if (existing) {
-    const error = DbError.alreadyExists("Budget");
+    const error = ServiceError.alreadyExists("Budget");
     logger.warn(
       { userId, budgetName: data.name, errorCode: error.code },
       "Duplicate budget name",
@@ -123,7 +123,7 @@ export async function createBudget(
   // Business rule: total budget amount cannot exceed subscription tier limit
   const totalAmount = await getTotalBudgetAmount(userId);
   if (totalAmount + data.amount > TIER_LIMITS[userTier]) {
-    const error = DbError.validation(
+    const error = ServiceError.validation(
       "Adding this budget would exceed your plan's total budget limit",
     );
     logger.warn(
@@ -163,14 +163,14 @@ Runtime errors occur during operations on external systems. They are unexpected 
 ```typescript
 // Connection drops, DNS failures, socket timeouts
 catch (error) {
-  const dbError = categorizeDbError(error, "Budget");
-  // dbError.code might be "unavailable"
-  // dbError.isRetryable will be true
+  const serviceError = categorizeServiceError(error, "Budget");
+  // serviceError.code might be "unavailable"
+  // serviceError.isRetryable will be true
   logger.error(
-    { userId, errorCode: dbError.code, isRetryable: dbError.isRetryable },
+    { userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable },
     "Network error during budget fetch",
   );
-  return [dbError, null];
+  return [serviceError, null];
 }
 ```
 
@@ -182,12 +182,12 @@ catch (error) {
   // Firestore-specific: FirebaseError check — for other DB layers, replace with your own error class
   if (error instanceof FirebaseError) {
     // "unavailable", "deadline-exceeded", "internal"
-    const dbError = categorizeDbError(error, "Budget");
+    const serviceError = categorizeServiceError(error, "Budget");
     logger.error(
-      { userId, firebaseCode: error.code, errorCode: dbError.code },
+      { userId, firebaseCode: error.code, errorCode: serviceError.code },
       "Firestore error",
     );
-    return [dbError, null];
+    return [serviceError, null];
   }
 }
 ```
@@ -199,7 +199,7 @@ catch (error) {
 async function processPayment(
   userId: string,
   amount: number,
-): Promise<[null, PaymentResult] | [DbError, null]> {
+): Promise<[null, PaymentResult] | [ServiceError, null]> {
   try {
     const result = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
@@ -219,7 +219,7 @@ async function processPayment(
 
     // Treat third-party failures as retryable by default
     return [
-      new DbError("external-api", "Payment service unavailable", true),
+      new ServiceError("external-api", "Payment service unavailable", true),
       null,
     ];
   }
@@ -239,7 +239,10 @@ try {
 } catch (error) {
   if (error instanceof DOMException && error.name === "AbortError") {
     logger.error({ url, timeoutMs: 10_000 }, "Request timed out");
-    return [new DbError("deadline-exceeded", "Request timed out", true), null];
+    return [
+      new ServiceError("deadline-exceeded", "Request timed out", true),
+      null,
+    ];
   }
   throw error;
 } finally {
@@ -277,7 +280,7 @@ Database layer checks business rules
     |
 Rule violated (e.g., budget limit exceeded)
     |
-Return [DbError.validation("Budget limit exceeded"), null]
+Return [ServiceError.validation("Budget limit exceeded"), null]
     |
 Log as WARN (business constraint, not system error)
     |
@@ -295,11 +298,11 @@ User submits valid form data (passes schema + business rules)
     |
 Database operation (write/read) throws
     |
-categorizeDbError() wraps the error
+categorizeServiceError() wraps the error
     |
 Log as ERROR with full context (errorCode, isRetryable, userId)
     |
-Return [dbError, null] to server action
+Return [serviceError, null] to server action
     |
 Server Action calls setToastCookie("Something went wrong", "error")
     |

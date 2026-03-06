@@ -114,7 +114,7 @@ Refer to skills for detailed patterns and code examples:
 - **`server-actions` skill** — ActionResponse/RedirectAction types, Zod validation, error handling, React Hook Form integration, useActionState examples
 - **`firebase-firestore` skill** — Tuple error pattern, type lifecycle, transform functions
 - **`structured-logging` skill** — Pino logger setup, context enrichment, log levels
-- **`error-handling` skill** — DbError patterns, error boundaries
+- **`error-handling` skill** — ServiceError patterns, error boundaries
 
 **Server Action structure:** Auth check → Zod validation → DB operation (tuple error handling) → Cache revalidation → Toast notification → Return ActionResponse or redirect
 

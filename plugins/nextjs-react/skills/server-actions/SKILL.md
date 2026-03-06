@@ -44,13 +44,13 @@ Create Next.js Server Actions with TypeScript following best practices for valid
 **`.claude/project-context.md`** for:
 
 - Authentication provider (Clerk, NextAuth, JWT)
-- Database patterns (tuple error handling, DbError class)
+- Database patterns (tuple error handling, ServiceError class)
 - Logging conventions
 
 **`CLAUDE.md`** for:
 
 - Server Actions patterns (ActionResponse type)
-- Database error handling (DbError class)
+- Database error handling (ServiceError class)
 - Toast notification system
 - File organization conventions
 
