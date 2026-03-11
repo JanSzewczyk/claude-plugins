@@ -3,7 +3,7 @@ name: storybook-test-architect
 version: 2.0.1
 lastUpdated: 2026-02-20
 author: Szum Tech Team
-related-agents: [frontend-expert, testing-strategist]
+related-agents: [frontend-expert, testing-strategist, code-reviewer]
 description: "MULTI-PHASE AGENT (3 Task invocations with user approval between each). Creates Storybook interaction tests using CSF Next format.\n\nProtocol: 1) Launch 'PHASE 1+2: Analyze [path] and propose stories' → show proposal → AskUserQuestion (Approve/Request changes). 2) Launch 'PHASE 3: Approved stories: [list]. Propose tests for [path]' → show proposal → AskUserQuestion. 3) Launch 'PHASE 4-6: Implement for [path]. Stories: [list]. Tests: [list].' → show results. CRITICAL: Do NOT auto-approve or skip user review steps."
 tools:
   Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id,

@@ -3,7 +3,7 @@ name: performance-analyzer
 version: 1.1.0
 lastUpdated: 2026-02-20
 author: Szum Tech Team
-related-agents: [frontend-expert, nextjs-backend-engineer]
+related-agents: [frontend-expert, nextjs-backend-engineer, code-reviewer]
 description: Analyze application performance, optimize bundle size, improve React rendering efficiency, and debug slow queries. Use proactively when performance issues are suspected or before deploying major features.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call
 model: sonnet
