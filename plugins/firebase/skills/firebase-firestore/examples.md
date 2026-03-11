@@ -61,7 +61,10 @@ export async function getBudgetById(
 ): Promise<[null, Budget] | [ServiceError, null]> {
   // Input validation
   if (!id?.trim()) {
-    const error = ServiceError.validation("Invalid budget id provided", RESOURCE);
+    const error = ServiceError.validation(
+      "Invalid budget id provided",
+      RESOURCE,
+    );
     logger.warn({ errorCode: error.code }, "Validation failed");
     return [error, null];
   }
@@ -143,7 +146,9 @@ export async function getBudgetsByUserId(
 export async function getBudgetsPaginated(
   userId: string,
   options: { limit?: number; startAfter?: string } = {},
-): Promise<[null, { budgets: Budget[]; hasMore: boolean }] | [ServiceError, null]> {
+): Promise<
+  [null, { budgets: Budget[]; hasMore: boolean }] | [ServiceError, null]
+> {
   const { limit = 10, startAfter } = options;
 
   if (!userId?.trim()) {
@@ -270,7 +275,10 @@ export async function createBudgetWithId(
     return [null, budget];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE);
-    logger.error({ budgetId: id, errorCode: serviceError.code }, "Create failed");
+    logger.error(
+      { budgetId: id, errorCode: serviceError.code },
+      "Create failed",
+    );
     return [serviceError, null];
   }
 }
@@ -362,7 +370,10 @@ export async function updateBudgetFields(
     return [null, true];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE);
-    logger.error({ budgetId: id, errorCode: serviceError.code }, "Update failed");
+    logger.error(
+      { budgetId: id, errorCode: serviceError.code },
+      "Update failed",
+    );
     return [serviceError, null];
   }
 }
@@ -442,7 +453,10 @@ export async function deleteUserBudgets(
     return [null, snapshot.size];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE);
-    logger.error({ userId, errorCode: serviceError.code }, "Batch delete failed");
+    logger.error(
+      { userId, errorCode: serviceError.code },
+      "Batch delete failed",
+    );
     return [serviceError, null];
   }
 }

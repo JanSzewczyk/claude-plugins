@@ -157,7 +157,9 @@ async function createUser(
 ): Promise<[ServiceError | null, User | null]>;
 
 // READ - returns entity or null
-async function getUserById(id: string): Promise<[ServiceError | null, User | null]>;
+async function getUserById(
+  id: string,
+): Promise<[ServiceError | null, User | null]>;
 
 // UPDATE - returns updated entity
 async function updateUser(

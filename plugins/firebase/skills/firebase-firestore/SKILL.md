@@ -193,7 +193,10 @@ export async function getBudgetById(
     return [null, transformToBudget(doc.id, doc.data()!)];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE);
-    logger.error({ budgetId: id, errorCode: serviceError.code }, "Query failed");
+    logger.error(
+      { budgetId: id, errorCode: serviceError.code },
+      "Query failed",
+    );
     return [serviceError, null];
   }
 }

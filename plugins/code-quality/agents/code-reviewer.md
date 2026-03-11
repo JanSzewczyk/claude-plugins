@@ -15,7 +15,7 @@ tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-c
 model: sonnet
 color: cyan
 permissionMode: default
-skills: accessibility-audit, server-actions, react-19-compiler, storybook-testing, tailwind-css-4, playwright-cli, performance-optimization
+skills: accessibility-audit, server-actions, react-19-compiler, storybook-testing, tailwind-css-4, playwright-cli, performance-optimization, error-handling, structured-logging
 hooks:
   PostToolUse:
     - matcher: "Read"
@@ -187,7 +187,7 @@ Refer to the following skills for detailed patterns and code examples:
 - **`react-19-compiler` skill** — React Compiler optimization, unnecessary memoization, `useActionState`, `useFormStatus` in child components, Server Components by default
 - **`server-actions` skill** — `ActionResponse<T>` / `RedirectAction` types, Zod validation, `fieldErrors`, toast notifications
 - **`firebase-firestore` skill** — Tuple error pattern `[ServiceError | null, Data | null]`, type lifecycle (Base → DB → Application → DTOs), structured logging
-- **`clerk-auth-proxy` skill** — `proxy.ts` not `middleware.ts`, server-side `auth()`, session claims
+- **Auth pattern** — server-side `auth()` only, no client-side auth checks in Server Components, validate session in middleware
 
 **Quick validation checklist:**
 

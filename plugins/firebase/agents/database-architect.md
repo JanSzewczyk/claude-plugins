@@ -3,13 +3,13 @@ name: database-architect
 version: 1.1.0
 lastUpdated: 2026-02-20
 author: Szum Tech Team
-related-agents: [nextjs-backend-engineer, library-updater]
-description: Design data models, optimize database queries, plan data migrations, and manage database type patterns. Use proactively when features require data storage or when query performance needs improvement.
+related-agents: [nextjs-backend-engineer, code-reviewer, library-updater]
+description: Design Firestore data models, optimize database queries, plan safe data migrations, and manage type-safe database patterns using tuple error handling and ServiceError. Use proactively when features require Firestore data storage, query performance needs improvement, or schema migrations are needed.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: orange
 permissionMode: default
-skills: builder-factory, structured-logging, t3-env-validation
+skills: firebase-firestore, db-migration, error-handling, builder-factory, structured-logging, t3-env-validation
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

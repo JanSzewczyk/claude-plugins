@@ -9,7 +9,7 @@ tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash
 model: sonnet
 color: yellow
 permissionMode: acceptEdits
-skills: t3-env-validation, storybook-testing, playwright-cli
+skills: t3-env-validation, storybook-testing, playwright-cli, unit-testing
 hooks:
   PostToolUse:
     - matcher: "Bash"
