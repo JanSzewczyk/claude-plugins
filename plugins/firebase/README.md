@@ -62,12 +62,12 @@ Skills work as reference documentation even before installing the dependencies �
 
 ## Troubleshooting
 
-| Problem                                | Solution                                                                                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Firebase Admin SDK not initializing    | Check `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` in `.env.local`. Handle newlines: `key.replace(/\\n/g, "\n")` |
-| `categorizeServiceError` returns "unknown"  | Verify you're catching `FirebaseError` (from `firebase-admin`). See error code reference in `errors.md`                                    |
-| Migration script processes 0 documents | Verify collection name and field names in `shouldSkip()`. Run with `--dry-run` first                                                       |
-| Type lifecycle confusing               | Start with `types.md` in firebase-firestore — it has a visual diagram of Base / Firestore / App / CreateDTO / UpdateDTO                    |
+| Problem                                    | Solution                                                                                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Firebase Admin SDK not initializing        | Check `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` in `.env.local`. Handle newlines: `key.replace(/\\n/g, "\n")` |
+| `categorizeServiceError` returns "unknown" | Verify you're catching `FirebaseError` (from `firebase-admin`). See error code reference in `errors.md`                                    |
+| Migration script processes 0 documents     | Verify collection name and field names in `shouldSkip()`. Run with `--dry-run` first                                                       |
+| Type lifecycle confusing                   | Start with `types.md` in firebase-firestore — it has a visual diagram of Base / Firestore / App / CreateDTO / UpdateDTO                    |
 
 ## Related Plugins
 

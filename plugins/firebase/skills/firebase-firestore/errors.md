@@ -330,7 +330,10 @@ export async function updateResource(
     return [null, transformToResource(id, updated.data()!)];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error({ resourceId: id, errorCode: serviceError.code }, "Update failed");
+    logger.error(
+      { resourceId: id, errorCode: serviceError.code },
+      "Update failed",
+    );
     return [serviceError, null];
   }
 }
@@ -361,7 +364,10 @@ export async function deleteResource(
     return [null, true];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error({ resourceId: id, errorCode: serviceError.code }, "Delete failed");
+    logger.error(
+      { resourceId: id, errorCode: serviceError.code },
+      "Delete failed",
+    );
     return [serviceError, null];
   }
 }

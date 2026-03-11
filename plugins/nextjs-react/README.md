@@ -21,7 +21,7 @@ React & Next.js full-stack development — agents and skills for building modern
 | **t3-env-validation**       | `/t3-env-validation`       | Type-safe env vars with `@t3-oss/env-nextjs` and Zod                                                                    |
 | **structured-logging**      | `/structured-logging`      | Pino structured logging — context enrichment, log levels, dev pretty-printing                                           |
 | **toast-notifications**     | `/toast-notifications`     | Cookie-based toast notification system for Server Actions                                                               |
-| **error-handling**          | `/error-handling`          | ServiceError patterns, error boundaries, standardized error responses                                                        |
+| **error-handling**          | `/error-handling`          | ServiceError patterns, error boundaries, standardized error responses                                                   |
 | **design-system-component** | `/design-system-component` | File structure, types, styles (CVA), context, store, barrel exports, and Storybook for React + TS + Tailwind components |
 | **szum-tech-design-system** | `/szum-tech-design-system` | Complete reference for `@szum-tech/design-system` — color tokens, typography, all components, animations, icons         |
 
@@ -91,14 +91,14 @@ ls your-project/.claude/skills/server-actions/SKILL.md
 
 ## Troubleshooting
 
-| Problem                                     | Solution                                                                                             |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Agent doesn't pick up project conventions   | Ensure `.claude/project-context.md` exists and describes your stack, auth provider, and database     |
-| `/server-actions` assumes Clerk auth        | Adapt auth check to your provider (NextAuth, Supabase, JWT) — the pattern remains the same           |
-| Tailwind v4 classes not working             | Verify `@import "tailwindcss"` in your CSS and that `@source` includes your component paths          |
+| Problem                                     | Solution                                                                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Agent doesn't pick up project conventions   | Ensure `.claude/project-context.md` exists and describes your stack, auth provider, and database               |
+| `/server-actions` assumes Clerk auth        | Adapt auth check to your provider (NextAuth, Supabase, JWT) — the pattern remains the same                     |
+| Tailwind v4 classes not working             | Verify `@import "tailwindcss"` in your CSS and that `@source` includes your component paths                    |
 | Error handling references Firebase          | `ServiceError` pattern works with any database — replace `categorizeServiceError` with your DB's error mapping |
-| Toast notifications not showing             | Check that `ToastHandler` is in your root layout providers and `usePathname` triggers are set up     |
-| Agent references skills from testing plugin | Install skills from the **testing** plugin for full agent functionality                              |
+| Toast notifications not showing             | Check that `ToastHandler` is in your root layout providers and `usePathname` triggers are set up               |
+| Agent references skills from testing plugin | Install skills from the **testing** plugin for full agent functionality                                        |
 
 ## Related Plugins
 

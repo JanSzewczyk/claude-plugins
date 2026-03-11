@@ -4,12 +4,13 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 
 ## Available Plugins
 
-| Plugin                                      | What's inside                                                                   | Install                                   |
-| ------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------- |
-| [**nextjs-react**](./plugins/nextjs-react/) | 2 agents + 9 skills for React 19 & Next.js full-stack development               | [Guide](./plugins/nextjs-react/README.md) |
-| [**testing**](./plugins/testing/)           | 2 agents + 6 skills for Storybook, Playwright, accessibility, test strategy     | [Guide](./plugins/testing/README.md)      |
-| [**code-quality**](./plugins/code-quality/) | 3 agents + 1 skill for code review, performance, dependency management          | [Guide](./plugins/code-quality/README.md) |
-| [**firebase**](./plugins/firebase/)         | 1 agent + 2 skills for Firebase Firestore, database architecture and migrations | [Guide](./plugins/firebase/README.md)     |
+| Plugin                                                  | What's inside                                                                   | Install                                         |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [**nextjs-react**](./plugins/nextjs-react/)             | 2 agents + 9 skills for React 19 & Next.js full-stack development               | [Guide](./plugins/nextjs-react/README.md)       |
+| [**testing**](./plugins/testing/)                       | 2 agents + 6 skills for Storybook, Playwright, accessibility, test strategy     | [Guide](./plugins/testing/README.md)            |
+| [**code-quality**](./plugins/code-quality/)             | 3 agents + 1 skill for code review, performance, dependency management          | [Guide](./plugins/code-quality/README.md)       |
+| [**firebase**](./plugins/firebase/)                     | 1 agent + 2 skills for Firebase Firestore, database architecture and migrations | [Guide](./plugins/firebase/README.md)           |
+| [**product-management**](./plugins/product-management/) | 1 agent + 1 skill for PRD/TDD orchestration and agent coordination              | [Guide](./plugins/product-management/README.md) |
 
 ## Installation
 
@@ -28,6 +29,7 @@ Shared skills, agents, and developer tools for [Claude Code](https://docs.anthro
 /plugin install nextjs-react@szum-tech
 /plugin install code-quality@szum-tech
 /plugin install firebase@szum-tech
+/plugin install product-management@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -141,8 +143,12 @@ What are you doing?
 │   └── Agent: performance-analyzer (code-quality)
 │       Skill: performance-optimization
 │
-└── Updating dependencies
-    └── Agent: library-updater (code-quality)
+├── Updating dependencies
+│   └── Agent: library-updater (code-quality)
+│
+└── Coordinating a full feature from PRD/TDD
+    └── Agent: product-owner (product-management)
+        Skill: prd-spec
 ```
 
 ### Quick Reference
@@ -166,6 +172,8 @@ What are you doing?
 | Add logging to my code              | `/structured-logging` skill      |
 | Handle errors properly              | `/error-handling` skill          |
 | Test an API endpoint                | `/api-test` skill                |
+| Orchestrate a feature from PRD/TDD  | `product-owner` agent            |
+| Write a PRD or TDD document         | `/prd-spec` skill                |
 
 ## How Plugins Work
 
@@ -214,6 +222,10 @@ claude-plugins/
       agents/
       skills/
     firebase/                       # Firebase & database architecture
+      plugin.json
+      agents/
+      skills/
+    product-management/             # PRD/TDD orchestration
       plugin.json
       agents/
       skills/

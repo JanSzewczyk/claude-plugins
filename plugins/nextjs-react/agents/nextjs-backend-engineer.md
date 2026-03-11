@@ -9,7 +9,7 @@ model: sonnet
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call, mcp__next-devtools__nextjs_docs
 color: red
 permissionMode: acceptEdits
-skills: server-actions, api-test, t3-env-validation, structured-logging, playwright-cli, error-handling, toast-notifications
+skills: server-actions, api-test, t3-env-validation, structured-logging, playwright-cli, error-handling, toast-notifications, firebase-firestore
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

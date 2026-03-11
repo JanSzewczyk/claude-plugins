@@ -25,6 +25,11 @@
       "name": "firebase",
       "description": "Firebase Firestore database patterns, data migrations, and database architecture",
       "source": "./plugins/firebase"
+    },
+    {
+      "name": "product-management",
+      "description": "Product management orchestration — parse PRD/TDD documents and coordinate specialist agents across implementation phases",
+      "source": "./plugins/product-management"
     }
   ]
 }

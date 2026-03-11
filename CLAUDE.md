@@ -16,12 +16,13 @@ plugins/
 
 ## Plugins
 
-| Plugin           | Description                            | Agents                                               | Skills                                                                                                                                                                          |
-| ---------------- | -------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **nextjs-react** | React & Next.js full-stack development | frontend-expert, nextjs-backend-engineer             | react-19-compiler, server-actions, tailwind-css-4, t3-env-validation, structured-logging, toast-notifications, error-handling, design-system-component, szum-tech-design-system |
-| **testing**      | Testing strategies & QA                | testing-strategist, storybook-test-architect         | storybook-testing, builder-factory, api-test, accessibility-audit, playwright-cli, unit-testing                                                                                 |
-| **code-quality** | Code review, performance & maintenance | code-reviewer, performance-analyzer, library-updater | performance-optimization                                                                                                                                                        |
-| **firebase**     | Firebase & DB architecture             | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                |
+| Plugin                 | Description                                | Agents                                               | Skills                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **nextjs-react**       | React & Next.js full-stack development     | frontend-expert, nextjs-backend-engineer             | react-19-compiler, server-actions, tailwind-css-4, t3-env-validation, structured-logging, toast-notifications, error-handling, design-system-component, szum-tech-design-system |
+| **testing**            | Testing strategies & QA                    | testing-strategist, storybook-test-architect         | storybook-testing, builder-factory, api-test, accessibility-audit, playwright-cli, unit-testing                                                                                 |
+| **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization                                                                                                                                                        |
+| **firebase**           | Firebase & DB architecture                 | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                |
+| **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                        |
 
 ## Conventions
 
