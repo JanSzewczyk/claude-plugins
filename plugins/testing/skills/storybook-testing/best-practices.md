@@ -549,39 +549,52 @@ args: {
 }
 ```
 
-### 8. Test One Behavior Per `.test()` ✅
+### 8. Test Grouping Strategy ✅
+
+**Group assertions that verify the same category of behavior:**
+
+| Category          | Grouping Rule                     | Example test name                    |
+| ----------------- | --------------------------------- | ------------------------------------ |
+| **Content/Copy**  | ONE test per story state          | `"Renders all expected content"`     |
+| **Accessibility** | ONE test covering all a11y checks | `"Meets accessibility requirements"` |
+| **Interaction**   | ONE test per distinct user action | `"Submits form on button click"`     |
+| **Validation**    | ONE test per validation rule      | `"Shows error on empty email"`       |
+| **Callbacks**     | ONE test per callback             | `"Calls onSubmit with form data"`    |
+
+**Anti-pattern — over-splitting content assertions:**
 
 ```typescript
-// ❌ BAD - Testing multiple behaviors
-Story.test("Everything", async ({ canvas, userEvent, args }) => {
-  // Test 1: Rendering
-  await expect(canvas.getByText("Title")).toBeVisible();
-
-  // Test 2: Interaction
-  await userEvent.click(button);
-  await expect(args.onClick).toHaveBeenCalled();
-
-  // Test 3: Validation
-  await expect(canvas.getByText("Error")).toBeVisible();
+// ❌ WRONG: 4 tests that could be 1
+Story.test("Shows heading", async ({ canvas }) => {
+  await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
+});
+Story.test("Shows description", async ({ canvas }) => {
+  await expect(canvas.getByText(/some description/i)).toBeVisible();
+});
+Story.test("Shows submit button", async ({ canvas }) => {
+  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+});
+Story.test("Shows cancel link", async ({ canvas }) => {
+  await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
 });
 
-// ✅ GOOD - Separate tests
-Story.test("Renders title", async ({ canvas }) => {
-  await expect(canvas.getByText("Title")).toBeVisible();
+// ✅ CORRECT: 1 content test + separate behavior tests
+Story.test("Renders all expected content", async ({ canvas }) => {
+  await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
+  await expect(canvas.getByText(/some description/i)).toBeVisible();
+  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
 });
-
 Story.test(
-  "Clicking triggers callback",
+  "Submits form on button click",
   async ({ canvas, userEvent, args }) => {
-    await userEvent.click(button);
-    await expect(args.onClick).toHaveBeenCalled();
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(args.onSubmit).toHaveBeenCalledOnce();
   },
 );
-
-Story.test("Shows validation error", async ({ canvas }) => {
-  await expect(canvas.getByText("Error")).toBeVisible();
-});
 ```
+
+**Rule:** Static rendering assertions (text, headings, labels, icons, initial states) for the same story state → always group into one `"Renders all expected content"` test.
 
 ### 9. Prefer Builders Over Inline Mock Data ✅
 

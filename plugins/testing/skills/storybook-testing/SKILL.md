@@ -115,7 +115,7 @@ import preview from "~/.storybook/preview";
 import { SubmitButton } from "./submit-button";
 
 const meta = preview.meta({
-  title: "Components/SubmitButton",
+  title: "Components/Submit Button",
   component: SubmitButton,
   args: {
     onClick: fn(),

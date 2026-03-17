@@ -15,7 +15,7 @@ import preview from "~/.storybook/preview";
 import { MyComponent } from "./my-component";
 
 const meta = preview.meta({
-  title: "Features/MyFeature/MyComponent",
+  title: "Features/My Feature/My Component",
   component: MyComponent,
   args: {
     onSubmit: fn(),
@@ -37,30 +37,49 @@ Default.test("Test name 3", async ({ canvas, args }) => {
 });
 ```
 
-## Pattern 1: Initial State Testing
+## Pattern 1: Grouped Content Assertions
 
-✅ **Use `.test()` for multiple independent checks:**
+✅ **Group all static content checks into ONE test per story state:**
 
 ```typescript
 export const Default = meta.story({});
 
-Default.test("Renders email input field", async ({ canvas }) => {
-  const input = canvas.getByLabelText(/email/i);
-  await expect(input).toBeVisible();
-  await expect(input).toHaveValue("");
-});
+// ONE test for ALL content in this story state
+// ❌ Anti-pattern: separate tests for each text element
+Default.test("Renders all expected content", async ({ canvas }) => {
+  // Heading
+  await expect(
+    canvas.getByRole("heading", { name: /section title/i, level: 2 }),
+  ).toBeVisible();
 
-Default.test("Submit button is enabled by default", async ({ canvas }) => {
-  const button = canvas.getByRole("button", { name: /submit/i });
-  await expect(button).toBeEnabled();
-});
+  // Description text
+  await expect(
+    canvas.getByText(/descriptive text about the section/i),
+  ).toBeVisible();
 
-Default.test("Shows form with all required fields", async ({ canvas }) => {
+  // Form fields
   await expect(canvas.getByLabelText(/email/i)).toBeVisible();
   await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+
+  // Action elements
   await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
 });
+
+// SEPARATE tests for each distinct behavior
+Default.test(
+  "Submits form on button click",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(args.onSubmit).toHaveBeenCalledOnce();
+  },
+);
 ```
+
+> **Rule:** Static content (text, headings, labels, icons) for the same story state → always
+> group into `"Renders all expected content"`. Skip the content test if behavior tests already
+> verify those elements implicitly.
 
 ## Pattern 2: Prefilled Values Testing
 

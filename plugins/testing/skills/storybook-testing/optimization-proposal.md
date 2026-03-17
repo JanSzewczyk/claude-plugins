@@ -21,7 +21,7 @@ import { expect, fn } from "storybook/test";
 import preview from "~/.storybook/preview";
 
 const meta = preview.meta({
-  title: "Components/LoginForm",
+  title: "Components/Login Form",
   component: LoginForm,
   args: { onSubmit: fn() },
 });
@@ -193,7 +193,7 @@ import { expect, fn } from "storybook/test";
 import preview from "~/.storybook/preview";
 
 const meta = preview.meta({
-  title: "Components/LoginForm",
+  title: "Components/Login Form",
   component: LoginForm,
   args: { onSubmit: fn() },
 });

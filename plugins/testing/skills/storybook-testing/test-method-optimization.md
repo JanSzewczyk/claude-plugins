@@ -14,6 +14,56 @@ project).
 4. **Traditional Feel** - Similar to Jest/Vitest test suites
 5. **Better Reporting** - Individual test results in Storybook UI
 
+## Content Assertion Grouping
+
+The biggest source of unnecessary test proliferation is over-splitting content checks.
+Every static text element visible in a story state does NOT need its own test.
+
+**Rule:** When you need to verify static content (text, headings, labels, icons), group ALL
+such assertions for the same story state into ONE test. Do NOT add a content test at all
+if behavior tests already implicitly verify the relevant elements.
+
+**Add a content test only when:**
+
+- There are static elements (text, headings, labels) that are NOT already verified by
+  any interaction or behavior test in that story
+- The content is meaningful and worth explicitly documenting
+
+**Skip the content test when:**
+
+- Interaction tests already assert on the same elements (e.g., clicking a button whose
+  label is verified by `getByRole("button", { name: /submit/i })`)
+- The story's behavior tests cover all meaningful elements implicitly
+
+**Naming convention (when a content test IS added):**
+`"Renders all expected content"` or `"Renders [State] content"`.
+
+**Anti-pattern — mandatory content test causing duplication:**
+
+```typescript
+// ❌ WRONG: content test duplicates assertions already in behavior test
+Default.test("Renders all expected content", async ({ canvas }) => {
+  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible(); // duplicated below
+});
+Default.test("Submits form on button click", async ({ canvas, args }) => {
+  await canvas.getByRole("button", { name: /submit/i }).click(); // already finds the button
+  await expect(args.onSubmit).toHaveBeenCalledOnce();
+});
+
+// ✅ CORRECT: content test only for elements not covered elsewhere
+Default.test("Renders section heading and description", async ({ canvas }) => {
+  await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
+  await expect(canvas.getByText(/descriptive text/i)).toBeVisible();
+  // (submit button is verified implicitly by the interaction test)
+});
+Default.test("Submits form on button click", async ({ canvas, args }) => {
+  await canvas.getByRole("button", { name: /submit/i }).click();
+  await expect(args.onSubmit).toHaveBeenCalledOnce();
+});
+```
+
+---
+
 ## Current vs Optimized Pattern
 
 ### ❌ Current Pattern (skills-section.stories.tsx)
