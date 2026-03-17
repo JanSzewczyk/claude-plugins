@@ -151,7 +151,7 @@ SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
 });
 ```
 
-> **Note:** Story exports always use the `Story` suffix (e.g., `SubmitButtonStory`) to avoid namespace collisions with the imported component. The `name` field in the story config sets the clean display name shown in Storybook UI.
+> **Note:** `SubmitButtonStory` uses the `Story` suffix because this is the **only story** for this component — the suffix avoids namespace collision with the imported binding. For components with multiple stories, use plain descriptive state names (`EmptyForm`, `FilledForm`) without the suffix.
 
 ### When to Use `play` Instead of `.test()`
 
@@ -217,11 +217,12 @@ The title path segments use the same spacing as the `name` field in the story co
 
 ### Single Story Components
 
-If component has only ONE story, name it after the **component itself**:
+If a component has only ONE story, use the `ComponentNameStory` format with a `name` field — this
+avoids namespace collision with the imported component binding:
 
-- `LoginForm` - For LoginForm component (not "Default")
-- `UserCard` - For UserCard component (not "Default")
-- `SearchInput` - For SearchInput component (not "Default")
+- `LoginFormStory` + `name: "Login Form"` — for the LoginForm component
+- `UserCardStory` + `name: "User Card"` — for the UserCard component
+- `SearchInputStory` + `name: "Search Input"` — for the SearchInput component
 
 ### Multiple Story Components
 

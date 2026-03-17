@@ -95,32 +95,25 @@ export const Destructive = meta.story({
   },
 });
 
-// Default story with MULTIPLE tests
-export const Default = meta.story({
+// Interactive story with MULTIPLE tests
+export const ButtonStory = meta.story({
+  name: "Button",
   args: {
     children: "Button",
   },
 });
 
-// Rendering tests
-Default.test("Renders button with correct text", async ({ canvas, args }) => {
+// Rendering test — group all static content assertions into one
+ButtonStory.test("Renders all expected content", async ({ canvas, args }) => {
   const button = canvas.getByRole("button");
   await expect(button).toBeInTheDocument();
   await expect(button).toHaveTextContent(args.children);
-});
-
-Default.test("Has correct variant styles", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
   await expect(button).toHaveClass("bg-blue-600"); // primary variant default
-});
-
-Default.test("Has correct size styles", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
   await expect(button).toHaveClass("px-4", "py-2"); // md size default
 });
 
 // Interaction tests
-Default.test(
+ButtonStory.test(
   "Calls onClick when clicked",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -129,7 +122,7 @@ Default.test(
   },
 );
 
-Default.test(
+ButtonStory.test(
   "Can be clicked multiple times",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -141,7 +134,7 @@ Default.test(
 );
 
 // Keyboard accessibility tests
-Default.test(
+ButtonStory.test(
   "Can be activated with Enter key",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -153,7 +146,7 @@ Default.test(
   },
 );
 
-Default.test(
+ButtonStory.test(
   "Can be activated with Space key",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -195,18 +188,10 @@ export const Loading = meta.story({
   },
 });
 
-Loading.test("Shows loading indicator", async ({ canvas }) => {
+Loading.test("Renders loading state", async ({ canvas }) => {
   const button = canvas.getByRole("button");
   await expect(button).toHaveTextContent("⏳");
-});
-
-Loading.test("Is disabled during loading", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
   await expect(button).toBeDisabled();
-});
-
-Loading.test("Has aria-busy attribute", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
   await expect(button).toHaveAttribute("aria-busy", "true");
 });
 
@@ -224,7 +209,7 @@ Loading.test(
 
 - ❌ Old: 10 stories (7 visual + 3 test stories)
 - ✅ New: 5 stories (3 visual + 2 with tests)
-- **Reduction:** 50% fewer stories, same comprehensive coverage
+- **Reduction:** 50% fewer stories, same comprehensive coverage, tests grouped by behavior
 
 ---
 
@@ -309,7 +294,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 ```tsx
 // components/LoginForm.stories.tsx
 import preview from "~/.storybook/preview";
-import { expect, fn } from "@storybook/test";
+import { expect, fn } from "storybook/test";
 import { LoginForm } from "./LoginForm";
 
 const meta = preview.meta({
@@ -330,19 +315,16 @@ const meta = preview.meta({
   ],
 });
 
-// Visual documentation story
-export const Default = meta.story({});
+// Empty form state — all interaction tests attached directly
+export const EmptyForm = meta.story({});
 
-export const Loading = meta.story({
-  args: {
-    isLoading: true,
-  },
+EmptyForm.test("Renders email and password fields", async ({ canvas }) => {
+  await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+  await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+  await expect(canvas.getByRole("button", { name: /log in/i })).toBeVisible();
 });
 
-// Test story with multiple interaction tests
-export const FormInteractions = meta.story({});
-
-FormInteractions.test(
+EmptyForm.test(
   "Submits form with valid credentials",
   async ({ canvas, userEvent, args, step }) => {
     await step("Fill in valid credentials", async () => {
@@ -363,7 +345,7 @@ FormInteractions.test(
   },
 );
 
-FormInteractions.test(
+EmptyForm.test(
   "Shows error for invalid email",
   async ({ canvas, userEvent, args, step }) => {
     await step("Fill in invalid email", async () => {
@@ -386,7 +368,7 @@ FormInteractions.test(
   },
 );
 
-FormInteractions.test(
+EmptyForm.test(
   "Shows error for short password",
   async ({ canvas, userEvent, args }) => {
     await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
@@ -401,7 +383,7 @@ FormInteractions.test(
   },
 );
 
-FormInteractions.test(
+EmptyForm.test(
   "Shows errors for empty fields",
   async ({ canvas, userEvent, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: /log in/i }));
@@ -417,6 +399,16 @@ FormInteractions.test(
     await expect(args.onSubmit).not.toHaveBeenCalled();
   },
 );
+
+export const Loading = meta.story({
+  args: {
+    isLoading: true,
+  },
+});
+
+Loading.test("Renders loading state", async ({ canvas }) => {
+  await expect(canvas.getByRole("button", { name: /log in/i })).toBeDisabled();
+});
 ```
 
 ---
@@ -489,7 +481,7 @@ export function ConfirmDialog({
 ```tsx
 // components/ConfirmDialog.stories.tsx
 import preview from "~/.storybook/preview";
-import { expect, fn } from "@storybook/test";
+import { expect, fn } from "storybook/test";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 const meta = preview.meta({
@@ -512,54 +504,27 @@ export const Default = meta.story({
   },
 });
 
-export const Destructive = meta.story({
-  args: {
-    title: "Delete Item",
-    message: "This action cannot be undone. Are you sure?",
-    confirmLabel: "Delete",
-    cancelLabel: "Keep",
-    variant: "destructive",
-  },
+Default.test("Renders dialog with title and message", async ({ canvas }) => {
+  const dialog = canvas.getByRole("dialog");
+  await expect(dialog).toBeInTheDocument();
+  await expect(canvas.getByText("Confirm Action")).toBeInTheDocument();
+  await expect(
+    canvas.getByText("Are you sure you want to proceed?"),
+  ).toBeInTheDocument();
 });
 
-export const Closed = meta.story({
-  args: {
-    isOpen: false,
-    title: "This won't be visible",
-    message: "Dialog is closed",
-  },
-});
-
-// Test story with multiple interaction tests
-export const DialogInteractions = meta.story({
-  args: {
-    title: "Confirm Action",
-    message: "Are you sure?",
-  },
-});
-
-DialogInteractions.test(
+Default.test(
   "Calls onConfirm when confirm button clicked",
-  async ({ canvas, userEvent, args, step }) => {
-    await step("Verify dialog is visible", async () => {
-      const dialog = canvas.getByRole("dialog");
-      await expect(dialog).toBeInTheDocument();
-      await expect(canvas.getByText("Confirm Action")).toBeInTheDocument();
-    });
+  async ({ canvas, userEvent, args }) => {
+    const confirmButton = canvas.getByRole("button", { name: /confirm/i });
+    await userEvent.click(confirmButton);
 
-    await step("Click confirm button", async () => {
-      const confirmButton = canvas.getByRole("button", { name: /confirm/i });
-      await userEvent.click(confirmButton);
-    });
-
-    await step("Verify callbacks", async () => {
-      await expect(args.onConfirm).toHaveBeenCalledTimes(1);
-      await expect(args.onCancel).not.toHaveBeenCalled();
-    });
+    await expect(args.onConfirm).toHaveBeenCalledTimes(1);
+    await expect(args.onCancel).not.toHaveBeenCalled();
   },
 );
 
-DialogInteractions.test(
+Default.test(
   "Calls onCancel when cancel button clicked",
   async ({ canvas, userEvent, args }) => {
     const cancelButton = canvas.getByRole("button", { name: /cancel/i });
@@ -570,7 +535,7 @@ DialogInteractions.test(
   },
 );
 
-DialogInteractions.test(
+Default.test(
   "Supports keyboard navigation and Enter to confirm",
   async ({ canvas, userEvent, args }) => {
     // Tab to first button (Cancel)
@@ -588,6 +553,35 @@ DialogInteractions.test(
     await expect(args.onConfirm).toHaveBeenCalled();
   },
 );
+
+export const Destructive = meta.story({
+  args: {
+    title: "Delete Item",
+    message: "This action cannot be undone. Are you sure?",
+    confirmLabel: "Delete",
+    cancelLabel: "Keep",
+    variant: "destructive",
+  },
+});
+
+Destructive.test("Renders destructive variant", async ({ canvas }) => {
+  await expect(canvas.getByText("Delete Item")).toBeInTheDocument();
+  const deleteButton = canvas.getByRole("button", { name: /delete/i });
+  await expect(deleteButton).toHaveClass("bg-red-600");
+});
+
+export const Closed = meta.story({
+  args: {
+    isOpen: false,
+    title: "This won't be visible",
+    message: "Dialog is closed",
+  },
+});
+
+Closed.test("Renders nothing when closed", async ({ canvas }) => {
+  const dialog = canvas.queryByRole("dialog");
+  await expect(dialog).not.toBeInTheDocument();
+});
 ```
 
 ---
@@ -599,7 +593,7 @@ DialogInteractions.test(
 ```tsx
 // components/Select.stories.tsx
 import preview from "~/.storybook/preview";
-import { expect, fn } from "@storybook/test";
+import { expect, fn } from "storybook/test";
 
 const meta = preview.meta({
   title: "Components/Select",
@@ -702,21 +696,29 @@ await expect(button).toHaveAttribute("aria-busy", "true");
 const successMessage = await canvas.findByText(/success/i);
 ```
 
-### 5. Separate Visual Stories from Test Stories
+### 5. Attach Tests to State Stories (Not Separate Test Stories)
 
 ```tsx
-// Visual story (for docs)
-export const Primary = meta.story({
-  args: { variant: "primary" },
-});
+// ❌ OLD PATTERN — separate test story (anti-pattern)
+export const Primary = meta.story({ args: { variant: "primary" } });
 
-// Test story (with play function)
 export const ClickTest = meta.story({
   args: { variant: "primary" },
   play: async () => {
-    // Interaction tests
+    // Interaction tests in a redundant story
   },
 });
+
+// ✅ CURRENT PATTERN — tests attached directly to state story
+export const Primary = meta.story({ args: { variant: "primary" } });
+
+Primary.test(
+  "Calls onClick when clicked",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button"));
+    await expect(args.onClick).toHaveBeenCalled();
+  },
+);
 ```
 
 ### 6. Use Decorators for Layout

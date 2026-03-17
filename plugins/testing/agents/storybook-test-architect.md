@@ -98,7 +98,7 @@ Execute all phases in a single session, pausing for user approval between phases
 
 - **Indicators:** < 5 props, minimal interaction, mostly presentational
 - **Test Strategy:** 1 story (named after component) with 3-5 `.test()` calls
-- **Naming:** Component name: `Avatar`, `Badge`, `Icon`
+- **Naming:** Single story → `ComponentNameStory` with `name` field (`AvatarStory`, `BadgeStory`, `IconStory`) to avoid namespace collision with the imported component
 
 ### Moderate Components
 

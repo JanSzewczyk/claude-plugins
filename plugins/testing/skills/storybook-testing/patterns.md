@@ -8,7 +8,7 @@ Reference patterns for different testing scenarios using CSF Next format with `.
 ## Basic Story Structure
 
 ```typescript
-import { expect, fn, waitFor, within } from "storybook/test";
+import { expect, fn, waitFor } from "storybook/test";
 
 import preview from "~/.storybook/preview";
 
@@ -22,17 +22,17 @@ const meta = preview.meta({
   },
 });
 
-// ONE story for default state
-export const Default = meta.story({});
+// ONE story for the component state
+export const ComponentStory = meta.story({ name: "My Component" });
 
 // MULTIPLE tests using .test() method
-Default.test("Test name 1", async ({ canvas }) => {
+ComponentStory.test("Test name 1", async ({ canvas }) => {
   /* ... */
 });
-Default.test("Test name 2", async ({ canvas, userEvent }) => {
+ComponentStory.test("Test name 2", async ({ canvas, userEvent }) => {
   /* ... */
 });
-Default.test("Test name 3", async ({ canvas, args }) => {
+ComponentStory.test("Test name 3", async ({ canvas, args }) => {
   /* ... */
 });
 ```
@@ -612,9 +612,9 @@ const meta = preview.meta({
   },
 });
 
-export const SearchForm = meta.story({});
+export const SearchFormStory = meta.story({ name: "Search Form" });
 
-SearchForm.test(
+SearchFormStory.test(
   "Calls onSearch with query value",
   async ({ canvas, userEvent, args }) => {
     const searchInput = canvas.getByRole("textbox");
@@ -628,7 +628,7 @@ SearchForm.test(
   },
 );
 
-SearchForm.test(
+SearchFormStory.test(
   "Calls onClear when clear button clicked",
   async ({ canvas, userEvent, args }) => {
     const clearButton = canvas.getByRole("button", { name: /clear/i });
@@ -734,26 +734,32 @@ const meta = preview.meta({
   },
 });
 
-export const ProductPage = meta.story({});
+export const ProductPageStory = meta.story({ name: "Product Page" });
 
-ProductPage.test("Displays product from params", async ({ canvas }) => {
+ProductPageStory.test("Displays product from params", async ({ canvas }) => {
   // Component uses useParams(): { category: "electronics", id: "prod-123" }
   const productTitle = await canvas.findByText(/product prod-123/i);
   await expect(productTitle).toBeVisible();
 });
 
-ProductPage.test("Applies filters from search params", async ({ canvas }) => {
-  // Component uses useSearchParams(): { sort: "price", filter: "inStock" }
-  const sortLabel = canvas.getByText(/sorted by price/i);
-  await expect(sortLabel).toBeVisible();
-});
+ProductPageStory.test(
+  "Applies filters from search params",
+  async ({ canvas }) => {
+    // Component uses useSearchParams(): { sort: "price", filter: "inStock" }
+    const sortLabel = canvas.getByText(/sorted by price/i);
+    await expect(sortLabel).toBeVisible();
+  },
+);
 
-ProductPage.test("Back button navigates", async ({ canvas, userEvent }) => {
-  const backButton = canvas.getByRole("button", { name: /back/i });
-  await userEvent.click(backButton);
+ProductPageStory.test(
+  "Back button navigates",
+  async ({ canvas, userEvent }) => {
+    const backButton = canvas.getByRole("button", { name: /back/i });
+    await userEvent.click(backButton);
 
-  await expect(getRouter().back).toHaveBeenCalled();
-});
+    await expect(getRouter().back).toHaveBeenCalled();
+  },
+);
 ```
 
 > **See [mocking.md](./mocking.md) for complete Next.js mocking documentation.**

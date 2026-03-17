@@ -236,45 +236,51 @@ FormInteractions.test(
 
 ## Hybrid Approach (RECOMMENDED for complex components)
 
-**Combine documentation stories with interaction tests:**
+**Combine documentation stories with interaction tests — attach tests to state stories:**
 
 ```typescript
-// ✅ RECOMMENDED: Hybrid approach for forms
+// ✅ RECOMMENDED: Tests attached directly to state stories
 
-// 1. Visual documentation stories (no tests)
+// 1. Empty state story with content + validation tests
 export const Empty = meta.story({
   tags: ["autodocs"],
-  // Just visual - no play or test
 });
 
+Empty.test("Renders empty form", async ({ canvas }) => {
+  await expect(canvas.getByRole("form")).toBeInTheDocument();
+});
+
+Empty.test("Validates required fields", async ({ canvas, userEvent }) => {
+  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+  await expect(canvas.getByText(/required/i)).toBeInTheDocument();
+});
+
+Empty.test("Submits successfully", async ({ canvas, userEvent, args }) => {
+  await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
+  await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
+  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+
+  await expect(args.onSubmit).toHaveBeenCalled();
+});
+
+// 2. Prefilled state story with its own tests
 export const Prefilled = meta.story({
   tags: ["autodocs"],
   args: { defaultValues: { email: "user@example.com" } },
 });
 
-// 2. Complete interaction tests using .test()
-export const FormInteractions = meta.story({});
-
-FormInteractions.test("Renders empty form", async ({ canvas }) => {
-  await expect(canvas.getByRole("form")).toBeInTheDocument();
+Prefilled.test("Displays pre-filled values", async ({ canvas, args }) => {
+  const emailInput = canvas.getByLabelText(/email/i);
+  await expect(emailInput).toHaveValue(args.defaultValues?.email);
 });
 
-FormInteractions.test(
-  "Validates required fields",
+Prefilled.test(
+  "Can modify pre-filled values",
   async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-    await expect(canvas.getByText(/required/i)).toBeInTheDocument();
-  },
-);
-
-FormInteractions.test(
-  "Submits successfully",
-  async ({ canvas, userEvent, args }) => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "test@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
-    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-
-    await expect(args.onSubmit).toHaveBeenCalled();
+    const emailInput = canvas.getByLabelText(/email/i);
+    await userEvent.clear(emailInput);
+    await userEvent.type(emailInput, "new@example.com");
+    await expect(emailInput).toHaveValue("new@example.com");
   },
 );
 

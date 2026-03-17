@@ -58,24 +58,20 @@ export const Default = meta.story({});
 export const Story2 = meta.story({});
 export const Test1 = meta.story({});
 
-// ✅ GOOD - Single story: Use component name + Story suffix
+// ✅ GOOD - Single story: Use ComponentNameStory to avoid namespace collision
 export const UserCardStory = meta.story({ name: "User Card" });
 export const SearchInputStory = meta.story({ name: "Search Input" });
 
-// ✅ GOOD - Multiple stories: Use descriptive states + Story suffix
-export const EmptyFormStory = meta.story({ name: "Empty Form" });
-export const FilledFormStory = meta.story({ name: "Filled Form" });
-export const LoadingButtonStory = meta.story({
-  name: "Loading Button",
-  args: { isLoading: true },
-});
+// ✅ GOOD - Multiple stories: Use plain descriptive state names (no suffix needed)
+export const EmptyForm = meta.story({});
+export const FilledForm = meta.story({});
+export const LoadingButton = meta.story({ args: { isLoading: true } });
 ```
 
 **Rules:**
 
-- Always append `Story` suffix to story exports to avoid namespace collision with imported components
-- Single story → Component name + suffix (`UserCardStory`, `SearchInputStory`, `BadgeStory`) with `name: "User Card"` in config
-- Multiple stories → Descriptive states + suffix (`EmptyFormStory` / `FilledFormStory`, `IdleButtonStory` / `LoadingButtonStory`)
+- Single story (only one story for the component) → use `ComponentNameStory` + `name: "Component Name"` to avoid namespace collision with the imported component
+- Multiple stories → plain descriptive state names without suffix (`EmptyForm` / `FilledForm`, `IdleButton` / `LoadingButton`)
 - Avoid generic: ~~`Default`~~, ~~`Basic`~~, ~~`Example`~~
 
 ### 3. When to Use `.test()` vs `play` ✅
@@ -106,7 +102,7 @@ export const CheckoutJourney = meta.story({
 
 ## CSF Next Format Best Practices
 
-### 4. Always Import Preview
+### 1. Always Import Preview
 
 ```typescript
 // GOOD - Import preview for type-safe factory functions
@@ -281,18 +277,24 @@ await expect(error).toBeNull();
 ### 9. Keep Stories Focused
 
 ```typescript
-// BAD - Too many concerns in one story
+// ❌ BAD — Too many concerns in one story with play function
 export const EverythingTest = meta.story({
   play: async ({ canvas }) => {
-    // Tests initial state, validation, submission, error handling...
+    // Tests initial state, validation, submission, error handling all in one...
   }
 });
 
-// GOOD - One scenario per story
-export const InitialState = meta.story({ ... });
-export const ValidationErrors = meta.story({ ... });
-export const SuccessfulSubmission = meta.story({ ... });
-export const ServerError = meta.story({ ... });
+// ✅ GOOD — Separate stories for different states, tests attached to each
+export const EmptyForm = meta.story({});
+EmptyForm.test("Renders all expected content", async ({ canvas }) => { ... });
+EmptyForm.test("Shows validation error on empty submit", async ({ canvas, userEvent }) => { ... });
+
+export const FilledForm = meta.story({ args: { defaultValues: { email: "user@example.com" } } });
+FilledForm.test("Displays pre-filled values", async ({ canvas, args }) => { ... });
+FilledForm.test("Submits with pre-filled data", async ({ canvas, userEvent, args }) => { ... });
+
+export const ErrorState = meta.story({ args: { onSubmit: fn(async () => ({ success: false, error: "Server error" })) } });
+ErrorState.test("Shows error message on failure", async ({ canvas, userEvent }) => { ... });
 ```
 
 ## Common Pitfalls
