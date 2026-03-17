@@ -122,17 +122,20 @@ const meta = preview.meta({
   },
 });
 
-// Story named after component (single story)
-export const SubmitButton = meta.story({});
+// Story with Story suffix to avoid namespace conflict with imported component
+export const SubmitButtonStory = meta.story({ name: "Submit Button" });
 
 // Test 1: Rendering
-SubmitButton.test("Renders button with correct text", async ({ canvas }) => {
-  const button = canvas.getByRole("button", { name: /submit/i });
-  await expect(button).toBeVisible();
-});
+SubmitButtonStory.test(
+  "Renders button with correct text",
+  async ({ canvas }) => {
+    const button = canvas.getByRole("button", { name: /submit/i });
+    await expect(button).toBeVisible();
+  },
+);
 
 // Test 2: Interaction
-SubmitButton.test(
+SubmitButtonStory.test(
   "Clicking button triggers onClick",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button", { name: /submit/i });
@@ -142,13 +145,13 @@ SubmitButton.test(
 );
 
 // Test 3: Accessibility
-SubmitButton.test("Button has correct ARIA label", async ({ canvas }) => {
+SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
   const button = canvas.getByRole("button", { name: /submit/i });
   await expect(button).toHaveAccessibleName();
 });
 ```
 
-> **Note:** Story is named `SubmitButton` (same as component) because this is the only story for the component.
+> **Note:** Story exports always use the `Story` suffix (e.g., `SubmitButtonStory`) to avoid namespace collisions with the imported component. The `name` field in the story config sets the clean display name shown in Storybook UI.
 
 ### When to Use `play` Instead of `.test()`
 
@@ -185,6 +188,28 @@ export const CompleteCheckoutFlow = meta.story({
 | `export default meta`                       | No default export needed                     |
 | `type Story = StoryObj<typeof meta>`        | Types inferred automatically                 |
 | `export const Story: Story = { }`           | `export const Story = meta.story({ })`       |
+
+## Story Configuration Conventions
+
+### Title Field
+
+Always use **human-readable, space-separated** words in the `title` field — matching the component's display name:
+
+```typescript
+// ❌ BAD - CamelCase (unreadable in Storybook sidebar)
+title: "Components/CountrySelect";
+title: "Components/InfoTooltip";
+title: "Components/SettingsTabs";
+
+// ✅ GOOD - Spaced words (clean sidebar display)
+title: "Components/Country Select";
+title: "Components/Info Tooltip";
+title: "Components/Settings Tabs";
+```
+
+The title path segments use the same spacing as the `name` field in the story config.
+
+---
 
 ## Story Naming Conventions
 
@@ -233,13 +258,13 @@ or state
 
 ```typescript
 // Component: UserCard
-// Story: Named after component
-export const UserCard = meta.story({});
+// Story: Named after component with Story suffix to avoid namespace conflict
+export const UserCardStory = meta.story({ name: "User Card" });
 
 // Tests: Specific behaviors
-UserCard.test("Renders user name and avatar", async ({ canvas }) => { ... });
-UserCard.test("Clicking card triggers onSelect", async ({ canvas }) => { ... });
-UserCard.test("Shows verified badge for verified users", async ({ canvas }) => { ... });
+UserCardStory.test("Renders user name and avatar", async ({ canvas }) => { ... });
+UserCardStory.test("Clicking card triggers onSelect", async ({ canvas }) => { ... });
+UserCardStory.test("Shows verified badge for verified users", async ({ canvas }) => { ... });
 ```
 
 #### Multiple Story Component
@@ -289,25 +314,26 @@ const meta = preview.meta({
   },
 });
 
-// Story named after component (single story with data)
-export const UserCard = meta.story({
+// Story suffix avoids namespace conflict with imported UserCard component
+export const UserCardStory = meta.story({
+  name: "User Card",
   args: {
     user: userBuilder.one(),
   },
 });
 
 // Multiple tests for that story
-UserCard.test("Renders user name correctly", async ({ canvas, args }) => {
+UserCardStory.test("Renders user name correctly", async ({ canvas, args }) => {
   const name = canvas.getByText(args.user.name);
   await expect(name).toBeVisible();
 });
 
-UserCard.test("Displays user avatar", async ({ canvas }) => {
+UserCardStory.test("Displays user avatar", async ({ canvas }) => {
   const avatar = canvas.getByRole("img", { name: /avatar/i });
   await expect(avatar).toBeVisible();
 });
 
-UserCard.test(
+UserCardStory.test(
   "Clicking card triggers callback",
   async ({ canvas, userEvent, args }) => {
     const card = canvas.getByRole("article");

@@ -36,9 +36,9 @@ const meta = preview.meta({
   },
 });
 
-export const Button = meta.story({});
+export const ButtonStory = meta.story({ name: "Button" });
 
-Button.test(
+ButtonStory.test(
   "Clicking button triggers onClick",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -72,9 +72,9 @@ const meta = preview.meta({
   },
 });
 
-export const UserSearch = meta.story({});
+export const UserSearchStory = meta.story({ name: "User Search" });
 
-UserSearch.test(
+UserSearchStory.test(
   "Fetches users on search",
   async ({ canvas, userEvent, args }) => {
     const searchInput = canvas.getByRole("textbox");
@@ -659,14 +659,15 @@ const meta = preview.meta({
   },
 });
 
-// Use builder to generate mock user data
-export const UserCard = meta.story({
+// Story suffix avoids namespace conflict with imported UserCard component
+export const UserCardStory = meta.story({
+  name: "User Card",
   args: {
     user: userBuilder.one(),
   },
 });
 
-UserCard.test("Renders user information", async ({ canvas, args }) => {
+UserCardStory.test("Renders user information", async ({ canvas, args }) => {
   const userName = canvas.getByText(args.user.name);
   await expect(userName).toBeVisible();
 

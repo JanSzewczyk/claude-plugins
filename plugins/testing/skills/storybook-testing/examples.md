@@ -313,7 +313,7 @@ import { expect, fn } from "@storybook/test";
 import { LoginForm } from "./LoginForm";
 
 const meta = preview.meta({
-  title: "Components/LoginForm",
+  title: "Components/Login Form",
   component: LoginForm,
   parameters: {
     layout: "centered",
@@ -493,7 +493,7 @@ import { expect, fn } from "@storybook/test";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 const meta = preview.meta({
-  title: "Components/ConfirmDialog",
+  title: "Components/Confirm Dialog",
   component: ConfirmDialog,
   parameters: {
     layout: "fullscreen",

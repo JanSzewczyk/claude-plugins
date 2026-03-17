@@ -27,22 +27,25 @@ export const ValidationTest = meta.story({
 });
 
 // ✅ GOOD - One story with multiple .test() calls (new pattern)
-export const LoginForm = meta.story({});
+export const LoginFormStory = meta.story({ name: "Login Form" });
 
-LoginForm.test(
+LoginFormStory.test(
   "Calls onSubmit when button clicked",
   async ({ canvas, userEvent, args }) => {
     /* test 1 */
   },
 );
 
-LoginForm.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
+LoginFormStory.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
   /* test 2 */
 });
 
-LoginForm.test("Shows validation error on empty submit", async ({ canvas }) => {
-  /* test 3 */
-});
+LoginFormStory.test(
+  "Shows validation error on empty submit",
+  async ({ canvas }) => {
+    /* test 3 */
+  },
+);
 ```
 
 **Benefits:** 80% fewer stories, better isolation, clearer intent, less boilerplate
@@ -55,20 +58,24 @@ export const Default = meta.story({});
 export const Story2 = meta.story({});
 export const Test1 = meta.story({});
 
-// ✅ GOOD - Single story: Use component name
-export const UserCard = meta.story({});
-export const SearchInput = meta.story({});
+// ✅ GOOD - Single story: Use component name + Story suffix
+export const UserCardStory = meta.story({ name: "User Card" });
+export const SearchInputStory = meta.story({ name: "Search Input" });
 
-// ✅ GOOD - Multiple stories: Use descriptive states
-export const EmptyForm = meta.story({});
-export const FilledForm = meta.story({});
-export const LoadingButton = meta.story({ args: { isLoading: true } });
+// ✅ GOOD - Multiple stories: Use descriptive states + Story suffix
+export const EmptyFormStory = meta.story({ name: "Empty Form" });
+export const FilledFormStory = meta.story({ name: "Filled Form" });
+export const LoadingButtonStory = meta.story({
+  name: "Loading Button",
+  args: { isLoading: true },
+});
 ```
 
 **Rules:**
 
-- Single story → Component name (`UserCard`, `SearchInput`, `Badge`)
-- Multiple stories → Descriptive states (`EmptyForm` / `FilledForm`, `IdleButton` / `LoadingButton`)
+- Always append `Story` suffix to story exports to avoid namespace collision with imported components
+- Single story → Component name + suffix (`UserCardStory`, `SearchInputStory`, `BadgeStory`) with `name: "User Card"` in config
+- Multiple stories → Descriptive states + suffix (`EmptyFormStory` / `FilledFormStory`, `IdleButtonStory` / `LoadingButtonStory`)
 - Avoid generic: ~~`Default`~~, ~~`Basic`~~, ~~`Example`~~
 
 ### 3. When to Use `.test()` vs `play` ✅

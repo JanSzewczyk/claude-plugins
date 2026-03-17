@@ -11,7 +11,7 @@ import preview from "~/.storybook/preview";
 import { ContactForm } from "./contact-form";
 
 const meta = preview.meta({
-  title: "Components/ContactForm",
+  title: "Components/Contact Form",
   component: ContactForm,
   args: {
     onSubmit: fn(),
@@ -148,7 +148,7 @@ import { itemBuilder } from "~/features/item/test/builders";
 import { ItemList } from "./item-list";
 
 const meta = preview.meta({
-  title: "Components/ItemList",
+  title: "Components/Item List",
   component: ItemList,
   args: {
     onItemClick: fn(),
@@ -223,7 +223,7 @@ import preview from "~/.storybook/preview";
 import { ConfirmDialog } from "./confirm-dialog";
 
 const meta = preview.meta({
-  title: "Components/ConfirmDialog",
+  title: "Components/Confirm Dialog",
   component: ConfirmDialog,
   args: {
     onConfirm: fn(),
@@ -333,7 +333,7 @@ import preview from "~/.storybook/preview";
 import { SubmitButton } from "./submit-button";
 
 const meta = preview.meta({
-  title: "Components/SubmitButton",
+  title: "Components/Submit Button",
   component: SubmitButton,
   args: {
     onClick: fn(),
@@ -476,7 +476,7 @@ import preview from "~/.storybook/preview";
 import { EmailInput } from "./email-input";
 
 const meta = preview.meta({
-  title: "Components/EmailInput",
+  title: "Components/Email Input",
   component: EmailInput,
   args: {
     onChange: fn(),

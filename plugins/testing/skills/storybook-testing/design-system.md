@@ -69,7 +69,7 @@ import preview from "~/.storybook/preview";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 
 const meta = preview.meta({
-  title: "Components/DeleteConfirmDialog",
+  title: "Components/Delete Confirm Dialog",
   component: DeleteConfirmDialog,
   args: {
     onConfirm: fn(),
@@ -143,7 +143,7 @@ import preview from "~/.storybook/preview";
 import { CountrySelect } from "./country-select";
 
 const meta = preview.meta({
-  title: "Components/CountrySelect",
+  title: "Components/Country Select",
   component: CountrySelect,
   args: {
     onValueChange: fn(),
@@ -151,17 +151,17 @@ const meta = preview.meta({
 });
 
 // Main story
-export const CountrySelect = meta.story({});
+export const CountrySelectStory = meta.story({ name: "Country Select" });
 
 // Rendering tests
-CountrySelect.test("Renders combobox trigger", async ({ canvas }) => {
+CountrySelectStory.test("Renders combobox trigger", async ({ canvas }) => {
   // DS Select uses combobox role
   const select = canvas.getByRole("combobox");
   await expect(select).toBeVisible();
 });
 
 // Interaction tests
-CountrySelect.test(
+CountrySelectStory.test(
   "Opens dropdown on trigger click",
   async ({ canvas, userEvent }) => {
     const select = canvas.getByRole("combobox");
@@ -175,7 +175,7 @@ CountrySelect.test(
   },
 );
 
-CountrySelect.test(
+CountrySelectStory.test(
   "Selects option and updates trigger text",
   async ({ canvas, userEvent, args }) => {
     const select = canvas.getByRole("combobox");
@@ -189,7 +189,7 @@ CountrySelect.test(
   },
 );
 
-CountrySelect.test(
+CountrySelectStory.test(
   "Closes dropdown after selection",
   async ({ canvas, userEvent }) => {
     const select = canvas.getByRole("combobox");
@@ -214,43 +214,52 @@ import preview from "~/.storybook/preview";
 import { InfoTooltip } from "./info-tooltip";
 
 const meta = preview.meta({
-  title: "Components/InfoTooltip",
+  title: "Components/Info Tooltip",
   component: InfoTooltip,
 });
 
 // Main story
-export const InfoTooltip = meta.story({});
+export const InfoTooltipStory = meta.story({ name: "Info Tooltip" });
 
 // Interaction tests
-InfoTooltip.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
-  const trigger = canvas.getByRole("button", { name: /info/i });
-  await userEvent.hover(trigger);
+InfoTooltipStory.test(
+  "Shows tooltip on hover",
+  async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: /info/i });
+    await userEvent.hover(trigger);
 
-  // DS tooltips render to portal - use screen
-  const tooltip = await screen.findByRole("tooltip");
-  await expect(tooltip).toHaveTextContent(/helpful information/i);
-});
+    // DS tooltips render to portal - use screen
+    const tooltip = await screen.findByRole("tooltip");
+    await expect(tooltip).toHaveTextContent(/helpful information/i);
+  },
+);
 
-InfoTooltip.test("Hides tooltip on unhover", async ({ canvas, userEvent }) => {
-  const trigger = canvas.getByRole("button", { name: /info/i });
-  await userEvent.hover(trigger);
+InfoTooltipStory.test(
+  "Hides tooltip on unhover",
+  async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: /info/i });
+    await userEvent.hover(trigger);
 
-  const tooltip = await screen.findByRole("tooltip");
-  await expect(tooltip).toBeVisible();
+    const tooltip = await screen.findByRole("tooltip");
+    await expect(tooltip).toBeVisible();
 
-  await userEvent.unhover(trigger);
-  await waitFor(async () => {
-    await expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
-  });
-});
+    await userEvent.unhover(trigger);
+    await waitFor(async () => {
+      await expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    });
+  },
+);
 
-InfoTooltip.test("Shows tooltip on focus (keyboard)", async ({ canvas }) => {
-  const trigger = canvas.getByRole("button", { name: /info/i });
-  trigger.focus();
+InfoTooltipStory.test(
+  "Shows tooltip on focus (keyboard)",
+  async ({ canvas }) => {
+    const trigger = canvas.getByRole("button", { name: /info/i });
+    trigger.focus();
 
-  const tooltip = await screen.findByRole("tooltip");
-  await expect(tooltip).toBeVisible();
-});
+    const tooltip = await screen.findByRole("tooltip");
+    await expect(tooltip).toBeVisible();
+  },
+);
 ```
 
 ## Testing DS Button Components
@@ -261,7 +270,7 @@ import preview from "~/.storybook/preview";
 import { ActionButton } from "./action-button";
 
 const meta = preview.meta({
-  title: "Components/ActionButton",
+  title: "Components/Action Button",
   component: ActionButton,
   args: {
     onClick: fn(),
@@ -332,7 +341,7 @@ import preview from "~/.storybook/preview";
 import { ToastDemo } from "./toast-demo";
 
 const meta = preview.meta({
-  title: "Components/ToastDemo",
+  title: "Components/Toast Demo",
   component: ToastDemo,
   args: {
     onShowToast: fn(),
@@ -340,10 +349,10 @@ const meta = preview.meta({
 });
 
 // Main story
-export const ToastDemo = meta.story({});
+export const ToastDemoStory = meta.story({ name: "Toast Demo" });
 
 // Interaction tests
-ToastDemo.test(
+ToastDemoStory.test(
   "Shows toast on trigger click",
   async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
@@ -354,7 +363,7 @@ ToastDemo.test(
   },
 );
 
-ToastDemo.test(
+ToastDemoStory.test(
   "Auto-dismisses after timeout",
   async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
@@ -372,19 +381,22 @@ ToastDemo.test(
   },
 );
 
-ToastDemo.test("Can be dismissed manually", async ({ canvas, userEvent }) => {
-  await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
+ToastDemoStory.test(
+  "Can be dismissed manually",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /show toast/i }));
 
-  const toast = await canvas.findByRole("status");
-  const closeBtn = toast.querySelector("button[aria-label='Close']");
+    const toast = await canvas.findByRole("status");
+    const closeBtn = toast.querySelector("button[aria-label='Close']");
 
-  if (closeBtn) {
-    await userEvent.click(closeBtn);
-    await waitFor(async () => {
-      await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
-    });
-  }
-});
+    if (closeBtn) {
+      await userEvent.click(closeBtn);
+      await waitFor(async () => {
+        await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
+      });
+    }
+  },
+);
 ```
 
 ## Testing DS Tabs Components
@@ -395,15 +407,15 @@ import preview from "~/.storybook/preview";
 import { SettingsTabs } from "./settings-tabs";
 
 const meta = preview.meta({
-  title: "Components/SettingsTabs",
+  title: "Components/Settings Tabs",
   component: SettingsTabs,
 });
 
 // Main story
-export const SettingsTabs = meta.story({});
+export const SettingsTabsStory = meta.story({ name: "Settings Tabs" });
 
 // Rendering tests
-SettingsTabs.test("Renders all tab triggers", async ({ canvas }) => {
+SettingsTabsStory.test("Renders all tab triggers", async ({ canvas }) => {
   await expect(canvas.getByRole("tab", { name: /profile/i })).toBeVisible();
   await expect(canvas.getByRole("tab", { name: /security/i })).toBeVisible();
   await expect(
@@ -411,13 +423,16 @@ SettingsTabs.test("Renders all tab triggers", async ({ canvas }) => {
   ).toBeVisible();
 });
 
-SettingsTabs.test("First tab is selected by default", async ({ canvas }) => {
-  const firstTab = canvas.getByRole("tab", { name: /profile/i });
-  await expect(firstTab).toHaveAttribute("aria-selected", "true");
-});
+SettingsTabsStory.test(
+  "First tab is selected by default",
+  async ({ canvas }) => {
+    const firstTab = canvas.getByRole("tab", { name: /profile/i });
+    await expect(firstTab).toHaveAttribute("aria-selected", "true");
+  },
+);
 
 // Interaction tests
-SettingsTabs.test(
+SettingsTabsStory.test(
   "Clicking tab switches content",
   async ({ canvas, userEvent }) => {
     const securityTab = canvas.getByRole("tab", { name: /security/i });
@@ -432,7 +447,7 @@ SettingsTabs.test(
   },
 );
 
-SettingsTabs.test(
+SettingsTabsStory.test(
   "Deselects previous tab when switching",
   async ({ canvas, userEvent }) => {
     const profileTab = canvas.getByRole("tab", { name: /profile/i });
@@ -450,7 +465,7 @@ SettingsTabs.test(
 );
 
 // Keyboard navigation tests
-SettingsTabs.test(
+SettingsTabsStory.test(
   "Arrow keys navigate between tabs",
   async ({ canvas, userEvent }) => {
     const profileTab = canvas.getByRole("tab", { name: /profile/i });
@@ -472,7 +487,7 @@ import preview from "~/.storybook/preview";
 import { NewsletterCheckbox } from "./newsletter-checkbox";
 
 const meta = preview.meta({
-  title: "Components/NewsletterCheckbox",
+  title: "Components/Newsletter Checkbox",
   component: NewsletterCheckbox,
   args: {
     onCheckedChange: fn(),
