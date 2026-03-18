@@ -42,21 +42,24 @@ if behavior tests already implicitly verify the relevant elements.
 
 ```typescript
 // ❌ WRONG: content test duplicates assertions already in behavior test
-Default.test("Renders all expected content", async ({ canvas }) => {
+EmptyForm.test("Renders all expected content", async ({ canvas }) => {
   await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible(); // duplicated below
 });
-Default.test("Submits form on button click", async ({ canvas, args }) => {
+EmptyForm.test("Submits form on button click", async ({ canvas, args }) => {
   await canvas.getByRole("button", { name: /submit/i }).click(); // already finds the button
   await expect(args.onSubmit).toHaveBeenCalledOnce();
 });
 
 // ✅ CORRECT: content test only for elements not covered elsewhere
-Default.test("Renders section heading and description", async ({ canvas }) => {
-  await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
-  await expect(canvas.getByText(/descriptive text/i)).toBeVisible();
-  // (submit button is verified implicitly by the interaction test)
-});
-Default.test("Submits form on button click", async ({ canvas, args }) => {
+EmptyForm.test(
+  "Renders section heading and description",
+  async ({ canvas }) => {
+    await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
+    await expect(canvas.getByText(/descriptive text/i)).toBeVisible();
+    // (submit button is verified implicitly by the interaction test)
+  },
+);
+EmptyForm.test("Submits form on button click", async ({ canvas, args }) => {
   await canvas.getByRole("button", { name: /submit/i }).click();
   await expect(args.onSubmit).toHaveBeenCalledOnce();
 });
@@ -70,8 +73,8 @@ Default.test("Submits form on button click", async ({ canvas, args }) => {
 
 ```typescript
 // 1 story with 1 test
-export const Default = meta.story({});
-Default.test("Renders all skills and categories correctly", async ({ canvas, step }) => {
+export const SkillsSection = meta.story({});
+SkillsSection.test("Renders all skills and categories correctly", async ({ canvas, step }) => {
   // 6 steps checking various elements
 });
 
@@ -111,23 +114,26 @@ export const TechLogoHoverAnimation = meta.story({ /* ... */ });
 
 ```typescript
 // ONE story with multiple tests
-export const Default = meta.story({});
+export const AllCategories = meta.story({});
 
 // Rendering & Content Tests
-Default.test("Renders section heading and description", async ({ canvas }) => {
-  const heading = canvas.getByRole("heading", {
-    name: /skills & technologies/i,
-    level: 2,
-  });
-  await expect(heading).toBeVisible();
+AllCategories.test(
+  "Renders section heading and description",
+  async ({ canvas }) => {
+    const heading = canvas.getByRole("heading", {
+      name: /skills & technologies/i,
+      level: 2,
+    });
+    await expect(heading).toBeVisible();
 
-  const description = canvas.getByText(
-    /the tools and technologies I work with to bring ideas to life/i,
-  );
-  await expect(description).toBeVisible();
-});
+    const description = canvas.getByText(
+      /the tools and technologies I work with to bring ideas to life/i,
+    );
+    await expect(description).toBeVisible();
+  },
+);
 
-Default.test("Displays all tech logos in marquee", async ({ canvas }) => {
+AllCategories.test("Displays all tech logos in marquee", async ({ canvas }) => {
   const reactLogo = canvas.getByText("React");
   await expect(reactLogo).toBeVisible();
 
@@ -138,14 +144,14 @@ Default.test("Displays all tech logos in marquee", async ({ canvas }) => {
   await expect(typescriptLogo).toBeVisible();
 });
 
-Default.test("Shows all category badges", async ({ canvas }) => {
+AllCategories.test("Shows all category badges", async ({ canvas }) => {
   await expect(canvas.getByText("Frontend")).toBeVisible();
   await expect(canvas.getByText("Mobile")).toBeVisible();
   await expect(canvas.getByText("DevOps & Tools")).toBeVisible();
   await expect(canvas.getByText("Other")).toBeVisible();
 });
 
-Default.test(
+AllCategories.test(
   "Displays skill cards with correct headings",
   async ({ canvas }) => {
     const reactSkill = canvas.getByRole("heading", { name: "React", level: 3 });
@@ -160,7 +166,7 @@ Default.test(
 );
 
 // Interaction Tests
-Default.test(
+AllCategories.test(
   "Skill card hover shows tooltip",
   async ({ canvas, userEvent }) => {
     const nextjsCard = canvas.getByRole("heading", {
@@ -181,7 +187,7 @@ Default.test(
   },
 );
 
-Default.test(
+AllCategories.test(
   "Marquee pauses on tech logo hover",
   async ({ canvas, userEvent }) => {
     const reactLogo = canvas.getByText("React");
@@ -193,7 +199,7 @@ Default.test(
   },
 );
 
-Default.test(
+AllCategories.test(
   "Mobile tab navigation switches content",
   async ({ canvas, userEvent }) => {
     const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
@@ -218,7 +224,7 @@ Default.test(
 );
 
 // Accessibility Tests
-Default.test(
+AllCategories.test(
   "Keyboard navigation works with arrow keys",
   async ({ canvas, userEvent }) => {
     const frontendTab = canvas.getByRole("tab", { name: /frontend/i });
@@ -234,7 +240,7 @@ Default.test(
   },
 );
 
-Default.test(
+AllCategories.test(
   "Section maintains proper heading hierarchy",
   async ({ canvas }) => {
     const mainHeading = canvas.getByRole("heading", {
@@ -249,7 +255,7 @@ Default.test(
 );
 
 // Layout Tests
-Default.test(
+AllCategories.test(
   "Desktop Bento grid displays all categories simultaneously",
   async ({ canvas }) => {
     await expect(canvas.getByText("Frontend")).toBeVisible();
@@ -259,7 +265,7 @@ Default.test(
   },
 );
 
-Default.test(
+AllCategories.test(
   "Responsive container has proper structure",
   async ({ canvasElement }) => {
     const section = canvasElement.querySelector("#skills");
@@ -359,7 +365,7 @@ export const TestName = meta.story({
 **After:**
 
 ```typescript
-Default.test("Test name in sentence case", async ({ canvas, userEvent }) => {
+Story.test("Test name in sentence case", async ({ canvas, userEvent }) => {
   // same test logic
 });
 ```
@@ -385,7 +391,7 @@ play: async ({ canvas, step, userEvent }) => {
 **After (with .test):**
 
 ```typescript
-Default.test(
+Story.test(
   "Clicking button shows success message",
   async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button"));
@@ -452,10 +458,10 @@ When you need to test different component states:
 
 ```typescript
 // Story 1: Default state
-export const Default = meta.story({});
+export const EmptyForm = meta.story({});
 
-Default.test("Renders empty form", async ({ canvas }) => { ... });
-Default.test("Shows validation on submit", async ({ canvas }) => { ... });
+EmptyForm.test("Renders empty form", async ({ canvas }) => { ... });
+EmptyForm.test("Shows validation on submit", async ({ canvas }) => { ... });
 
 // Story 2: Pre-filled state
 export const Prefilled = meta.story({
@@ -479,7 +485,7 @@ Prefilled.test("Can modify pre-filled values", async ({ canvas, userEvent }) => 
 For responsive or conditional rendering:
 
 ```typescript
-Default.test(
+AllCategories.test(
   "Mobile tab navigation (if tabs present)",
   async ({ canvas, userEvent }) => {
     const mobileTab = canvas.queryByRole("tab", { name: /mobile/i });
@@ -505,7 +511,7 @@ Default.test(
 import type { Canvas, UserEvent } from "storybook/test";
 
 // Types are automatically inferred
-Default.test("Test name", async ({ canvas, userEvent, args, step }) => {
+Story.test("Test name", async ({ canvas, userEvent, args, step }) => {
   // canvas: Canvas
   // userEvent: UserEvent
   // args: StoryArgs<typeof ComponentName>
@@ -534,12 +540,12 @@ Each `.test()` should test ONE thing:
 
 ```typescript
 // ✅ Good - one assertion
-Default.test("Shows error message on invalid email", async ({ canvas }) => {
+FormStory.test("Shows error message on invalid email", async ({ canvas }) => {
   await expect(canvas.getByText("Invalid email format")).toBeVisible();
 });
 
 // ❌ Bad - testing multiple unrelated things
-Default.test(
+FormStory.test(
   "Form validation and submission",
   async ({ canvas, userEvent }) => {
     await expect(canvas.getByText("Error")).toBeVisible(); // validation
@@ -615,14 +621,14 @@ expect(canvas.getByText("Success")).toBeVisible(); // ⚠️ Might fail (WRONG!)
 
 ```typescript
 // ONE story for documentation
-export const Default = meta.story({
+export const ComponentStory = meta.story({
   tags: ["autodocs"]
 });
 
 // MULTIPLE tests for that story
-Default.test("Test case 1", async ({ canvas }) => { ... });
-Default.test("Test case 2", async ({ canvas }) => { ... });
-Default.test("Test case 3", async ({ canvas, userEvent }) => { ... });
+ComponentStory.test("Test case 1", async ({ canvas }) => { ... });
+ComponentStory.test("Test case 2", async ({ canvas }) => { ... });
+ComponentStory.test("Test case 3", async ({ canvas, userEvent }) => { ... });
 // ... etc
 ```
 

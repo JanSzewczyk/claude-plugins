@@ -602,7 +602,7 @@ const meta = preview.meta({
   },
 });
 
-export const Default = meta.story({
+export const EmptySelect = meta.story({
   args: { label: "Choose an option" },
 });
 
@@ -686,7 +686,7 @@ const meta = preview.meta({
   },
 });
 
-export const Default = meta.story({});
+export const FirstTab = meta.story({});
 
 export const WithDefaultTab = meta.story({
   args: { defaultTab: "tab2" },

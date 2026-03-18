@@ -1,6 +1,6 @@
 ---
 name: storybook-testing
-version: 3.0.0
+version: 3.0.1
 lastUpdated: 2026-01-18
 description:
   Create comprehensive Storybook stories with interactive tests for React components using CSF Next format and .test()

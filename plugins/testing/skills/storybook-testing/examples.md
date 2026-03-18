@@ -96,7 +96,7 @@ export const Destructive = meta.story({
 });
 
 // Interactive story with MULTIPLE tests
-export const ButtonStory = meta.story({
+export const IdleButton = meta.story({
   name: "Button",
   args: {
     children: "Button",
@@ -104,7 +104,7 @@ export const ButtonStory = meta.story({
 });
 
 // Rendering test — group all static content assertions into one
-ButtonStory.test("Renders all expected content", async ({ canvas, args }) => {
+IdleButton.test("Renders all expected content", async ({ canvas, args }) => {
   const button = canvas.getByRole("button");
   await expect(button).toBeInTheDocument();
   await expect(button).toHaveTextContent(args.children);
@@ -113,7 +113,7 @@ ButtonStory.test("Renders all expected content", async ({ canvas, args }) => {
 });
 
 // Interaction tests
-ButtonStory.test(
+IdleButton.test(
   "Calls onClick when clicked",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -122,7 +122,7 @@ ButtonStory.test(
   },
 );
 
-ButtonStory.test(
+IdleButton.test(
   "Can be clicked multiple times",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -134,7 +134,7 @@ ButtonStory.test(
 );
 
 // Keyboard accessibility tests
-ButtonStory.test(
+IdleButton.test(
   "Can be activated with Enter key",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -146,7 +146,7 @@ ButtonStory.test(
   },
 );
 
-ButtonStory.test(
+IdleButton.test(
   "Can be activated with Space key",
   async ({ canvas, userEvent, args }) => {
     const button = canvas.getByRole("button");
@@ -497,14 +497,14 @@ const meta = preview.meta({
   },
 });
 
-export const Default = meta.story({
+export const OpenDialog = meta.story({
   args: {
     title: "Confirm Action",
     message: "Are you sure you want to proceed?",
   },
 });
 
-Default.test("Renders dialog with title and message", async ({ canvas }) => {
+OpenDialog.test("Renders dialog with title and message", async ({ canvas }) => {
   const dialog = canvas.getByRole("dialog");
   await expect(dialog).toBeInTheDocument();
   await expect(canvas.getByText("Confirm Action")).toBeInTheDocument();
@@ -513,7 +513,7 @@ Default.test("Renders dialog with title and message", async ({ canvas }) => {
   ).toBeInTheDocument();
 });
 
-Default.test(
+OpenDialog.test(
   "Calls onConfirm when confirm button clicked",
   async ({ canvas, userEvent, args }) => {
     const confirmButton = canvas.getByRole("button", { name: /confirm/i });
@@ -524,7 +524,7 @@ Default.test(
   },
 );
 
-Default.test(
+OpenDialog.test(
   "Calls onCancel when cancel button clicked",
   async ({ canvas, userEvent, args }) => {
     const cancelButton = canvas.getByRole("button", { name: /cancel/i });
@@ -535,7 +535,7 @@ Default.test(
   },
 );
 
-Default.test(
+OpenDialog.test(
   "Supports keyboard navigation and Enter to confirm",
   async ({ canvas, userEvent, args }) => {
     // Tab to first button (Cancel)
@@ -620,7 +620,7 @@ const meta = preview.meta({
 
 
 // Visual documentation story
-export const Default = meta.story({});
+export const EmptySelect = meta.story({});
 
 export const WithDefaultValue = meta.story({
   args: {

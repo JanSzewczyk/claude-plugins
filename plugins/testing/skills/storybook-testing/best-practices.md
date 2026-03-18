@@ -112,7 +112,7 @@ const meta = preview.meta({
   component: MyComponent,
 });
 
-export const Default = meta.story({});
+export const MyComponentStory = meta.story({ name: "My Component" });
 ```
 
 ### 2. No Default Export Needed
@@ -133,7 +133,7 @@ export const Default: Story = {};
 
 // GOOD - Types inferred automatically
 const meta = preview.meta({ component: MyComponent });
-export const Default = meta.story({});
+export const MyComponentStory = meta.story({ name: "My Component" });
 ```
 
 ## ⭐ CRITICAL: userEvent from Function Parameters (Not Imports)

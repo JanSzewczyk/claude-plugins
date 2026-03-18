@@ -42,11 +42,11 @@ ComponentStory.test("Test name 3", async ({ canvas, args }) => {
 ✅ **Group all static content checks into ONE test per story state:**
 
 ```typescript
-export const Default = meta.story({});
+export const EmptyForm = meta.story({});
 
 // ONE test for ALL content in this story state
 // ❌ Anti-pattern: separate tests for each text element
-Default.test("Renders all expected content", async ({ canvas }) => {
+EmptyForm.test("Renders all expected content", async ({ canvas }) => {
   // Heading
   await expect(
     canvas.getByRole("heading", { name: /section title/i, level: 2 }),
@@ -66,7 +66,7 @@ Default.test("Renders all expected content", async ({ canvas }) => {
 });
 
 // SEPARATE tests for each distinct behavior
-Default.test(
+EmptyForm.test(
   "Submits form on button click",
   async ({ canvas, userEvent, args }) => {
     await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
@@ -118,14 +118,14 @@ Prefilled.test(
 
 ## Pattern 3: Validation Testing
 
-✅ **Group validation tests under Default story:**
+✅ **Group validation tests under EmptyForm story:**
 
 ```typescript
-export const Default = meta.story({
+export const EmptyForm = meta.story({
   args: { onSubmit: fn() },
 });
 
-Default.test("Shows error on empty email", async ({ canvas, userEvent }) => {
+EmptyForm.test("Shows error on empty email", async ({ canvas, userEvent }) => {
   const submitButton = canvas.getByRole("button", { name: /submit/i });
   await userEvent.click(submitButton);
 
@@ -135,7 +135,7 @@ Default.test("Shows error on empty email", async ({ canvas, userEvent }) => {
   });
 });
 
-Default.test(
+EmptyForm.test(
   "Shows error on invalid email format",
   async ({ canvas, userEvent }) => {
     const emailInput = canvas.getByLabelText(/email/i);
@@ -151,7 +151,7 @@ Default.test(
   },
 );
 
-Default.test(
+EmptyForm.test(
   "Does not submit with validation errors",
   async ({ canvas, userEvent, args }) => {
     const submitButton = canvas.getByRole("button", { name: /submit/i });
@@ -171,11 +171,11 @@ Default.test(
 ✅ **Test complete interactions with `.test()`:**
 
 ```typescript
-export const Default = meta.story({
+export const EmptyForm = meta.story({
   args: { onSubmit: fn() },
 });
 
-Default.test(
+EmptyForm.test(
   "Submits form with valid data",
   async ({ canvas, userEvent, args }) => {
     await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
@@ -191,14 +191,14 @@ Default.test(
   },
 );
 
-Default.test("Can clear input fields", async ({ canvas, userEvent }) => {
+EmptyForm.test("Can clear input fields", async ({ canvas, userEvent }) => {
   const emailInput = canvas.getByLabelText(/email/i);
   await userEvent.type(emailInput, "test@example.com");
   await userEvent.clear(emailInput);
   await expect(emailInput).toHaveValue("");
 });
 
-Default.test(
+EmptyForm.test(
   "Form submit on Enter key",
   async ({ canvas, userEvent, args }) => {
     await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
@@ -249,9 +249,9 @@ Loading.test("Shows loading indicator", async ({ canvas, userEvent }) => {
 ```typescript
 import { screen } from "storybook/test";
 
-export const Default = meta.story({});
+export const ClosedDropdown = meta.story({});
 
-Default.test(
+ClosedDropdown.test(
   "Opens dropdown on trigger click",
   async ({ canvas, userEvent }) => {
     const trigger = canvas.getByLabelText("Select option");
@@ -266,7 +266,7 @@ Default.test(
   },
 );
 
-Default.test(
+ClosedDropdown.test(
   "Selects option and updates trigger",
   async ({ canvas, userEvent }) => {
     const trigger = canvas.getByLabelText("Select option");
@@ -285,9 +285,9 @@ Default.test(
 ✅ **Separate tests for show/hide:**
 
 ```typescript
-export const Default = meta.story({});
+export const IdleTooltip = meta.story({});
 
-Default.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
+IdleTooltip.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
   const trigger = canvas.getByRole("button", { name: /info/i });
   await userEvent.hover(trigger);
 
@@ -295,7 +295,7 @@ Default.test("Shows tooltip on hover", async ({ canvas, userEvent }) => {
   await expect(tooltip).toHaveTextContent(/helpful information/i);
 });
 
-Default.test("Hides tooltip on unhover", async ({ canvas, userEvent }) => {
+IdleTooltip.test("Hides tooltip on unhover", async ({ canvas, userEvent }) => {
   const trigger = canvas.getByRole("button", { name: /info/i });
   await userEvent.hover(trigger);
 
@@ -314,14 +314,14 @@ Default.test("Hides tooltip on unhover", async ({ canvas, userEvent }) => {
 ✅ **Test callback invocations:**
 
 ```typescript
-export const Default = meta.story({
+export const ButtonPanel = meta.story({
   args: {
     onBack: fn(),
     onNext: fn(),
   },
 });
 
-Default.test(
+ButtonPanel.test(
   "Back button calls onBack",
   async ({ canvas, userEvent, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: /back/i }));
@@ -329,7 +329,7 @@ Default.test(
   },
 );
 
-Default.test(
+ButtonPanel.test(
   "Next button calls onNext",
   async ({ canvas, userEvent, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: /next/i }));
@@ -337,7 +337,7 @@ Default.test(
   },
 );
 
-Default.test(
+ButtonPanel.test(
   "Prevents double submission",
   async ({ canvas, userEvent, args }) => {
     const submitBtn = canvas.getByRole("button", { name: /submit/i });
@@ -400,30 +400,39 @@ ErrorState.test(
 ✅ **Test keyboard interactions:**
 
 ```typescript
-export const Default = meta.story({});
+export const FormFields = meta.story({});
 
-Default.test("Tab navigates between fields", async ({ canvas, userEvent }) => {
-  const firstInput = canvas.getByLabelText(/first name/i);
-  firstInput.focus();
+FormFields.test(
+  "Tab navigates between fields",
+  async ({ canvas, userEvent }) => {
+    const firstInput = canvas.getByLabelText(/first name/i);
+    firstInput.focus();
 
-  await userEvent.tab();
-  await expect(canvas.getByLabelText(/last name/i)).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByLabelText(/last name/i)).toHaveFocus();
 
-  await userEvent.tab();
-  await expect(canvas.getByLabelText(/email/i)).toHaveFocus();
-});
+    await userEvent.tab();
+    await expect(canvas.getByLabelText(/email/i)).toHaveFocus();
+  },
+);
 
-Default.test("Enter key submits form", async ({ canvas, userEvent, args }) => {
-  await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-  await userEvent.keyboard("{Enter}");
+FormFields.test(
+  "Enter key submits form",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.keyboard("{Enter}");
 
-  await expect(args.onSubmit).toHaveBeenCalled();
-});
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
 
-Default.test("Escape key closes modal", async ({ canvas, userEvent, args }) => {
-  await userEvent.keyboard("{Escape}");
-  await expect(args.onClose).toHaveBeenCalled();
-});
+FormFields.test(
+  "Escape key closes modal",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.keyboard("{Escape}");
+    await expect(args.onClose).toHaveBeenCalled();
+  },
+);
 ```
 
 ## Pattern 11: Complete User Flow (Use `play` function)
