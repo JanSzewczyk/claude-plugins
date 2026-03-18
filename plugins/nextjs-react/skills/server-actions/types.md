@@ -11,7 +11,7 @@ Copy these type definitions to `lib/action-types.ts` in your project:
  * Success state returned by server actions
  * @template T - The type of data returned on success
  */
-type ActionStateSuccess<T> = {
+export type ActionStateSuccess<T> = {
   /** Indicates the action completed successfully */
   success: true;
   /** The data returned by the action */
@@ -23,7 +23,7 @@ type ActionStateSuccess<T> = {
 /**
  * Failure state returned by server actions
  */
-type ActionStateFailed = {
+export type ActionStateFailed = {
   /** Indicates the action failed */
   success: false;
   /** Error message describing what went wrong */
@@ -275,13 +275,13 @@ export function PostForm() {
 ```typescript
 // lib/action-types.ts - Complete file
 
-type ActionStateSuccess<T> = {
+export type ActionStateSuccess<T> = {
   success: true;
   data: T;
   message?: string;
 };
 
-type ActionStateFailed = {
+export type ActionStateFailed = {
   success: false;
   error: string;
   fieldErrors?: Record<string, string[]>;

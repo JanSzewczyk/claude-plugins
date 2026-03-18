@@ -314,6 +314,7 @@ Use `useTransition` for non-form actions or when you need more control.
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { deletePost } from "../server/actions/posts";
 
 export function DeleteButton({ postId }: { postId: string }) {
@@ -323,7 +324,7 @@ export function DeleteButton({ postId }: { postId: string }) {
     startTransition(async () => {
       const result = await deletePost(postId);
       if (!result.success) {
-        alert(result.error);
+        toast.error(result.error);
       }
     });
   }
@@ -391,6 +392,7 @@ export function FavoriteButton({ itemId, initialFavorited }: {
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { archivePost, deletePost, restorePost } from "../server/actions/posts";
 
 export function PostActions({ postId, isArchived }: {
@@ -403,8 +405,7 @@ export function PostActions({ postId, isArchived }: {
     startTransition(async () => {
       const result = await action();
       if (!result.success) {
-        // Handle error (toast, alert, etc.)
-        console.error(result.error);
+        toast.error(result.error);
       }
     });
   }
@@ -450,6 +451,7 @@ export function PostActions({ postId, isArchived }: {
 "use client";
 
 import { useOptimistic, useTransition } from "react";
+import { toast } from "sonner";
 import { toggleLike } from "../server/actions/likes";
 
 export function LikeButton({ postId, initialLiked, initialCount }: {
@@ -476,9 +478,8 @@ export function LikeButton({ postId, initialLiked, initialCount }: {
       const result = await toggleLike(postId);
 
       if (!result.success) {
-        // Error handling - optimistic state will revert automatically
-        // on next render since server state doesn't match
-        console.error(result.error);
+        // Optimistic state will revert automatically on next render
+        toast.error(result.error);
       }
     });
   }
@@ -497,6 +498,7 @@ export function LikeButton({ postId, initialLiked, initialCount }: {
 "use client";
 
 import { useOptimistic, useTransition, useRef } from "react";
+import { toast } from "sonner";
 import { addTodo } from "../server/actions/todos";
 
 type Todo = {
@@ -531,8 +533,8 @@ export function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
       const result = await addTodo(text);
 
       if (!result.success) {
-        // Handle error - list will revert on next server render
-        console.error(result.error);
+        // List will revert on next server render
+        toast.error(result.error);
       }
     });
   }
@@ -866,6 +868,7 @@ export function DeleteAccountButton() {
 "use client";
 
 import { useTransition, useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { updateTitle } from "../server/actions/posts";
 
 export function EditableTitle({ postId, initialTitle }: {
@@ -898,7 +901,7 @@ export function EditableTitle({ postId, initialTitle }: {
       } else {
         // Revert on error
         setTitle(initialTitle);
-        alert(result.error);
+        toast.error(result.error);
       }
     });
   }

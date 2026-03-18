@@ -489,6 +489,38 @@ export async function submitForm(data: FormData): RedirectAction {
 }
 ```
 
+### 7. Using Server-Side Toast Without Redirect
+
+```typescript
+// ❌ Bad: setToastCookie without redirect — unreliable, wrong pattern
+export async function updateProfile(
+  data: ProfileData,
+): ActionResponse<Profile> {
+  const [error, profile] = await updateProfileInDb(data);
+  if (error) {
+    await setToastCookie("Failed to update profile", "error");
+    return { success: false, error: "Failed to update profile" };
+  }
+  await setToastCookie("Profile updated!", "success");
+  return { success: true, data: profile };
+}
+
+// ✅ Good: Return feedback in response, handle toast client-side
+export async function updateProfile(
+  data: ProfileData,
+): ActionResponse<Profile> {
+  const [error, profile] = await updateProfileInDb(data);
+  if (error) {
+    return { success: false, error: "Failed to update profile" };
+  }
+  return { success: true, data: profile, message: "Profile updated!" };
+}
+
+// Client:
+// if (result.success) toast.success(result.message);
+// else toast.error(result.error);
+```
+
 ---
 
 ## Security Best Practices
@@ -580,7 +612,7 @@ export async function sendVerificationEmail(
 }
 ```
 
-### 3. Input Sanitization
+### 4. Input Sanitization
 
 ```typescript
 import DOMPurify from "isomorphic-dompurify";

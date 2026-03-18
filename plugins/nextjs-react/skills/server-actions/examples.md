@@ -272,7 +272,7 @@ export async function submitPreferences(
       { onboardingId: onboarding.id, error },
       "Failed to save preferences",
     );
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to save preferences" };
   }
 
   // 4. Redirect to next step (never returns on success)
@@ -363,7 +363,7 @@ export async function submitInvestments(
       { onboardingId: onboarding.id, error },
       "Failed to save investments",
     );
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to save investments" };
   }
 
   await setToastCookie("Investment accounts saved successfully!", "success");
@@ -382,7 +382,7 @@ export async function skipInvestments(onboarding: Onboarding): RedirectAction {
   const [error] = await updateOnboarding(onboarding.id, updateData);
 
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to skip investments step" };
   }
 
   await setToastCookie(
@@ -395,9 +395,11 @@ export async function skipInvestments(onboarding: Onboarding): RedirectAction {
 
 ---
 
-## Action with Toast Notifications
+## Action with Client-Side Toast Notifications
 
-Using cookie-based toasts for server-to-client messaging.
+For non-redirect actions, return feedback via `ActionResponse` fields and handle toasts on the client.
+
+> **Important:** Server-side toast (`setToastCookie`) should ONLY be used with `redirect()` flows. For all other actions, use client-side toast based on the action response.
 
 ```typescript
 // features/settings/server/actions/update-profile.ts
@@ -409,7 +411,6 @@ import { updateUserProfile } from "../db/users";
 import { profileSchema, type ProfileFormData } from "../../schemas/profile";
 import type { ActionResponse } from "~/lib/action-types";
 import type { UserProfile } from "../../types/user";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "settings-actions" });
@@ -425,7 +426,6 @@ export async function updateProfile(
   // Validation
   const parsed = profileSchema.safeParse(data);
   if (!parsed.success) {
-    await setToastCookie("Please fix the errors in the form", "error");
     return {
       success: false,
       error: "Validation failed",
@@ -438,25 +438,76 @@ export async function updateProfile(
 
   if (error) {
     logger.error({ userId, error }, "Failed to update profile");
-    await setToastCookie(
-      "Failed to update profile. Please try again.",
-      "error",
-    );
     return { success: false, error: "Failed to update profile" };
   }
 
   // Success
   revalidatePath("/settings/profile");
-  await setToastCookie("Profile updated successfully!", "success");
 
   return {
     success: true,
     data: profile,
+    message: "Profile updated successfully!",
   };
 }
 ```
 
-### Toast Cookie Implementation
+### Client-Side Toast Handling
+
+```typescript
+// features/settings/components/profile-form.tsx
+"use client";
+
+import { useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { profileSchema, type ProfileFormData } from "../schemas/profile";
+import { updateProfile } from "../server/actions/update-profile";
+
+export function ProfileForm({ defaultValues }: { defaultValues?: Partial<ProfileFormData> }) {
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues,
+  });
+
+  async function onSubmit(data: ProfileFormData) {
+    startTransition(async () => {
+      const result = await updateProfile(data);
+
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        // Set field-specific errors if available
+        if (result.fieldErrors) {
+          Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+            form.setError(field as keyof ProfileFormData, {
+              type: "server",
+              message: messages[0],
+            });
+          });
+        }
+        toast.error(result.error);
+      }
+    });
+  }
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* Form fields */}
+      <button type="submit" disabled={isPending}>
+        {isPending ? "Saving..." : "Save Profile"}
+      </button>
+    </form>
+  );
+}
+```
+
+### Toast Cookie Implementation (for redirect flows ONLY)
+
+> **Warning:** Use `setToastCookie` ONLY when followed by `redirect()`. For non-redirect actions, return `message`/`error` in the response and handle toasts client-side.
 
 ```typescript
 // lib/toast/server/toast.cookie.ts

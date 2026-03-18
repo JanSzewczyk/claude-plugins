@@ -191,13 +191,33 @@ revalidateTag("posts"); // By cache tag
 
 ### Toast Notifications
 
-For user feedback with redirects:
+**Server-side toast (`setToastCookie`) — ONLY with `redirect()`:**
+
+Toast cookie is set before `redirect()`, then the new page reads the cookie and shows the toast. **Do NOT use `setToastCookie` without `redirect()`** — it will not work reliably and breaks the intended pattern.
 
 ```typescript
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 
+// ✅ Correct: toast + redirect
 await setToastCookie("Saved successfully!", "success");
 redirect("/dashboard");
+```
+
+**Client-side toast — for ALL non-redirect actions:**
+
+Action returns `message`/`error` in the response, client handles the toast:
+
+```typescript
+// Server action returns feedback via response
+return { success: true, data: profile, message: "Profile updated!" };
+
+// Client component handles toast
+const result = await updateProfile(data);
+if (result.success) {
+  toast.success(result.message);
+} else {
+  toast.error(result.error);
+}
 ```
 
 ### Security Checklist
