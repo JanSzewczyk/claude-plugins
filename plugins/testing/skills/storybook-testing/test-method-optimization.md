@@ -294,7 +294,19 @@ export const EmptyState = meta.story({
 
 ## When to Use `.test()` vs `play`
 
-### Use `.test()` Method ✅
+### Decision Matrix
+
+| Criteria                | `.test()` (Primary - 90%) | `play` (Secondary - 10%) |
+| ----------------------- | ------------------------- | ------------------------ |
+| **Independent tests**   | Perfect                   | Overkill                 |
+| **Dependent steps**     | Wrong                     | Perfect                  |
+| **Number of tests**     | Many (5-10)               | One (1 flow)             |
+| **Each test isolation** | Yes                       | No                       |
+| **Debugging**           | Easy                      | Hard                     |
+| **Code reuse**          | Good                      | Difficult                |
+| **UI presentation**     | List of tests             | Story steps              |
+
+### Use `.test()` Method (PRIMARY - 90% of cases)
 
 **For most test scenarios:**
 
@@ -302,8 +314,6 @@ export const EmptyState = meta.story({
 - Multiple independent test cases for the same component state
 - When you want granular test reporting
 - When tests don't depend on each other
-
-**Example:**
 
 ```typescript
 export const LoginForm = meta.story({});
@@ -314,26 +324,56 @@ LoginForm.test("Enables submit button when form is valid", async ({ canvas }) =>
 LoginForm.test("Calls onSubmit with form data", async ({ canvas }) => { ... });
 ```
 
-### Use `play` Function 🔄
+### Use `play` Function (SECONDARY - 10% of cases)
 
-**For specific scenarios only:**
-
-- Complex multi-step user flows that should be viewed as ONE cohesive test
-- Integration tests simulating complete user journeys
-- Demos for Storybook UI (showing interaction in action)
-
-**Example:**
+**Only for** complex multi-step flows where steps are dependent:
 
 ```typescript
 export const CheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
   play: async ({ canvas, step, userEvent }) => {
-    // This is ONE complete flow, not multiple tests
     await step("Add items to cart", async () => { ... });
     await step("Proceed to checkout", async () => { ... });
     await step("Fill shipping info", async () => { ... });
     await step("Complete payment", async () => { ... });
   }
+});
+```
+
+### Guidelines by Component Type
+
+| Component Type                          | Pattern                                      | Notes                                                |
+| --------------------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| Simple (Button, Badge, Icon)            | `.test()` only                               | Keep minimal                                         |
+| Forms and Inputs                        | `.test()` primary                            | Optional `play` for truly dependent multi-step flows |
+| Complex Interactive (Wizards, Checkout) | `.test()` for features, `play` for workflows | Use hybrid approach                                  |
+
+### Hybrid Approach (Recommended for Complex Components)
+
+Attach tests directly to state stories:
+
+```typescript
+// State story 1 with its tests
+export const Empty = meta.story({});
+Empty.test("Renders empty form", async ({ canvas }) => { ... });
+Empty.test("Validates required fields", async ({ canvas, userEvent }) => { ... });
+Empty.test("Submits successfully", async ({ canvas, userEvent, args }) => { ... });
+
+// State story 2 with its tests
+export const Prefilled = meta.story({
+  args: { defaultValues: { email: "user@example.com" } },
+});
+Prefilled.test("Displays pre-filled values", async ({ canvas }) => { ... });
+Prefilled.test("Can modify pre-filled values", async ({ canvas, userEvent }) => { ... });
+
+// Optional: play ONLY for truly dependent flow
+export const MultiStepFlow = meta.story({
+  name: "Complete Signup Flow",
+  play: async ({ canvas, userEvent, step }) => {
+    await step("Fill email", async () => { ... });
+    await step("Fill password", async () => { ... });
+    await step("Submit form", async () => { ... });
+  },
 });
 ```
 
@@ -369,6 +409,17 @@ Story.test("Test name in sentence case", async ({ canvas, userEvent }) => {
   // same test logic
 });
 ```
+
+### Migration Checklist
+
+When converting old `play` stories to `.test()`:
+
+- [ ] Identify which tests are independent (not dependent on previous steps)
+- [ ] Convert each independent test to a `.test()` call
+- [ ] Remove the `play` function from the story
+- [ ] Destructure `userEvent` from function parameter (don't import)
+- [ ] Verify each test runs independently
+- [ ] Check that a failed test doesn't block others
 
 ### Step 4: Remove Unnecessary `step()` Calls
 

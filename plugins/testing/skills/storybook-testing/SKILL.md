@@ -1,10 +1,14 @@
 ---
 name: storybook-testing
-version: 3.0.1
-lastUpdated: 2026-01-18
+version: 3.1.0
+lastUpdated: 2026-03-30
 description:
-  Create comprehensive Storybook stories with interactive tests for React components using CSF Next format and .test()
-  method. Use when writing component tests, interaction tests, or documenting component behavior.
+  Create Storybook stories with browser-rendered interaction tests for React UI components using CSF Next format and
+  .test() method. Covers visual states, user interactions (clicks, typing, hover), form validation UI, and component
+  accessibility in isolation. Use when testing React component rendering, UI interactions, visual states, or documenting
+  component behavior in Storybook. Trigger this skill whenever the user mentions Storybook, stories, CSF Next,
+  component interaction tests, .test() method, or wants to test a React UI component in isolation. NOT for unit testing
+  pure functions/hooks (use unit-testing), API endpoints (use api-test), or full E2E page flows (use playwright-cli).
 tags:
   [
     testing,
@@ -12,17 +16,24 @@ tags:
     react,
     component-testing,
     integration-testing,
+    interaction-testing,
     test-method,
     csf-next,
+    stories,
+    browser-testing,
   ]
 author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+context: fork
+agent: general-purpose
 user-invocable: true
 examples:
   - Write Storybook tests for UserProfileCard component
   - Create story tests for my LoginForm
-  - Add Storybook testing to the ProductCard component
+  - Add Storybook interaction tests to the ProductCard component
   - Generate comprehensive Storybook stories with tests for NavBar
+  - Test click and hover interactions for the Tooltip component in Storybook
+  - Write Storybook tests for form validation on my CheckoutForm
 ---
 
 # Storybook Testing Skill
@@ -52,6 +63,23 @@ Stories are used for:
 - **Interaction testing** - Verify user interactions (clicks, typing)
 - **Validation testing** - Test form validation and error states
 - **Accessibility testing** - Verify a11y with addon
+
+## When to Use This Skill vs Others
+
+| Scenario                                               | Use This Skill? | Alternative           |
+| ------------------------------------------------------ | --------------- | --------------------- |
+| Test React component UI rendering and interactions     | YES             | —                     |
+| Test form validation UI (error messages, field states) | YES             | —                     |
+| Test component visual states (loading, error, empty)   | YES             | —                     |
+| Test design system component behavior                  | YES             | —                     |
+| Test pure utility functions (formatCurrency, etc.)     | NO              | `unit-testing`        |
+| Test server actions or API logic                       | NO              | `unit-testing`        |
+| Test hooks (useDebounce, etc.) in isolation            | NO              | `unit-testing`        |
+| Test Zod schemas or validation logic                   | NO              | `unit-testing`        |
+| Test API endpoints / route handlers                    | NO              | `api-test`            |
+| Test multi-page user flows                             | NO              | `playwright-cli`      |
+| Perform WCAG accessibility audit                       | NO              | `accessibility-audit` |
+| Create mock data builders                              | NO              | `builder-factory`     |
 
 ## Workflow
 
@@ -427,6 +455,75 @@ decorators: [
 ```
 
 > **See [mocking.md](./mocking.md) for complete examples, patterns, and best practices.**
+
+## Common Mistakes to Avoid
+
+These anti-patterns were identified through eval testing and cause real bugs:
+
+### 1. Importing userEvent (instead of destructuring)
+
+```typescript
+// ❌ WRONG — NEVER do this
+import { expect, fn, userEvent } from "storybook/test";
+
+// ✅ CORRECT — always destructure from test parameters
+import { expect, fn } from "storybook/test";
+Story.test("test", async ({ canvas, userEvent }) => { ... });
+```
+
+### 2. Using CSF 3.0 patterns (instead of CSF Next)
+
+```typescript
+// ❌ WRONG — CSF 3.0 (outdated)
+import type { Meta, StoryObj } from "@storybook/react";
+const meta = { ... } satisfies Meta<typeof Component>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Default: Story = { };
+
+// ✅ CORRECT — CSF Next
+import preview from "~/.storybook/preview";
+const meta = preview.meta({ ... });
+export const ComponentStory = meta.story({ ... });
+```
+
+### 3. Creating separate stories for each test case
+
+```typescript
+// ❌ WRONG — 5 stories for 5 tests (80% more stories than needed)
+export const RendersTitle: Story = { play: async () => { ... } };
+export const ClicksButton: Story = { play: async () => { ... } };
+export const ShowsError: Story = { play: async () => { ... } };
+
+// ✅ CORRECT — 1 story with 5 .test() calls
+export const FormStory = meta.story({ ... });
+FormStory.test("Renders title", async ({ canvas }) => { ... });
+FormStory.test("Clicks button", async ({ canvas, userEvent }) => { ... });
+FormStory.test("Shows error", async ({ canvas }) => { ... });
+```
+
+### 4. Using generic story names
+
+```typescript
+// ❌ WRONG
+export const Default = meta.story({});
+export const Basic = meta.story({});
+
+// ✅ CORRECT — descriptive names
+export const EmptyForm = meta.story({});
+export const FilledForm = meta.story({ args: { ... } });
+```
+
+### 5. Using canvas for portal content (modals, dropdowns, tooltips)
+
+```typescript
+// ❌ WRONG — portal content is outside canvas
+canvas.getByRole("dialog"); // Won't find it!
+
+// ✅ CORRECT — use screen for portals
+import { screen } from "storybook/test";
+const dialog = await screen.findByRole("dialog");
+```
 
 ## Questions to Ask
 
