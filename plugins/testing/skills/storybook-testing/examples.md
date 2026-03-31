@@ -631,17 +631,20 @@ export const WithDefaultValue = meta.story({
 // Test story
 export const SelectOption = meta.story({});
 
-SelectOption.test("Selects and triggers onChange", async ({ canvas, userEvent, args }) => {
+SelectOption.test("Selects and triggers onChange", async ({ canvas, userEvent, args, step }) => {
   const select = canvas.getByRole("combobox");
 
-  // Select option
-  await userEvent.selectOptions(select, "option2");
+  await step("Select option", async () => {
+    await userEvent.selectOptions(select, "option2");
+  });
 
-  // Verify onChange was called
-  await expect(args.onChange).toHaveBeenCalledWith("option2");
+  await step("Verify onChange was called", async () => {
+    await expect(args.onChange).toHaveBeenCalledWith("option2");
+  });
 
-  // Verify selected value
-  await expect(select).toHaveValue("option2");
+  await step("Verify selected value", async () => {
+    await expect(select).toHaveValue("option2");
+  });
 });
 ```
 
@@ -651,18 +654,27 @@ SelectOption.test("Selects and triggers onChange", async ({ canvas, userEvent, a
 
 ### 1. Use step() for Better Test Organization
 
+Use `step()` in both `.test()` and `play` — it provides structured reporting in Storybook UI.
+
 ```tsx
-play: async ({ canvasElement, step }) => {
-  await step("Setup", async () => {
-    // Setup code
+// ✅ step() in .test() — for content tests and multi-step interactions
+Story.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
   });
-
-  await step("Act", async () => {
-    // User interactions
+  await step("Submit button is visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
   });
+});
 
-  await step("Assert", () => {
-    // Assertions
+// ✅ step() in play — for cohesive user flows
+play: async ({ canvas, userEvent, step }) => {
+  await step("Fill in form", async () => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+  });
+  await step("Submit and verify", async () => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
   });
 };
 ```

@@ -116,56 +116,46 @@ export const TechLogoHoverAnimation = meta.story({ /* ... */ });
 // ONE story with multiple tests
 export const AllCategories = meta.story({});
 
-// Rendering & Content Tests
-AllCategories.test(
-  "Renders section heading and description",
-  async ({ canvas }) => {
-    const heading = canvas.getByRole("heading", {
-      name: /skills & technologies/i,
-      level: 2,
-    });
-    await expect(heading).toBeVisible();
+// ONE content test with step() for structured reporting
+AllCategories.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Section heading and description are visible", async () => {
+    await expect(
+      canvas.getByRole("heading", {
+        name: /skills & technologies/i,
+        level: 2,
+      }),
+    ).toBeVisible();
+    await expect(
+      canvas.getByText(
+        /the tools and technologies I work with to bring ideas to life/i,
+      ),
+    ).toBeVisible();
+  });
 
-    const description = canvas.getByText(
-      /the tools and technologies I work with to bring ideas to life/i,
-    );
-    await expect(description).toBeVisible();
-  },
-);
+  await step("Tech logos are displayed in marquee", async () => {
+    await expect(canvas.getByText("React")).toBeVisible();
+    await expect(canvas.getByText("Next.js")).toBeVisible();
+    await expect(canvas.getByText("TypeScript")).toBeVisible();
+  });
 
-AllCategories.test("Displays all tech logos in marquee", async ({ canvas }) => {
-  const reactLogo = canvas.getByText("React");
-  await expect(reactLogo).toBeVisible();
+  await step("All category badges are shown", async () => {
+    await expect(canvas.getByText("Frontend")).toBeVisible();
+    await expect(canvas.getByText("Mobile")).toBeVisible();
+    await expect(canvas.getByText("DevOps & Tools")).toBeVisible();
+    await expect(canvas.getByText("Other")).toBeVisible();
+  });
 
-  const nextLogo = canvas.getByText("Next.js");
-  await expect(nextLogo).toBeVisible();
-
-  const typescriptLogo = canvas.getByText("TypeScript");
-  await expect(typescriptLogo).toBeVisible();
+  await step("Skill cards have correct headings", async () => {
+    await expect(
+      canvas.getByRole("heading", { name: "React", level: 3 }),
+    ).toBeVisible();
+    await expect(
+      canvas.getByRole("heading", { name: "React Native", level: 3 }),
+    ).toBeVisible();
+  });
 });
 
-AllCategories.test("Shows all category badges", async ({ canvas }) => {
-  await expect(canvas.getByText("Frontend")).toBeVisible();
-  await expect(canvas.getByText("Mobile")).toBeVisible();
-  await expect(canvas.getByText("DevOps & Tools")).toBeVisible();
-  await expect(canvas.getByText("Other")).toBeVisible();
-});
-
-AllCategories.test(
-  "Displays skill cards with correct headings",
-  async ({ canvas }) => {
-    const reactSkill = canvas.getByRole("heading", { name: "React", level: 3 });
-    await expect(reactSkill).toBeVisible();
-
-    const reactNativeSkill = canvas.getByRole("heading", {
-      name: "React Native",
-      level: 3,
-    });
-    await expect(reactNativeSkill).toBeVisible();
-  },
-);
-
-// Interaction Tests
+// Interaction Tests — separate .test() per distinct user action
 AllCategories.test(
   "Skill card hover shows tooltip",
   async ({ canvas, userEvent }) => {
@@ -326,9 +316,25 @@ LoginForm.test("Calls onSubmit with form data", async ({ canvas }) => { ... });
 
 ### Use `play` Function (SECONDARY - 10% of cases)
 
-**Only for** complex multi-step flows where steps are dependent:
+`play` has two valid use cases. It should **never** be used for independent test assertions.
+
+**1. Demos / Interaction Presentation** — show how a component looks after interaction in Storybook docs:
 
 ```typescript
+// ✅ play for demo — no assertions, purely visual
+export const FilledForm = meta.story({
+  name: "Form with data",
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+  },
+});
+```
+
+**2. Complex dependent flows** — steps must run in sequence as ONE cohesive journey:
+
+```typescript
+// ✅ play for dependent flow — steps depend on each other
 export const CheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
   play: async ({ canvas, step, userEvent }) => {
@@ -421,27 +427,15 @@ When converting old `play` stories to `.test()`:
 - [ ] Verify each test runs independently
 - [ ] Check that a failed test doesn't block others
 
-### Step 4: Remove Unnecessary `step()` Calls
+### Step 4: Use `step()` Strategically in `.test()` Methods
 
-`.test()` already provides test granularity, so you can often remove internal `step()` calls:
+When converting from `play` to `.test()`, keep `step()` when it adds clarity — especially for content tests
+and multi-step interactions. Remove `step()` only when the test is already simple and self-explanatory.
 
-**Before (with play):**
-
-```typescript
-play: async ({ canvas, step, userEvent }) => {
-  await step("Click button", async () => {
-    await userEvent.click(canvas.getByRole("button"));
-  });
-
-  await step("Verify result", async () => {
-    await expect(canvas.getByText("Success")).toBeVisible();
-  });
-};
-```
-
-**After (with .test):**
+**Remove step() — simple, focused test:**
 
 ```typescript
+// ✅ Simple test — step() would be overhead
 Story.test(
   "Clicking button shows success message",
   async ({ canvas, userEvent }) => {
@@ -450,6 +444,51 @@ Story.test(
   },
 );
 ```
+
+**Keep step() — content test with multiple assertion groups:**
+
+```typescript
+// ✅ Content test — step() provides structured reporting
+Story.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+  });
+
+  await step("Action buttons are visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+    await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
+  });
+});
+```
+
+**Keep step() — multi-step interaction:**
+
+```typescript
+// ✅ Multi-step interaction — step() labels each phase
+Story.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, args, step }) => {
+    await step("Fill in form fields", async () => {
+      await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+      await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    });
+
+    await step("Submit the form", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    });
+
+    await step("Verify submission", async () => {
+      await expect(args.onSubmit).toHaveBeenCalledWith({
+        email: "user@example.com",
+        password: "password123",
+      });
+    });
+  },
+);
+```
+
+**Rule of thumb:** Use `step()` when the test has 3+ distinct phases or assertion groups. Skip it for 1-2 line tests.
 
 ## Test Naming Conventions
 
@@ -587,15 +626,26 @@ npm run test:storybook -- --watch
 
 ### 1. Keep Tests Focused
 
-Each `.test()` should test ONE thing:
+Each `.test()` should test ONE behavior or ONE category of assertions:
 
 ```typescript
-// ✅ Good - one assertion
+// ✅ Good — one behavior
 FormStory.test("Shows error message on invalid email", async ({ canvas }) => {
   await expect(canvas.getByText("Invalid email format")).toBeVisible();
 });
 
-// ❌ Bad - testing multiple unrelated things
+// ✅ Good — one category (content), organized with step()
+FormStory.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+  });
+  await step("Submit button is visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  });
+});
+
+// ❌ Bad — mixing unrelated behaviors
 FormStory.test(
   "Form validation and submission",
   async ({ canvas, userEvent }) => {
@@ -606,28 +656,46 @@ FormStory.test(
 );
 ```
 
-### 2. Group Related Tests
+### 2. Use `step()` Instead of Comments
 
-Organize tests by category using comments:
+Use `step()` for organizing test logic instead of plain comments. `step()` provides structured reporting
+in Storybook UI, while comments are invisible in test output.
 
 ```typescript
 export const ContactForm = meta.story({});
 
-// Rendering Tests
-ContactForm.test("Renders form fields", async ({ canvas }) => { ... });
-ContactForm.test("Displays submit button", async ({ canvas }) => { ... });
+// ONE content test with step() — NOT separate tests per element
+ContactForm.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/name/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/message/i)).toBeVisible();
+  });
+  await step("Submit button is visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  });
+});
 
-// Validation Tests
-ContactForm.test("Shows error on empty email", async ({ canvas }) => { ... });
-ContactForm.test("Shows error on invalid email format", async ({ canvas }) => { ... });
+// Separate .test() per distinct behavior
+ContactForm.test("Shows error on empty email", async ({ canvas, userEvent }) => { ... });
+ContactForm.test("Shows error on invalid email format", async ({ canvas, userEvent }) => { ... });
 
-// Interaction Tests
-ContactForm.test("Submits form on button click", async ({ canvas, userEvent }) => { ... });
-ContactForm.test("Submits form on Enter key", async ({ canvas, userEvent }) => { ... });
-
-// Accessibility Tests
-ContactForm.test("Keyboard navigation works", async ({ canvas }) => { ... });
-ContactForm.test("Screen reader labels are correct", async ({ canvas }) => { ... });
+// Multi-step interactions use step() instead of comments
+ContactForm.test(
+  "Submits form successfully",
+  async ({ canvas, userEvent, args, step }) => {
+    await step("Fill in form fields", async () => {
+      await userEvent.type(canvas.getByLabelText(/name/i), "John");
+      await userEvent.type(canvas.getByLabelText(/email/i), "john@example.com");
+    });
+    await step("Submit the form", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    });
+    await step("Verify callback was called", async () => {
+      await expect(args.onSubmit).toHaveBeenCalled();
+    });
+  },
+);
 ```
 
 ### 3. Use Descriptive Assertions

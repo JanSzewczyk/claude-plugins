@@ -77,14 +77,24 @@ export const LoadingButton = meta.story({ args: { isLoading: true } });
 ### 3. When to Use `.test()` vs `play` ✅
 
 ```typescript
-// ✅ Use .test() for independent tests (90% of cases)
+// ✅ Use .test() for ALL test assertions (90% of cases)
 export const ContactForm = meta.story({});
 
 ContactForm.test("Shows validation error on empty email", async ({ canvas }) => { ... });
 ContactForm.test("Submits successfully with valid data", async ({ canvas, args }) => { ... });
 ContactForm.test("Keyboard navigation works", async ({ canvas, userEvent }) => { ... });
 
-// ⚠️ Use play for complete user flows (10% of cases)
+// ✅ Use play for DEMOS — presenting component interaction in Storybook UI (no assertions)
+export const FilledForm = meta.story({
+  name: "Form with data",
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    // No assertions — this is a visual demo, not a test
+  },
+});
+
+// ⚠️ Use play for DEPENDENT FLOWS only (rare — 10% of cases)
 export const CheckoutJourney = meta.story({
   name: "Complete Checkout Flow",
   play: async ({ canvas, step, userEvent }) => {
@@ -97,8 +107,9 @@ export const CheckoutJourney = meta.story({
 
 **Decision Criteria:**
 
-- Multiple independent tests? → Use `.test()`
-- One cohesive multi-step flow? → Use `play` with `step()`
+- Independent test assertions? → Use `.test()`
+- Presenting component interaction in Storybook docs? → Use `play` **without assertions**
+- One cohesive multi-step dependent flow? → Use `play` with `step()`
 
 ## CSF Next Format Best Practices
 
@@ -227,22 +238,62 @@ args: {
 }
 ```
 
-### 6. Organize with Steps
+### 6. Use `step()` for Test Organization (Both `play` and `.test()`)
+
+Use `step()` instead of comments to organize test logic. `step()` provides structured, labeled reporting
+in Storybook UI — comments are invisible in test output.
 
 ```typescript
-// GOOD - Clear test organization
+// ✅ GOOD — step() in .test() for content assertions
+Story.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+  });
+  await step("Action buttons are visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  });
+});
+
+// ✅ GOOD — step() in .test() for multi-step interactions
+Story.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, args, step }) => {
+    await step("Fill in credentials", async () => {
+      await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+      await userEvent.type(canvas.getByLabelText(/password/i), "secret");
+    });
+    await step("Submit and verify", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+      await expect(args.onSubmit).toHaveBeenCalled();
+    });
+  },
+);
+
+// ✅ GOOD — step() in play for cohesive user flow
 play: async ({ canvas, userEvent, step }) => {
   await step("Fill in credentials", async () => {
     await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
     await userEvent.type(canvas.getByLabelText(/password/i), "secret");
   });
-
   await step("Submit and verify", async () => {
     await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
     await expect(canvas.getByText(/success/i)).toBeVisible();
   });
 };
+
+// ❌ BAD — comments instead of step()
+Story.test("Submits form", async ({ canvas, userEvent, args }) => {
+  // Fill in credentials
+  await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+  // Submit
+  await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+  // Verify
+  await expect(args.onSubmit).toHaveBeenCalled();
+});
 ```
+
+**Rule:** Use `step()` when the test has 3+ phases or assertion groups. Skip for 1-2 line tests.
 
 ### 7. Handle Portals Correctly
 
@@ -573,7 +624,7 @@ args: {
 **Anti-pattern — over-splitting content assertions:**
 
 ```typescript
-// ❌ WRONG: 4 tests that could be 1
+// ❌ WRONG: 4 separate tests for static content
 Story.test("Shows heading", async ({ canvas }) => {
   await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
 });
@@ -587,12 +638,16 @@ Story.test("Shows cancel link", async ({ canvas }) => {
   await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
 });
 
-// ✅ CORRECT: 1 content test + separate behavior tests
-Story.test("Renders all expected content", async ({ canvas }) => {
-  await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
-  await expect(canvas.getByText(/some description/i)).toBeVisible();
-  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
-  await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
+// ✅ CORRECT: 1 content test with step() + separate behavior tests
+Story.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Heading and description are visible", async () => {
+    await expect(canvas.getByRole("heading", { name: /title/i })).toBeVisible();
+    await expect(canvas.getByText(/some description/i)).toBeVisible();
+  });
+  await step("Action elements are visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+    await expect(canvas.getByRole("link", { name: /cancel/i })).toBeVisible();
+  });
 });
 Story.test(
   "Submits form on button click",
@@ -603,7 +658,7 @@ Story.test(
 );
 ```
 
-**Rule:** Static rendering assertions (text, headings, labels, icons, initial states) for the same story state → always group into one `"Renders all expected content"` test.
+**Rule:** Static rendering assertions (text, headings, labels, icons, initial states) for the same story state → always group into one `"Renders all expected content"` test with `step()` for structured reporting.
 
 ### 9. Prefer Builders Over Inline Mock Data ✅
 

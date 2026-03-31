@@ -86,7 +86,7 @@ Stories are used for:
 1. **Analyze component** - Props, interactions, states, callbacks
 2. **Create story file** - Same directory as component: `component.stories.tsx`
 3. **Write minimal stories** - 1-2 stories for different component states
-4. **Add multiple tests** - Use `.test()` method for each test case
+4. **Add multiple tests** - Use `.test()` method; ONE content test with `step()`, separate `.test()` per behavior
 5. **Run tests** - `npm run test:storybook`
 
 ## ⭐ Preferred Pattern: `.test()` Method
@@ -183,14 +183,31 @@ SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
 
 ### When to Use `play` Instead of `.test()`
 
-Use `play` function **only** for:
+`play` has two valid use cases — **demos** and **dependent flows**. It should **never** be used for independent test assertions.
 
-- Complex multi-step user flows that should be viewed as ONE cohesive test
-- Integration test scenarios
-- Demos for Storybook UI
+#### 1. Demos / Interaction Presentation (most common `play` use case)
+
+Use `play` **without assertions** to show how a component looks after user interaction in Storybook docs.
+This is purely for visual documentation — the component auto-plays the interaction when viewing the story.
 
 ```typescript
-// Example: Use play for complete user journey
+// ✅ GOOD — play for demo: shows a pre-filled form state in Storybook UI
+export const FilledForm = meta.story({
+  name: "Form with data",
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+  },
+  // No assertions — this is a visual demo, not a test
+});
+```
+
+#### 2. Complex Dependent Flows (rare — ~10% of cases)
+
+Use `play` with `step()` **only** when steps depend on each other and must run sequentially as ONE cohesive flow:
+
+```typescript
+// ✅ GOOD — play for dependent multi-step flow
 export const CompleteCheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
   play: async ({ canvas, step, userEvent }) => {
@@ -204,6 +221,24 @@ export const CompleteCheckoutFlow = meta.story({
       /* ... */
     });
   },
+});
+```
+
+#### Never use `play` for independent tests
+
+```typescript
+// ❌ BAD — play for independent test assertions (use .test() instead)
+export const TestStory = meta.story({
+  play: async ({ canvas, args }) => {
+    await expect(canvas.getByRole("button")).toBeVisible();
+    await expect(args.onClick).not.toHaveBeenCalled();
+  },
+});
+
+// ✅ GOOD — .test() for independent assertions
+export const TestStory = meta.story({});
+TestStory.test("Button is visible", async ({ canvas }) => {
+  await expect(canvas.getByRole("button")).toBeVisible();
 });
 ```
 

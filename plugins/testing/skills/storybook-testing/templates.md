@@ -127,16 +127,17 @@ export const SubmittingForm = meta.story({
 });
 
 SubmittingForm.test(
-  "Submit button is disabled during submission",
-  async ({ canvas }) => {
-    const submitBtn = canvas.getByRole("button", { name: /submit/i });
-    await expect(submitBtn).toBeDisabled();
+  "Renders submitting state correctly",
+  async ({ canvas, step }) => {
+    await step("Submit button is disabled", async () => {
+      const submitBtn = canvas.getByRole("button", { name: /submit/i });
+      await expect(submitBtn).toBeDisabled();
+    });
+    await step("Loading indicator is visible", async () => {
+      await expect(canvas.getByRole("progressbar")).toBeVisible();
+    });
   },
 );
-
-SubmittingForm.test("Shows loading indicator", async ({ canvas }) => {
-  await expect(canvas.getByRole("progressbar")).toBeVisible();
-});
 ```
 
 ## Template 2: List/Table Component
@@ -245,21 +246,26 @@ export const OpenDialog = meta.story({
   },
 });
 
-// Rendering tests
+// ONE content test with step() for structured reporting
 OpenDialog.test(
-  "Renders modal with title and message",
-  async ({ canvas, args }) => {
-    const dialog = canvas.getByRole("dialog");
-    await expect(dialog).toBeVisible();
-    await expect(canvas.getByText(args.title)).toBeVisible();
-    await expect(canvas.getByText(args.message)).toBeVisible();
+  "Renders all expected content",
+  async ({ canvas, args, step }) => {
+    await step("Dialog is visible with title and message", async () => {
+      const dialog = canvas.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      await expect(canvas.getByText(args.title)).toBeVisible();
+      await expect(canvas.getByText(args.message)).toBeVisible();
+    });
+    await step("Confirm and cancel buttons are visible", async () => {
+      await expect(
+        canvas.getByRole("button", { name: /confirm/i }),
+      ).toBeVisible();
+      await expect(
+        canvas.getByRole("button", { name: /cancel/i }),
+      ).toBeVisible();
+    });
   },
 );
-
-OpenDialog.test("Shows confirm and cancel buttons", async ({ canvas }) => {
-  await expect(canvas.getByRole("button", { name: /confirm/i })).toBeVisible();
-  await expect(canvas.getByRole("button", { name: /cancel/i })).toBeVisible();
-});
 
 // Interaction tests
 OpenDialog.test(
@@ -426,19 +432,22 @@ export const LoadingButton = meta.story({
   args: { isLoading: true, children: "Loading..." },
 });
 
-LoadingButton.test("Shows loading indicator", async ({ canvas }) => {
-  await expect(canvas.getByRole("progressbar")).toBeVisible();
-});
-
-LoadingButton.test("Is disabled during loading", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
-  await expect(button).toBeDisabled();
-});
-
-LoadingButton.test("Has aria-busy attribute", async ({ canvas }) => {
-  const button = canvas.getByRole("button");
-  await expect(button).toHaveAttribute("aria-busy", "true");
-});
+LoadingButton.test(
+  "Renders loading state correctly",
+  async ({ canvas, step }) => {
+    await step("Loading indicator is visible", async () => {
+      await expect(canvas.getByRole("progressbar")).toBeVisible();
+    });
+    await step("Button is disabled", async () => {
+      const button = canvas.getByRole("button");
+      await expect(button).toBeDisabled();
+    });
+    await step("Button has aria-busy attribute", async () => {
+      const button = canvas.getByRole("button");
+      await expect(button).toHaveAttribute("aria-busy", "true");
+    });
+  },
+);
 
 LoadingButton.test(
   "Does not trigger onClick when clicked",
@@ -548,19 +557,22 @@ export const ErrorInput = meta.story({
   },
 });
 
-ErrorInput.test("Displays error message", async ({ canvas, args }) => {
-  await expect(canvas.getByText(args.error)).toBeVisible();
-});
-
-ErrorInput.test("Has aria-invalid attribute", async ({ canvas }) => {
-  const input = canvas.getByRole("textbox");
-  await expect(input).toHaveAttribute("aria-invalid", "true");
-});
-
-ErrorInput.test("Has error styling", async ({ canvas }) => {
-  const input = canvas.getByRole("textbox");
-  await expect(input).toHaveClass(/border-red/);
-});
+ErrorInput.test(
+  "Renders error state correctly",
+  async ({ canvas, args, step }) => {
+    await step("Error message is displayed", async () => {
+      await expect(canvas.getByText(args.error)).toBeVisible();
+    });
+    await step("Input has aria-invalid attribute", async () => {
+      const input = canvas.getByRole("textbox");
+      await expect(input).toHaveAttribute("aria-invalid", "true");
+    });
+    await step("Input has error styling", async () => {
+      const input = canvas.getByRole("textbox");
+      await expect(input).toHaveClass(/border-red/);
+    });
+  },
+);
 
 // Story 4: Disabled state
 export const DisabledInput = meta.story({
@@ -614,19 +626,29 @@ export const Disabled = meta.story({
   args: { label: "Choose an option", disabled: true },
 });
 
-export const SelectOption = meta.story({
+export const SelectStory = meta.story({
   args: { label: "Choose an option" },
-  play: async ({ canvas, userEvent, args }) => {
-    const select = canvas.getByRole("combobox");
-    await userEvent.click(select);
-
-    // Find option in portal (renders to document.body)
-    const option = await screen.findByRole("option", { name: /option 2/i });
-    await userEvent.click(option);
-
-    await expect(args.onChange).toHaveBeenCalledWith("2");
-  },
 });
+
+SelectStory.test(
+  "Selects option and triggers onChange",
+  async ({ canvas, userEvent, args, step }) => {
+    await step("Open dropdown", async () => {
+      const select = canvas.getByRole("combobox");
+      await userEvent.click(select);
+    });
+
+    await step("Select option from portal", async () => {
+      // Portal content (renders to document.body) — use screen
+      const option = await screen.findByRole("option", { name: /option 2/i });
+      await userEvent.click(option);
+    });
+
+    await step("Verify onChange callback", async () => {
+      await expect(args.onChange).toHaveBeenCalledWith("2");
+    });
+  },
+);
 ```
 
 ## Template: Card Component
@@ -692,24 +714,26 @@ export const WithDefaultTab = meta.story({
   args: { defaultTab: "tab2" },
 });
 
-export const TabNavigation = meta.story({
-  play: async ({ canvas, userEvent, step }) => {
-    await step("Verify first tab is selected", async () => {
-      const firstTab = canvas.getByRole("tab", { name: /tab 1/i });
-      await expect(firstTab).toHaveAttribute("aria-selected", "true");
-    });
+export const TabNavigation = meta.story({});
 
+TabNavigation.test("First tab is selected by default", async ({ canvas }) => {
+  const firstTab = canvas.getByRole("tab", { name: /tab 1/i });
+  await expect(firstTab).toHaveAttribute("aria-selected", "true");
+});
+
+TabNavigation.test(
+  "Clicking tab switches content",
+  async ({ canvas, userEvent, step }) => {
     await step("Click second tab", async () => {
       const secondTab = canvas.getByRole("tab", { name: /tab 2/i });
       await userEvent.click(secondTab);
       await expect(secondTab).toHaveAttribute("aria-selected", "true");
     });
-
-    await step("Verify content changed", async () => {
+    await step("Content updates to selected tab", async () => {
       await expect(canvas.getByText("Content 2")).toBeInTheDocument();
     });
   },
-});
+);
 ```
 
 ## Using These Templates

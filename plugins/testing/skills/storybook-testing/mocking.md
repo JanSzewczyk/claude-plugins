@@ -764,21 +764,24 @@ const meta = preview.meta({
 });
 ```
 
-### Combining `beforeEach` with `play` Function
+### Combining `beforeEach` with `.test()` Method
 
 ```typescript
 export const FormSubmission = meta.story({
   beforeEach: async ({ args }) => {
-    // Setup mocks
+    // Setup mocks — runs before each test
     args.onSubmit.mockResolvedValue({ success: true });
   },
-  play: async ({ canvas, userEvent, args }) => {
-    // Run interactions after beforeEach completes
+});
+
+FormSubmission.test(
+  "Submits form and calls onSubmit",
+  async ({ canvas, userEvent, args }) => {
     const submitButton = canvas.getByRole("button", { name: /submit/i });
     await userEvent.click(submitButton);
     await expect(args.onSubmit).toHaveBeenCalled();
   },
-});
+);
 ```
 
 ---

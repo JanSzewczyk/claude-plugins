@@ -37,32 +37,33 @@ ComponentStory.test("Test name 3", async ({ canvas, args }) => {
 });
 ```
 
-## Pattern 1: Grouped Content Assertions
+## Pattern 1: Grouped Content Assertions with `step()`
 
-✅ **Group all static content checks into ONE test per story state:**
+✅ **Group all static content checks into ONE test with `step()` for structured reporting:**
 
 ```typescript
 export const EmptyForm = meta.story({});
 
-// ONE test for ALL content in this story state
-// ❌ Anti-pattern: separate tests for each text element
-EmptyForm.test("Renders all expected content", async ({ canvas }) => {
-  // Heading
-  await expect(
-    canvas.getByRole("heading", { name: /section title/i, level: 2 }),
-  ).toBeVisible();
+// ONE test for ALL content, organized with step()
+// ❌ Anti-pattern: separate .test() per text element or flat assertions with comments
+EmptyForm.test("Renders all expected content", async ({ canvas, step }) => {
+  await step("Heading and description are visible", async () => {
+    await expect(
+      canvas.getByRole("heading", { name: /section title/i, level: 2 }),
+    ).toBeVisible();
+    await expect(
+      canvas.getByText(/descriptive text about the section/i),
+    ).toBeVisible();
+  });
 
-  // Description text
-  await expect(
-    canvas.getByText(/descriptive text about the section/i),
-  ).toBeVisible();
+  await step("Form fields are visible", async () => {
+    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
+  });
 
-  // Form fields
-  await expect(canvas.getByLabelText(/email/i)).toBeVisible();
-  await expect(canvas.getByLabelText(/password/i)).toBeVisible();
-
-  // Action elements
-  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  await step("Submit button is visible", async () => {
+    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+  });
 });
 
 // SEPARATE tests for each distinct behavior
@@ -78,8 +79,8 @@ EmptyForm.test(
 ```
 
 > **Rule:** Static content (text, headings, labels, icons) for the same story state → always
-> group into `"Renders all expected content"`. Skip the content test if behavior tests already
-> verify those elements implicitly.
+> group into `"Renders all expected content"` with `step()`. Skip the content test if behavior
+> tests already verify those elements implicitly.
 
 ## Pattern 2: Prefilled Values Testing
 
@@ -95,15 +96,21 @@ export const Prefilled = meta.story({
   },
 });
 
-Prefilled.test("Displays pre-filled email", async ({ canvas, args }) => {
-  const emailInput = canvas.getByLabelText(/email/i);
-  await expect(emailInput).toHaveValue(args.defaultValues?.email);
-});
-
-Prefilled.test("Displays pre-filled name", async ({ canvas, args }) => {
-  const nameInput = canvas.getByLabelText(/name/i);
-  await expect(nameInput).toHaveValue(args.defaultValues?.name);
-});
+Prefilled.test(
+  "Displays all pre-filled values",
+  async ({ canvas, args, step }) => {
+    await step("Email is pre-filled", async () => {
+      await expect(canvas.getByLabelText(/email/i)).toHaveValue(
+        args.defaultValues?.email,
+      );
+    });
+    await step("Name is pre-filled", async () => {
+      await expect(canvas.getByLabelText(/name/i)).toHaveValue(
+        args.defaultValues?.name,
+      );
+    });
+  },
+);
 
 Prefilled.test(
   "Can modify pre-filled values",
@@ -435,9 +442,29 @@ FormFields.test(
 );
 ```
 
-## Pattern 11: Complete User Flow (Use `play` function)
+## Pattern 11: Using `play` Function
 
-⚠️ **Use `play` function for complex multi-step flows:**
+`play` has two valid use cases. It should **never** be used for independent test assertions.
+
+### 11a. Demo / Interaction Presentation (no assertions)
+
+✅ **Use `play` to present component interaction in Storybook UI:**
+
+```typescript
+// play for demo — shows a filled form in Storybook docs
+export const FilledForm = meta.story({
+  name: "Form with data",
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    // No assertions — purely visual presentation
+  },
+});
+```
+
+### 11b. Complex Dependent Flow (rare)
+
+⚠️ **Use `play` with `step()` only when steps depend on each other:**
 
 ```typescript
 export const CompleteSignUpFlow = meta.story({
@@ -473,8 +500,8 @@ export const CompleteSignUpFlow = meta.story({
 });
 ```
 
-> **Note:** Use `play` function with `step()` for complete user journeys that should be viewed as ONE cohesive flow. For
-> individual test scenarios, use `.test()` method.
+> **Note:** Use `play` for complete user journeys viewed as ONE cohesive flow, or for demos presenting component
+> interaction. For individual test scenarios, always use `.test()` method.
 
 ## Pattern 12: Mocking API Requests (MSW)
 

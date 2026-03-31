@@ -136,17 +136,17 @@ interface TestContext {
 
 ### When to Use `.test()` vs `play`
 
-| Use `.test()` Method ✅    | Use `play` Function ⚠️       |
-| -------------------------- | ---------------------------- |
-| Multiple independent tests | Complex multi-step user flow |
-| Testing specific behaviors | Integration test scenarios   |
-| Granular test reporting    | Demos for Storybook UI       |
-| **Most common scenarios**  | Rare, specific use cases     |
+| Use `.test()` Method ✅        | Use `play` Function ⚠️                         |
+| ------------------------------ | ---------------------------------------------- |
+| All test assertions            | Demos — presenting interaction in Storybook UI |
+| Multiple independent tests     | Complex dependent multi-step flows (rare)      |
+| Granular test reporting        | Integration test scenarios where order matters |
+| **Most common (90% of cases)** | **Rare, specific use cases (10%)**             |
 
 **Example Comparison:**
 
 ```typescript
-// ✅ Use .test() for independent tests
+// ✅ Use .test() for ALL test assertions
 export const Button = meta.story({});
 
 Button.test(
@@ -170,7 +170,17 @@ Button.test(
   },
 );
 
-// ✅ Use play for complete user journey
+// ✅ Use play for DEMO — showing component interaction in Storybook docs (no assertions)
+export const FilledForm = meta.story({
+  name: "Form with data",
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
+    // No assertions — purely visual presentation
+  },
+});
+
+// ✅ Use play for DEPENDENT FLOW — steps must happen in sequence
 export const CheckoutFlow = meta.story({
   name: "Complete Checkout Journey",
   play: async ({ canvas, step, userEvent }) => {
@@ -387,28 +397,40 @@ const element = canvasElement.querySelector(".some-class");
 
 ```typescript
 // Portal content (modal, tooltip, dropdown)
-export const ModalTest = meta.story({
-  play: async ({ canvas, userEvent }) => {
-    // Trigger inside canvas
-    await userEvent.click(canvas.getByRole("button", { name: /open/i }));
+export const ModalStory = meta.story({});
 
-    // Modal renders to document.body - use screen
-    const dialog = await screen.findByRole("dialog");
-    await expect(dialog).toBeInTheDocument();
+ModalStory.test(
+  "Opens and closes modal via portal",
+  async ({ canvas, userEvent, step }) => {
+    await step("Open modal", async () => {
+      // Trigger inside canvas
+      await userEvent.click(canvas.getByRole("button", { name: /open/i }));
+    });
 
-    // Close button inside portal - still use screen
-    await userEvent.click(screen.getByRole("button", { name: /close/i }));
+    await step("Modal renders to document.body — use screen", async () => {
+      const dialog = await screen.findByRole("dialog");
+      await expect(dialog).toBeInTheDocument();
+    });
+
+    await step("Close modal via portal button", async () => {
+      // Close button inside portal — still use screen
+      await userEvent.click(screen.getByRole("button", { name: /close/i }));
+    });
   },
-});
+);
 ```
 
 ## Step Function
 
-Group related assertions for better test organization:
+Group related assertions for better test organization. Use `step()` in both `.test()` and `play`:
 
 ```typescript
-export const CompleteFlow = meta.story({
-  play: async ({ canvas, userEvent, step }) => {
+// ✅ step() in .test() — content tests and multi-step interactions
+export const FormStory = meta.story({});
+
+FormStory.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, step }) => {
     await step("Fill form fields", async () => {
       await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
       await userEvent.type(canvas.getByLabelText(/password/i), "secret");
@@ -419,7 +441,7 @@ export const CompleteFlow = meta.story({
       await expect(canvas.getByText(/success/i)).toBeVisible();
     });
   },
-});
+);
 ```
 
 ## Imports Summary
