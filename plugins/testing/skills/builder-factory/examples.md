@@ -3,6 +3,7 @@
 Complete examples of mimicry-js builders for various use cases.
 
 > **Note:** Check `.claude/project-context.md` for your specific Faker locale and project types.
+> For generator placement rules (top-level vs arrow functions), see the "Generator Placement Rules" section in SKILL.md.
 
 ## Complete Builder with Traits
 
@@ -55,7 +56,7 @@ export const userBuilder = build<User>({
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+import { faker } from "@faker-js/faker";
 import type { Order } from "~/types/order";
 
 export const orderBuilder = build<Order>({
@@ -82,23 +83,34 @@ export const orderBuilder = build<Order>({
 });
 ```
 
-## Nested Builders
+## Per-Call postBuild Override
+
+```typescript
+// Override postBuild for a single call without changing the builder definition
+const discountedOrder = orderBuilder.one({
+  postBuild: (order) => {
+    order.totalAmount =
+      order.products.reduce((sum, p) => sum + p.price, 0) * 0.9;
+    return order;
+  },
+});
+```
+
+## Nested Builders with Deep Merging
 
 ```typescript
 import { build, sequence } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+import { faker } from "@faker-js/faker";
 
-// Address builder
 export const addressBuilder = build<Address>({
   fields: {
     street: () => faker.location.streetAddress(),
     city: () => faker.location.city(),
     zipCode: () => faker.location.zipCode(),
-    country: "USA", // Check project-context.md for your locale
+    country: "USA",
   },
 });
 
-// User builder with address
 export const userBuilder = build<User>({
   fields: {
     id: sequence(),
@@ -107,27 +119,36 @@ export const userBuilder = build<User>({
   },
 });
 
-// Override nested
+// Deep merging — only patches specified keys, keeps the rest
 const user = userBuilder.one({
   overrides: {
-    address: addressBuilder.one({ overrides: { city: "New York" } }),
+    address: { city: "New York" }, // street, zipCode, country remain
+  },
+});
+
+// Full override — replace address entirely
+const user2 = userBuilder.one({
+  overrides: {
+    address: addressBuilder.one({
+      overrides: { city: "Warsaw", country: "Poland" },
+    }),
   },
 });
 ```
 
 ## Database Application Type Builder
 
-> **Note:** Check project-context.md for your specific database type patterns (Firestore, PostgreSQL, MongoDB, etc.)
+> **Note:** Check project-context.md for your specific database type patterns.
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+import { faker } from "@faker-js/faker";
 import type {
   Resource,
   ResourceBase,
 } from "~/features/resource/types/resource";
 
-// Base type builder (for DTOs)
+// Base type builder (for DTOs — without id, timestamps)
 export const resourceBaseBuilder = build<ResourceBase>({
   fields: {
     name: () => faker.commerce.productName(),
@@ -135,16 +156,8 @@ export const resourceBaseBuilder = build<ResourceBase>({
     category: () => faker.commerce.department(),
   },
   traits: {
-    inactive: {
-      overrides: {
-        status: "inactive",
-      },
-    },
-    pending: {
-      overrides: {
-        status: "pending",
-      },
-    },
+    inactive: { overrides: { status: "inactive" } },
+    pending: { overrides: { status: "pending" } },
   },
 });
 
@@ -159,34 +172,125 @@ export const resourceBuilder = build<Resource>({
     updatedAt: () => faker.date.recent(),
   },
   traits: {
-    inactive: {
-      overrides: {
-        status: "inactive",
-      },
-    },
-    pending: {
-      overrides: {
-        status: "pending",
-      },
-    },
+    inactive: { overrides: { status: "inactive" } },
+    pending: { overrides: { status: "pending" } },
   },
 });
 ```
 
-## Helper Functions Pattern
+## Discriminated Union Types
+
+For TypeScript discriminated unions, create a separate builder per variant:
 
 ```typescript
-export const createTestUsers = {
-  admin: () => userBuilder.one({ traits: "admin" }),
-  guest: () => userBuilder.one({ traits: "guest" }),
-  inactive: () => userBuilder.one({ traits: "inactive" }),
-  withCustomEmail: (email: string) => userBuilder.one({ overrides: { email } }),
-  list: (count: number) => userBuilder.many(count),
-};
+import { build, sequence, int } from "mimicry-js";
+import { faker } from "@faker-js/faker";
 
-// Usage
-const admin = createTestUsers.admin();
-const users = createTestUsers.list(5);
+type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "rectangle"; width: number; height: number };
+
+export const circleBuilder = build<Extract<Shape, { kind: "circle" }>>({
+  fields: {
+    kind: "circle",
+    radius: int(1, 100),
+  },
+});
+
+export const rectangleBuilder = build<Extract<Shape, { kind: "rectangle" }>>({
+  fields: {
+    kind: "rectangle",
+    width: int(1, 200),
+    height: int(1, 200),
+  },
+});
+
+// For a random shape, use a helper:
+const randomShape = (): Shape =>
+  Math.random() > 0.5 ? circleBuilder.one() : rectangleBuilder.one();
+```
+
+## Builder Composition (Extending Builders)
+
+When types share a common base, avoid duplicating fields — define the base fields once and spread them:
+
+```typescript
+import { build, sequence, oneOf } from "mimicry-js";
+import { faker } from "@faker-js/faker";
+import type { BaseUser, AdminUser, GuestUser } from "~/types/user";
+
+// Shared base fields
+const baseUserFields = {
+  id: sequence(),
+  email: () => faker.internet.email(),
+  name: () => faker.person.fullName(),
+  createdAt: () => faker.date.past(),
+} as const;
+
+export const adminUserBuilder = build<AdminUser>({
+  fields: {
+    ...baseUserFields,
+    role: "admin" as const,
+    permissions: () =>
+      faker.helpers.arrayElements(["users", "billing", "settings"], {
+        min: 1,
+        max: 3,
+      }),
+    department: () => faker.commerce.department(),
+  },
+});
+
+export const guestUserBuilder = build<GuestUser>({
+  fields: {
+    ...baseUserFields,
+    role: "guest" as const,
+    expiresAt: () => faker.date.future(),
+  },
+});
+```
+
+## Recursive Types
+
+For tree-like recursive structures, use a depth-limited approach:
+
+```typescript
+import { build, sequence } from "mimicry-js";
+import { faker } from "@faker-js/faker";
+
+interface TreeNode {
+  id: number;
+  label: string;
+  children: TreeNode[];
+}
+
+// Leaf node builder (no children)
+export const leafNodeBuilder = build<TreeNode>({
+  fields: {
+    id: sequence(),
+    label: () => faker.lorem.word(),
+    children: [],
+  },
+});
+
+// Branch node builder (with children)
+export const treeNodeBuilder = build<TreeNode>({
+  fields: {
+    id: sequence(),
+    label: () => faker.lorem.word(),
+    children: () => leafNodeBuilder.many(3),
+  },
+});
+
+// For deeper nesting, use postBuild:
+const deepTree = treeNodeBuilder.one({
+  postBuild: (node) => {
+    node.children = node.children.map((child) => ({
+      ...child,
+      children: leafNodeBuilder.many(2),
+    }));
+    return node;
+  },
+});
 ```
 
 ## Computed Fields with postBuild
@@ -242,7 +346,7 @@ const users = userBuilder.many(3); // Always same results with same seed
 ## Builder with withPrev (Dependent Values)
 
 ```typescript
-import { build, withPrev } from "mimicry-js";
+import { build, withPrev, int } from "mimicry-js";
 
 export const timeEntryBuilder = build<TimeEntry>({
   fields: {
@@ -261,6 +365,8 @@ const entries = timeEntryBuilder.many(5);
 ## Builder with Reset
 
 ```typescript
+import { build, sequence, unique } from "mimicry-js";
+
 const builder = build<Item>({
   fields: {
     id: sequence(), // 1, 2, 3...
@@ -273,41 +379,23 @@ builder.reset(); // Reset sequence and unique counters
 builder.many(3); // ids: 1, 2, 3 again
 ```
 
-## Generator Placement: Top-Level vs Arrow Functions
-
-mimicry-js generators are field-level descriptors resolved by the library. They only work at the top level of `fields` or in static nested objects. Inside arrow functions, use Faker instead.
-
-### Correct: Generators at top level, Faker inside arrow functions
+## Helper Functions Pattern
 
 ```typescript
-import { build, sequence, oneOf, int, bool } from "mimicry-js";
-import { faker } from "@faker-js/faker";
+export const createTestUsers = {
+  admin: () => userBuilder.one({ traits: "admin" }),
+  guest: () => userBuilder.one({ traits: "guest" }),
+  inactive: () => userBuilder.one({ traits: "inactive" }),
+  withCustomEmail: (email: string) => userBuilder.one({ overrides: { email } }),
+  list: (count: number) => userBuilder.many(count),
+};
 
-export const productBuilder = build<Product>({
-  fields: {
-    // Top level — mimicry-js generators work here
-    id: sequence(),
-    status: oneOf("draft", "published", "archived"),
-    rating: int(1, 5),
-    featured: bool(),
-
-    // Arrow function — use Faker for random selection
-    metadata: () => ({
-      source: faker.helpers.arrayElement(["import", "manual", "api"]),
-      tags: faker.helpers.arrayElements(["sale", "new", "popular"], {
-        min: 1,
-        max: 2,
-      }),
-      priority: faker.number.int({ min: 1, max: 10 }),
-    }),
-
-    // Nested builder — arrow function for fresh data each call
-    category: () => categoryBuilder.one(),
-  },
-});
+// Usage
+const admin = createTestUsers.admin();
+const users = createTestUsers.list(5);
 ```
 
-### Correct: Static nested objects (generators work recursively)
+## Static Nested Objects (Generators Work Recursively)
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";
@@ -321,30 +409,10 @@ export const accountBuilder = build<Account>({
       city: oneOf("New York", "Los Angeles"),
       zipCode: sequence((n) => String(10000 + n)),
     },
-    // Static nested object with generators
     settings: {
       theme: oneOf("light", "dark"),
       language: oneOf("en", "pl", "de"),
     },
-  },
-});
-```
-
-### Wrong: Generators inside arrow functions
-
-```typescript
-// DO NOT do this — generators won't be resolved
-export const productBuilder = build<Product>({
-  fields: {
-    metadata: () => ({
-      source: oneOf("import", "manual"), // WRONG — returns descriptor object
-      priority: int(1, 10), // WRONG — returns descriptor object
-    }),
-    items: () =>
-      Array.from({ length: 3 }, () => ({
-        id: sequence(), // WRONG — won't auto-increment
-        type: oneOf("a", "b"), // WRONG — returns descriptor object
-      })),
   },
 });
 ```

@@ -1,9 +1,25 @@
 ---
 name: design-system-component
 description: >
-  Load when creating or modifying components in a React + TypeScript + Tailwind CSS + CVA
-  design system. Covers file structure, types, styles, context, store, barrel exports,
-  constants, utils, and Storybook stories.
+  Use this skill to create or refactor React + TypeScript + Tailwind CSS + CVA components
+  following design system conventions. It provides the canonical file structure, per-component
+  styles pattern, types, context, store, barrel exports, and Storybook story templates that
+  are specific to this codebase. Invoke whenever the user wants to build a new UI component,
+  add CVA variants or sub-components, set up component context or store, create barrel exports,
+  write component stories, or restructure an existing component directory — even for tasks
+  that seem straightforward like "create a Button" or "add a variant", because the skill
+  ensures correct file placement and naming conventions.
+tags: [react, typescript, tailwind, cva, design-system, components, radix-ui, storybook]
+allowed-tools: Read, Write, Edit, Glob, Grep
+compatibility:
+  dependencies: [react, class-variance-authority, tailwind-css]
+examples:
+  - Create a new Button component with variants
+  - Build a Tabs composite component with trigger and content sub-parts
+  - Add a size variant to the existing Card component
+  - Refactor the Dialog component to use context and store
+  - Create Storybook stories for the Badge component
+  - "@design-system-component src/components/ui/data-table/index.tsx"
 ---
 
 # Design System Component Guidelines
@@ -11,52 +27,94 @@ description: >
 Stack: **React + TypeScript + Tailwind CSS + CVA**. Radix UI optional — use when available.
 Check existing components first to confirm path aliases and `cn()` location.
 
+## Usage modes
+
+This skill supports two modes:
+
+### 1. Create from scratch
+Describe what component you need — the skill guides file structure, types, styles, etc.
+
+### 2. Refactor existing component (path argument)
+Pass a path to the component's entry file:
+
+```
+/design-system-component src/components/ui/data-table/index.tsx
+```
+
+When invoked with a path argument:
+1. **Read** the file (and any files it imports from the same directory)
+2. **Analyze** the current structure against the guidelines below
+3. **Report** what's missing or misaligned (e.g. styles not split per sub-component, missing `data-slot`, no barrel export, props using `HTMLAttributes` instead of `ComponentProps`)
+4. **Propose** the target file structure
+5. **Refactor** — split/create files to match the design system patterns
+
+This is useful for components that grew organically in a single file or don't follow the conventions yet.
+
 ---
 
 ## File structure
 
 All file names: **kebab-case**. Exported symbols: **PascalCase**.
 
-**Simple component:**
+**Simple component** (no sub-parts, no shared state):
 
 ```
-my-component/
+button/
 ├── index.tsx
-├── my-component.tsx
-├── my-component.styles.ts   # only when variants exist (see Styles section)
-├── my-component.types.ts    # only when CVA-derived types or const enums exist
-└── my-component.stories.tsx
+├── button.tsx
+├── button.styles.ts           # only when variants exist
+├── button.types.ts            # only when CVA-derived types or const enums exist
+└── button.stories.tsx
 ```
 
-**Composite / stateful component:**
+**Composite component** (with sub-parts — each sub-component that has variants gets its own styles file):
 
 ```
-my-component/
+tabs/
 ├── index.tsx
-├── my-component.tsx
-├── my-component.styles.ts          # only when variants exist (see Styles section)
-├── my-component.types.ts           # only when CVA-derived types or const enums exist
-├── my-component.constants.ts
-├── my-component.utils.ts
-├── my-component.context.tsx
-├── my-component-item.context.tsx   # per-item context if needed
-├── my-component.store.tsx          # useSyncExternalStore if needed
-├── my-component-sub-part.tsx
-└── my-component.stories.tsx
+├── tabs.tsx                    # root component + provider
+├── tabs.styles.ts              # root variants (if any)
+├── tabs.types.ts               # shared types, const enums, CVA-derived types
+├── tabs.constants.ts
+├── tabs.utils.ts
+├── tabs.context.tsx
+├── tabs-trigger.tsx            # sub-component
+├── tabs-trigger.styles.ts     # sub-component's own variants
+├── tabs-content.tsx            # sub-component
+├── tabs-content.styles.ts     # sub-component's own variants
+├── tabs-item.context.tsx       # per-item context if needed
+├── tabs.store.tsx              # useSyncExternalStore if needed
+└── tabs.stories.tsx
 ```
 
-Only create files that are genuinely needed.
+**Key rule: each component/sub-component that has CVA variants gets its own `.styles.ts` file.** Styles are never shared across sub-components — a `tabs-trigger.styles.ts` defines only `tabsTriggerVariants`, not styles for other parts. This keeps variant logic colocated with the component that uses it.
+
+Only create files that are genuinely needed — if a sub-component has no variants (just fixed classes via `cn()`), it doesn't need a styles file.
+
+---
+
+## When to use which pattern
+
+| Situation | Pattern |
+|-----------|---------|
+| Single element, no sub-parts | Simple component |
+| Multiple related parts (trigger + content, header + body) | Composite component |
+| Parent needs to share state with children | Context (`React.createContext`) |
+| Many siblings need independent subscriptions without cascading re-renders | Store (`useSyncExternalStore`) |
+| Component wraps a Radix primitive | Use Radix, layer CVA + `data-slot` on top |
+| No Radix primitive exists | Build from scratch with proper ARIA |
 
 ---
 
 ## index.tsx — barrel export
 
 ```typescript
-export * from "./my-component";
-export * from "./my-component.types";
-export { useMyComponentContext } from "./my-component.context";
-export * from "./my-component-item";
-export { useMyComponentItemContext } from "./my-component-item.context";
+export * from "./tabs";
+export * from "./tabs.types";
+export * from "./tabs-trigger";
+export * from "./tabs-content";
+export { useTabsContext } from "./tabs.context";
+export { useTabsItemContext } from "./tabs-item.context";
 ```
 
 - `export *` for component and type files.
@@ -70,41 +128,40 @@ export { useMyComponentItemContext } from "./my-component-item.context";
 ### Const enum pattern
 
 ```typescript
-export const MyComponentOrientation = {
+export const TabsOrientation = {
   HORIZONTAL: "horizontal",
   VERTICAL: "vertical",
 } as const;
-export type MyComponentOrientation =
-  (typeof MyComponentOrientation)[keyof typeof MyComponentOrientation];
+export type TabsOrientation =
+  (typeof TabsOrientation)[keyof typeof TabsOrientation];
 ```
 
 ### CVA-derived variant types
 
 ```typescript
 import { type VariantProps } from "class-variance-authority";
-import { type myComponentVariants } from "./my-component.styles";
+import { type tabsTriggerVariants } from "./tabs-trigger.styles";
 
-type MyVariantsProps = VariantProps<typeof myComponentVariants>;
-export type MyComponentSizeType = NonNullable<MyVariantsProps["size"]>;
-export type MyComponentVariantType = NonNullable<MyVariantsProps["variant"]>;
+type TriggerVariantsProps = VariantProps<typeof tabsTriggerVariants>;
+export type TabsTriggerSizeType = NonNullable<TriggerVariantsProps["size"]>;
+export type TabsTriggerVariantType = NonNullable<TriggerVariantsProps["variant"]>;
 ```
 
-`types.ts` holds const enums and CVA-derived variant types only. **Props types always live in the component file.**
+`types.ts` holds const enums and CVA-derived variant types only. **Props types always live in the component's own `.tsx` file** — this applies to both root and sub-components.
 
 ---
 
-## Styles — my-component.styles.ts
+## Styles — per-component `.styles.ts`
 
-**Create this file only when the component has variants or conditional style logic.**
-If the component has a single, unconditional set of classes, inline them directly in the component using `cn()` — no styles file needed.
+**Create a styles file for each component/sub-component that has variants or conditional style logic.**
 
-- **Create `styles.ts` with `cva`** when the component has `variant`, `size`, or other prop-driven style branches.
-- **Inline with `cn()`** in the component file when there is one fixed appearance and no style props.
+If a component has a single, unconditional set of classes, inline them directly using `cn()` — no styles file needed.
 
 ```typescript
+// tabs-trigger.styles.ts — variants for TabsTrigger only
 import { cva } from "class-variance-authority";
 
-export const myComponentVariants = cva(
+export const tabsTriggerVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 rounded text-sm font-medium transition-all outline-none",
     "disabled:pointer-events-none disabled:opacity-50",
@@ -131,6 +188,7 @@ export const myComponentVariants = cva(
 
 - Always use CSS custom property tokens (e.g. `bg-primary`, `text-muted-foreground`) — never raw hex/rgb/oklch literals.
 - Use Tailwind data-attribute variants for state: `data-[state=active]:bg-primary/50`, `data-[disabled]:opacity-50`.
+- Name the export `<componentName>Variants` in camelCase matching the component.
 
 ---
 
@@ -140,30 +198,27 @@ export const myComponentVariants = cva(
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "~/utils";
-import { myComponentVariants } from "./my-component.styles";
-import type {
-  MyComponentVariantType,
-  MyComponentSizeType,
-} from "./my-component.types";
+import { tabsTriggerVariants } from "./tabs-trigger.styles";
+import type { TabsTriggerVariantType, TabsTriggerSizeType } from "./tabs.types";
 
-export type MyComponentProps = React.ComponentProps<"div"> & {
-  variant?: MyComponentVariantType;
-  size?: MyComponentSizeType;
+export type TabsTriggerProps = React.ComponentProps<"button"> & {
+  variant?: TabsTriggerVariantType;
+  size?: TabsTriggerSizeType;
   asChild?: boolean;
 };
 
-export function MyComponent({
+export function TabsTrigger({
   asChild,
   variant,
   size,
   className,
   ...props
-}: MyComponentProps) {
-  const Comp = asChild ? Slot : "div";
+}: TabsTriggerProps) {
+  const Comp = asChild ? Slot : "button";
   return (
     <Comp
-      data-slot="my-component"
-      className={cn(myComponentVariants({ variant, size }), className)}
+      data-slot="tabs-trigger"
+      className={cn(tabsTriggerVariants({ variant, size }), className)}
       {...props}
     />
   );
@@ -185,9 +240,9 @@ Key rules:
 ## Constants — my-component.constants.ts
 
 ```typescript
-export const MY_COMPONENT_ROOT_NAME = "MyComponent";
-export const MY_COMPONENT_ITEM_NAME = "MyComponentItem";
-export const MY_COMPONENT_TRIGGER_NAME = "MyComponentTrigger";
+export const TABS_ROOT_NAME = "Tabs";
+export const TABS_TRIGGER_NAME = "TabsTrigger";
+export const TABS_CONTENT_NAME = "TabsContent";
 
 export const MAP_KEY_TO_FOCUS_INTENT: Record<
   string,
@@ -232,24 +287,24 @@ export function buildElementId(
 
 ```typescript
 import * as React from "react";
-import { MY_COMPONENT_ROOT_NAME } from "./my-component.constants";
+import { TABS_ROOT_NAME } from "./tabs.constants";
 
-export interface MyComponentContextValue {
+export interface TabsContextValue {
   id: string;
   orientation: "horizontal" | "vertical";
   disabled: boolean;
 }
 
-export const MyComponentContext =
-  React.createContext<MyComponentContextValue | null>(null);
+export const TabsContext =
+  React.createContext<TabsContextValue | null>(null);
 
-export function useMyComponentContext(
+export function useTabsContext(
   consumerName: string,
-): MyComponentContextValue {
-  const context = React.useContext(MyComponentContext);
+): TabsContextValue {
+  const context = React.useContext(TabsContext);
   if (!context)
     throw new Error(
-      `\`${consumerName}\` must be used within \`${MY_COMPONENT_ROOT_NAME}\``,
+      `\`${consumerName}\` must be used within \`${TABS_ROOT_NAME}\``,
     );
   return context;
 }
@@ -286,6 +341,38 @@ const store = React.useMemo(
 ## Storybook stories — my-component.stories.tsx
 
 Check which CSF version the project uses (CSF 3 vs CSF Next) and follow the same pattern.
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/react";
+import { Tabs, TabsTrigger, TabsContent } from "./";
+
+const meta = {
+  title: "Components/Tabs",
+  component: Tabs,
+  tags: ["autodocs"],
+  argTypes: {
+    orientation: {
+      control: "select",
+      options: ["horizontal", "vertical"],
+    },
+    disabled: { control: "boolean" },
+  },
+} satisfies Meta<typeof Tabs>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  render: (args) => (
+    <Tabs {...args} defaultValue="tab1">
+      <TabsTrigger value="tab1">Tab 1</TabsTrigger>
+      <TabsTrigger value="tab2">Tab 2</TabsTrigger>
+      <TabsContent value="tab1">Content 1</TabsContent>
+      <TabsContent value="tab2">Content 2</TabsContent>
+    </Tabs>
+  ),
+};
+```
 
 Conventions:
 

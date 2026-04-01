@@ -1,17 +1,31 @@
 ---
 name: builder-factory
-version: 4.1.0
-lastUpdated: 2026-02-17
-description: Generate mimicry-js factory builders for TypeScript types to create mock data for tests and Storybook. Use when creating mock data, test fixtures, or Storybook story data.
-tags: [testing, factories, mock-data, mimicry-js, faker, typescript]
-author: Szum Tech Team
+version: 5.0.0
+lastUpdated: 2026-04-01
+description: Use this skill to create typed test data builders with mimicry-js and Faker for any TypeScript interface or type. Invoke whenever the user asks to generate mock data, create test fixtures, build factory functions, produce seed data, or construct fake objects for unit tests, Storybook stories, or E2E scenarios. Also use when migrating from test-data-bot or Fishery to mimicry-js, or when the user mentions builders, factories, or typed mock/fake/test/seed data generation — even if they describe the task indirectly (e.g. "I need realistic invoices for testing" or "generate sample users for my stories").
+tags:
+  [
+    testing,
+    factories,
+    mock-data,
+    mimicry-js,
+    faker,
+    typescript,
+    fixtures,
+    builders,
+    storybook,
+    seed-data,
+  ]
 allowed-tools: Read, Write, Edit, Glob, Grep
-user-invocable: true
+compatibility:
+  dependencies: [mimicry-js, "@faker-js/faker"]
 examples:
   - Create a builder for User type
   - Generate builder for my Order model
   - Build a builder for the Resource type with all relationships
   - Create builders for Product and Order types
+  - I need mock data for testing the checkout flow
+  - Generate test fixtures for the API response types
 ---
 
 # Builder Factory Generator
@@ -46,10 +60,10 @@ Builders using `mimicry-js` and `@faker-js/faker` for:
 
 **IMPORTANT: Search for existing builders before creating new ones.**
 
-```bash
-find . -name "*.builder.ts" -type f
-ls features/*/test/builders/ 2>/dev/null
-```
+Use `Glob` to find existing builders:
+
+- `**/*.builder.ts` — all builder files in the project
+- `features/*/test/builders/*.ts` — feature-specific builders
 
 ### 2. Analyze the Type Structure
 
@@ -116,6 +130,16 @@ export const yourTypeBuilder = build<YourType>({
 - `.one(options?)` - Generate a single instance
 - `.many(count, options?)` - Generate an array of instances
 - `.reset()` - Reset state of `sequence`, `unique`, and custom iterators
+
+Options for `.one()` and `.many()`:
+
+```typescript
+builder.one({
+  overrides?: Partial<T>,       // Override specific fields
+  traits?: string | string[],   // Apply named traits
+  postBuild?: (obj: T) => T,    // Per-call post-processing (overrides build-level postBuild)
+});
+```
 
 ### Field Generators
 
@@ -186,6 +210,15 @@ export const userBuilder = build<User>({
 });
 ```
 
+**Deep merging:** Overrides on nested objects merge deeply — they patch only the specified keys without replacing the whole object:
+
+```typescript
+// Only overrides `city`, keeps other address fields intact
+userBuilder.one({
+  overrides: { address: { city: "Warsaw" } },
+});
+```
+
 ## Database Types Pattern
 
 Check project-context.md for the specific type lifecycle pattern. Common pattern:
@@ -211,41 +244,33 @@ export const resourceBuilder = build<Resource>({
 });
 ```
 
-## Best Practices
+## Generator Placement Rules
 
-### Generator Placement: Top-Level vs Arrow Functions
+mimicry-js generators (`oneOf`, `sequence`, `bool`, `int`, `float`, `unique`, `withPrev`) are **field-level descriptors** — the library resolves them internally when building objects. They only work when placed:
 
-**Critical rule:** mimicry-js generators (`oneOf`, `sequence`, `bool`, `int`, `float`, `unique`, `withPrev`) are **field-level descriptors** — mimicry-js resolves them when building objects. They work correctly only when placed:
-
-- **Directly as field values** in `fields` definition (top-level)
+- **Directly as field values** in `fields` (top-level)
 - **Inside static nested objects** that mimicry-js recursively processes
 
-They **do NOT work** inside arrow functions `() => ...`, because arrow function bodies are opaque to mimicry-js — it just calls the function and expects a resolved value back.
+They **do NOT work** inside arrow functions `() => ...` — arrow function bodies are opaque to mimicry-js, which just calls the function and expects a resolved value back.
 
-**Use `oneOf()` at the top level of field definitions:**
+**Correct — generators at top level:**
 
 ```typescript
-// CORRECT - oneOf at top level, mimicry-js resolves the generator
 export const userBuilder = build<User>({
   fields: {
-    role: oneOf("admin", "user", "guest"),
+    role: oneOf("admin", "user", "guest"), // mimicry-js resolves this
     status: oneOf("active", "inactive"),
   },
 });
 ```
 
-**Use `faker.helpers.arrayElement()` inside arrow functions and nested objects returned by functions:**
+**Correct — Faker inside arrow functions:**
 
 ```typescript
-// CORRECT - faker inside arrow function
 export const userBuilder = build<User>({
   fields: {
     profile: () => ({
-      bio: faker.lorem.sentence(),
       theme: faker.helpers.arrayElement(["light", "dark", "system"]),
-    }),
-    metadata: () => ({
-      source: faker.helpers.arrayElement(["web", "mobile", "api"]),
       tags: faker.helpers.arrayElements(["new", "vip", "beta"], {
         min: 1,
         max: 2,
@@ -255,30 +280,18 @@ export const userBuilder = build<User>({
 });
 ```
 
-**Common mistake — DO NOT use generators inside arrow functions:**
+**Wrong — generators inside arrow functions return descriptor objects, not values:**
 
 ```typescript
-// WRONG - oneOf inside arrow function won't be resolved by mimicry-js
-export const userBuilder = build<User>({
-  fields: {
-    profile: () => ({
-      theme: oneOf("light", "dark", "system"), // Returns generator descriptor, NOT a value
-    }),
-  },
-});
-
-// WRONG - sequence inside arrow function
-export const orderBuilder = build<Order>({
-  fields: {
-    items: () =>
-      Array.from({ length: 3 }, () => ({
-        id: sequence(), // Won't auto-increment
-      })),
-  },
-});
+// WRONG
+fields: {
+  profile: () => ({
+    theme: oneOf("light", "dark"),  // Returns descriptor, NOT a resolved value
+  }),
+}
 ```
 
-**The same rule applies to all mimicry-js generators:**
+**Equivalents table:**
 
 | Generator         | Top-level `fields`       | Inside `() => ...`                                    |
 | ----------------- | ------------------------ | ----------------------------------------------------- |
@@ -288,95 +301,24 @@ export const orderBuilder = build<Order>({
 | `bool()`          | `field: bool()`          | `field: () => faker.datatype.boolean()`               |
 | `sequence()`      | `field: sequence()`      | `field: () => faker.number.int()`                     |
 
-### Static nested objects vs arrow functions for nested data
+**Static nested objects** are recursively processed by mimicry-js, so generators work inside them. Use arrow functions only when fresh values are needed on each `.one()` call (Faker data, nested builders).
 
-mimicry-js **recursively processes static nested objects**, so generators work inside them:
+## Best Practices
 
-```typescript
-// CORRECT - static nested object, mimicry-js processes it recursively
-export const accountBuilder = build<Account>({
-  fields: {
-    id: sequence(),
-    address: {
-      street: oneOf("123 Main St", "456 Elm Ave"),
-      city: oneOf("New York", "Los Angeles"),
-      zipCode: sequence((n) => n + 1000),
-    },
-  },
-});
-```
-
-Use **arrow functions for nested data** only when you need fresh values on each `.one()` call (e.g., Faker-generated data or calling another builder):
-
-```typescript
-// CORRECT - arrow function for fresh Faker data each time
-export const userBuilder = build<User>({
-  fields: {
-    id: sequence(),
-    address: () => addressBuilder.one(), // New address each call
-  },
-});
-```
-
-### Use `.many()` for generating arrays
-
-Always use `builder.many(count)` instead of manually constructing arrays. This applies both to generating test data and to array-typed fields inside builders.
-
-```typescript
-// CORRECT - use .many() for generating lists
-const users = userBuilder.many(5);
-const admins = userBuilder.many(3, { traits: "admin" });
-
-// CORRECT - use .many() inside builder fields for array relationships
-export const orderBuilder = build<Order>({
-  fields: {
-    id: sequence(),
-    items: () => orderItemBuilder.many(3),
-    tags: () => tagBuilder.many(2),
-  },
-});
-```
-
-```typescript
-// WRONG - manual array construction
-const users = Array.from({ length: 5 }, () => userBuilder.one());
-const users = [...Array(5)].map(() => userBuilder.one());
-const users = new Array(5).fill(null).map(() => userBuilder.one());
-
-// WRONG - manual array inside builder fields
-export const orderBuilder = build<Order>({
-  fields: {
-    items: () => Array.from({ length: 3 }, () => orderItemBuilder.one()),
-  },
-});
-```
-
-Why `.many()` is better:
-
-- Cleaner and more readable
-- Supports `traits` and `overrides` as second argument: `builder.many(3, { traits: "admin" })`
-- Properly resets internal state between builds
-- Consistent API across the codebase
-
-### Other Best Practices
-
-- **Prefer `oneOf` over `faker.helpers.arrayElement`** at the top level — it integrates with mimicry-js `seed()` for deterministic builds
-- **Prefer `int`/`float`/`bool` over Faker equivalents** at the top level — same seed integration benefit
-- **Use `faker.helpers.weightedArrayElement`** when you need non-uniform distribution (only available via Faker)
-- **Use `faker.helpers.arrayElements` (plural)** for selecting multiple random items from a list
-- **Use `unique()` instead of `oneOf()`** when each generated value must be distinct (e.g., in `.many()` calls)
-- **Use `fixed(fn)` for function-typed fields** (e.g., `onClick`, `onSubmit`) to prevent mimicry-js from calling them
-- **Use `postBuild` for computed fields** that depend on other field values rather than trying to reference sibling fields
-- **Prefer separate builders over deeply nested structures** — compose with `() => otherBuilder.one()` for maintainability
+- **Use `.many(count)` for arrays** — not `Array.from()` or `[...Array(n)].map()`. Supports traits/overrides, resets internal state properly
+- **Prefer `oneOf`/`int`/`float`/`bool` over Faker equivalents** at the top level — they integrate with `seed()` for deterministic builds
+- **Use `faker.helpers.weightedArrayElement`** for non-uniform distribution (only available via Faker)
+- **Use `unique()` instead of `oneOf()`** when each value must be distinct (e.g., in `.many()` calls)
+- **Use `fixed(fn)` for function-typed fields** (e.g., `onClick`, `onSubmit`) — prevents mimicry-js from calling them
+- **Use `postBuild` for computed fields** that depend on sibling field values
+- **Compose builders** with `() => otherBuilder.one()` rather than deeply nesting structures
 - **Call `.reset()` in `beforeEach`** when tests depend on `sequence()` or `unique()` starting values
 
 ## Important Notes
 
 - Always use `mimicry-js` (NOT test-data-bot or Fishery)
-- Check project-context.md for Faker locale configuration
+- Check project-context.md for Faker locale — if it doesn't exist, use default `@faker-js/faker` import and English locale
 - Use `sequence()` for numeric IDs, `() => faker.string.uuid()` for UUIDs
-- Use plain functions `() => ...` for values that should be fresh each time (no `perBuild` needed)
-- Use built-in generators (`oneOf`, `int`, `bool`) where they replace simple Faker calls — but only at the top level
-- Use `.many(count)` instead of `Array.from({ length: count }, () => builder.one())`
+- Use plain `() => ...` for values that should be fresh each build (no `perBuild` needed)
 - Static values don't need function wrapper
 - Include JSDoc with usage examples
