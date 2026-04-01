@@ -726,3 +726,188 @@ For each component, consider:
 - [ ] Complete User Flows
 - [ ] Keyboard Navigation
 - [ ] Accessibility (screen reader, focus)
+
+---
+
+## `.test()` vs `play` Decision Matrix
+
+| Criteria                | `.test()` (Primary - 90%) | `play` (Secondary - 10%) |
+| ----------------------- | ------------------------- | ------------------------ |
+| **Independent tests**   | Perfect                   | Overkill                 |
+| **Dependent steps**     | Wrong                     | Perfect                  |
+| **Number of tests**     | Many (5-10)               | One (1 flow)             |
+| **Each test isolation** | Yes                       | No                       |
+| **Debugging**           | Easy                      | Hard                     |
+| **Code reuse**          | Good                      | Difficult                |
+| **UI presentation**     | List of tests             | Story steps              |
+
+### Guidelines by Component Type
+
+| Component Type                          | Pattern                                      | Notes                                                |
+| --------------------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| Simple (Button, Badge, Icon)            | `.test()` only                               | Keep minimal                                         |
+| Forms and Inputs                        | `.test()` primary                            | Optional `play` for truly dependent multi-step flows |
+| Complex Interactive (Wizards, Checkout) | `.test()` for features, `play` for workflows | Use hybrid approach                                  |
+
+---
+
+## Test Naming Conventions
+
+Good test names are descriptive and actionable:
+
+### ✅ Good Names
+
+- `"Renders section heading and description"`
+- `"Shows validation error on empty email"`
+- `"Disabled button prevents form submission"`
+- `"Mobile tab navigation switches content"`
+- `"Keyboard navigation works with arrow keys"`
+
+### ❌ Bad Names
+
+- `"Test 1"` - Not descriptive
+- `"Works correctly"` - Too vague
+- `"Validation"` - Unclear what's being validated
+- `"Button"` - Doesn't describe behavior
+
+---
+
+## Advanced Patterns
+
+### Shared Test Helpers
+
+```typescript
+// Helper function for repeated setups
+const fillContactForm = async (canvas: Canvas, userEvent: UserEvent) => {
+  await userEvent.type(canvas.getByLabelText("Name"), "John Doe");
+  await userEvent.type(canvas.getByLabelText("Email"), "john@example.com");
+  await userEvent.type(canvas.getByLabelText("Message"), "Hello!");
+};
+
+export const ContactForm = meta.story({});
+
+ContactForm.test(
+  "Submits form with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await fillContactForm(canvas, userEvent);
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await expect(args.onSubmit).toHaveBeenCalled();
+  },
+);
+
+ContactForm.test(
+  "Shows success message after submission",
+  async ({ canvas, userEvent }) => {
+    await fillContactForm(canvas, userEvent);
+    await userEvent.click(canvas.getByRole("button", { name: "Submit" }));
+    await expect(canvas.getByText("Thank you!")).toBeVisible();
+  },
+);
+```
+
+### Conditional Tests (Responsive)
+
+For responsive or conditional rendering:
+
+```typescript
+AllCategories.test(
+  "Mobile tab navigation (if tabs present)",
+  async ({ canvas, userEvent }) => {
+    const mobileTab = canvas.queryByRole("tab", { name: /mobile/i });
+
+    // Only test if tabs are rendered (mobile viewport)
+    if (mobileTab) {
+      await userEvent.click(mobileTab);
+      await expect(mobileTab).toHaveAttribute("data-state", "active");
+    } else {
+      // Desktop viewport - all categories visible
+      await expect(canvas.getByText("Frontend")).toBeVisible();
+      await expect(canvas.getByText("Mobile")).toBeVisible();
+    }
+  },
+);
+```
+
+### Type Safety
+
+`.test()` method provides full type safety:
+
+```typescript
+import type { Canvas, UserEvent } from "storybook/test";
+
+// Types are automatically inferred
+Story.test("Test name", async ({ canvas, userEvent, args, step }) => {
+  // canvas: Canvas
+  // userEvent: UserEvent
+  // args: StoryArgs<typeof ComponentName>
+  // step: StepFunction
+});
+```
+
+---
+
+## Migration from `play` to `.test()`
+
+### Step 1: Identify Test Stories
+
+Find stories that have `play` functions which can be converted to `.test()` calls.
+
+### Step 2: Group by Component State
+
+Organize tests by what component state they're testing:
+
+- Same args/props → Can share one story
+- Different args → Need separate stories
+
+### Step 3: Convert `play` to `.test()`
+
+**Before:**
+
+```typescript
+export const TestName = meta.story({
+  play: async ({ canvas, userEvent }) => {
+    // test logic
+  },
+});
+```
+
+**After:**
+
+```typescript
+Story.test("Test name in sentence case", async ({ canvas, userEvent }) => {
+  // same test logic
+});
+```
+
+### Migration Checklist
+
+When converting old `play` stories to `.test()`:
+
+- [ ] Identify which tests are independent (not dependent on previous steps)
+- [ ] Convert each independent test to a `.test()` call
+- [ ] Remove the `play` function from the story
+- [ ] Destructure `userEvent` from function parameter (don't import)
+- [ ] Verify each test runs independently
+- [ ] Check that a failed test doesn't block others
+
+### Step 4: Use `step()` Strategically
+
+When converting from `play` to `.test()`, keep `step()` when it adds clarity — especially for content tests
+and multi-step interactions. Remove `step()` only when the test is already simple and self-explanatory.
+
+**Rule of thumb:** Use `step()` when the test has 3+ distinct phases or assertion groups. Skip it for 1-2 line tests.
+
+---
+
+## Running Tests
+
+```bash
+# Run all Storybook tests
+npm run test:storybook
+
+# Run specific component tests
+npm run test:storybook -- --grep "SkillsSection"
+
+# Watch mode
+npm run test:storybook -- --watch
+```

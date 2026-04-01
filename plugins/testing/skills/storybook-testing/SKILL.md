@@ -43,12 +43,10 @@ components.
 
 > **Reference Files:**
 >
-> - [mocking.md](./mocking.md) - **NEW:** Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
-> - [test-method-optimization.md](./test-method-optimization.md) - `.test()` method guide and optimization patterns
+> - [mocking.md](./mocking.md) - Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
 > - [patterns.md](./patterns.md) - Testing patterns and examples
-> - [best-practices.md](./best-practices.md) - Best practices and common pitfalls
-> - [examples.md](./examples.md) - Practical code examples
-> - [templates.md](./templates.md) - Component test templates
+> - [best-practices.md](./best-practices.md) - Best practices, migration guide, and common pitfalls
+> - [examples-and-templates.md](./examples-and-templates.md) - Practical code examples and component test templates
 > - [design-system.md](./design-system.md) - Testing @szum-tech/design-system components
 > - [api-reference.md](./api-reference.md) - Complete API documentation
 
@@ -77,7 +75,6 @@ Stories are used for:
 | Test hooks (useDebounce, etc.) in isolation            | NO              | `unit-testing`        |
 | Test Zod schemas or validation logic                   | NO              | `unit-testing`        |
 | Test API endpoints / route handlers                    | NO              | `api-test`            |
-| Test multi-page user flows                             | NO              | `playwright-cli`      |
 | Perform WCAG accessibility audit                       | NO              | `accessibility-audit` |
 | Create mock data builders                              | NO              | `builder-factory`     |
 
@@ -185,62 +182,10 @@ SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
 
 `play` has two valid use cases — **demos** and **dependent flows**. It should **never** be used for independent test assertions.
 
-#### 1. Demos / Interaction Presentation (most common `play` use case)
+1. **Demos** — Use `play` **without assertions** to show component after user interaction in Storybook docs
+2. **Complex Dependent Flows** (rare ~10%) — Use `play` with `step()` when steps depend on each other
 
-Use `play` **without assertions** to show how a component looks after user interaction in Storybook docs.
-This is purely for visual documentation — the component auto-plays the interaction when viewing the story.
-
-```typescript
-// ✅ GOOD — play for demo: shows a pre-filled form state in Storybook UI
-export const FilledForm = meta.story({
-  name: "Form with data",
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
-  },
-  // No assertions — this is a visual demo, not a test
-});
-```
-
-#### 2. Complex Dependent Flows (rare — ~10% of cases)
-
-Use `play` with `step()` **only** when steps depend on each other and must run sequentially as ONE cohesive flow:
-
-```typescript
-// ✅ GOOD — play for dependent multi-step flow
-export const CompleteCheckoutFlow = meta.story({
-  name: "Complete Checkout Journey",
-  play: async ({ canvas, step, userEvent }) => {
-    await step("Add to cart", async () => {
-      /* ... */
-    });
-    await step("Proceed to checkout", async () => {
-      /* ... */
-    });
-    await step("Complete payment", async () => {
-      /* ... */
-    });
-  },
-});
-```
-
-#### Never use `play` for independent tests
-
-```typescript
-// ❌ BAD — play for independent test assertions (use .test() instead)
-export const TestStory = meta.story({
-  play: async ({ canvas, args }) => {
-    await expect(canvas.getByRole("button")).toBeVisible();
-    await expect(args.onClick).not.toHaveBeenCalled();
-  },
-});
-
-// ✅ GOOD — .test() for independent assertions
-export const TestStory = meta.story({});
-TestStory.test("Button is visible", async ({ canvas }) => {
-  await expect(canvas.getByRole("button")).toBeVisible();
-});
-```
+> **See [best-practices.md](./best-practices.md) for the full decision matrix, component type guidelines, and code examples.**
 
 ### Key Differences from CSF 3.0
 
@@ -418,147 +363,26 @@ npm run storybook:dev   # View in Storybook UI
 
 ## Mocking in Storybook
 
-Storybook provides powerful mocking capabilities for isolated component testing. See [mocking.md](./mocking.md) for comprehensive guide.
-
-### Quick Mocking Reference
-
-**1. Mock Callback Functions** - Use `fn()` from `storybook/test`:
-
-```typescript
-import { fn } from "storybook/test";
-
-const meta = preview.meta({
-  component: Button,
-  args: {
-    onClick: fn(), // Mock and spy on clicks
-  },
-});
-```
-
-**2. Mock External Modules** - Use `sb.mock()` in `.storybook/preview.ts`:
-
-```typescript
-import { sb } from "storybook/test";
-
-sb.mock(import("uuid"));
-sb.mock(import("~/lib/session"));
-```
-
-**3. Mock API Requests** - Use MSW (Mock Service Worker):
-
-```typescript
-import { http, HttpResponse } from "msw";
-
-export const Story = meta.story({
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/users", () => HttpResponse.json([...])),
-      ],
-    },
-  },
-});
-```
-
-**4. Mock Next.js Hooks** - Use `@storybook/nextjs/navigation.mock`:
-
-```typescript
-import { getRouter } from "@storybook/nextjs/navigation.mock";
-
-// Mock route params, search params, navigation
-parameters: {
-  nextjs: {
-    appDirectory: true,
-    navigation: {
-      segments: [["id", "123"]],
-      query: { search: "test" },
-    },
-  },
-}
-```
-
-**5. Mock React Context** - Use decorators:
-
-```typescript
-decorators: [
-  (Story) => (
-    <AuthContext.Provider value={{ user: mockUser }}>
-      <Story />
-    </AuthContext.Provider>
-  ),
-];
-```
+| Mock Type            | Tool                                | Use Case                              |
+| -------------------- | ----------------------------------- | ------------------------------------- |
+| **Callback props**   | `fn()`                              | onClick, onSubmit, event handlers     |
+| **External modules** | `sb.mock()` in preview.ts           | uuid, session, analytics              |
+| **REST/GraphQL**     | MSW `http.*` / `graphql.*`          | fetch, axios, API calls               |
+| **Next.js hooks**    | `@storybook/nextjs/navigation.mock` | useRouter, useParams, redirect        |
+| **React Context**    | Decorators                          | AuthContext, ThemeProvider            |
+| **Mock data**        | Builders (`/builder-factory`)       | User objects, complex data structures |
 
 > **See [mocking.md](./mocking.md) for complete examples, patterns, and best practices.**
 
 ## Common Mistakes to Avoid
 
-These anti-patterns were identified through eval testing and cause real bugs:
+1. **Importing `userEvent`** — Always destructure from test parameters, never import from `storybook/test`
+2. **Using CSF 3.0 patterns** — Use `preview.meta()` / `meta.story()`, not `satisfies Meta<>` / `export default meta`
+3. **Separate stories per test** — Use `.test()` on one story instead of multiple `play` stories
+4. **Generic story names** — Use descriptive names (`EmptyForm`, `FilledForm`), not `Default` or `Basic`
+5. **Using `canvas` for portal content** — Use `screen` from `storybook/test` for modals, dropdowns, tooltips
 
-### 1. Importing userEvent (instead of destructuring)
-
-```typescript
-// ❌ WRONG — NEVER do this
-import { expect, fn, userEvent } from "storybook/test";
-
-// ✅ CORRECT — always destructure from test parameters
-import { expect, fn } from "storybook/test";
-Story.test("test", async ({ canvas, userEvent }) => { ... });
-```
-
-### 2. Using CSF 3.0 patterns (instead of CSF Next)
-
-```typescript
-// ❌ WRONG — CSF 3.0 (outdated)
-import type { Meta, StoryObj } from "@storybook/react";
-const meta = { ... } satisfies Meta<typeof Component>;
-export default meta;
-type Story = StoryObj<typeof meta>;
-export const Default: Story = { };
-
-// ✅ CORRECT — CSF Next
-import preview from "~/.storybook/preview";
-const meta = preview.meta({ ... });
-export const ComponentStory = meta.story({ ... });
-```
-
-### 3. Creating separate stories for each test case
-
-```typescript
-// ❌ WRONG — 5 stories for 5 tests (80% more stories than needed)
-export const RendersTitle: Story = { play: async () => { ... } };
-export const ClicksButton: Story = { play: async () => { ... } };
-export const ShowsError: Story = { play: async () => { ... } };
-
-// ✅ CORRECT — 1 story with 5 .test() calls
-export const FormStory = meta.story({ ... });
-FormStory.test("Renders title", async ({ canvas }) => { ... });
-FormStory.test("Clicks button", async ({ canvas, userEvent }) => { ... });
-FormStory.test("Shows error", async ({ canvas }) => { ... });
-```
-
-### 4. Using generic story names
-
-```typescript
-// ❌ WRONG
-export const Default = meta.story({});
-export const Basic = meta.story({});
-
-// ✅ CORRECT — descriptive names
-export const EmptyForm = meta.story({});
-export const FilledForm = meta.story({ args: { ... } });
-```
-
-### 5. Using canvas for portal content (modals, dropdowns, tooltips)
-
-```typescript
-// ❌ WRONG — portal content is outside canvas
-canvas.getByRole("dialog"); // Won't find it!
-
-// ✅ CORRECT — use screen for portals
-import { screen } from "storybook/test";
-const dialog = await screen.findByRole("dialog");
-```
+> **See [best-practices.md](./best-practices.md) for detailed examples and fixes for each anti-pattern.**
 
 ## Questions to Ask
 

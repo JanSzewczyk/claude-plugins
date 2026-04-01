@@ -120,7 +120,7 @@ const meta = preview.meta({
 ### Setup in `.storybook/preview.ts`
 
 ```typescript
-import { definePreview } from "@storybook/react-vite";
+import { definePreview } from "@storybook/nextjs-vite";
 import { sb } from "storybook/test";
 
 // Mock local modules
@@ -221,7 +221,7 @@ npm install -D msw msw-storybook-addon
 ### Setup MSW in `.storybook/preview.ts`
 
 ```typescript
-import { definePreview } from "@storybook/react-vite";
+import { definePreview } from "@storybook/nextjs-vite";
 import { initialize, mswLoader } from "msw-storybook-addon";
 
 // Initialize MSW
@@ -621,7 +621,7 @@ export const DarkTheme = meta.story({
 ### Global Decorators in `.storybook/preview.tsx`
 
 ```typescript
-import { definePreview } from "@storybook/react-vite";
+import { definePreview } from "@storybook/nextjs-vite";
 import { AuthProvider } from "~/components/auth-provider";
 
 export default definePreview({
@@ -788,204 +788,18 @@ FormSubmission.test(
 
 ## Best Practices
 
-### 1. **Always Use `fn()` for Callback Props**
+> **For comprehensive mocking best practices, see [best-practices.md](./best-practices.md).**
 
-```typescript
-// ✅ CORRECT
-const meta = preview.meta({
-  component: Button,
-  args: {
-    onClick: fn(),
-    onHover: fn(),
-  },
-});
+Key rules:
 
-// ❌ WRONG - Can't spy on function calls
-const meta = preview.meta({
-  component: Button,
-  args: {
-    onClick: () => console.log("clicked"),
-  },
-});
-```
-
-### 2. **Destructure `userEvent` from Test Parameters**
-
-```typescript
-// ✅ CORRECT - userEvent from parameters
-Story.test("Test", async ({ canvas, userEvent }) => {
-  await userEvent.click(button);
-});
-
-// ❌ WRONG - Importing userEvent breaks timing
-import { userEvent } from "storybook/test";
-Story.test("Test", async ({ canvas }) => {
-  await userEvent.click(button);
-});
-```
-
-### 3. **Use MSW for Network Requests, Not `fn()`**
-
-```typescript
-// ✅ CORRECT - MSW for real API calls
-export const Story = meta.story({
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/users", () => HttpResponse.json([...])),
-      ],
-    },
-  },
-});
-
-// ❌ WRONG - fn() doesn't intercept fetch/axios
-const meta = preview.meta({
-  args: {
-    fetchUsers: fn().mockResolvedValue([...]),
-  },
-});
-```
-
-### 4. **Mock Modules in `.storybook/preview.ts`, Not Story Files**
-
-```typescript
-// ✅ CORRECT - Mock in preview.ts
-// .storybook/preview.ts
-sb.mock(import("~/lib/session"));
-sb.mock(import("uuid"));
-
-// ❌ WRONG - Don't mock in story files
-// component.stories.tsx
-import { sb } from "storybook/test";
-sb.mock(import("~/lib/session")); // Won't work here
-```
-
-### 5. **Use `beforeEach` for Mock Setup, Not Inline**
-
-```typescript
-// ✅ CORRECT - Configure mocks in beforeEach
-const meta = preview.meta({
-  component: Auth,
-  beforeEach: async () => {
-    mocked(getUser).mockResolvedValue({ id: "123" });
-  },
-});
-
-// ❌ WRONG - Inline mock configuration is less flexible
-const meta = preview.meta({
-  component: Auth,
-  args: {
-    getUser: fn().mockResolvedValue({ id: "123" }),
-  },
-});
-```
-
-### 6. **Prefer Builders Over Inline Mock Data**
-
-```typescript
-// ✅ CORRECT - Reusable builder
-export const Story = meta.story({
-  args: {
-    user: userBuilder.one(),
-  },
-});
-
-// ❌ WRONG - Inline data duplicated across stories
-export const Story = meta.story({
-  args: {
-    user: {
-      id: "123",
-      name: "John Doe",
-      email: "john@example.com",
-      createdAt: new Date(),
-    },
-  },
-});
-```
-
-### 7. **Test One Behavior Per `.test()` Method**
-
-```typescript
-// ✅ CORRECT - Separate tests for each behavior
-Story.test("Renders user name", async ({ canvas, args }) => {
-  const name = canvas.getByText(args.user.name);
-  await expect(name).toBeVisible();
-});
-
-Story.test(
-  "Clicking card triggers callback",
-  async ({ canvas, userEvent, args }) => {
-    await userEvent.click(canvas.getByRole("article"));
-    await expect(args.onSelect).toHaveBeenCalled();
-  },
-);
-
-// ❌ WRONG - Multiple behaviors in one test
-Story.test("All functionality", async ({ canvas, userEvent, args }) => {
-  // Test 1: Rendering
-  await expect(canvas.getByText(args.user.name)).toBeVisible();
-
-  // Test 2: Interaction
-  await userEvent.click(canvas.getByRole("article"));
-  await expect(args.onSelect).toHaveBeenCalled();
-
-  // Test 3: Accessibility
-  await expect(canvas.getByRole("article")).toHaveAccessibleName();
-});
-```
-
-### 8. **Use Specific MSW Handlers Per Story**
-
-```typescript
-// ✅ CORRECT - Each story has its own handler
-export const Success = meta.story({
-  parameters: {
-    msw: {
-      handlers: [http.get("/api/users", () => HttpResponse.json([...]))],
-    },
-  },
-});
-
-export const Error = meta.story({
-  parameters: {
-    msw: {
-      handlers: [http.get("/api/users", () => new HttpResponse(null, { status: 500 }))],
-    },
-  },
-});
-
-// ❌ WRONG - Global handler doesn't allow per-story control
-```
-
-### 9. **Always Await Async Assertions**
-
-```typescript
-// ✅ CORRECT - Await all async operations
-Story.test("Test", async ({ canvas, userEvent }) => {
-  await userEvent.click(button);
-  await expect(canvas.getByText("Success")).toBeVisible();
-});
-
-// ❌ WRONG - Missing await causes flaky tests
-Story.test("Test", async ({ canvas, userEvent }) => {
-  userEvent.click(button); // Missing await
-  expect(canvas.getByText("Success")).toBeVisible(); // Missing await (WRONG!)
-});
-```
-
-### 10. **Reset Mocks Between Tests**
-
-```typescript
-// ✅ CORRECT - beforeEach resets mocks for each story
-const meta = preview.meta({
-  component: Component,
-  beforeEach: async ({ args }) => {
-    // Reset and reconfigure for each story
-    args.onSubmit.mockReset();
-    args.onSubmit.mockResolvedValue({ success: true });
-  },
-});
-```
+1. Always use `fn()` for callback props
+2. Destructure `userEvent` from test parameters (never import)
+3. Use MSW for network requests, not `fn()`
+4. Mock modules in `.storybook/preview.ts`, not story files
+5. Use `beforeEach` for mock configuration
+6. Prefer builders over inline mock data
+7. Use specific MSW handlers per story
+8. Always await async assertions
 
 ---
 

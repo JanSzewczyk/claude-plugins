@@ -1,6 +1,8 @@
-# Storybook Testing - Examples
+# Storybook Testing - Examples & Templates
 
-> **All examples use `.test()` method for multiple tests per story**
+> **All examples and templates use `.test()` method for multiple tests per story**
+
+---
 
 ## Example 1: Basic Button Component Test
 
@@ -611,151 +613,450 @@ const meta = preview.meta({
   ),
   args: {
     onChange: fn(),
-    defaultValue: ""
-  }
-} satisfies Meta<{
-  onChange: (value: string) => void;
-  defaultValue: string;
-}>;
-
+    defaultValue: "",
+  },
+});
 
 // Visual documentation story
 export const EmptySelect = meta.story({});
 
 export const WithDefaultValue = meta.story({
   args: {
-    defaultValue: "option2"
-  }
+    defaultValue: "option2",
+  },
 });
 
 // Test story
 export const SelectOption = meta.story({});
 
-SelectOption.test("Selects and triggers onChange", async ({ canvas, userEvent, args, step }) => {
-  const select = canvas.getByRole("combobox");
+SelectOption.test(
+  "Selects and triggers onChange",
+  async ({ canvas, userEvent, args, step }) => {
+    const select = canvas.getByRole("combobox");
 
-  await step("Select option", async () => {
-    await userEvent.selectOptions(select, "option2");
-  });
+    await step("Select option", async () => {
+      await userEvent.selectOptions(select, "option2");
+    });
 
-  await step("Verify onChange was called", async () => {
-    await expect(args.onChange).toHaveBeenCalledWith("option2");
-  });
+    await step("Verify onChange was called", async () => {
+      await expect(args.onChange).toHaveBeenCalledWith("option2");
+    });
 
-  await step("Verify selected value", async () => {
-    await expect(select).toHaveValue("option2");
-  });
-});
-```
-
----
-
-## Best Practices
-
-### 1. Use step() for Better Test Organization
-
-Use `step()` in both `.test()` and `play` — it provides structured reporting in Storybook UI.
-
-```tsx
-// ✅ step() in .test() — for content tests and multi-step interactions
-Story.test("Renders all expected content", async ({ canvas, step }) => {
-  await step("Form fields are visible", async () => {
-    await expect(canvas.getByLabelText(/email/i)).toBeVisible();
-    await expect(canvas.getByLabelText(/password/i)).toBeVisible();
-  });
-  await step("Submit button is visible", async () => {
-    await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
-  });
-});
-
-// ✅ step() in play — for cohesive user flows
-play: async ({ canvas, userEvent, step }) => {
-  await step("Fill in form", async () => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-  });
-  await step("Submit and verify", async () => {
-    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-  });
-};
-```
-
-### 2. Use fn() for Tracking Function Calls
-
-```tsx
-args: {
-  onClick: fn(),
-  onSubmit: fn()
-}
-```
-
-### 3. Test Accessibility
-
-```tsx
-// Find by role (preferred)
-canvas.getByRole("button", { name: /submit/i });
-
-// Find by label
-canvas.getByLabelText(/email/i);
-
-// Verify ARIA attributes
-await expect(button).toHaveAttribute("aria-busy", "true");
-```
-
-### 4. Wait for Async Updates
-
-```tsx
-// Use findBy* for elements that appear after async operations
-const successMessage = await canvas.findByText(/success/i);
-```
-
-### 5. Attach Tests to State Stories (Not Separate Test Stories)
-
-```tsx
-// ❌ OLD PATTERN — separate test story (anti-pattern)
-export const Primary = meta.story({ args: { variant: "primary" } });
-
-export const ClickTest = meta.story({
-  args: { variant: "primary" },
-  play: async () => {
-    // Interaction tests in a redundant story
-  },
-});
-
-// ✅ CURRENT PATTERN — tests attached directly to state story
-export const Primary = meta.story({ args: { variant: "primary" } });
-
-Primary.test(
-  "Calls onClick when clicked",
-  async ({ canvas, userEvent, args }) => {
-    await userEvent.click(canvas.getByRole("button"));
-    await expect(args.onClick).toHaveBeenCalled();
+    await step("Verify selected value", async () => {
+      await expect(select).toHaveValue("option2");
+    });
   },
 );
 ```
 
-### 6. Use Decorators for Layout
-
-```tsx
-decorators: [
-  (Story) => (
-    <div className="max-w-md p-4">
-      <Story />
-    </div>
-  ),
-];
-```
-
 ---
 
-## Running Storybook Tests
+# Templates
 
-```bash
-# Start Storybook
-npm run storybook:dev
+Reusable templates for common component types. Copy, customize, and extend for your components.
 
-# Run tests
-npm run test:storybook
+## Template: Form Component
 
-# Run in CI
-npm run test:storybook -- --ci
+```typescript
+import { expect, fn, waitFor } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { ContactForm } from "./contact-form";
+
+const meta = preview.meta({
+  title: "Components/Contact Form",
+  component: ContactForm,
+  args: {
+    onSubmit: fn(),
+  },
+});
+
+// Story 1: Empty form (main test story)
+export const EmptyForm = meta.story({
+  args: { defaultValues: {} },
+});
+
+EmptyForm.test("Renders all form fields", async ({ canvas }) => {
+  await expect(canvas.getByLabelText(/name/i)).toBeVisible();
+  await expect(canvas.getByLabelText(/email/i)).toBeVisible();
+  await expect(canvas.getByLabelText(/message/i)).toBeVisible();
+  await expect(canvas.getByRole("button", { name: /submit/i })).toBeVisible();
+});
+
+EmptyForm.test(
+  "Shows validation error on empty submit",
+  async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await waitFor(async () => {
+      await expect(canvas.getByText(/email is required/i)).toBeInTheDocument();
+    });
+  },
+);
+
+EmptyForm.test(
+  "Submits form successfully with valid data",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByLabelText(/name/i), "John Doe");
+    await userEvent.type(canvas.getByLabelText(/email/i), "john@example.com");
+    await userEvent.type(canvas.getByLabelText(/message/i), "Hello!");
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      name: "John Doe",
+      email: "john@example.com",
+      message: "Hello!",
+    });
+  },
+);
+
+// Story 2: Pre-filled form
+export const FilledForm = meta.story({
+  args: {
+    defaultValues: {
+      name: "Jane Doe",
+      email: "jane@example.com",
+      message: "Pre-filled message",
+    },
+  },
+});
+
+FilledForm.test("Displays pre-filled values", async ({ canvas, args }) => {
+  await expect(canvas.getByLabelText(/name/i)).toHaveValue(
+    args.defaultValues.name,
+  );
+  await expect(canvas.getByLabelText(/email/i)).toHaveValue(
+    args.defaultValues.email,
+  );
+});
+
+// Story 3: Loading state
+export const SubmittingForm = meta.story({
+  args: { isSubmitting: true },
+});
+
+SubmittingForm.test(
+  "Renders submitting state correctly",
+  async ({ canvas, step }) => {
+    await step("Submit button is disabled", async () => {
+      await expect(
+        canvas.getByRole("button", { name: /submit/i }),
+      ).toBeDisabled();
+    });
+    await step("Loading indicator is visible", async () => {
+      await expect(canvas.getByRole("progressbar")).toBeVisible();
+    });
+  },
+);
+```
+
+## Template: List/Table Component
+
+```typescript
+import { expect, fn } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { itemBuilder } from "~/features/item/test/builders";
+import { ItemList } from "./item-list";
+
+const meta = preview.meta({
+  title: "Components/Item List",
+  component: ItemList,
+  args: {
+    onItemClick: fn(),
+  },
+});
+
+export const EmptyList = meta.story({
+  args: { items: [] },
+});
+
+EmptyList.test("Shows empty state message", async ({ canvas }) => {
+  await expect(canvas.getByText(/no items found/i)).toBeVisible();
+});
+
+export const PopulatedList = meta.story({
+  args: { items: Array.from({ length: 5 }, () => itemBuilder.one()) },
+});
+
+PopulatedList.test("Renders all items in table", async ({ canvas, args }) => {
+  const rows = canvas.getAllByRole("row");
+  await expect(rows.length).toBe(args.items.length + 1); // +1 for header
+});
+
+PopulatedList.test(
+  "Clicking item triggers callback",
+  async ({ canvas, userEvent, args }) => {
+    const firstRow = canvas.getAllByRole("row")[1];
+    await userEvent.click(firstRow);
+    await expect(args.onItemClick).toHaveBeenCalledWith(args.items[0]);
+  },
+);
+
+export const LoadingList = meta.story({
+  args: { isLoading: true },
+});
+
+LoadingList.test("Shows loading skeleton", async ({ canvas }) => {
+  await expect(canvas.getByRole("progressbar")).toBeVisible();
+});
+```
+
+## Template: Modal/Dialog Component
+
+```typescript
+import { expect, fn, screen } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { ConfirmDialog } from "./confirm-dialog";
+
+const meta = preview.meta({
+  title: "Components/Confirm Dialog",
+  component: ConfirmDialog,
+  args: {
+    onConfirm: fn(),
+    onCancel: fn(),
+  },
+});
+
+export const OpenDialog = meta.story({
+  args: {
+    isOpen: true,
+    title: "Confirm Action",
+    message: "Are you sure you want to proceed?",
+  },
+});
+
+OpenDialog.test(
+  "Renders all expected content",
+  async ({ canvas, args, step }) => {
+    await step("Dialog is visible with title and message", async () => {
+      const dialog = canvas.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      await expect(canvas.getByText(args.title)).toBeVisible();
+    });
+    await step("Confirm and cancel buttons are visible", async () => {
+      await expect(
+        canvas.getByRole("button", { name: /confirm/i }),
+      ).toBeVisible();
+      await expect(
+        canvas.getByRole("button", { name: /cancel/i }),
+      ).toBeVisible();
+    });
+  },
+);
+
+OpenDialog.test(
+  "Clicking confirm triggers onConfirm",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.click(canvas.getByRole("button", { name: /confirm/i }));
+    await expect(args.onConfirm).toHaveBeenCalledTimes(1);
+  },
+);
+
+OpenDialog.test(
+  "Pressing Escape triggers onCancel",
+  async ({ userEvent, args }) => {
+    await userEvent.keyboard("{Escape}");
+    await expect(args.onCancel).toHaveBeenCalled();
+  },
+);
+
+OpenDialog.test("Has correct ARIA attributes", async ({ canvas }) => {
+  const dialog = canvas.getByRole("dialog");
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expect(dialog).toHaveAttribute("aria-labelledby");
+});
+```
+
+## Template: Input/TextField Component
+
+```typescript
+import { expect, fn } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { EmailInput } from "./email-input";
+
+const meta = preview.meta({
+  title: "Components/Email Input",
+  component: EmailInput,
+  args: {
+    onChange: fn(),
+  },
+});
+
+export const EmptyInput = meta.story({
+  args: { label: "Email", placeholder: "Enter your email" },
+});
+
+EmptyInput.test("Renders label and input field", async ({ canvas, args }) => {
+  await expect(canvas.getByLabelText(args.label)).toBeVisible();
+  await expect(canvas.getByPlaceholderText(args.placeholder)).toBeVisible();
+});
+
+EmptyInput.test("Typing updates input value", async ({ canvas, userEvent }) => {
+  const input = canvas.getByRole("textbox");
+  await userEvent.type(input, "test@example.com");
+  await expect(input).toHaveValue("test@example.com");
+});
+
+EmptyInput.test(
+  "Triggers onChange on input",
+  async ({ canvas, userEvent, args }) => {
+    await userEvent.type(canvas.getByRole("textbox"), "test@example.com");
+    await expect(args.onChange).toHaveBeenCalled();
+  },
+);
+
+export const ErrorInput = meta.story({
+  args: {
+    label: "Email",
+    value: "invalid",
+    error: "Invalid email address",
+  },
+});
+
+ErrorInput.test(
+  "Renders error state correctly",
+  async ({ canvas, args, step }) => {
+    await step("Error message is displayed", async () => {
+      await expect(canvas.getByText(args.error)).toBeVisible();
+    });
+    await step("Input has aria-invalid attribute", async () => {
+      await expect(canvas.getByRole("textbox")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    });
+  },
+);
+
+export const DisabledInput = meta.story({
+  args: { label: "Email", disabled: true },
+});
+
+DisabledInput.test("Input is disabled", async ({ canvas }) => {
+  await expect(canvas.getByRole("textbox")).toBeDisabled();
+});
+```
+
+## Template: Select/Dropdown Component (with Portal)
+
+```typescript
+import { expect, fn, screen } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { Select } from "./Select";
+
+const meta = preview.meta({
+  component: Select,
+  args: {
+    onChange: fn(),
+    options: [
+      { value: "1", label: "Option 1" },
+      { value: "2", label: "Option 2" },
+      { value: "3", label: "Option 3" },
+    ],
+  },
+});
+
+export const SelectStory = meta.story({
+  args: { label: "Choose an option" },
+});
+
+SelectStory.test(
+  "Selects option and triggers onChange",
+  async ({ canvas, userEvent, args, step }) => {
+    await step("Open dropdown", async () => {
+      const select = canvas.getByRole("combobox");
+      await userEvent.click(select);
+    });
+
+    await step("Select option from portal", async () => {
+      // Portal content (renders to document.body) — use screen
+      const option = await screen.findByRole("option", { name: /option 2/i });
+      await userEvent.click(option);
+    });
+
+    await step("Verify onChange callback", async () => {
+      await expect(args.onChange).toHaveBeenCalledWith("2");
+    });
+  },
+);
+```
+
+## Template: Card Component
+
+```typescript
+import { fn } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { Card } from "./Card";
+
+const meta = preview.meta({
+  component: Card,
+});
+
+export const WithTitle = meta.story({
+  args: {
+    title: "Card Title",
+    children: "Card content goes here",
+  },
+});
+
+export const WithFooter = meta.story({
+  args: {
+    title: "Card Title",
+    children: "Card content",
+    footer: <button>Action</button>,
+  },
+});
+
+export const Interactive = meta.story({
+  args: {
+    title: "Card Title",
+    onClick: fn(),
+  },
+});
+
+export const Loading = meta.story({
+  args: {
+    isLoading: true,
+  },
+});
+```
+
+## Template: Tabs Component
+
+```typescript
+import { expect } from "storybook/test";
+import preview from "~/.storybook/preview";
+import { Tabs } from "./Tabs";
+
+const meta = preview.meta({
+  component: Tabs,
+  args: {
+    tabs: [
+      { id: "tab1", label: "Tab 1", content: "Content 1" },
+      { id: "tab2", label: "Tab 2", content: "Content 2" },
+      { id: "tab3", label: "Tab 3", content: "Content 3" },
+    ],
+  },
+});
+
+export const FirstTab = meta.story({});
+
+export const TabNavigation = meta.story({});
+
+TabNavigation.test("First tab is selected by default", async ({ canvas }) => {
+  const firstTab = canvas.getByRole("tab", { name: /tab 1/i });
+  await expect(firstTab).toHaveAttribute("aria-selected", "true");
+});
+
+TabNavigation.test(
+  "Clicking tab switches content",
+  async ({ canvas, userEvent, step }) => {
+    await step("Click second tab", async () => {
+      const secondTab = canvas.getByRole("tab", { name: /tab 2/i });
+      await userEvent.click(secondTab);
+      await expect(secondTab).toHaveAttribute("aria-selected", "true");
+    });
+    await step("Content updates to selected tab", async () => {
+      await expect(canvas.getByText("Content 2")).toBeInTheDocument();
+    });
+  },
+);
 ```

@@ -130,80 +130,16 @@ interface TestContext {
   canvasElement: HTMLElement; // Raw DOM element for portal queries
   userEvent: UserEvent; // Pre-configured user interaction methods
   args: StoryArgs; // Story arguments (including mock functions)
-  step?: StepFunction; // Optional: group assertions (rarely needed with .test())
+  step: StepFunction; // Group assertions into named steps for structured reporting
 }
 ```
 
 ### When to Use `.test()` vs `play`
 
-| Use `.test()` Method ✅        | Use `play` Function ⚠️                         |
-| ------------------------------ | ---------------------------------------------- |
-| All test assertions            | Demos — presenting interaction in Storybook UI |
-| Multiple independent tests     | Complex dependent multi-step flows (rare)      |
-| Granular test reporting        | Integration test scenarios where order matters |
-| **Most common (90% of cases)** | **Rare, specific use cases (10%)**             |
+- **`.test()`** (90% of cases) — All independent test assertions, multiple tests per story
+- **`play`** (10%) — Demos without assertions, or complex dependent multi-step flows
 
-**Example Comparison:**
-
-```typescript
-// ✅ Use .test() for ALL test assertions
-export const Button = meta.story({});
-
-Button.test(
-  "Calls onClick when clicked",
-  async ({ canvas, userEvent, args }) => {
-    await userEvent.click(canvas.getByRole("button"));
-    await expect(args.onClick).toHaveBeenCalled();
-  },
-);
-
-Button.test("Shows loading state when isLoading=true", async ({ canvas }) => {
-  await expect(canvas.getByRole("progressbar")).toBeVisible();
-});
-
-Button.test(
-  "Keyboard activation with Enter works",
-  async ({ canvas, userEvent, args }) => {
-    canvas.getByRole("button").focus();
-    await userEvent.keyboard("{Enter}");
-    await expect(args.onClick).toHaveBeenCalled();
-  },
-);
-
-// ✅ Use play for DEMO — showing component interaction in Storybook docs (no assertions)
-export const FilledForm = meta.story({
-  name: "Form with data",
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
-    // No assertions — purely visual presentation
-  },
-});
-
-// ✅ Use play for DEPENDENT FLOW — steps must happen in sequence
-export const CheckoutFlow = meta.story({
-  name: "Complete Checkout Journey",
-  play: async ({ canvas, step, userEvent }) => {
-    await step("Add items to cart", async () => {
-      /* ... */
-    });
-    await step("Fill shipping address", async () => {
-      /* ... */
-    });
-    await step("Complete payment", async () => {
-      /* ... */
-    });
-  },
-});
-```
-
-### Benefits of `.test()` Method
-
-- **80% fewer stories** - One story with 10 tests vs 10 separate test stories
-- **Better isolation** - Each test is independent
-- **Clearer intent** - Test names describe specific behaviors
-- **Better reporting** - Individual test results in Storybook UI
-- **Less boilerplate** - No repeated `meta.story()` calls
+> **See [best-practices.md](./best-practices.md) for the full decision matrix and component type guidelines.**
 
 ## Query Methods
 
