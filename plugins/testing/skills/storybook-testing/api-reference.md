@@ -32,7 +32,7 @@ import preview from "~/.storybook/preview";
 import { ComponentName } from "./component-name";
 
 const meta = preview.meta({
-  title: "Features/MyFeature/ComponentName",
+  title: "Features/My Feature/Component Name",
   component: ComponentName,
   args: {
     /* default args */
