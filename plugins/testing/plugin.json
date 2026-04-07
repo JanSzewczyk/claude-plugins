@@ -7,7 +7,8 @@
   },
   "agents": [
     "./agents/testing-strategist.md",
-    "./agents/storybook-test-architect.md"
+    "./agents/storybook-test-architect.md",
+    "./agents/storybook-tester.md"
   ],
   "skills": "./skills/"
 }
