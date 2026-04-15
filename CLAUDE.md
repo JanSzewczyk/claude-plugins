@@ -23,6 +23,7 @@ plugins/
 | **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization                                                                                                                                                        |
 | **firebase**           | Firebase & DB architecture                 | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                |
 | **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                        |
+| **ai-tools**           | AI tool integrations & automation          | —                                                    | notebooklm                                                                                                                                                                      |
 
 ## Conventions
 

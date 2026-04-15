@@ -30,6 +30,11 @@
       "name": "product-management",
       "description": "Product management orchestration — parse PRD/TDD documents and coordinate specialist agents across implementation phases",
       "source": "./plugins/product-management"
+    },
+    {
+      "name": "ai-tools",
+      "description": "AI tool integrations — NotebookLM automation, content generation, and research workflows",
+      "source": "./plugins/ai-tools"
     }
   ]
 }
