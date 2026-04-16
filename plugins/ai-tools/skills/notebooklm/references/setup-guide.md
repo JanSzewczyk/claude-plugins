@@ -101,6 +101,11 @@ notebooklm list   # now uses "work"
 
 # List all profiles
 notebooklm profile list
+notebooklm profile list --json
+
+# Rename or delete profiles
+notebooklm profile rename work office
+notebooklm profile delete old-profile
 ```
 
 Each profile has its own `storage_state.json`, `context.json`, and `browser_profile/`

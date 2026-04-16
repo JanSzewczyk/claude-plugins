@@ -135,7 +135,9 @@ for url in urls:
 
 - Audio overviews: limited generations per day per account
 - Video overviews: more restricted than audio
+- Cinematic videos (Veo 3): most restricted, requires AI Ultra plan
 - Deep research: consumes significant backend resources
+- Source limits per plan: Standard (50), Plus (100), Pro (300), Ultra (600)
 - Source limits per plan: Standard (50), Plus (100), Pro (300), Ultra (600)
 
 ---
