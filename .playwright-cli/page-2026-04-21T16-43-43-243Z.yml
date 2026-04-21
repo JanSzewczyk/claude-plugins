@@ -1,0 +1,22 @@
+- iframe [ref=e2]: "Request unsuccessful. Incapsula incident ID: 1784000940036876618-83542968064546750":
+  - generic [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - generic [ref=f1e5]:
+        - img "Ministerstwo Sprawiedliwości" [ref=f1e7]
+        - generic [ref=f1e8]:
+          - generic [ref=f1e9]: Access Denied
+          - generic [ref=f1e10]: Error 15
+          - generic [ref=f1e11]: przegladarka-ekw.ms.gov.pl
+          - generic [ref=f1e12]: 2026-04-21 16:43:37 UTC
+      - generic [ref=f1e16]:
+        - generic [ref=f1e17]: What happened?
+        - generic [ref=f1e18]: This request was blocked by our security service
+        - generic [ref=f1e19]:
+          - generic [ref=f1e20]: "Your IP: 89.67.190.86"
+          - generic [ref=f1e21]: "Proxy IP: 45.60.74.15 (ID 101784-100)"
+          - generic [ref=f1e22]: "Incident ID: 1784000940036876618-83542968064546750"
+    - generic [ref=f1e23]:
+      - text: "W celu uzyskania pomocy technicznej prosimy o kontakt:"
+      - link "ekw@ms.gov.pl" [ref=f1e24] [cursor=pointer]:
+        - /url: mailto:ekw@ms.gov.pl
+      - text: .

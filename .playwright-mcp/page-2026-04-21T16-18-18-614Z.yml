@@ -1,0 +1,88 @@
+- generic [ref=e2]:
+  - navigation "Główne elementy strony":
+    - list:
+      - listitem:
+        - link "Idź do nagłówka" [ref=e3] [cursor=pointer]:
+          - /url: "#header"
+      - listitem:
+        - link "Idź do treści właściwej" [ref=e4] [cursor=pointer]:
+          - /url: "#content-wrapper"
+      - listitem:
+        - link "Idź do stopki" [ref=e5] [cursor=pointer]:
+          - /url: "#footer"
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - img "Logo Ministerstwa Sprawiedliwości" [ref=e9]
+      - generic [ref=e10]:
+        - link "Zmiana czcionki na małą" [ref=e11] [cursor=pointer]:
+          - /url: "#"
+          - text: A
+          - generic [ref=e12]: Zmiana czcionki na małą
+        - link "Zmiana czcionki na średnią" [ref=e13] [cursor=pointer]:
+          - /url: "#"
+          - text: A
+          - generic [ref=e14]: Zmiana czcionki na średnią
+        - link "Zmiana czcionki na dużą" [ref=e15] [cursor=pointer]:
+          - /url: "#"
+          - text: A
+          - generic [ref=e16]: Zmiana czcionki na dużą
+    - list [ref=e17]:
+      - listitem [ref=e18]:
+        - link "Strona główna" [ref=e19] [cursor=pointer]:
+          - /url: https://ekw.ms.gov.pl/eukw_ogol/menu.do
+      - listitem [ref=e20]:
+        - link "Elektroniczne Księgi Wieczyste" [ref=e21] [cursor=pointer]:
+          - /url: https://ekw.ms.gov.pl/eukw_ogol/menu.do
+      - listitem [ref=e22]: Wyszukiwanie Księgi Wieczystej
+  - generic [ref=e24]:
+    - heading "Wynik wyszukiwania księgi wieczystej" [level=1] [ref=e26]
+    - paragraph [ref=e28]: UWAGA ! Poniższa informacja nie stanowi treści księgi wieczystej. Ujawnione niżej wybrane elementy księgi służą do jej identyfikacji. Treść księgi wieczystej jest dostępna po wybraniu odpowiedniego przycisku w sekcji „Przeglądanie treści księgi wieczystej”.
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Numer księgi wieczystej
+        - generic [ref=e33]: KR1P/00682052/8
+      - generic [ref=e34]:
+        - generic [ref=e35]: Typ księgi wieczystej
+        - generic [ref=e37]: LOKAL STANOWIĄCY ODRĘBNĄ NIERUCHOMOŚĆ
+      - generic [ref=e38]:
+        - generic [ref=e39]: Oznaczenie wydziału prowadzącego księgę wieczystą
+        - generic [ref=e41]: IV WYDZIAŁ KSIĄG WIECZYSTYCH KRAKÓW
+      - generic [ref=e42]:
+        - generic [ref=e43]: Data zapisania księgi wieczystej
+        - generic [ref=e45]: 2023-11-22
+      - generic [ref=e46]:
+        - generic [ref=e47]: Data zamknięcia księgi wieczystej
+        - generic [ref=e49]: "---"
+      - generic [ref=e50]:
+        - generic [ref=e51]: Położenie
+        - paragraph [ref=e54]: MAŁOPOLSKIE, M. KRAKÓW, KRAKÓW M., KROWODRZA, KRAKÓW, KUŹNICY KOŁŁĄTAJOWSKIEJ , 68 /72
+      - generic [ref=e55]:
+        - generic [ref=e56]: Właściciel / użytkownik wieczysty / uprawniony
+        - paragraph [ref=e59]: SZEWCZYK JAN ROBERT
+      - paragraph [ref=e60]
+    - generic [ref=e61]:
+      - paragraph [ref=e63]: Przeglądanie treści księgi wieczystej
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - button "Przeglądanie aktualnej treści KW" [ref=e67] [cursor=pointer]
+          - button "Przeglądanie zupełnej treści KW" [ref=e68] [cursor=pointer]
+        - button "Przeglądanie aktualnej treści KW - dotychczasowa postać" [ref=e70] [cursor=pointer]:
+          - paragraph [ref=e71]: Przeglądanie aktualnej treści KW - dotychczasowa postać
+    - generic [ref=e75]:
+      - button "Wróć do strony głównej" [ref=e76] [cursor=pointer]
+      - button "Wróć do Kryteriów" [ref=e77] [cursor=pointer]
+  - generic [ref=e79]:
+    - img "Kapitał ludzki. Człowiek - najlepsza inwestycja" [ref=e80]
+    - img "Ministerstwo Sprawiedliwości" [ref=e81]
+    - img "Unia Europejska Europejski Fundusz Społeczny" [ref=e82]
+    - generic [ref=e83]: PROJEKT WSPÓŁFINANSOWANY ZE ŚRODKÓW UNII EUROPEJSKIEJ W RAMACH EUROPEJSKIEGO FUNDUSZU SPOŁECZNEGO
+    - link "http://www.funduszeeuropejskie.gov.pl/efs" [ref=e85] [cursor=pointer]:
+      - /url: http://www.funduszeeuropejskie.gov.pl/efs
+    - generic [ref=e86]:
+      - link "Biuletyn Informacji Publicznej Ministerstwa Sprawiedliwości" [ref=e88] [cursor=pointer]:
+        - /url: https://www.gov.pl/web/sprawiedliwosc
+        - text: Biuletyn Informacji Publicznej Ministerstwa Sprawiedliwości
+        - generic [ref=e89]: Biuletyn Informacji Publicznej Ministerstwa Sprawiedliwości
+      - link "Deklaracja dostępności" [ref=e91] [cursor=pointer]:
+        - /url: /eukw_ogol/deklaracja.do
+    - generic [ref=e92]: Wersja 3.32.1 , 13-01-2026

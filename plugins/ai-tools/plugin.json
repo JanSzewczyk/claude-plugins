@@ -1,6 +1,6 @@
 {
   "name": "ai-tools",
-  "description": "AI tool integrations — NotebookLM automation, content generation, and research workflows.",
+  "description": "AI tool integrations — NotebookLM automation, content generation, research workflows, and Polish real estate (KW) lookup.",
   "version": "1.0.0",
   "author": {
     "name": "Szum Tech Team"

@@ -1,0 +1,114 @@
+- generic [active] [ref=e1]:
+  - heading "TREŚĆ KSIĘGI WIECZYSTEJ NR KR1P/00682052/8, STAN Z DNIA 2026-04-21 18:33" [level=2] [ref=e2]
+  - heading "prowadzonej przez SĄD REJONOWY DLA KRAKOWA-PODGÓRZA W KRAKOWIE, IV WYDZIAŁ KSIĄG WIECZYSTYCH - KR1P" [level=4] [ref=e3]
+  - heading "LOKAL STANOWIĄCY ODRĘBNĄ NIERUCHOMOŚĆ" [level=3] [ref=e4]
+  - table [ref=e5]:
+    - rowgroup [ref=e6]:
+      - row "Dział I-O Dział I-Sp Dział II Dział III Dział IV" [ref=e7]:
+        - cell "Dział I-O" [ref=e8]:
+          - button "Dział I-O" [ref=e10] [cursor=pointer]
+        - cell "Dział I-Sp" [ref=e11]:
+          - button "Dział I-Sp" [ref=e13] [cursor=pointer]
+        - cell "Dział II" [ref=e14]:
+          - button "Dział II" [ref=e16] [cursor=pointer]
+        - cell "Dział III" [ref=e17]:
+          - button "Dział III" [ref=e19] [cursor=pointer]
+        - cell "Dział IV" [ref=e20]:
+          - button "Dział IV" [ref=e22] [cursor=pointer]
+  - generic [ref=e23]:
+    - table [ref=e24]:
+      - rowgroup [ref=e25]:
+        - row [ref=e26]:
+          - cell [ref=e27]
+        - row "DZIAŁ I-O - OZNACZENIE NIERUCHOMOŚCI" [ref=e28]:
+          - cell "DZIAŁ I-O - OZNACZENIE NIERUCHOMOŚCI" [ref=e29]
+    - table [ref=e30]:
+      - rowgroup [ref=e31]:
+        - row [ref=e32]:
+          - cell [ref=e33]
+        - row "Nr podstawy wpisu" [ref=e34]:
+          - cell [ref=e35]
+          - cell "Nr podstawy wpisu" [ref=e36]
+        - row "Numer bieżący nieruchomości 1 2" [ref=e37]:
+          - cell "Numer bieżący nieruchomości" [ref=e38]
+          - cell "1" [ref=e39]
+          - cell "2" [ref=e40]
+    - table [ref=e41]:
+      - rowgroup [ref=e42]:
+        - row "Lokal" [ref=e43]:
+          - cell "Lokal" [ref=e44]
+        - row [ref=e45]:
+          - cell [ref=e46]
+        - row "Nr podstawy wpisu" [ref=e47]:
+          - cell [ref=e48]
+          - cell "Nr podstawy wpisu" [ref=e49]
+        - row "Położenie (numer porządkowy / województwo, powiat, gmina, miejscowość, dzielnica) Lp. 1. 1 MAŁOPOLSKIE, M. KRAKÓW, KRAKÓW M., KRAKÓW, KROWODRZA 2, 3" [ref=e50]:
+          - cell "Położenie (numer porządkowy / województwo, powiat, gmina, miejscowość, dzielnica)" [ref=e51]
+          - cell "Lp. 1." [ref=e52]
+          - cell "1" [ref=e53]
+          - cell "MAŁOPOLSKIE, M. KRAKÓW, KRAKÓW M., KRAKÓW, KROWODRZA" [ref=e54]
+          - cell "2, 3" [ref=e55]
+        - row "Ulica Numer budynku Numer lokalu KUŹNICY KOŁŁĄTAJOWSKIEJ 68 72" [ref=e56]:
+          - cell "Ulica" [ref=e57]
+          - cell "Numer budynku" [ref=e58]
+          - cell "Numer lokalu" [ref=e59]
+          - cell "KUŹNICY KOŁŁĄTAJOWSKIEJ" [ref=e60]
+          - cell "68" [ref=e61]
+          - cell "72" [ref=e62]
+        - row "Identyfikator lokalu 126102_9.0029.580/12.1_BUD.72_LOK" [ref=e63]:
+          - cell "Identyfikator lokalu" [ref=e64]
+          - cell "126102_9.0029.580/12.1_BUD.72_LOK" [ref=e65]
+        - row "Przeznaczenie lokalu LOKAL MIESZKALNY" [ref=e66]:
+          - cell "Przeznaczenie lokalu" [ref=e67]
+          - cell "LOKAL MIESZKALNY" [ref=e68]
+        - row "Opis lokalu (rodzaj izby - liczba) PRZEDPOKÓJ - 1, POKÓJ DZIENNY + ANEKS - 1, GARDEROBA - 1, ŁAZIENKA - 1" [ref=e69]:
+          - cell "Opis lokalu (rodzaj izby - liczba)" [ref=e70]
+          - cell "PRZEDPOKÓJ - 1, POKÓJ DZIENNY + ANEKS - 1, GARDEROBA - 1, ŁAZIENKA - 1" [ref=e71]
+        - row "Opis pomieszczeń przynależnych (rodzaj pomieszczenia - liczba) KOMÓRKA LOKATORSKA NR K.17 O POWIERZCHNI 2,63 M2 - 1" [ref=e72]:
+          - cell "Opis pomieszczeń przynależnych (rodzaj pomieszczenia - liczba)" [ref=e73]
+          - cell "KOMÓRKA LOKATORSKA NR K.17 O POWIERZCHNI 2,63 M2 - 1" [ref=e74]
+        - row "Kondygnacja 2,0" [ref=e75]:
+          - cell "Kondygnacja" [ref=e76]
+          - cell "2,0" [ref=e77]
+        - row "Przyłączenie - numer księgi wieczystej (nieruchomość, z której wyodrębniono lokal) Lp. 1. KR1P / 00676776 / 4" [ref=e78]:
+          - cell "Przyłączenie - numer księgi wieczystej (nieruchomość, z której wyodrębniono lokal)" [ref=e79]
+          - cell "Lp. 1." [ref=e80]
+          - cell "KR1P / 00676776 / 4" [ref=e81]
+        - row "Odrębność (lokal stanowi odrębną nieruchomość) TAK" [ref=e82]:
+          - cell "Odrębność (lokal stanowi odrębną nieruchomość)" [ref=e83]
+          - cell "TAK" [ref=e84]
+        - row "Pole powierzchni użytkowej lokalu wraz z powierzchnią pomieszczeń przynależnych 61,8700 M2" [ref=e85]:
+          - cell "Pole powierzchni użytkowej lokalu wraz z powierzchnią pomieszczeń przynależnych" [ref=e86]
+          - cell "61,8700 M2" [ref=e87]
+    - table [ref=e88]:
+      - rowgroup [ref=e89]:
+        - row "DOKUMENTY BĘDĄCE PODSTAWĄ WPISU / DANE O WNIOSKU" [ref=e90]:
+          - cell "DOKUMENTY BĘDĄCE PODSTAWĄ WPISU / DANE O WNIOSKU" [ref=e91]
+        - row [ref=e92]:
+          - cell [ref=e93]
+        - row "Nr podstawy wpisu" [ref=e94]:
+          - cell "Nr podstawy wpisu" [ref=e95]
+          - cell [ref=e96]
+        - row "2 USTANOWIENIE ODRĘBNEJ WŁASNOŚCI LOKALU I UMOWA SPRZEDAŻY, UMOWA PODZIAŁU DO KORZYSTANIA Z NIERUCHOMOŚCI WSPÓLNEJ ORAZ AKT USTANOWIENIA HIPOTEKI, REP. A NR 11226/2023, 2023-11-09, NOTARIUSZ SŁAWOMIR MAGOLAN, KRAKÓW; 5-14 (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)" [ref=e97]:
+          - cell "2" [ref=e98]
+          - cell "USTANOWIENIE ODRĘBNEJ WŁASNOŚCI LOKALU I UMOWA SPRZEDAŻY, UMOWA PODZIAŁU DO KORZYSTANIA Z NIERUCHOMOŚCI WSPÓLNEJ ORAZ AKT USTANOWIENIA HIPOTEKI, REP. A NR 11226/2023, 2023-11-09, NOTARIUSZ SŁAWOMIR MAGOLAN, KRAKÓW; 5-14 (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)" [ref=e99]:
+            - text: USTANOWIENIE ODRĘBNEJ WŁASNOŚCI LOKALU I UMOWA SPRZEDAŻY, UMOWA PODZIAŁU DO KORZYSTANIA Z NIERUCHOMOŚCI WSPÓLNEJ ORAZ AKT USTANOWIENIA HIPOTEKI, REP. A NR 11226/2023, 2023-11-09, NOTARIUSZ SŁAWOMIR MAGOLAN, KRAKÓW; 5-14
+            - text: (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)
+        - row "DZ. KW./KR1P/00130081/23/001, 2023-11-09 17:09:00, 2023-11-22-10.35.21.734520, NIE, 1-3 (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)" [ref=e100]:
+          - cell "DZ. KW./KR1P/00130081/23/001, 2023-11-09 17:09:00, 2023-11-22-10.35.21.734520, NIE, 1-3 (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)" [ref=e101]:
+            - text: DZ. KW./KR1P/00130081/23/001, 2023-11-09 17:09:00, 2023-11-22-10.35.21.734520, NIE, 1-3
+            - text: (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)
+        - row "3 WYPIS Z KARTOTEKI LOKALI, 2023-12-01, PREZYDENT MIASTA KRAKOWA, KRAKÓW; 27 (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)" [ref=e102]:
+          - cell "3" [ref=e103]
+          - cell "WYPIS Z KARTOTEKI LOKALI, 2023-12-01, PREZYDENT MIASTA KRAKOWA, KRAKÓW; 27 (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)" [ref=e104]:
+            - text: WYPIS Z KARTOTEKI LOKALI, 2023-12-01, PREZYDENT MIASTA KRAKOWA, KRAKÓW; 27
+            - text: (podstawa oznaczenia, data sporządzenia, nazwa organu, siedziba organu; położenie dokumentu - numer karty akt)
+        - row "DZ. KW./KR1P/00141554/23/001, 2023-12-12 08:00:00, 2023-12-14-17.05.01.605820, TAK, 25 (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)" [ref=e105]:
+          - cell "DZ. KW./KR1P/00141554/23/001, 2023-12-12 08:00:00, 2023-12-14-17.05.01.605820, TAK, 25 (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)" [ref=e106]:
+            - text: DZ. KW./KR1P/00141554/23/001, 2023-12-12 08:00:00, 2023-12-14-17.05.01.605820, TAK, 25
+            - text: (rodzaj i numer dziennika, chwila wpływu, chwila wpisu, czy z urzędu, położenie wniosku – numer karty akt)
+  - table [ref=e107]:
+    - rowgroup [ref=e108]:
+      - row "Powrót" [ref=e109]:
+        - cell "Powrót" [ref=e110]:
+          - button "Powrót" [ref=e112]

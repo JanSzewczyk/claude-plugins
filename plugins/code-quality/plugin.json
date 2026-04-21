@@ -1,7 +1,7 @@
 {
   "name": "code-quality",
-  "description": "Code review, performance analysis, bundle optimization, and dependency management agents and skills.",
-  "version": "1.0.0",
+  "description": "Code review, performance analysis, bundle optimization, dependency management, and skill A/B optimization agents and skills.",
+  "version": "1.1.0",
   "author": {
     "name": "Szum Tech Team"
   },
