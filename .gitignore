@@ -15,4 +15,5 @@ node_modules/
 .playwright-mcp
 
 /.claude/statusline.log
+/.claude/settings.local.json
 /bash.exe.stackdump
