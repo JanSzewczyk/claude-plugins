@@ -11,6 +11,8 @@ Thumbs.db
 # Node (if needed for tooling)
 node_modules/
 
+.playwright-cli
+.playwright-mcp
 
 /.claude/statusline.log
 /bash.exe.stackdump
