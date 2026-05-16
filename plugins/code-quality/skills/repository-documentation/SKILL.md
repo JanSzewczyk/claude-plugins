@@ -11,7 +11,7 @@ description: >
   "GitHub description", "GitHub topics", or invokes
   /repository-documentation.
 tags: [documentation, readme, github, project-setup, markdown]
-allowed-tools: Read, Write, Edit, Glob, Grep
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Repository Documentation
@@ -146,13 +146,88 @@ Prefer well-known GitHub topics (check that they exist on
 github.com/topics if uncertain). Avoid niche names no one searches for.
 See `references/github-metadata.md` for curated topic pools per type.
 
-### Step 9 — Write & report
+### Step 9 — Write README, auto-update GitHub & report
 
-1. `Write` to `README.md` in repo root.
-2. Output to the user (in a clean copy-pasteable block):
-   - **GitHub description** (with character count)
-   - **GitHub topics** (space-separated and as JSON array)
-3. Summarize what was preserved from the previous README (if any).
+#### 9a — Write README.md
+
+`Write` the generated content to `README.md` in the repository root.
+
+#### 9b — Auto-update GitHub repository (via gh CLI)
+
+Run the following sequence using `Bash`. At each step, capture the exit
+code; on failure record the error and continue to 9c — do NOT abort.
+
+1. **Check auth:**
+   ```bash
+   gh auth status
+   ```
+   If the command fails (not installed or not logged in), skip steps 2–4
+   and note the reason in the report.
+
+2. **Get repo owner/name:**
+   ```bash
+   gh repo view --json nameWithOwner -q .nameWithOwner
+   ```
+   If this fails (not a GitHub remote, no remote configured), skip
+   steps 3–4 and note the reason.
+
+3. **Set description:**
+   ```bash
+   gh repo edit --description "<generated description>"
+   ```
+
+4. **Replace all topics** (PUT overwrites existing topics completely):
+   Build one `-f "names[]=<topic>"` argument per topic, then call:
+   ```bash
+   gh api repos/<owner>/<repo>/topics -X PUT \
+     -f "names[]=topic1" -f "names[]=topic2" ...
+   ```
+
+#### 9c — Final report
+
+Output a structured summary. Use the exact layout below, filling in the
+correct values. Omit the `[If updating…]` block for new READMEs.
+
+```
+─────────────────────────────────────────────────────────────────
+ Repository Documentation — Complete
+─────────────────────────────────────────────────────────────────
+
+📄 README.md
+   ✅ Written to repository root
+
+   [If updating existing README:]
+   Preserved:    Acknowledgments · Contact & Support · License
+   Regenerated:  Header · Features · Getting Started · Scripts ·
+                 Project Structure · [per-type sections]
+
+─────────────────────────────────────────────────────────────────
+
+🐙 GitHub repository
+   [Use the matching status block:]
+
+   On success:
+   ✅ Description updated (XXX/350 chars)
+   ✅ Topics replaced (N tags)
+
+   On auth failure:
+   ⚠️  GitHub update skipped — gh not authenticated
+      Run: gh auth login
+
+   On other failure:
+   ❌  GitHub update failed — <short error message>
+      Manual fallback commands:
+        gh repo edit --description "..."
+        gh api repos/OWNER/REPO/topics -X PUT -f "names[]=t1" ...
+
+   Description (XXX/350 chars):
+   <description text>
+
+   Topics (N):
+   <space-separated list>
+
+─────────────────────────────────────────────────────────────────
+```
 
 ---
 

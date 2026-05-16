@@ -94,22 +94,75 @@ monorepo turborepo pnpm typescript nextjs expo design-system shared-config chang
 claude-code claude-plugin skills agents marketplace nextjs react testing code-quality developer-tools automation
 ```
 
+## GitHub automation (gh CLI)
+
+After writing README.md, the skill applies the description and topics
+automatically using `gh` CLI. The commands used internally are:
+
+```bash
+# Update description
+gh repo edit --description "<description>"
+
+# Replace all topics (PUT = full replace, not append)
+gh api repos/<owner>/<repo>/topics -X PUT \
+  -f "names[]=topic1" -f "names[]=topic2" ...
+```
+
+If `gh` is unavailable or not authenticated, the skill falls back to
+printing manual commands in the final report.
+
 ## Output format to user
 
-Report both artifacts in a single block:
+The final report uses a structured layout with status indicators:
 
 ```
-─── GitHub repository metadata ────────────────────────────────
+─────────────────────────────────────────────────────────────────
+ Repository Documentation — Complete
+─────────────────────────────────────────────────────────────────
 
-Description (XXX/350 chars):
-{description text}
+📄 README.md
+   ✅ Written to repository root
 
-Topics (N items):
-{space-separated list}
+   [If updating existing README:]
+   Preserved:    Acknowledgments · Contact & Support · License
+   Regenerated:  Header · Features · Getting Started · Scripts ·
+                 Project Structure · [per-type sections]
 
-JSON (paste into gh CLI):
-["topic1", "topic2", ...]
+─────────────────────────────────────────────────────────────────
 
-Apply with: gh repo edit --description "..." --add-topic topic1 --add-topic topic2
-───────────────────────────────────────────────────────────────
+🐙 GitHub repository
+   ✅ Description updated (203/350 chars)
+   ✅ Topics replaced (12 tags)
+
+   Description (203/350 chars):
+   Claude Code marketplace plugin bundling skills and agents for Next.js,
+   testing, and code-quality workflows used at Szum-Tech.
+
+   Topics (12):
+   claude-code claude-plugin skills agents marketplace nextjs react
+   testing code-quality typescript developer-tools automation
+
+─────────────────────────────────────────────────────────────────
 ```
+
+**On auth failure**, the GitHub section reads:
+```
+🐙 GitHub repository
+   ⚠️  GitHub update skipped — gh not authenticated
+      Run: gh auth login
+      Then apply manually:
+        gh repo edit --description "..."
+        gh api repos/OWNER/REPO/topics -X PUT -f "names[]=t1" ...
+```
+
+**On other failure**, the GitHub section reads:
+```
+🐙 GitHub repository
+   ❌  GitHub update failed — <short error message>
+      Manual fallback:
+        gh repo edit --description "..."
+        gh api repos/OWNER/REPO/topics -X PUT -f "names[]=t1" ...
+```
+
+Always include the description text and topic list at the bottom of the
+GitHub section regardless of whether automation succeeded or failed.
