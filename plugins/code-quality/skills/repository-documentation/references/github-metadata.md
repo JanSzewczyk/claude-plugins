@@ -9,7 +9,8 @@ the repository **About** panel: a description and topics.
 - Single sentence
 - ≤ 350 characters (GitHub's hard limit)
 - Plain text — no Markdown, no links, no emoji
-- English
+- **Always English** — even if the user requested a different language for the README.
+  GitHub description is for global search and discoverability.
 
 **Format:**
 > `{What it does} {for whom (optional)} — {key benefit / standout features / tech hint}.`

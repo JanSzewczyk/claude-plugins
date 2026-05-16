@@ -25,7 +25,10 @@ repo settings:
 2. **GitHub description** — single sentence, ≤ 350 characters
 3. **GitHub topics** — 5–20 lowercase-kebab-case tags
 
-All output is in **English**, regardless of conversation language.
+All output is in **English** by default, regardless of conversation language.
+If the user explicitly requests another language, use it for **README.md only**.
+The GitHub description and topics must always remain in English — they serve
+GitHub's global search and discoverability.
 
 ---
 
@@ -67,7 +70,9 @@ custom type, then fall back to `templates/generic.md`.
 
 ### Step 3 — Gather metadata
 
-First, extract everything you can from the filesystem without asking:
+#### 3a — Manifest & config (fast pass)
+
+Extract everything you can from the filesystem without asking:
 
 - **name** — `package.json#name` / `app.json#name` / directory name
 - **description / tagline** — `package.json#description`
@@ -80,9 +85,45 @@ First, extract everything you can from the filesystem without asking:
 - **key dependencies** — top frameworks from `dependencies` (React, Next, Expo, etc.)
 - **directory tree** — `Glob` on `*` (depth 2) to build Project Structure section
 
-If anything critical is missing, ask in ONE `AskUserQuestion` round (group
-multiple questions). Critical fields per type are listed in each
-`templates/<type>.md` file. Do not ask about things you can read from disk.
+#### 3b — Deep research (description quality pass)
+
+`package.json#description` is often too short or stale. Before writing the
+description and tagline, read the actual source to understand what the project
+really does. Use parallel `Read`/`Grep` calls for speed.
+
+**What to read (in priority order):**
+
+1. **Entry points** — `src/index.ts`, `src/main.ts`, `app/layout.tsx`,
+   `src/App.tsx`, `src/cli.ts`, `bin/<name>` — reveals core API surface and
+   app structure.
+2. **Feature directories** — scan `src/`, `app/`, `lib/`, `packages/` with
+   `Glob("**/*.ts", depth: 3)`. Read the most meaningful files (hooks,
+   services, routes, components with complex logic). Skip generated files,
+   node_modules, and test fixtures.
+3. **Existing docs** — `docs/`, `CHANGELOG.md`, `CHANGELOG.json`,
+   `.changeset/*.md`, any `.md` in root other than README.
+4. **Config that exposes purpose** — `next.config.*`, `vite.config.*`,
+   `turbo.json`, `expo-plugins`, feature flag configs. They reveal
+   integrations (auth, DB, CDN, analytics) not visible in package.json.
+5. **Route / page map** — for web apps, glob `app/**/page.tsx` or
+   `pages/**/*.tsx` to list all routes; this reveals scope (dashboard,
+   auth flows, API surface, etc.).
+6. **Plugin / agent manifests** — for claude-plugin type, read all
+   `plugin.json` and `SKILL.md` files to enumerate capabilities.
+
+**From this research, synthesise:**
+
+- The **primary purpose** — what problem does it solve / what does it enable?
+- The **target user** — developer tool? end-user app? library?
+- **Top 3–5 distinguishing features** — what makes it notable vs. similar projects?
+- The **tech stack summary** — core frameworks + notable tooling
+
+Use this synthesis as the source of truth for the tagline, the Features
+section, and the GitHub description. Do not rely solely on `package.json#description`.
+
+If anything critical is still missing after this research, ask in ONE
+`AskUserQuestion` round (group all questions). Do not ask about things you
+can read from disk.
 
 ### Step 4 — Load the right template
 
