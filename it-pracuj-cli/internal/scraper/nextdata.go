@@ -54,12 +54,16 @@ type ListingResult struct {
 
 // SearchParams controls which offers to fetch.
 type SearchParams struct {
-	Keyword        string
-	Page           int
-	PerPage        int
-	WorkMode       string
-	EmploymentType string
-	TechCategory   string
+	Keyword          string
+	City             string // embedded as /[city];wp path segment — server-side city filter
+	Radius           int    // rd=N, search radius in km around City
+	Page             int
+	PerPage          int
+	WorkMode         string // single or comma-separated: "home-office,hybrid"
+	EmploymentType   string // et: 1=UoP, 4=B2B, 5=internship
+	TechCategory     string // tc: numeric category ID (legacy, prefer ITSpecialization)
+	ITSpecialization string // its: frontend, backend, devops, mobile, data, testing, architecture
+	ITTechnologies   string // itth: comma-separated numeric tech IDs, e.g. "76,33,34"
 }
 
 type nextDataRoot struct {
@@ -94,7 +98,13 @@ func FetchOffers(params SearchParams, timeout time.Duration) (*ListingResult, er
 		params.PerPage = 50
 	}
 
-	rawURL := listingBaseURL + "/praca/" + url.PathEscape(params.Keyword) + ";kw"
+	// City is a path segment: /praca/[kw];kw/[city];wp
+	// Without city: /praca/[kw];kw
+	path := "/praca/" + url.PathEscape(params.Keyword) + ";kw"
+	if params.City != "" {
+		path += "/" + url.PathEscape(params.City) + ";wp"
+	}
+	rawURL := listingBaseURL + path
 	req, err := http.NewRequest("GET", rawURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("building request: %w", err)
@@ -111,6 +121,15 @@ func FetchOffers(params SearchParams, timeout time.Duration) (*ListingResult, er
 	}
 	if params.TechCategory != "" {
 		q.Set("tc", params.TechCategory)
+	}
+	if params.ITSpecialization != "" {
+		q.Set("its", params.ITSpecialization)
+	}
+	if params.ITTechnologies != "" {
+		q.Set("itth", params.ITTechnologies)
+	}
+	if params.Radius > 0 {
+		q.Set("rd", fmt.Sprintf("%d", params.Radius))
 	}
 	req.URL.RawQuery = q.Encode()
 
