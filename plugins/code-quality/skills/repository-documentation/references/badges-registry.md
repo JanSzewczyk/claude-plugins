@@ -61,19 +61,76 @@ Replace `MIT` with actual license from `LICENSE` file.
 [![Coverage](https://img.shields.io/codecov/c/github/{owner}/{repo})](https://codecov.io/gh/{owner}/{repo})
 ```
 
-## Tech stack badges (inline in Features or dedicated section)
+## Dependency version badges (REQUIRED for tech stack / dependencies)
+
+When listing dependencies, key libraries, or the tech stack — render each
+one as a shields.io badge showing the **actual version pinned in the
+project's `package.json`** (not a static colour chip).
+
+Use the `github/package-json/dependency-version` endpoint — it auto-updates
+as the project bumps its dependencies. Format:
+
+```
+https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/{kind?}/{scope?}/{package}
+```
+
+- `{kind}` — omit for `dependencies`; use `dev` for `devDependencies`,
+  `peer` for `peerDependencies`, `optional` for `optionalDependencies`
+- `{scope}` — only for scoped packages, e.g. `@types`, `@radix-ui`
+- Append `?logo={slug}&logoColor=white&label={Label}` to brand the badge
+
+### Examples (use these patterns, fill in real owner/repo/package)
 
 ```markdown
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
-[![Storybook](https://img.shields.io/badge/Storybook-FF4785?logo=storybook&logoColor=white)](https://storybook.js.org/)
-[![React Native](https://img.shields.io/badge/React_Native-20232A?logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
+<!-- regular dependency -->
+[![Next.js](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/next?logo=nextdotjs&logoColor=white&label=Next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/react?logo=react&logoColor=white&label=React)](https://react.dev/)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/dev/typescript?logo=typescript&logoColor=white&label=TypeScript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/dev/tailwindcss?logo=tailwindcss&logoColor=white&label=Tailwind%20CSS)](https://tailwindcss.com/)
+
+<!-- scoped package, e.g. @t3-oss/env-nextjs -->
+[![T3 Env](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/@t3-oss/env-nextjs?label=t3-env)](https://env.t3.gg/)
+
+<!-- devDependency under a scope, e.g. @types/node -->
+[![@types/node](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/dev/@types/node?label=@types/node)](https://www.npmjs.com/package/@types/node)
+
+<!-- peer dependency -->
+[![React peer](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/peer/react?label=React%20(peer))](https://react.dev/)
 ```
+
+### Fallback when there's no GitHub repo or package.json on a default branch
+
+Use the npm registry endpoint (shows the latest published version, not the
+pinned one):
+
+```markdown
+[![Next.js](https://img.shields.io/npm/v/next?logo=nextdotjs&logoColor=white&label=Next.js)](https://www.npmjs.com/package/next)
+```
+
+### Logo slugs cheat-sheet (use with `?logo={slug}&logoColor=white`)
+
+Common: `nextdotjs`, `react`, `typescript`, `tailwindcss`, `vite`,
+`astro`, `remix`, `svelte`, `vue`, `nuxt`, `expo`, `flutter`, `nodedotjs`,
+`bun`, `pnpm`, `yarn`, `vitest`, `jest`, `playwright`, `cypress`,
+`storybook`, `prisma`, `postgresql`, `mongodb`, `firebase`, `supabase`,
+`vercel`, `eslint`, `prettier`, `radixui`, `framer`.
+
+Logos are from [Simple Icons](https://simpleicons.org/) — any slug listed
+there works.
+
+### Static fallback (use only when no version info applies)
+
+Static colour-chip badges are acceptable **only** for things that aren't a
+package (platforms, services, concepts):
+
+```markdown
+[![iOS](https://img.shields.io/badge/iOS-000000?logo=apple&logoColor=white)](#)
+[![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)](#)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+```
+
+Never use a static badge for a dependency that exists in `package.json` —
+the whole point is that the badge stays current as the project upgrades.
 
 ## License badges
 

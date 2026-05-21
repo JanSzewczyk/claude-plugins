@@ -82,7 +82,11 @@ Extract everything you can from the filesystem without asking:
 - **node version** — `package.json#engines.node` / `.nvmrc`
 - **package manager** — presence of `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, default `npm`
 - **scripts** — `package.json#scripts`
-- **key dependencies** — top frameworks from `dependencies` (React, Next, Expo, etc.)
+- **key dependencies** — top frameworks from `dependencies` and notable
+  `devDependencies`. Capture, for each one, the **exact package name** and
+  whether it's a regular / dev / peer dependency, plus its npm scope (if
+  any). This is needed to build dependency-version badges in Step 6 — see
+  `references/badges-registry.md` → *Dependency version badges*.
 - **directory tree** — `Glob` on `*` (depth 2) to build Project Structure section
 
 #### 3b — Deep research (description quality pass)
@@ -160,6 +164,15 @@ Apply standards from `references/section-standards.md`:
 
 Pick badges from `references/badges-registry.md` matching the detected
 stack (license, package version, build, coverage, etc.).
+
+**Dependencies must be rendered as dynamic version badges.** Anywhere the
+README enumerates project dependencies — Features → Core Technologies,
+Tech Stack, Peer Dependencies in npm packages, "Built with" lists — emit
+one shields.io `github/package-json/dependency-version` badge per entry,
+pulling the live version from `package.json`. Static colour-chip badges
+are forbidden for anything that exists as a package in `package.json`.
+See `references/section-standards.md` → *Dependencies / tech stack
+rendering* for the exact format.
 
 ### Step 7 — Generate GitHub description
 
@@ -284,6 +297,10 @@ correct values. Omit the `[If updating…]` block for new READMEs.
 - [ ] GitHub description ≤ 350 chars and contains no markdown
 - [ ] GitHub topics: 5–20 items, all kebab-case, no duplicates
 - [ ] No `{{placeholders}}` remain unsubstituted in the final file
+- [ ] Every dependency / tech-stack entry is rendered as a shields.io
+      `github/package-json/dependency-version/{owner}/{repo}/...` badge
+      (or `npm/v/...` fallback) — no static colour-chip badges for
+      anything that exists in `package.json`
 
 ---
 

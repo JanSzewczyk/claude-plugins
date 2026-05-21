@@ -88,6 +88,38 @@ Group features into sub-sections by category. Each feature line:
 - **{emoji} [Name](url)** — {one-line benefit, sentence case, no period}
 ```
 
+### Dependencies / tech stack rendering
+
+Whenever the README enumerates project dependencies, the **Tech Stack**, the
+"Core Technologies" sub-section of Features, or any list of libraries the
+project depends on — render every entry as a **shields.io dependency-version
+badge** that auto-reflects the version pinned in `package.json`. Static
+colour-chip badges are forbidden for anything that exists as a package in
+`package.json`.
+
+Use the format from `badges-registry.md` →
+*Dependency version badges*:
+
+```
+https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/{kind?}/{scope?}/{package}?logo={slug}&logoColor=white&label={Label}
+```
+
+For grouped bullet lists, place the badge before the description:
+
+```markdown
+- [![Next.js](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/next?logo=nextdotjs&logoColor=white&label=Next.js)](https://nextjs.org/) — App Router, Server Components, Server Actions
+- [![Tailwind CSS](https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/dev/tailwindcss?logo=tailwindcss&logoColor=white&label=Tailwind%20CSS)](https://tailwindcss.com/) — utility-first styling with design tokens
+```
+
+For a compact "Tech Stack" line, render badges inline:
+
+```markdown
+[![Next.js](…/next?…)](…) [![React](…/react?…)](…) [![TypeScript](…/dev/typescript?…)](…)
+```
+
+Use `npm/v/{package}` only as a fallback when there's no public GitHub repo
+to read `package.json` from.
+
 ### Code blocks
 
 - Always specify language: ` ```bash`, ` ```typescript`, ` ```json`, ` ```env`, ` ```tsx`
