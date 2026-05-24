@@ -1,197 +1,155 @@
 ---
 name: toast-notifications
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: >
-  Cookie-based toast notification system for Next.js. Use when user asks to
-  "show toast", "toast notification", "user feedback after action", "toast after
-  redirect", "success message", "error message after form submit",
-  "setToastCookie", "notify user", "flash message", "toast from server action",
-  "show notification after redirect", "display toast after delete".
-tags: [toast, notifications, server-actions, user-feedback, cookies]
-author: Szum Tech Team
+  Send a one-shot toast/flash message from a Next.js (App Router) Server Action to the
+  client so it appears on the next page render — crucially, surviving a redirect(), which
+  normally drops all response data. Works by writing a short-lived cookie that the next
+  render reads, fires once, and clears. Library-agnostic plumbing (sonner, react-hot-toast,
+  or any toast UI) — it does NOT build the toast component itself. Use this skill whenever a
+  Server Action needs to give page-level feedback after a mutation, especially when it ends
+  in redirect() or revalidatePath(): "show a success/error message after delete/create/
+  update", "toast after redirect", "notify the user after a server-side action", "flash
+  message like Rails flash[:notice]", "message waiting on the destination/sign-in page after
+  redirect", "setToastCookie", "wire up ToastHandler". Trigger even when the user names their
+  toast library (e.g. "fire a sonner toast from a server action that redirects") or doesn't
+  say "toast" at all but clearly needs post-redirect feedback. Do NOT use for: building or
+  styling a toast/banner UI component (use a component skill), configuring a toast library's
+  Toaster, inline per-field form validation errors (return fieldErrors instead), client-side
+  loading/optimistic toasts during a fetch, persistent dismissible banners, browser/web-push
+  notifications, or setting cookies for non-message state like theme. Bundles ready-to-copy
+  source files under assets/.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to show a toast after form submission
-  - Display error toast from server action
-  - Toast with custom duration
-  - Use toast with redirect
+metadata:
+  author: Szum-Tech Team
+  version: "2.1.0"
+argument-hint: "show toast after action | toast after redirect | add toast system"
 ---
 
-# Toast Notifications Skill
+# Toast Notifications
 
-Cookie-based toast notification system for server-to-client messaging.
+A cookie-based toast system that lets a **Server Action send a one-shot message to the
+client**, surviving a `redirect()`. The server writes a short-lived cookie; the next page
+render reads it, fires the toast, and clears the cookie so it shows exactly once.
 
-> **Reference Files:**
+It is **library-agnostic** and **dependency-free** (no `js-cookie` — it reads
+`document.cookie` directly). You plug in whatever toast UI you already use.
+
+> **Reference files** (read as needed):
+> - [architecture.md](./architecture.md) — how it works, cookie config, security, debugging
+> - [patterns.md](./patterns.md) — when/how to use it + complete examples (redirect vs.
+>   client-handled, validation, bulk, upload) and the do/don't list
 >
-> - [architecture.md](./architecture.md) - How the system works
-> - [patterns.md](./patterns.md) - Usage patterns
-> - [examples.md](./examples.md) - Practical examples
+> **Copy-into-project source** lives under [`assets/lib/toast/`](./assets/lib/toast/).
 
-## Project Configuration
+A redirect response can't carry data back to the component, but a cookie survives the
+navigation and auto-expires. See [architecture.md](./architecture.md) for the full rationale,
+cookie config, and security notes.
 
-The toast system is located in `lib/toast/`:
+## Installation (run when the toast system isn't present yet)
 
-```
-lib/toast/
-├── constants.ts       # Cookie name and max age
-├── types.ts           # ToastType, ToastMessage
-├── server/
-│   └── toast.cookie.ts  # Server-side cookie setter
-└── components/
-    └── toast-handler.tsx  # Client-side toast display
-```
+1. **Check whether the project already has it.** Search for `setToastCookie` or a
+   `lib/toast/` (or similar) folder. If it exists, skip to *Usage* — don't duplicate it.
 
-## Quick Start
+2. **Copy the four bundled files** from this skill's `assets/lib/toast/` into the project
+   (a `lib/toast/` folder is the conventional home, but anywhere works):
 
-### Show Toast After Server Action
+   ```
+   <project>/lib/toast/
+   ├── constants.ts                 # cookie name + max-age (seconds)
+   ├── types.ts                     # ToastType, ToastMessage
+   ├── server/toast.cookie.ts       # setToastCookie() — server-only
+   └── components/toast-handler.tsx # ToastHandler — client, reads cookie on route change
+   ```
 
-```typescript
-// features/budget/server/actions/create-budget.ts
+   The files import each other with **relative paths**, so they work no matter what path
+   alias (`@/`, `~/`, …) the project uses.
+
+3. **Wire your toast library into `toast-handler.tsx`** (two marked steps inside the file):
+   replace `REPLACE_WITH_YOUR_TOAST_LIBRARY` with your import and adjust the `switch` if your
+   library lacks `.warning` / `.info`. Recommended: `@szum-tech/design-system` (exposes
+   `.success` / `.error` / `.warning` / `.info`); alternatives include `sonner` or
+   `react-hot-toast`.
+
+4. **Mount `<ToastHandler />` once** near the app root, alongside your toast library's
+   container, so it runs on every route change:
+
+   ```tsx
+   // app/layout.tsx (or your providers component)
+   import { ToastHandler } from "@/lib/toast/components/toast-handler";
+   // import { Toaster } from "sonner"; // your library's container
+
+   export default function RootLayout({ children }: { children: React.ReactNode }) {
+     return (
+       <html>
+         <body>
+           {children}
+           {/* <Toaster /> */}
+           <ToastHandler />
+         </body>
+       </html>
+     );
+   }
+   ```
+
+   Adjust the import alias (`@/`) to match the project.
+
+## Usage
+
+Use `setToastCookie` **only when the action redirects** — the response is discarded, so the
+cookie carries the message to the destination page. When an action instead *returns* a result
+to the component, skip the cookie and toast on the client from that result (simpler, no
+round-trip). See [patterns.md](./patterns.md) for the full decision rule.
+
+```ts
 "use server";
 
 import { redirect } from "next/navigation";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
+import { setToastCookie } from "@/lib/toast/server/toast.cookie"; // adjust alias
 
-export async function createBudget(data: FormData): RedirectAction {
-  const [error, budget] = await createBudgetInDb(data);
+export async function createOrder(formData: FormData) {
+  const [error, order] = await createOrderInDb(formData);
 
   if (error) {
-    await setToastCookie("Failed to create budget", "error");
-    return { success: false, error: error.message };
+    // Returned to the component → let the client toast it. No cookie here.
+    return { success: false, error: "Couldn't create the order. Please try again." };
   }
 
-  await setToastCookie("Budget created successfully!", "success");
-  return redirect(`/budgets/${budget.id}`);
+  await setToastCookie("Order created!", "success");
+  redirect(`/orders/${order.id}`); // response discarded → cookie shows it on the destination
 }
 ```
 
-### Toast Types
+### Toast types & duration
 
-```typescript
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-// Success (green)
-await setToastCookie("Operation completed!", "success");
-
-// Error (red)
+```ts
+await setToastCookie("Saved!", "success");
 await setToastCookie("Something went wrong", "error");
-
-// Warning (yellow)
 await setToastCookie("Please review your input", "warning");
-
-// Info (blue)
 await setToastCookie("New features available", "info");
+
+// Optional duration in milliseconds (passed to your toast library):
+await setToastCookie("This stays longer", "info", 10_000);
 ```
 
-### Custom Duration
+## API
 
-```typescript
-// Default duration is ~5 seconds
-await setToastCookie("Quick message", "info");
+```ts
+function setToastCookie(message: string, type?: ToastType, duration?: number): Promise<void>;
+// type defaults to "success"; duration is milliseconds, forwarded to the toast library.
 
-// Custom duration in milliseconds
-await setToastCookie("This stays longer", "info", 10000); // 10 seconds
-```
-
-## How It Works
-
-1. **Server Action** calls `setToastCookie()` with message and type
-2. **Cookie** is set with JSON payload: `{ type, message, duration }`
-3. **Redirect** happens (or response returns)
-4. **Client** renders new page with `ToastHandler` component
-5. **ToastHandler** reads cookie on pathname change
-6. **Toast** is displayed using design system's Toaster
-7. **Cookie** is immediately removed
-
-## Key Concepts
-
-### Why Cookies?
-
-Server Actions often redirect after completion. Since the response is a redirect, we can't pass data directly. Cookies persist across the redirect and can be read on the next page load.
-
-### Toast Handler Placement
-
-The `ToastHandler` is included in `components/providers.tsx`:
-
-```typescript
-// components/providers.tsx
-// import { Toaster } from "your-toast-library"; // sonner, react-hot-toast, etc.
-import { ToastHandler } from "~/lib/toast/components/toast-handler";
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <YourToaster />   {/* Your toast library's container component */}
-      <ToastHandler />  {/* Reads cookie on route change, triggers toasts */}
-    </>
-  );
-}
-```
-
-### Pathname-Based Triggering
-
-ToastHandler watches `pathname` changes using `usePathname()`:
-
-```typescript
-const pathname = usePathname();
-
-React.useEffect(() => {
-  // Check and display toast on route change
-}, [pathname]);
-```
-
-This ensures toasts appear after navigation.
-
-## API Reference
-
-### setToastCookie
-
-```typescript
-async function setToastCookie(
-  message: string,
-  type: ToastType = "success",
-  duration?: number,
-): Promise<void>;
-```
-
-| Parameter  | Type      | Default   | Description            |
-| ---------- | --------- | --------- | ---------------------- |
-| `message`  | string    | required  | Toast message text     |
-| `type`     | ToastType | "success" | Toast variant          |
-| `duration` | number    | undefined | Display duration in ms |
-
-### ToastType
-
-```typescript
 type ToastType = "success" | "error" | "info" | "warning";
+type ToastMessage = { type: ToastType; message: string; duration?: number };
 ```
 
-### ToastMessage
+## Key rules
 
-```typescript
-interface ToastMessage {
-  type: ToastType;
-  message: string;
-  duration?: number;
-}
-```
+- **Cookie only when you redirect.** If the action returns a result to the component, toast on
+  the client from that result instead — don't set the cookie (see `patterns.md`).
+- **Set the cookie before `redirect()`** — code after `redirect()` never runs (it throws).
+- **One `<ToastHandler />` only** — multiple mounts can fire a toast twice.
+- **No sensitive data in messages** — the cookie is readable by client JS (`httpOnly: false`)
+  and messages are user-facing. Keep them generic.
+- **Toasts are for page-level feedback**, not inline field validation — return field errors
+  to the form for those.
 
-## File Locations
-
-| Purpose              | Location                                 |
-| -------------------- | ---------------------------------------- |
-| Server cookie setter | `lib/toast/server/toast.cookie.ts`       |
-| Client handler       | `lib/toast/components/toast-handler.tsx` |
-| Types                | `lib/toast/types.ts`                     |
-| Constants            | `lib/toast/constants.ts`                 |
-| Providers            | `components/providers.tsx`               |
-
-## Related Skills
-
-- `server-actions` - Using toasts with server actions
-- `clerk-auth-proxy` - Toast after auth operations
+See `patterns.md` for the full do/don't list and complete server-action examples.

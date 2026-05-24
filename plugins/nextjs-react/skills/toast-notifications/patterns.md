@@ -1,274 +1,237 @@
 # Usage Patterns
 
-## Pattern 1: Toast After Redirect
+> **Conventions in these snippets** (adapt to your project):
+> - Import path `@/lib/toast/server/toast.cookie` — change the alias to match yours.
+> - Actions return a generic shape `{ success: boolean; error?: string; fieldErrors?: … }`.
+>   Swap in your own action-response type if you have one. Redirecting actions return
+>   `Promise<void>` because `redirect()` throws (nothing after it runs).
+> - `getCurrentUserId()` stands in for your auth helper.
 
-Use this when the server action redirects to another page after completion.
+## Decision: cookie (server) vs. handle on the client
 
-```typescript
+The cookie exists to carry a message **across a navigation the client can't observe**. Reach
+for it only then. If the action's result comes back to the component, the client already has
+everything it needs — toast there, no cookie required.
+
+| Situation | Where to toast |
+| --- | --- |
+| Action ends in `redirect()` (or otherwise navigates away) | **Server** — `setToastCookie` before redirecting; it shows on the destination page |
+| Action `return`s a result object the component receives (`{ success, error, … }`) | **Client** — read the returned state and call your toast lib. **Don't** set the cookie. |
+
+Why prefer the client when a result is returned: it's synchronous (no cookie write/read/clear
+round-trip), it can't be overwritten by a concurrent action, and the message lives next to the
+state that produced it. The cookie path only earns its complexity when the response is thrown
+away by a redirect.
+
+---
+
+## Server-side (cookie) — use when the action redirects
+
+### Pattern 1 — Toast after redirect (the canonical case)
+
+Set the cookie only on the branch that redirects. The error branch here returns to the client,
+so it does **not** set a cookie — the client toasts that.
+
+```ts
 "use server";
 
 import { redirect } from "next/navigation";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
+import { setToastCookie } from "@/lib/toast/server/toast.cookie";
 
-export async function createResource(data: FormData): RedirectAction {
+export async function createResource(data: FormData) {
   const [error, resource] = await createResourceInDb(data);
 
   if (error) {
-    await setToastCookie("Failed to create resource", "error");
-    return { success: false, error: error.message };
+    return { success: false, error: "Failed to create resource" }; // returned → client toasts it
   }
 
-  // Toast will appear on the redirected page
   await setToastCookie("Resource created successfully!", "success");
-  return redirect(`/resources/${resource.id}`);
+  redirect(`/resources/${resource.id}`); // response is discarded → cookie carries the message
 }
 ```
 
-## Pattern 2: Toast Without Redirect
+### Pattern 2 — Set the cookie BEFORE redirect
 
-Use when returning data to the same page (e.g., form submissions that stay on page).
+```ts
+await setToastCookie("Action completed", "success");
+redirect("/dashboard");
 
-```typescript
+// ❌ wrong — code after redirect() never runs (it throws)
+redirect("/dashboard");
+await setToastCookie("This never runs", "success");
+```
+
+### Pattern 3 — Auth / access feedback before sending the user away
+
+```ts
+const userId = await getCurrentUserId();
+if (!userId) {
+  await setToastCookie("Please sign in to continue", "warning");
+  redirect("/sign-in"); // user lands on /sign-in and sees why
+}
+```
+
+### Pattern 4 — Guidance through a multi-step flow that redirects
+
+```ts
+const [error] = await saveStep(data);
+if (error) {
+  return { success: false, error: "Failed to save. Please try again." }; // stays on page → client toasts
+}
+redirect("/onboarding/step-2");
+
+// …and a celebratory toast when the flow finishes and routes to the dashboard:
+await setToastCookie("Welcome! Your account is ready.", "success", 8_000);
+redirect("/dashboard");
+```
+
+### Pattern 5 — Bulk action that redirects to a results page
+
+When the outcome is summarized on a *different* page, the cookie carries the summary.
+
+```ts
+let ok = 0;
+let failed = 0;
+for (const id of ids) {
+  const [error] = await processItem(id);
+  error ? failed++ : ok++;
+}
+
+if (failed === 0) await setToastCookie(`Processed ${ok} items`, "success");
+else if (ok === 0) await setToastCookie("Failed to process items", "error");
+else await setToastCookie(`Processed ${ok} items, ${failed} failed`, "warning");
+
+redirect("/items");
+```
+
+(If this action stays on the same page instead, return `{ ok, failed }` and toast on the client.)
+
+### Duration
+
+`setToastCookie(message, type, durationMs)` — the third arg is milliseconds, forwarded to your
+toast library:
+
+```ts
+await setToastCookie("Saved", "success", 2_000);                    // short
+await setToastCookie("Your subscription expires in 3 days.", "warning", 10_000); // longer
+```
+
+---
+
+## Client-side (no cookie) — use when the action returns a result
+
+### Pattern 6 — Form with `useActionState`: toast from returned state
+
+The action just returns its result; the component toasts it. No `setToastCookie` server-side.
+
+```ts
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-import type { ActionResponse } from "~/lib/action-types";
 
-export async function updateProfile(data: FormData): ActionResponse {
+export async function updateProfile(_prev: unknown, data: FormData) {
   const [error] = await updateProfileInDb(data);
+  if (error) return { success: false, error: "Failed to update profile" };
 
-  if (error) {
-    await setToastCookie("Failed to update profile", "error");
-    return { success: false, error: error.message };
-  }
-
-  await setToastCookie("Profile updated!", "success");
   revalidatePath("/settings");
-
-  return { success: true, data: null };
+  return { success: true };
 }
 ```
 
-## Pattern 3: Conditional Toast Types
+```tsx
+"use client";
 
-Use different toast types based on the operation result.
+import * as React from "react";
+import { toast } from "REPLACE_WITH_YOUR_TOAST_LIBRARY";
+import { updateProfile } from "../server/actions/update-profile";
 
-```typescript
-"use server";
+export function ProfileForm() {
+  const [state, formAction, isPending] = React.useActionState(updateProfile, null);
 
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
+  React.useEffect(() => {
+    if (!state) return;
+    if (state.success) toast.success("Profile updated!");
+    else if (state.error) toast.error(state.error);
+  }, [state]);
 
-export async function processItems(ids: string[]): ActionResponse {
-  let successCount = 0;
-  let errorCount = 0;
-
-  for (const id of ids) {
-    const [error] = await processItem(id);
-    if (error) errorCount++;
-    else successCount++;
-  }
-
-  // Choose toast type based on results
-  if (errorCount === 0) {
-    await setToastCookie(`Processed ${successCount} items`, "success");
-  } else if (successCount === 0) {
-    await setToastCookie("Failed to process items", "error");
-  } else {
-    await setToastCookie(
-      `Processed ${successCount} items, ${errorCount} failed`,
-      "warning",
-    );
-  }
-
-  return { success: errorCount === 0, data: { successCount, errorCount } };
+  return <form action={formAction}>{/* … */}</form>;
 }
 ```
 
-## Pattern 4: Toast with Custom Duration
+### Pattern 7 — Validation feedback
 
-Use longer duration for important messages or when more reading time is needed.
+Return `fieldErrors` for inline messages, and a general `error` the client can toast. Still no
+server cookie — the result is returned, so the client owns the toast.
 
-```typescript
-"use server";
-
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-// Standard toast (default ~5 seconds)
-await setToastCookie("Quick notification", "info");
-
-// Longer toast for important information
-await setToastCookie(
-  "Important: Your subscription expires in 3 days. Please renew to avoid service interruption.",
-  "warning",
-  10000, // 10 seconds
-);
-
-// Short toast for confirmations
-await setToastCookie("Saved", "success", 2000); // 2 seconds
-```
-
-## Pattern 5: Toast Before Redirect
-
-Always set the toast cookie BEFORE calling redirect.
-
-```typescript
-"use server";
-
-import { redirect } from "next/navigation";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-export async function handleAction(): RedirectAction {
-  // ... do work ...
-
-  // ✅ CORRECT: Set toast before redirect
-  await setToastCookie("Action completed", "success");
-  return redirect("/dashboard");
-
-  // ❌ WRONG: Code after redirect never executes
-  // return redirect("/dashboard");
-  // await setToastCookie("This never runs", "success");
+```ts
+const parsed = formSchema.safeParse(Object.fromEntries(data));
+if (!parsed.success) {
+  return {
+    success: false,
+    error: "Please check the form for errors",        // client may toast this
+    fieldErrors: parsed.error.flatten().fieldErrors    // shown inline next to fields
+  };
 }
 ```
 
-## Pattern 6: Toast for Auth/Access Feedback
+### Pattern 8 — Imperative call (not a form): toast the awaited result
 
-When access is denied, use toast to explain before redirecting.
+```tsx
+"use client";
 
-```typescript
-"use server";
+import { toast } from "REPLACE_WITH_YOUR_TOAST_LIBRARY";
+import { archiveItem } from "../server/actions/archive-item";
 
-import { redirect } from "next/navigation";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-export async function requireAuth(): RedirectAction {
-  const userId = await getCurrentUserId(); // your auth helper
-
-  if (!userId) {
-    await setToastCookie("Please sign in to continue", "warning");
-    return redirect("/sign-in");
-  }
-
-  return redirect("/dashboard");
+async function onArchive(id: string) {
+  const result = await archiveItem(id); // returns { success, error? }, no redirect
+  if (result.success) toast.success("Item archived");
+  else toast.error(result.error ?? "Couldn't archive the item");
 }
 ```
 
-## Pattern 7: Toast for Validation Feedback
+---
 
-Use toasts for general validation messages, fieldErrors for specific fields.
+## Anti-patterns
 
-```typescript
-"use server";
+**Don't set the cookie when the action returns a result to the client.** It's an unnecessary
+round-trip and can be clobbered by another action writing the same cookie.
 
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-import type { ActionResponse } from "~/lib/action-types";
-
-export async function submitForm(data: FormData): ActionResponse {
-  const parsed = formSchema.safeParse(Object.fromEntries(data));
-
-  if (!parsed.success) {
-    // General toast for validation failure
-    await setToastCookie("Please check the form for errors", "warning");
-
-    // Return field-specific errors for the form
-    return {
-      success: false,
-      error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
-  }
-
-  // ... continue with valid data
-}
-```
-
-## Pattern 8: Toast in Multi-Step Flows (guidance between steps)
-
-Use toasts to guide users through multi-step processes.
-
-```typescript
-"use server";
-
-import { redirect } from "next/navigation";
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-export async function completeStep1(data: FormData): RedirectAction {
-  const [error] = await saveStep1Data(data);
-
-  if (error) {
-    await setToastCookie("Failed to save. Please try again.", "error");
-    return { success: false, error: error.message };
-  }
-
-  // Guide to next step
-  return redirect("/onboarding/step-2");
+```ts
+// ❌ result is returned anyway — the client can toast it directly
+if (error) {
+  await setToastCookie("Failed to update", "error");
+  return { success: false, error: "Failed to update" };
 }
 
-export async function completeOnboarding(): RedirectAction {
-  const [error] = await finalizeOnboarding();
-
-  if (error) {
-    await setToastCookie("Setup failed. Please try again.", "error");
-    return { success: false, error: error.message };
-  }
-
-  // Celebratory message for completion
-  await setToastCookie("Welcome! Your account is ready.", "success", 8000);
-  return redirect("/dashboard");
-}
+// ✅ return it; toast on the client from the returned state
+if (error) return { success: false, error: "Failed to update" };
 ```
 
-## Anti-Patterns
+**Don't include sensitive / internal info** — cookie messages are client-readable:
 
-### Don't Include Sensitive Information
-
-```typescript
-// ❌ Bad - exposes internal details
-await setToastCookie(
-  `User ${userId} failed auth with code ${errorCode}`,
-  "error",
-);
-
-// ✅ Good - generic user-friendly message
-await setToastCookie("Authentication failed. Please try again.", "error");
+```ts
+await setToastCookie(`User ${userId} failed auth with code ${code}`, "error"); // ❌
+await setToastCookie("Authentication failed. Please try again.", "error");     // ✅
 ```
 
-### Don't Use Toast for Inline Validation
+**Don't use a toast for inline field validation** — return `fieldErrors` instead:
 
-```typescript
-// ❌ Bad - toast for inline field errors
-await setToastCookie("Email is required", "error");
-await setToastCookie("Password must be 8 characters", "error");
-
-// ✅ Good - return fieldErrors for inline display
-return {
-  success: false,
-  error: "Validation failed",
-  fieldErrors: {
-    email: ["Email is required"],
-    password: ["Password must be 8 characters"],
-  },
-};
+```ts
+await setToastCookie("Email is required", "error"); // ❌
+return { success: false, error: "Validation failed", fieldErrors: { email: ["Email is required"] } }; // ✅
 ```
 
-### Don't Stack Multiple Toasts
+**Don't stack multiple cookie toasts** — the cookie holds one message; the last write wins, so
+earlier ones are lost. Send a single summary instead:
 
-```typescript
-// ❌ Bad - multiple toasts confuse users
-await setToastCookie("Step 1 complete", "success");
+```ts
+await setToastCookie("Step 1 complete", "success"); // ❌ overwritten
 await setToastCookie("Step 2 complete", "success");
-await setToastCookie("Step 3 complete", "success");
-
-// ✅ Good - single summary toast
-await setToastCookie("All steps completed successfully!", "success");
+await setToastCookie("All steps completed successfully!", "success"); // ✅
 ```
 
-### Don't Use Toast for Debugging
+**Don't use toasts for debugging** — use your logger:
 
-```typescript
-// ❌ Bad - debug information in toast
-await setToastCookie(`Debug: ${JSON.stringify(data)}`, "info");
-
-// ✅ Good - use structured logging
-logger.debug({ data }, "Processing data");
+```ts
+await setToastCookie(`Debug: ${JSON.stringify(data)}`, "info"); // ❌
 ```

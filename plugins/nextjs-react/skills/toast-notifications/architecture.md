@@ -1,312 +1,84 @@
 # Toast System Architecture
 
-## Overview
+How the system works and why. The full source is in `assets/lib/toast/` — this file explains
+the mechanics, not the line-by-line code.
 
-The toast notification system uses cookies to communicate from server to client. This is necessary because Server Actions often redirect, and redirect responses cannot carry additional data.
-
-## Flow Diagram
+## Flow
 
 ```
-┌─────────────────┐
-│  Server Action  │
-│                 │
-│ setToastCookie()│
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Set Cookie    │
-│  "app-toast"    │
-│ {type, message} │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    redirect()   │
-│  or return      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Client Render  │
-│  ToastHandler   │
-│  useEffect      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Read Cookie    │
-│  Display Toast  │
-│  Remove Cookie  │
-└─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Server Action  │     │   Set cookie    │     │   redirect()    │
+│ setToastCookie()│ ──▶ │ toast_notif…    │ ──▶ │   or return     │
+│                 │     │ {type,message}  │     │                 │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+                                                          │
+┌─────────────────┐     ┌─────────────────┐     ┌────────▼────────┐
+│  Display toast  │     │  Read + clear   │     │  Client render  │
+│  (your lib)     │ ◀── │     cookie      │ ◀── │  ToastHandler   │
+│                 │     │                 │     │  useEffect      │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-## Components
+Server writes a short-lived cookie; the next client render reads it, fires the toast, and
+clears it — so the message appears exactly once on whatever page the redirect lands on.
 
-### Server Side: toast.cookie.ts
+## Two mechanics that make it work
 
-```typescript
-"use server";
+**Read-and-clear-once.** `ToastHandler` clears the cookie *before* parsing its value and
+returns `null` on any parse failure. A malformed or already-read cookie therefore can't loop
+or re-fire — the message shows once and is gone.
 
-import { cookies } from "next/headers";
-import { TOAST_COOKIE_NAME } from "~/lib/toast/constants";
-import type { ToastMessage, ToastType } from "~/lib/toast/types";
+**Pathname-based triggering.** The handler's effect depends on `usePathname()`, so it re-runs
+after every navigation — exactly when a post-redirect toast needs to appear.
 
-const cookieConfig = {
-  maxAge: 5000, // 5 seconds
-  path: "/", // Available on all routes
-  httpOnly: false, // Must be readable by client JS
-  sameSite: "lax", // Sent with same-site navigations
-  secure: process.env.NODE_ENV === "production",
-};
+## Cookie configuration
 
-export async function setToastCookie(
-  message: string,
-  type: ToastType = "success",
-  duration?: number,
-) {
-  const cookieStore = await cookies();
-
-  const toastData: ToastMessage = {
-    type,
-    message,
-    duration,
-  };
-
-  cookieStore.set(TOAST_COOKIE_NAME, JSON.stringify(toastData), cookieConfig);
-}
+```ts
+// constants.ts
+export const TOAST_COOKIE_NAME = "toast_notification";
+export const TOAST_COOKIE_MAX_AGE = 60; // SECONDS
 ```
 
-### Client Side: toast-handler.tsx
+| Option     | Value        | Reason                                            |
+| ---------- | ------------ | ------------------------------------------------- |
+| `maxAge`   | 60 (seconds) | Auto-expires if never consumed. **Not** ms.       |
+| `path`     | "/"          | Available on whatever route the redirect lands on |
+| `httpOnly` | false        | Must be readable by client JS to display          |
+| `sameSite` | "lax"        | Sent with same-site navigations                   |
+| `secure`   | prod only    | HTTPS-only in production                           |
 
-```typescript
-"use client";
+> **Gotcha:** Next.js cookie `maxAge` is in **seconds**. `maxAge: 5000` means ~83 minutes, not
+> 5 seconds — a common mistake. Keep this value small.
 
-import * as React from "react";
-import Cookies from "js-cookie"; // npm install js-cookie @types/js-cookie
-// Adapt to your toast library (sonner, react-hot-toast, shadcn/ui toast, etc.)
-// e.g. import { toast } from "sonner";
-import { usePathname } from "next/navigation";
-import { TOAST_COOKIE_NAME } from "~/lib/toast/constants";
-import type { ToastMessage } from "~/lib/toast/types";
+## Why a cookie (and not…)
 
-export function ToastHandler() {
-  const pathname = usePathname();
+| Alternative     | Why not                                                              |
+| --------------- | ------------------------------------------------------------------- |
+| Session storage | Doesn't survive a server redirect; needs client JS to set           |
+| URL parameters  | Pollutes the URL; errors become bookmarkable/shareable              |
+| Server state    | Complex; doesn't survive a redirect cleanly                         |
+| **Cookie**      | Survives `redirect()`, no URL pollution, auto-cleanup, lib-agnostic |
 
-  React.useEffect(() => {
-    const toastCookie = Cookies.get(TOAST_COOKIE_NAME);
-    if (!toastCookie) return;
+Trade-offs: requires `httpOnly: false`, ~4KB size limit, and a little plumbing.
 
-    try {
-      const toastData = JSON.parse(toastCookie) as ToastMessage;
-      const opts = { duration: toastData.duration };
+## Security
 
-      // Call your toast library here — adapt method names as needed
-      switch (toastData.type) {
-        case "success":
-          toast.success(toastData.message, opts);
-          break;
-        case "error":
-          toast.error(toastData.message, opts);
-          break;
-        case "warning":
-          toast.warning(toastData.message, opts);
-          break;
-        case "info":
-          toast.info(toastData.message, opts);
-          break;
-        default:
-          toast(toastData.message, opts);
-      }
-    } catch {
-      console.error("Failed to parse toast cookie");
-    } finally {
-      Cookies.remove(TOAST_COOKIE_NAME, { path: "/" });
-    }
-  }, [pathname]);
-
-  return null;
-}
-```
-
-### Provider Setup
-
-```typescript
-// components/providers.tsx
-// import { Toaster } from "your-toast-library"; // sonner, react-hot-toast, etc.
-import { ToastHandler } from "~/lib/toast/components/toast-handler";
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <YourToaster />    {/* Your toast library's container */}
-      <ToastHandler />   {/* Reads cookies, triggers toasts */}
-    </>
-  );
-}
-
-// app/layout.tsx
-import { Providers } from "~/components/providers";
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  );
-}
-```
-
-## Cookie Configuration
-
-### TOAST_COOKIE_NAME
-
-```typescript
-export const TOAST_COOKIE_NAME = "app-toast";
-```
-
-Unique name to avoid conflicts with other cookies.
-
-### TOAST_COOKIE_MAX_AGE
-
-```typescript
-export const TOAST_COOKIE_MAX_AGE = 5_000; // 5 seconds
-```
-
-Short max-age ensures stale toasts don't appear unexpectedly.
-
-### Cookie Options
-
-| Option     | Value     | Reason                         |
-| ---------- | --------- | ------------------------------ |
-| `maxAge`   | 5000      | Auto-expires if not consumed   |
-| `path`     | "/"       | Available on all routes        |
-| `httpOnly` | false     | Must be readable by client JS  |
-| `sameSite` | "lax"     | Sent with same-site navigation |
-| `secure`   | prod only | HTTPS in production            |
-
-## Why This Approach?
-
-### Alternative: Session Storage
-
-**Pros:** Simpler, no cookies
-**Cons:** Requires client-side JS, doesn't work with redirects
-
-### Alternative: URL Parameters
-
-**Pros:** Simple, works everywhere
-**Cons:** Exposes message in URL, bookmarkable errors
-
-### Alternative: Server State
-
-**Pros:** No cookies needed
-**Cons:** Complex state management, doesn't survive redirect
-
-### Cookie Approach (Chosen)
-
-**Pros:**
-
-- Works with redirect()
-- No URL pollution
-- Auto-cleanup with maxAge
-- Works with any toast library
-
-**Cons:**
-
-- Requires httpOnly: false
-- Cookie size limit (~4KB)
-- Slight complexity
-
-## Security Considerations
-
-### httpOnly: false
-
-The cookie must be readable by client JavaScript, so `httpOnly: false` is required. This is acceptable because:
-
-1. The cookie contains only UI messages, no sensitive data
-2. The cookie is removed immediately after reading
-3. Short maxAge limits exposure window
-
-### Message Content
-
-Never put sensitive information in toast messages:
-
-```typescript
-// ❌ Bad - exposes internal details
-await setToastCookie(`User ${userId} created with role ${role}`, "success");
-
-// ✅ Good - generic message
-await setToastCookie("User created successfully", "success");
-```
-
-### XSS Prevention
-
-The message is rendered by the design system's Toaster, which handles escaping. However, avoid including user input directly:
-
-```typescript
-// ❌ Potentially unsafe
-await setToastCookie(`Welcome, ${userInput}!`, "success");
-
-// ✅ Safer
-await setToastCookie("Welcome!", "success");
-```
-
-## Error Handling
-
-### Cookie Parse Failure
-
-```typescript
-try {
-  const toastData = JSON.parse(toastCookie);
-  // Display toast
-} catch (error) {
-  logger.error({ error }, "Failed to parse toast cookie");
-} finally {
-  // Always remove cookie to prevent infinite loop
-  Cookies.remove(TOAST_COOKIE_NAME, { path: "/" });
-}
-```
-
-### Missing Cookie
-
-```typescript
-const toastCookie = Cookies.get(TOAST_COOKIE_NAME);
-if (!toastCookie) {
-  return; // No toast to show, exit early
-}
-```
+- **`httpOnly: false` is required** so client JS can read and display the message. Acceptable
+  because the cookie holds only UI text, is cleared immediately after reading, and is short-lived.
+- **Never put sensitive data in messages** — they're user-facing and client-readable. Prefer
+  `"User created successfully"` over `"User ${id} created with role ${role}"`.
+- **Avoid echoing raw user input** into messages (XSS hygiene): `"Welcome!"` over
+  `` `Welcome, ${userInput}!` ``.
 
 ## Debugging
 
-### Check Cookie in DevTools
+| Symptom                      | Likely cause            | Fix                                       |
+| ---------------------------- | ----------------------- | ----------------------------------------- |
+| Toast not showing            | Cookie never set        | Confirm the action runs `setToastCookie`  |
+| Toast on wrong page          | Missing `pathname` dep  | Keep `pathname` in the `useEffect` deps   |
+| Toast shows twice            | Multiple `ToastHandler` | Mount it exactly once                     |
+| Stale/repeat toast           | Cookie not cleared      | Ensure the clear line runs before parsing |
+| `.warning`/`.info` undefined | Library lacks them      | Fall back to base `toast(message, options)` |
 
-1. Open DevTools → Application → Cookies
-2. Look for `app-toast` cookie
-3. Check value is valid JSON
-
-### Add Logging
-
-```typescript
-React.useEffect(() => {
-  const toastCookie = Cookies.get(TOAST_COOKIE_NAME);
-  console.log("Toast cookie:", toastCookie);
-
-  if (!toastCookie) {
-    console.log("No toast cookie found");
-    return;
-  }
-  // ...
-}, [pathname]);
-```
-
-### Common Issues
-
-| Issue               | Cause              | Solution                   |
-| ------------------- | ------------------ | -------------------------- |
-| Toast not showing   | Cookie not set     | Check server action runs   |
-| Toast on wrong page | No pathname dep    | Add pathname to useEffect  |
-| Toast shows twice   | Multiple handlers  | Ensure single ToastHandler |
-| Stale toast         | Cookie not removed | Check finally block        |
+Inspect manually: DevTools → Application → Cookies → look for `toast_notification` and confirm
+the value is valid JSON.
