@@ -24,6 +24,7 @@ React & Next.js full-stack development — agents and skills for building modern
 | **error-handling**          | `/error-handling`          | ServiceError patterns, error boundaries, standardized error responses                                                   |
 | **design-system-component** | `/design-system-component` | File structure, types, styles (CVA), context, store, barrel exports, and Storybook for React + TS + Tailwind components |
 | **szum-tech-design-system** | `/szum-tech-design-system` | Complete reference for `@szum-tech/design-system` — color tokens, typography, all components, animations, icons         |
+| **generate-feature-package** | `/generate-feature-package` | Scaffolds a new `features/<name>/` domain package — zone folders and barrel files following the feature-architecture spec |
 
 ## Installation
 
@@ -46,6 +47,7 @@ cp -r plugins/nextjs-react/skills/toast-notifications         your-project/.clau
 cp -r plugins/nextjs-react/skills/error-handling              your-project/.claude/skills/
 cp -r plugins/nextjs-react/skills/design-system-component     your-project/.claude/skills/
 cp -r plugins/nextjs-react/skills/szum-tech-design-system     your-project/.claude/skills/
+cp -r plugins/nextjs-react/skills/generate-feature-package    your-project/.claude/skills/
 ```
 
 Or copy everything at once:

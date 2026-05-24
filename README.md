@@ -46,6 +46,7 @@ The collection covers six domains: React & Next.js development, testing strategy
 - **🚨 [error-handling](./plugins/nextjs-react/skills/error-handling/)** — Error boundaries, retry patterns, and validation-vs-runtime error handling
 - **🎨 [design-system-component](./plugins/nextjs-react/skills/design-system-component/)** — CVA-based component architecture following design system conventions
 - **🎨 [szum-tech-design-system](./plugins/nextjs-react/skills/szum-tech-design-system/)** — Reference for `@szum-tech/design-system` — OKLCH tokens, Radix UI components, Tailwind CSS v4
+- **📦 [generate-feature-package](./plugins/nextjs-react/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
 - **📖 [storybook-testing](./plugins/testing/skills/storybook-testing/)** — Storybook stories with browser-rendered interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
@@ -80,14 +81,14 @@ The collection covers six domains: React & Next.js development, testing strategy
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**nextjs-react**](./plugins/nextjs-react/) | React 19 & Next.js App Router — full-stack development | 2 | 9 | [README](./plugins/nextjs-react/README.md) |
+| [**nextjs-react**](./plugins/nextjs-react/) | React 19 & Next.js App Router — full-stack development | 2 | 10 | [README](./plugins/nextjs-react/README.md) |
 | [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 7 | [README](./plugins/testing/README.md) |
 | [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 3 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
 
-**Total: 10 agents · 25 skills**
+**Total: 10 agents · 26 skills**
 
 ---
 
@@ -206,6 +207,9 @@ What are you doing?
 │   └── Agent: nextjs-backend-engineer (nextjs-react)
 │       Skills: server-actions, t3-env-validation, structured-logging, error-handling, toast-notifications
 │
+├── Scaffolding a new feature / domain / module
+│   └── Skill: generate-feature-package (nextjs-react)
+│
 ├── Database design / data modeling / migrations
 │   └── Agent: database-architect (firebase)
 │       Skills: firebase-firestore, db-migration
@@ -241,6 +245,7 @@ What are you doing?
 | Build a React component | `frontend-expert` agent |
 | Build with @szum-tech/design-system | `/szum-tech-design-system` skill |
 | Create a design system component | `/design-system-component` skill |
+| Scaffold a new feature package | `/generate-feature-package` skill |
 | Create a server action | `nextjs-backend-engineer` agent |
 | Write Storybook tests | `storybook-test-architect` agent |
 | Plan which tests to write | `testing-strategist` agent |
@@ -272,7 +277,7 @@ claude-plugins/
     ├── nextjs-react/              # React 19 & Next.js full-stack development
     │   ├── plugin.json
     │   ├── agents/                # frontend-expert, nextjs-backend-engineer
-    │   └── skills/                # 9 skills (react-19-compiler, tailwind-css-4, …)
+    │   └── skills/                # 10 skills (react-19-compiler, tailwind-css-4, …)
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
     │   ├── agents/                # testing-strategist, storybook-test-architect, storybook-tester
