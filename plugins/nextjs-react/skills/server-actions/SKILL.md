@@ -1,276 +1,136 @@
 ---
 name: server-actions
-version: 1.0.0
-lastUpdated: 2026-03-05
+version: 2.0.0
 description: >
-  Create Next.js Server Actions with TypeScript following best practices for validation, error
-  handling, auth, and React integration. Use this skill whenever writing or modifying Server
-  Actions in a Next.js project — form submissions, data mutations, CRUD operations,
-  auth-gated actions, redirect flows. Trigger even when the user says "create a server action",
-  "add form handling", "handle form submit on the server", "validate form with Zod", "add
-  server-side mutation", or asks about useActionState / useTransition with actions.
-  Targets Next.js 15/16+ with App Router.
-tags:
-  [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
-author: Szum Tech Team
+  Create Next.js Server Actions in TypeScript with a typed result contract, Zod validation, auth guards, error handling,
+  and React integration. Use this skill whenever writing or modifying Server Actions in a Next.js App Router project —
+  form submissions, data mutations, CRUD operations, auth-gated actions, multi-step/redirect flows. Trigger even when
+  the user says "create a server action", "add form handling", "handle form submit on the server", "validate form with
+  Zod", "add a server-side mutation", or asks about useActionState / useTransition / useFormStatus / useOptimistic with
+  actions. Stack-agnostic: works with any auth provider, ORM, logger, and toast library. Targets Next.js 15/16+ with the
+  App Router. Not for: fetching/reading data (use a Server Component), building the toast UI or post-redirect toast
+  plumbing, React error boundaries, or route handlers / REST API endpoints.
+tags: [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
 user-invocable: true
-examples:
-  - Create a server action for user registration form
-  - Implement CRUD actions for budget management
-  - Add form validation with Zod to the contact form
-  - Create redirect action for onboarding flow
 ---
 
-# Server Actions Skill
+# Server Actions
 
-Create Next.js Server Actions with TypeScript following best practices for validation, error handling, and React integration.
+Server Actions run only on the server, invoked from the client over a POST. They are the App Router's tool for
+**mutations** — create, update, delete, form submissions.
 
-> **Reference Files:**
->
-> - [types.md](./types.md) - ActionResponse, RedirectAction type definitions
-> - [examples.md](./examples.md) - Complete implementation examples
-> - [patterns.md](./patterns.md) - Best practices and anti-patterns
-> - [validation.md](./validation.md) - Zod schema patterns
-> - [hooks.md](./hooks.md) - React hooks (useActionState, useFormStatus)
-> - [react-hook-form.md](./react-hook-form.md) - React Hook Form integration
+> **Reads don't belong here.** Fetch data directly in a Server Component (no HTTP round-trip). Reach for a Server Action
+> only when state changes.
 
-## First Step: Read Project Context
+Stack-agnostic: examples use placeholder modules (`~/auth`, `~/lib/logger`, your ORM, your toast library) — swap them.
+The one thing standardized is the **result contract**, because a consistent return shape lets every form, hook, and
+error path compose.
 
-**IMPORTANT**: Before creating server actions, check project configuration files:
+## Setup: the result contract
 
-**`.claude/project-context.md`** for:
+Every action returns a typed discriminated union, not a bare object or a thrown error. Do this once per project before
+writing actions:
 
-- Authentication provider (Clerk, NextAuth, JWT)
-- Database patterns (tuple error handling, ServiceError class)
-- Logging conventions
-
-**`CLAUDE.md`** for:
-
-- Server Actions patterns (ActionResponse type)
-- Database error handling (ServiceError class)
-- Toast notification system
-- File organization conventions
-
-## Context
-
-> **Server Actions are for mutations only.** For data fetching, use Server Components with direct DB calls — that's the idiomatic App Router pattern (no HTTP round-trip, simpler, better performance). Server Actions are invoked via POST requests; they are not the right tool for reads.
-
-This skill helps you create:
-
-- **Form actions** - Handle form submissions with validation
-- **CRUD mutations** - Create, update, delete operations
-- **Redirect flows** - Multi-step wizards, onboarding
-- **Data mutations** - Any server-side data changes
-
-## Instructions
-
-When the user requests a server action:
-
-### 1. Analyze Requirements
-
-Gather information about:
-
-- What data does the action handle?
-- Does it return data or redirect?
-- What validation is needed?
-- What authentication/authorization is required?
-- What errors need to be handled?
-- What cache paths need revalidation?
-
-### 2. Choose Response Type
-
-| Scenario                   | Type                | Description                            |
-| -------------------------- | ------------------- | -------------------------------------- |
-| Returns data               | `ActionResponse<T>` | Action returns data to client          |
-| Redirects on success       | `RedirectAction`    | Action navigates to new page           |
-| Form with `useActionState` | Modified signature  | Accepts `previousState` as first param |
-
-### 3. Create Server Action
-
-**File Location:** `features/[feature]/server/actions/[action-name].ts`
-
-**Standard Template:**
+1. **Check for an existing definition** — `grep -rl "ActionResponse" --include="*.ts" lib src app`.
+2. **If none, copy the canonical file** [assets/action-types.ts](./assets/action-types.ts) into the project:
+   `cp <skill-path>/assets/action-types.ts lib/action-types.ts` (match the project's layout).
+3. **If one exists, use it as-is** — read it for the exact exported names and import path.
 
 ```typescript
-"use server";
+export type ActionResponse<T = unknown> = Promise<
+  | { success: true; data: T; message?: string }
+  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+>;
+// `never` on success because redirect() throws — the function never returns normally.
+export type RedirectAction = Promise<never | { success: false; error: string; fieldErrors?: Record<string, string[]> }>;
+```
 
-import { redirect } from "next/navigation";
+The `success` boolean lets TypeScript narrow the result, so the client always knows whether to read `data` or
+`error`/`fieldErrors` — a thrown error would only surface as an opaque message a form can't display. Reserve throws (or
+`notFound()` / `unauthorized()` / `forbidden()`) for cases the user can't act on. Full usage in
+[references/types.md](./references/types.md).
+
+## Workflow
+
+1. **Clarify the shape** — what's mutated? Returns data or redirects? What needs validation? What auth/ownership rules?
+   Which cache paths become stale?
+2. **Pick the response type:** `ActionResponse<T>` to return data; `RedirectAction` to navigate on success;
+   `ActionResponse<T>` with a `(prevState, formData)` signature for `useActionState`.
+3. **Write the action** (anatomy below).
+4. **Write the Zod schema** → [references/validation.md](./references/validation.md).
+5. **Wire into React** → [references/hooks.md](./references/hooks.md) /
+   [references/react-hook-form.md](./references/react-hook-form.md).
+
+## Anatomy of an action
+
+Fixed sequence so every action reads the same: **directive → auth → validate → mutate → revalidate → return**. Keep
+business logic in the data/service layer; the action only orchestrates.
+
+```typescript
+"use server"; // must be the first statement in the file (or first line inside an inline action)
+
 import { revalidatePath } from "next/cache";
-import { auth } from "@clerk/nextjs/server"; // or your auth provider
+import { auth } from "~/auth";
 import { createLogger } from "~/lib/logger";
-import type { ActionResponse, RedirectAction } from "~/lib/action-types";
+import type { ActionResponse } from "~/lib/action-types";
+import { createThing } from "../db/things"; // data layer → [error, data] tuple
+import { thingSchema, type ThingInput } from "../../schemas/thing";
 
-const logger = createLogger({ module: "[feature]-actions" });
+const logger = createLogger({ module: "things-actions" });
 
-export async function actionName(data: InputType): ActionResponse<OutputType> {
-  // 1. Authentication
+export async function createThingAction(input: ThingInput): ActionResponse<Thing> {
   const { userId } = await auth();
-  if (!userId) {
-    return { success: false, error: "Authentication required" };
-  }
+  if (!userId) return { success: false, error: "Authentication required" };
 
-  // 2. Validation
-  const parsed = schema.safeParse(data);
+  const parsed = thingSchema.safeParse(input); // never trust the client
   if (!parsed.success) {
-    return {
-      success: false,
-      error: "Validation failed",
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
+    return { success: false, error: "Validation failed", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  // 3. Database operation
-  const [error, result] = await dbOperation(parsed.data);
+  const [error, thing] = await createThing({ ...parsed.data, ownerId: userId });
   if (error) {
-    logger.error({ userId, error }, "Operation failed");
-    return { success: false, error: "Operation failed" };
+    logger.error({ userId, operation: "createThing", errorCode: error.code }, "Failed to create thing");
+    return { success: false, error: "Could not create the item" }; // user-safe message
   }
 
-  // 4. Revalidate cache
-  revalidatePath("/affected-path");
-
-  // 5. Return response
-  logger.info({ userId, resultId: result.id }, "Operation succeeded");
-  return { success: true, data: result };
+  revalidatePath("/things"); // only on success
+  return { success: true, data: thing, message: "Item created" };
 }
 ```
 
-### 4. Create Validation Schema
+A redirect action ends with `redirect("/next")` instead of returning success (it throws, so nothing after it runs).
 
-**File Location:** `features/[feature]/schemas/[schema-name].ts`
+## Rules that matter on every action
 
-```typescript
-import { z } from "zod";
+- **Validate every input with Zod**; return `fieldErrors` from `error.flatten()`.
+- **Data layer returns `[error, data]`** (not throws) so the action branches on error kind.
+- **Never leak internal errors** — log the real cause (`userId`, `operation`, `errorCode`); return a short, safe
+  message.
+- **Revalidate only on success**, only affected paths/tags — never `revalidatePath("/")`.
+- **Toast follows navigation** — non-redirect: return `message`/`error`, toast client-side; redirect: set a short-lived
+  cookie _before_ `redirect()`. Never a toast cookie without a redirect.
+- **Order: authenticate → authorize → validate → mutate.**
 
-export const inputSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-});
+Detail in [references/patterns.md](./references/patterns.md).
 
-export type InputData = z.infer<typeof inputSchema>;
-```
+## React integration
 
-### 5. Integrate with React Component
+`useActionState` (simple native form) · React Hook Form + `useTransition` (rich/typed/dynamic) · `useTransition` (single
+button: delete/toggle) · `useOptimistic` (instant feedback). See [references/hooks.md](./references/hooks.md) and
+[references/react-hook-form.md](./references/react-hook-form.md).
 
-Choose integration pattern based on form complexity:
+## Reference files
 
-| Complexity | Pattern                           | Use When                           |
-| ---------- | --------------------------------- | ---------------------------------- |
-| Simple     | `useActionState`                  | Native form, simple state          |
-| Complex    | React Hook Form + `useTransition` | Dynamic fields, complex validation |
-| Redirect   | Bound action prop                 | Multi-step flows                   |
+- [references/types.md](./references/types.md) — contract usage, narrowing, guards, `useActionState` signature.
+- [references/examples.md](./references/examples.md) — CRUD, redirect, client toast, `useActionState`, file upload.
+- [references/patterns.md](./references/patterns.md) — errors, logging, cache, security, performance, anti-patterns.
+- [references/validation.md](./references/validation.md) — Zod schemas, cross-field rules, FormData parsing.
+- [references/hooks.md](./references/hooks.md) — `useActionState`, `useFormStatus`, `useTransition`, `useOptimistic`.
+- [references/react-hook-form.md](./references/react-hook-form.md) — RHF integration, `useFieldArray`, wizards, UI
+  binding.
 
-See [hooks.md](./hooks.md) and [react-hook-form.md](./react-hook-form.md) for implementation details.
+## Before reporting done
 
-## Core Patterns
-
-### Error Handling
-
-Use tuple pattern for database operations:
-
-```typescript
-const [error, data] = await dbOperation();
-if (error) {
-  if (error.isNotFound) return { success: false, error: "Not found" };
-  if (error.isRetryable) return { success: false, error: "Please try again" };
-  return { success: false, error: "Operation failed" };
-}
-```
-
-### Cache Revalidation
-
-Always revalidate after mutations:
-
-```typescript
-revalidatePath("/posts"); // Specific path
-revalidateTag("posts"); // By cache tag
-```
-
-### Toast Notifications
-
-**Server-side toast (`setToastCookie`) — ONLY with `redirect()`:**
-
-Toast cookie is set before `redirect()`, then the new page reads the cookie and shows the toast. **Do NOT use `setToastCookie` without `redirect()`** — it will not work reliably and breaks the intended pattern.
-
-```typescript
-import { setToastCookie } from "~/lib/toast/server/toast.cookie";
-
-// ✅ Correct: toast + redirect
-await setToastCookie("Saved successfully!", "success");
-redirect("/dashboard");
-```
-
-**Client-side toast — for ALL non-redirect actions:**
-
-Action returns `message`/`error` in the response, client handles the toast:
-
-```typescript
-// Server action returns feedback via response
-return { success: true, data: profile, message: "Profile updated!" };
-
-// Client component handles toast
-const result = await updateProfile(data);
-if (result.success) {
-  toast.success(result.message);
-} else {
-  toast.error(result.error);
-}
-```
-
-### Security Checklist
-
-1. ✅ Verify authentication (`await auth()`)
-2. ✅ Check authorization (ownership, permissions)
-3. ✅ Validate all inputs (Zod schema)
-4. ✅ Log important operations
-5. ✅ Never expose internal errors to client
-
-## File Organization
-
-```text
-features/
-  users/
-    server/
-      actions/
-        create-user.ts
-        update-user.ts
-        delete-user.ts
-        index.ts         # Re-exports
-      db/
-        users.ts
-    schemas/
-      user.ts
-    types/
-      user.ts
-    components/
-      user-form.tsx
-```
-
-## Running and Testing
-
-```bash
-# Type check
-npm run type-check
-
-# Run related tests
-npm run test -- features/[feature]
-
-# Test in Storybook (if form component)
-npm run storybook:dev
-```
-
-## Questions to Ask
-
-When creating server actions:
-
-- What data does this action create/update/delete?
-- Does it return data or redirect to another page?
-- What validation rules apply to the input?
-- What authentication/authorization is needed?
-- What error cases should be handled?
-- What paths/tags need cache revalidation?
-- Should there be toast notification feedback?
-- Is this part of a multi-step flow?
+Run the project's type checker (`npm run type-check` / `tsc --noEmit`) — a mistyped result contract compiles against the
+client incorrectly. If a form was touched, exercise it once.
