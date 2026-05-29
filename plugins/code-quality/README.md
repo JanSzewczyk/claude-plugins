@@ -14,9 +14,10 @@ Code review, performance analysis, bundle optimization, and dependency managemen
 
 ### Skills
 
-| Skill                        | Invoke with                 | Description                                                                                   |
-| ---------------------------- | --------------------------- | --------------------------------------------------------------------------------------------- |
-| **performance-optimization** | `/performance-optimization` | Bundle analysis, React rendering optimization, database query tuning, code splitting patterns |
+| Skill                        | Invoke with                 | Description                                                                                                             |
+| ---------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **performance-optimization** | `/performance-optimization` | Bundle analysis, React rendering optimization, database query tuning, code splitting patterns                         |
+| **update-deps**              | `/update-deps`              | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group, pause on majors, full report |
 
 ## Installation
 

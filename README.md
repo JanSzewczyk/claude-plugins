@@ -55,6 +55,7 @@ The collection covers six domains: React & Next.js development, testing strategy
 - **🔌 [api-test](./plugins/testing/skills/api-test/)** — API endpoint testing patterns and examples
 - **♿ [accessibility-audit](./plugins/testing/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
 - **⚡ [performance-optimization](./plugins/code-quality/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
+- **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, commits, and a final report
 - **🔥 [firebase-firestore](./plugins/firebase/skills/firebase-firestore/)** — Firestore patterns, security rules, data types, and seeding
 - **🔄 [db-migration](./plugins/firebase/skills/db-migration/)** — Firebase data migration scripts and patterns
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
@@ -83,7 +84,7 @@ The collection covers six domains: React & Next.js development, testing strategy
 | --- | --- | --- | --- | --- |
 | [**nextjs-react**](./plugins/nextjs-react/) | React 19 & Next.js App Router — full-stack development | 2 | 10 | [README](./plugins/nextjs-react/README.md) |
 | [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 7 | [README](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 3 | [README](./plugins/code-quality/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
@@ -285,7 +286,7 @@ claude-plugins/
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
-    │   └── skills/                # 3 skills (performance-optimization, …)
+    │   └── skills/                # 4 skills (performance-optimization, update-deps, …)
     ├── firebase/                  # Firebase & database architecture
     │   ├── plugin.json
     │   ├── agents/                # database-architect
