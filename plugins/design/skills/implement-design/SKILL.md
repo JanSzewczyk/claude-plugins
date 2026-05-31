@@ -76,9 +76,10 @@ notes will alter:
 
 Read `references/_index.md`. For each primitive, name the DS component or
 utility that replaces it. Load `references/components/<name>.md` ONLY for
-components you'll use — don't preload the library. For a component's full API
-beyond the snapshot, defer to the `szum-tech-design-system` skill (the
-canonical reference); this skill only orchestrates the port.
+components you'll use — don't preload the library. These bundled docs are the
+reference; if one doesn't cover a detail you need, read the component's types
+directly from the installed package at
+`node_modules/@szum-tech/design-system` rather than guessing.
 
 Extend the inventory table with the mapping:
 
