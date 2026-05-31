@@ -78,10 +78,10 @@ The `code-reviewer` agent references skills from other plugins for comprehensive
 | Skill                    | From Plugin  | Used For                              |
 | ------------------------ | ------------ | ------------------------------------- |
 | accessibility-audit      | testing      | Checking a11y compliance              |
-| server-actions           | nextjs-react | Validating Server Action patterns     |
-| react-19-compiler        | nextjs-react | Checking React Compiler compatibility |
+| server-actions           | nextjs       | Validating Server Action patterns     |
+| react-19-compiler        | react        | Checking React Compiler compatibility |
 | storybook-testing        | testing      | Reviewing component test quality      |
-| tailwind-css-4           | nextjs-react | Validating Tailwind patterns          |
+| tailwind-css-4           | design       | Validating Tailwind patterns          |
 | performance-optimization | code-quality | Performance review                    |
 
 Install skills from related plugins for the best review coverage.
@@ -99,6 +99,8 @@ Install skills from related plugins for the best review coverage.
 
 ## Related Plugins
 
-- [**nextjs-react**](../nextjs-react/) — Skills referenced during code review
+- [**nextjs**](../nextjs/) — Server Actions, error handling, and logging skills referenced during code review
+- [**react**](../react/) — React Compiler skill referenced during code review
+- [**design**](../design/) — Tailwind and design-system skills referenced during code review
 - [**testing**](../testing/) — Testing skills referenced during review
 - [**dev-experience**](../dev-experience/) — Auto-formatting hooks complement code review

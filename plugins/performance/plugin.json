@@ -1,0 +1,10 @@
+{
+  "name": "performance",
+  "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team"
+  },
+  "agents": [],
+  "skills": "./skills/"
+}

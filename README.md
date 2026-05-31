@@ -18,17 +18,16 @@
 
 This repository is a [Claude Code](https://claude.com/claude-code) marketplace — a curated collection of **skills** and **agents** that extend Claude Code with domain-specific knowledge for modern full-stack development. Install a plugin once and every project you open gets access to specialist assistants that know your stack's conventions, patterns, and pitfalls.
 
-The collection covers six domains: React & Next.js development, testing strategy, code quality, Firebase architecture, product management orchestration, and AI tool integrations. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
+The collection covers eight domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, and AI tool integrations. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
 
 ## ✨ Features
 
 ### 🤖 Specialist Agents
 
-- **✨ [frontend-expert](./plugins/nextjs-react/)** — React 19 & Next.js App Router specialist for UI components, Tailwind CSS v4, and design-system integration
-- **✨ [nextjs-backend-engineer](./plugins/nextjs-react/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
+- **✨ [frontend-expert](./plugins/react/)** — React 19 specialist for UI components, Tailwind CSS v4, and design-system integration
+- **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
 - **🧪 [testing-strategist](./plugins/testing/)** — Plans test coverage across unit, integration, and E2E layers
-- **🧪 [storybook-test-architect](./plugins/testing/)** — Writes Storybook CSF Next stories with interaction tests using the `.test()` method
-- **🧪 [storybook-tester](./plugins/testing/)** — Creates Storybook stories and play functions for component variants
+- **🧪 [storybook-tester](./plugins/testing/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
 - **🧹 [code-reviewer](./plugins/code-quality/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
 - **⚡ [performance-analyzer](./plugins/code-quality/)** — Bundle size, React rendering efficiency, and slow query analysis
 - **📦 [library-updater](./plugins/code-quality/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
@@ -37,16 +36,17 @@ The collection covers six domains: React & Next.js development, testing strategy
 
 ### 🛠️ Slash-Command Skills
 
-- **⚛️ [react-19-compiler](./plugins/nextjs-react/skills/react-19-compiler/)** — React 19 compiler patterns, memoization decisions, and Server Component boundaries
-- **🎨 [tailwind-css-4](./plugins/nextjs-react/skills/tailwind-css-4/)** — Tailwind CSS v4 CSS-first config, migration guide, and utility patterns
-- **🔐 [t3-env-validation](./plugins/nextjs-react/skills/t3-env-validation/)** — Type-safe environment variables with T3 Env and Zod
-- **⚡ [server-actions](./plugins/nextjs-react/skills/server-actions/)** — Next.js Server Actions with react-hook-form and Zod validation
-- **📝 [structured-logging](./plugins/nextjs-react/skills/structured-logging/)** — Production logging patterns for Next.js applications
-- **🔔 [toast-notifications](./plugins/nextjs-react/skills/toast-notifications/)** — Toast notification architecture and patterns
-- **🚨 [error-handling](./plugins/nextjs-react/skills/error-handling/)** — Error boundaries, retry patterns, and validation-vs-runtime error handling
-- **🎨 [design-system-component](./plugins/nextjs-react/skills/design-system-component/)** — CVA-based component architecture following design system conventions
-- **🎨 [szum-tech-design-system](./plugins/nextjs-react/skills/szum-tech-design-system/)** — Reference for `@szum-tech/design-system` — OKLCH tokens, Radix UI components, Tailwind CSS v4
-- **📦 [generate-feature-package](./plugins/nextjs-react/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
+- **⚛️ [react-19-compiler](./plugins/react/skills/react-19-compiler/)** — React 19 compiler patterns, memoization decisions, and Server Component boundaries
+- **🎨 [tailwind-css-4](./plugins/design/skills/tailwind-css-4/)** — Tailwind CSS v4 CSS-first config, migration guide, and utility patterns
+- **🔐 [t3-env-validation](./plugins/nextjs/skills/t3-env-validation/)** — Type-safe environment variables with T3 Env and Zod
+- **⚡ [server-actions](./plugins/nextjs/skills/server-actions/)** — Next.js Server Actions with react-hook-form and Zod validation
+- **📝 [structured-logging](./plugins/nextjs/skills/structured-logging/)** — Production logging patterns for Next.js applications
+- **🔔 [toast-notifications](./plugins/nextjs/skills/toast-notifications/)** — Toast notification architecture and patterns
+- **🚨 [error-handling](./plugins/nextjs/skills/error-handling/)** — Error boundaries, retry patterns, and validation-vs-runtime error handling
+- **🎨 [design-system-component](./plugins/design/skills/design-system-component/)** — CVA-based component architecture following design system conventions
+- **🎨 [szum-tech-design-system](./plugins/design/skills/szum-tech-design-system/)** — Reference for `@szum-tech/design-system` — OKLCH tokens, Radix UI components, Tailwind CSS v4
+- **🧱 [implement-design](./plugins/design/skills/implement-design/)** — Inventory-first protocol for porting an external design (Claude Design, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them
+- **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
 - **📖 [storybook-testing](./plugins/testing/skills/storybook-testing/)** — Storybook stories with browser-rendered interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
@@ -61,6 +61,7 @@ The collection covers six domains: React & Next.js development, testing strategy
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
+- **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 
 ---
 
@@ -82,14 +83,17 @@ The collection covers six domains: React & Next.js development, testing strategy
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**nextjs-react**](./plugins/nextjs-react/) | React 19 & Next.js App Router — full-stack development | 2 | 10 | [README](./plugins/nextjs-react/README.md) |
-| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 7 | [README](./plugins/testing/README.md) |
+| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 6 | [README](./plugins/nextjs/README.md) |
+| [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
+| [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
+| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 2 | 7 | [README](./plugins/testing/README.md) |
 | [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
+| [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
 
-**Total: 10 agents · 26 skills**
+**Total: 9 agents · 29 skills**
 
 ---
 
@@ -106,12 +110,15 @@ The collection covers six domains: React & Next.js development, testing strategy
 #### 2. Install a plugin
 
 ```bash
-/plugin install nextjs-react@szum-tech
+/plugin install nextjs@szum-tech
+/plugin install react@szum-tech
+/plugin install design@szum-tech
 /plugin install testing@szum-tech
 /plugin install code-quality@szum-tech
 /plugin install firebase@szum-tech
 /plugin install product-management@szum-tech
 /plugin install ai-tools@szum-tech
+/plugin install performance@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -143,9 +150,9 @@ Plugins can be installed at different scopes:
 
 | Scope | Applies to | Command |
 | --- | --- | --- |
-| **user** | All your projects | `/plugin install nextjs-react@szum-tech --scope user` (default) |
-| **project** | Current project (team) | `/plugin install nextjs-react@szum-tech --scope project` |
-| **local** | Current project (local) | `/plugin install nextjs-react@szum-tech --scope local` |
+| **user** | All your projects | `/plugin install nextjs@szum-tech --scope user` (default) |
+| **project** | Current project (team) | `/plugin install nextjs@szum-tech --scope project` |
+| **local** | Current project (local) | `/plugin install nextjs@szum-tech --scope local` |
 
 #### Pre-configure for your team
 
@@ -201,15 +208,15 @@ Once installed, skills are invoked with `/<skill-name>` and agents are reference
 What are you doing?
 │
 ├── Building UI / styling / components
-│   └── Agent: frontend-expert (nextjs-react)
-│       Skills: react-19-compiler, tailwind-css-4, design-system-component, szum-tech-design-system
+│   └── Agent: frontend-expert (react)
+│       Skills: react-19-compiler (react), tailwind-css-4, design-system-component, szum-tech-design-system (design)
 │
 ├── Server actions / API routes / database ops
-│   └── Agent: nextjs-backend-engineer (nextjs-react)
+│   └── Agent: nextjs-backend-engineer (nextjs)
 │       Skills: server-actions, t3-env-validation, structured-logging, error-handling, toast-notifications
 │
 ├── Scaffolding a new feature / domain / module
-│   └── Skill: generate-feature-package (nextjs-react)
+│   └── Skill: generate-feature-package (nextjs)
 │
 ├── Database design / data modeling / migrations
 │   └── Agent: database-architect (firebase)
@@ -217,7 +224,7 @@ What are you doing?
 │
 ├── Writing tests
 │   ├── Planning test strategy      → Agent: testing-strategist (testing)
-│   ├── Component / Storybook tests → Agent: storybook-test-architect (testing)
+│   ├── Component / Storybook tests → Agent: storybook-tester (testing)
 │   │                                  Skills: storybook-testing, builder-factory
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
 │   ├── Unit tests (Vitest)        → Skill: unit-testing (testing)
@@ -248,7 +255,7 @@ What are you doing?
 | Create a design system component | `/design-system-component` skill |
 | Scaffold a new feature package | `/generate-feature-package` skill |
 | Create a server action | `nextjs-backend-engineer` agent |
-| Write Storybook tests | `storybook-test-architect` agent |
+| Write Storybook tests | `storybook-tester` agent |
 | Plan which tests to write | `testing-strategist` agent |
 | Write unit tests | `/unit-testing` skill |
 | Review code quality | `code-reviewer` agent |
@@ -275,13 +282,20 @@ claude-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace manifest listing all plugins
 └── plugins/
-    ├── nextjs-react/              # React 19 & Next.js full-stack development
+    ├── nextjs/                    # Next.js full-stack development
     │   ├── plugin.json
-    │   ├── agents/                # frontend-expert, nextjs-backend-engineer
-    │   └── skills/                # 10 skills (react-19-compiler, tailwind-css-4, …)
+    │   ├── agents/                # nextjs-backend-engineer
+    │   └── skills/                # 6 skills (server-actions, error-handling, …)
+    ├── react/                     # React 19 UI development
+    │   ├── plugin.json
+    │   ├── agents/                # frontend-expert
+    │   └── skills/                # 1 skill (react-19-compiler)
+    ├── design/                    # Design system & styling
+    │   ├── plugin.json
+    │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
-    │   ├── agents/                # testing-strategist, storybook-test-architect, storybook-tester
+    │   ├── agents/                # testing-strategist, storybook-tester
     │   └── skills/                # 7 skills (storybook-testing, playwright-cli, …)
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
@@ -295,9 +309,12 @@ claude-plugins/
     │   ├── plugin.json
     │   ├── agents/                # product-owner
     │   └── skills/                # 1 skill (prd-spec)
-    └── ai-tools/                  # AI tool integrations & automation
+    ├── ai-tools/                  # AI tool integrations & automation
+    │   ├── plugin.json
+    │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
+    └── performance/               # Web performance auditing
         ├── plugin.json
-        └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
+        └── skills/                # 1 skill (lighthouse-audit)
 ```
 
 ### 🗂️ Key Files

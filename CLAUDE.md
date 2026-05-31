@@ -23,12 +23,15 @@ plugins/
 
 | Plugin                 | Description                                | Agents                                               | Skills                                                                                                                                                                                                |
 | ---------------------- | ------------------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **nextjs-react**       | React & Next.js full-stack development     | frontend-expert, nextjs-backend-engineer             | react-19-compiler, server-actions, tailwind-css-4, t3-env-validation, structured-logging, toast-notifications, error-handling, design-system-component, szum-tech-design-system, generate-feature-package |
-| **testing**            | Testing strategies & QA                    | testing-strategist, storybook-test-architect         | storybook-testing, builder-factory, api-test, accessibility-audit, playwright-cli, unit-testing                                                                                                       |
+| **nextjs**             | Next.js full-stack development             | nextjs-backend-engineer                              | server-actions, t3-env-validation, structured-logging, toast-notifications, error-handling, generate-feature-package                                                                                  |
+| **react**              | React 19 UI development                    | frontend-expert                                      | react-19-compiler                                                                                                                                                                                     |
+| **design**             | Design system & styling                    | —                                                    | szum-tech-design-system, tailwind-css-4, design-system-component, implement-design                                                                                                                    |
+| **testing**            | Testing strategies & QA                    | testing-strategist, storybook-tester                 | storybook-testing, builder-factory, api-test, accessibility-audit, playwright-cli, unit-testing                                                                                                       |
 | **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization, repository-documentation, update-deps                                                                                                                                       |
 | **firebase**           | Firebase & DB architecture                 | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                                     |
 | **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                                              |
 | **ai-tools**           | AI tool integrations & automation          | —                                                    | notebooklm, youtube-scraper                                                                                                                                                                           |
+| **performance**        | Web performance auditing                   | —                                                    | lighthouse-audit                                                                                                                                                                                      |
 
 ## How registration works (the big picture)
 
@@ -53,6 +56,6 @@ There is no automated test suite. To validate changes:
 - **Manifests** — ensure `marketplace.json` and every `plugin.json` are valid JSON and that referenced agent paths exist.
 - **Skill scripts** — skills that bundle executable scripts can be exercised directly, e.g. the `generate-feature-package` scaffold script supports a dry run:
   ```bash
-  node "plugins/nextjs-react/skills/generate-feature-package/scripts/scaffold-feature.mjs" <feature-name> --dry-run
+  node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mjs" <feature-name> --dry-run
   ```
 - **End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`) and invoke the skill/agent in a real Claude Code session.

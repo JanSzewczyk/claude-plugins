@@ -71,5 +71,5 @@ Skills work as reference documentation even before installing the dependencies �
 
 ## Related Plugins
 
-- [**nextjs-react**](../nextjs-react/) — Server Actions and error handling patterns used with database operations
+- [**nextjs**](../nextjs/) — Server Actions and error handling patterns used with database operations
 - [**code-quality**](../code-quality/) — Code review agent validates database patterns

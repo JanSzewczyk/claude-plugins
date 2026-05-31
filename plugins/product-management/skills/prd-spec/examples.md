@@ -46,7 +46,7 @@ Users need visibility into which categories are over/under budget.
 | 3   | Build `BudgetForm` component with Zod validation                              | `frontend-expert`          | #2         | P1       |
 | 4   | Build `BudgetList` component with progress bars                               | `frontend-expert`          | #2         | P1       |
 | 5   | Build `DeleteConfirmDialog` component                                         | `frontend-expert`          | #2         | P1       |
-| 6   | Write Storybook stories for `BudgetForm`, `BudgetList`, `DeleteConfirmDialog` | `storybook-test-architect` | #3, #4, #5 | P1       |
+| 6   | Write Storybook stories for `BudgetForm`, `BudgetList`, `DeleteConfirmDialog` | `storybook-tester` | #3, #4, #5 | P1       |
 | 7   | Plan test strategy (unit tests for validation logic)                          | `testing-strategist`       | #3, #4     | P2       |
 | 8   | Final code review                                                             | `code-reviewer`            | All        | P2       |
 
@@ -100,7 +100,7 @@ New users see onboarding; returning users go directly to dashboard.
 | 4   | Build `SignInForm` component                                          | `frontend-expert`          | #3         | P1       |
 | 5   | Build `SignUpForm` component                                          | `frontend-expert`          | #3         | P1       |
 | 6   | Build `ResetPasswordForm` component                                   | `frontend-expert`          | #3         | P1       |
-| 7   | Write Storybook stories for all auth forms                            | `storybook-test-architect` | #4, #5, #6 | P1       |
+| 7   | Write Storybook stories for all auth forms                            | `storybook-tester` | #4, #5, #6 | P1       |
 | 8   | Write E2E tests for sign-in → dashboard flow                          | `testing-strategist`       | #4, #5     | P2       |
 | 9   | Final code review                                                     | `code-reviewer`            | All        | P2       |
 

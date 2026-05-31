@@ -7,9 +7,19 @@
   },
   "plugins": [
     {
-      "name": "nextjs-react",
-      "description": "React & Next.js full-stack development — React 19, App Router, Tailwind CSS v4, Server Actions",
-      "source": "./plugins/nextjs-react"
+      "name": "nextjs",
+      "description": "Next.js full-stack development — App Router, Server Actions, error handling, structured logging, env validation",
+      "source": "./plugins/nextjs"
+    },
+    {
+      "name": "react",
+      "description": "React development — React 19 Compiler, new hooks, and component-driven UI architecture",
+      "source": "./plugins/react"
+    },
+    {
+      "name": "design",
+      "description": "Design system & styling — Szum-Tech design system, Tailwind CSS v4, and CVA-based component conventions",
+      "source": "./plugins/design"
     },
     {
       "name": "testing",
@@ -35,6 +45,11 @@
       "name": "ai-tools",
       "description": "AI tool integrations — NotebookLM automation, content generation, and research workflows",
       "source": "./plugins/ai-tools"
+    },
+    {
+      "name": "performance",
+      "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications",
+      "source": "./plugins/performance"
     }
   ]
 }

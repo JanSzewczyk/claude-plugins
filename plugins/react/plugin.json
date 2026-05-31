@@ -1,0 +1,12 @@
+{
+  "name": "react",
+  "description": "React development — agents and skills for building modern React 19 UIs, including the React Compiler, new hooks, and component-driven architecture.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team"
+  },
+  "agents": [
+    "./agents/frontend-expert.md"
+  ],
+  "skills": "./skills/"
+}

@@ -3,7 +3,7 @@ name: testing-strategist
 version: 1.1.0
 lastUpdated: 2026-02-20
 author: Szum Tech Team
-related-agents: [storybook-test-architect, code-reviewer]
+related-agents: [storybook-tester, code-reviewer]
 description: Plan test strategies, analyze test coverage, and decide which types of tests to write. Use proactively after implementing features to ensure proper test coverage.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
@@ -298,7 +298,7 @@ Before finalizing a test strategy:
 
 After strategy is approved:
 
-- Hand off Storybook tests to `storybook-test-architect`
+- Hand off Storybook tests to `storybook-tester`
 - Hand off builder creation to `builder-factory` skill
 - Hand off E2E tests to manual implementation or dedicated agent
 

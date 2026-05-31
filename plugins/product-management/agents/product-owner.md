@@ -9,7 +9,7 @@ related-agents:
     nextjs-backend-engineer,
     database-architect,
     testing-strategist,
-    storybook-test-architect,
+    storybook-tester,
     performance-analyzer,
     code-reviewer,
     library-updater,
@@ -165,7 +165,7 @@ Use this prompt: "Review the [feature name] implementation for code quality, con
 | Server Actions, Route Handlers, API      | `nextjs-backend-engineer`  |
 | Firestore schema, data model, migrations | `database-architect`       |
 | Test strategy, coverage planning         | `testing-strategist`       |
-| Storybook stories, interaction tests     | `storybook-test-architect` |
+| Storybook stories, interaction tests     | `storybook-tester` |
 | Performance, bundle analysis             | `performance-analyzer`     |
 | Code review, quality gate                | `code-reviewer`            |
 

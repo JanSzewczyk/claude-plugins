@@ -103,7 +103,7 @@ Use this table to determine which specialist agent handles each type of task ext
 | Server Actions, Route Handlers, API endpoints, middleware | `nextjs-backend-engineer` |
 | Firestore schema, data model, indexes, migrations | `database-architect` |
 | Test strategy, coverage planning, test type selection | `testing-strategist` |
-| Storybook stories, interaction tests, visual tests | `storybook-test-architect` |
+| Storybook stories, interaction tests, visual tests | `storybook-tester` |
 | Performance, bundle analysis, Core Web Vitals | `performance-analyzer` |
 | Code review checkpoint, quality gate | `code-reviewer` |
 
@@ -113,7 +113,7 @@ Use this table to determine which specialist agent handles each type of task ext
 - "Users can submit a form with name and email" → `frontend-expert` (form UI) + `nextjs-backend-engineer` (Server Action)
 - "Data must persist across sessions" → `database-architect` (schema)
 - "Must load in under 2 seconds" → `performance-analyzer`
-- "All form states must be documented" → `storybook-test-architect`
+- "All form states must be documented" → `storybook-tester`
 
 **TDD signal → agent:**
 - `## Data Model` section with new types → `database-architect`
@@ -146,7 +146,7 @@ When `product-owner` generates a task breakdown, use this format:
 | 1 | Define Firestore schema for `[entity]` | `database-architect` | — | P0 |
 | 2 | Implement Server Action `create[Entity]` | `nextjs-backend-engineer` | #1 | P0 |
 | 3 | Build `[EntityForm]` component | `frontend-expert` | #2 | P1 |
-| 4 | Write Storybook stories for `[EntityForm]` | `storybook-test-architect` | #3 | P1 |
+| 4 | Write Storybook stories for `[EntityForm]` | `storybook-tester` | #3 | P1 |
 | 5 | Plan test strategy | `testing-strategist` | #3 | P2 |
 | 6 | Final code review | `code-reviewer` | All | P2 |
 ```

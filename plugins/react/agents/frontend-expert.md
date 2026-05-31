@@ -3,7 +3,7 @@ name: frontend-expert
 version: 1.1.0
 lastUpdated: 2026-02-20
 author: Szum Tech Team
-related-agents: [storybook-test-architect, performance-analyzer, code-reviewer]
+related-agents: [storybook-tester, performance-analyzer, code-reviewer]
 description: Implement UI components, style with Tailwind CSS, integrate with design systems, build React components, and fix UI bugs. Use proactively for any frontend-related tasks.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
@@ -175,7 +175,7 @@ Before considering your work complete:
 - Design system modifications or new component needs
 - Performance issues that require deeper investigation → hand off to `performance-analyzer`
 - Breaking changes that affect existing functionality
-- Complex test scenarios → hand off to `storybook-test-architect`
+- Complex test scenarios → hand off to `storybook-tester`
 
 ## Output Format
 
