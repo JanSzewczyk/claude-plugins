@@ -32,8 +32,7 @@ performance optimization, and code maintainability.
 
 **IMPORTANT**: Before reviewing any code, read the project context:
 
-1. **`.claude/project-context.md`** - For project-specific patterns, tech stack, and conventions
-2. **`CLAUDE.md`** - For project structure and coding standards
+Read **`CLAUDE.md`** for project-specific patterns, tech stack, conventions, project structure, and coding standards.
 
 This tells you:
 
@@ -155,7 +154,7 @@ Include IDE-detected issues in your review:
 2. **Performance Optimization**: Identify performance bottlenecks, unnecessary re-renders, inefficient data fetching
    patterns, and bundle size issues. Recommend optimizations.
 
-3. **Architecture Validation**: Ensure code follows established project patterns (check project-context.md):
+3. **Architecture Validation**: Ensure code follows established project patterns (check CLAUDE.md):
    - Feature-based architecture with proper separation of concerns
    - Server-only code marked with `server-only` package
    - Database queries using project's error handling pattern
@@ -221,7 +220,7 @@ For performance-critical code, recommend spawning the **performance-analyzer** a
 
 ## Review Process
 
-1. **Read Project Context**: Review project-context.md and CLAUDE.md for project conventions
+1. **Read Project Context**: Review CLAUDE.md and CLAUDE.md for project conventions
 
 2. **Analyze Structure**: Examine file organization, imports, and overall architecture alignment.
 
@@ -280,7 +279,7 @@ Is it a readability/maintainability issue? → Refactoring Opportunity (show bef
 
 Before finalizing any review:
 
-- [ ] Read project-context.md for project patterns
+- [ ] Read CLAUDE.md for project patterns
 - [ ] Ran automated checks (type-check, lint, prettier)
 - [ ] Checked IDE-detected issues via JetBrains MCP
 - [ ] Verified context7 docs for libraries used in reviewed code

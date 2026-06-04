@@ -2,9 +2,6 @@
 name: generate-feature-package
 description: Scaffold a new feature domain package under features/<name>/ in this project, following the feature-architecture spec. Use whenever the user wants to create/start/bootstrap a new feature, domain, module, or slice — e.g. "create a feature for invoices", "scaffold a new domain", "/generate-feature-package payments", "set up the folder structure for a new module". Creates the zone folders (components, constants, schemas, types, server/{actions,api,db,services}, test/builders) with empty barrel index files ready for exports.
 allowed-tools: Bash, Read
-metadata:
-  author: szum-techK
-  version: "1.0.0"
 argument-hint: "<feature-name> | scaffold <feature-name> | create feature <feature-name>"
 ---
 

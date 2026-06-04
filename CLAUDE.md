@@ -44,8 +44,8 @@ Three manifest layers must stay in sync when adding capabilities:
 ## Conventions
 
 - Plugin names use kebab-case; skill folder names are kebab-case and become the `/slash-command`.
-- Agent definitions are Markdown (`.md`) with YAML frontmatter: `name`, `version`, `description`, `tools`, `model` (defaults to `sonnet`), and optionally `skills`, `related-agents`, `permissionMode`, `hooks`, `color`.
-- Skill directories contain `SKILL.md` as the entry point (with `name`, `description`, `allowed-tools`, `argument-hint` frontmatter) plus optional supporting files (`examples.md`, `patterns.md`, `references/`, `templates/`, `scripts/`).
+- Agent definitions are Markdown (`.md`) with YAML frontmatter in this exact key order: `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`, `tools`, `model` (defaults to `sonnet`), `color`, `permissionMode`, `skills`, then optional `hooks`. Every agent carries this same set; only `hooks` may be omitted (when the agent defines none). Do not add other keys (e.g. `maxTurns`, `memory`).
+- Skill directories contain `SKILL.md` as the entry point. Its frontmatter is unified across all skills to exactly four fields, in this order: `name`, `description`, `allowed-tools`, and `argument-hint` (the last two optional — `allowed-tools` only when the skill restricts tools, `argument-hint` only when it takes arguments). Do **not** add other keys (no `version`, `tags`, `author`, `context`, `agent`, `user-invocable`, `examples`, `metadata`, etc.). Supporting files live alongside it: reference docs go in a `references/` subfolder, plus optional `templates/`, `scripts/`, `assets/`.
 - All paths in manifests are relative to the plugin directory.
 - Skills target **Next.js 15+**, **React 19+**, **TypeScript 5.7+** unless the skill's `SKILL.md` says otherwise.
 

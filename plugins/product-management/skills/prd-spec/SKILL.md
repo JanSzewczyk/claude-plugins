@@ -1,3 +1,13 @@
+---
+name: prd-spec
+description: >
+  Defines the standard PRD (Product Requirements Document) and TDD (Technical Design Document)
+  formats and the rules for mapping document content to specialist agents. Use when writing,
+  reviewing, or parsing a PRD/TDD, breaking a feature spec into agent tasks, or orchestrating
+  the spec-driven development (SDD) flow — including from the product-owner agent.
+allowed-tools: Read, Write, Edit
+---
+
 # PRD Spec Skill
 
 Defines standard document formats for Product Requirements Documents (PRD) and Technical Design Documents (TDD), and provides mapping rules from document content to specialist agents.

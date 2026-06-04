@@ -1,8 +1,5 @@
 ---
 name: update-deps
-version: 1.0.0
-lastUpdated: 2026-05-29
-author: Szum Tech Team
 description: >
   Update npm dependencies safely in sequential, theme-grouped batches. For each group: verify the app still works
   (type-check, lint, build, tests), commit the group on success or roll it back on failure, and pause to confirm before
@@ -12,17 +9,8 @@ description: >
   "update Storybook / Next / Vitest", "do a dependency update pass" — even if they don't say "update-deps". Prefer the
   library-updater agent instead for a single one-off package change; prefer this skill whenever there are several
   packages to move and the user wants it done safely and reported.
-tags: [dependencies, npm, upgrade, maintenance, migration, conventional-commits]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
 argument-hint: "[optional filter, e.g. 'storybook', 'minor-only', or 'skip-majors']"
-examples:
-  - Update all outdated npm dependencies
-  - Upgrade Storybook to the latest version
-  - Bump everything to latest and tell me what broke
-  - Do a dependency update pass on this repo
 ---
 
 # Update Deps
@@ -65,7 +53,7 @@ See [references/grouping.md](./references/grouping.md) for the family rules and 
    - **Build** — `build`
    - **Tests** — `test`, `test:ci`, `test:unit`. **Disable watch mode** or the run will hang — append `--run`
      (Vitest), `--watchAll=false` / `--ci` (Jest), or set `CI=true`.
-4. **Read project context** for conventions and any extra commands: `CLAUDE.md` and `.claude/project-context.md` if present.
+4. **Read project context** for conventions and any extra commands: `CLAUDE.md` if present.
 
 ## Workflow
 

@@ -1,20 +1,7 @@
 ---
 name: true-dom-tester
-version: 1.0.0
-lastUpdated: 2026-04-21
 description: Generates and runs automated browser tests using Playwright CLI and the accessibility tree (DOM snapshot). Faster and cheaper than screenshot-based approaches. Uses semantic locators, real DOM structure, and optional Firecrawl for bot-protected pages.
-tags: [testing, playwright, e2e, automation, dom, accessibility-tree, firecrawl, browser]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Bash(playwright-cli:*), Bash(npx playwright:*), TodoWrite
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Generate E2E tests for the login flow
-  - Test the checkout page and assert success state
-  - Write Playwright tests for the /dashboard route
-  - Scrape and test a bot-protected page with Firecrawl
-  - Run all E2E tests and show me failures
 ---
 
 # True DOM Automated Tester

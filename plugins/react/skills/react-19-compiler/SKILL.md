@@ -1,28 +1,7 @@
 ---
 name: react-19-compiler
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: React 19 patterns and React Compiler optimization guidance. Understand when to use manual memoization vs letting the compiler optimize, and leverage new hooks like useActionState and useFormStatus.
-tags:
-  [
-    react,
-    react-19,
-    react-compiler,
-    memoization,
-    useActionState,
-    useFormStatus,
-    server-components,
-  ]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - When should I use useMemo with React Compiler enabled
-  - How to use useActionState for form handling
-  - Implement form with useFormStatus for pending state
-  - Should I use React.memo with the compiler
 ---
 
 # React 19 & React Compiler Skill

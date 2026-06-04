@@ -26,8 +26,7 @@ versions of their dependencies.
 
 **IMPORTANT**: Before performing any updates, read the project context:
 
-1. **`.claude/project-context.md`** - For project-specific tech stack and key files
-2. **`CLAUDE.md`** - For development commands and project patterns
+Read **`CLAUDE.md`** for project-specific tech stack, key files, development commands, and project patterns.
 
 This ensures you understand which files may need updates during migrations.
 
@@ -45,7 +44,7 @@ This ensures you understand which files may need updates during migrations.
 
 ### Before Any Update
 
-1. Read `.claude/project-context.md` to understand:
+1. Read `CLAUDE.md` to understand:
    - Current tech stack and versions
    - Key configuration files that may need updates
    - Project-specific patterns
@@ -79,7 +78,7 @@ This ensures you understand which files may need updates during migrations.
 
 - **API Changes**: Update function signatures, parameters, and return types
 - **Import Changes**: Refactor import statements and module paths
-- **Configuration**: Update config files (check project-context.md for key files)
+- **Configuration**: Update config files (check CLAUDE.md for key files)
 - **Type Definitions**: Fix TypeScript errors from updated type definitions
 - **Deprecated Features**: Replace deprecated APIs with recommended alternatives
 

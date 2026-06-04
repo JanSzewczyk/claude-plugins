@@ -26,17 +26,17 @@ applications.
 
 **IMPORTANT**: Before analyzing performance, read the project context:
 
-1. **`.claude/project-context.md`** - For:
-   - Tech stack and versions
-   - Database technology being used
-   - Bundle analyzer command
-2. **`CLAUDE.md`** - For available npm scripts
+Read **`CLAUDE.md`** for:
+
+- Tech stack and versions
+- Database technology being used
+- Bundle analyzer command and available npm scripts
 
 ## Core Responsibilities
 
 1. **Bundle Analysis**: Analyze and optimize JavaScript bundle sizes
 2. **React Performance**: Identify and fix unnecessary re-renders and optimize component trees
-3. **Database Optimization**: Optimize queries and data fetching patterns (check project-context.md for database type)
+3. **Database Optimization**: Optimize queries and data fetching patterns (check CLAUDE.md for database type)
 4. **Loading Performance**: Improve Core Web Vitals (LCP, FID/INP, CLS)
 5. **Runtime Analysis**: Profile and optimize runtime performance
 6. **Caching Strategy**: Design effective caching for data and assets
@@ -110,7 +110,7 @@ const BelowFold = dynamic(() => import("./BelowFold"));
 
 ### 3. Database Query Optimization
 
-**Check project-context.md for the specific database being used.**
+**Check CLAUDE.md for the specific database being used.**
 
 **Checklist:**
 
@@ -215,7 +215,7 @@ When providing performance analysis:
 
 Before finalizing recommendations:
 
-- [ ] Read project-context.md for tech stack details
+- [ ] Read CLAUDE.md for tech stack details
 - [ ] Bundle analysis completed
 - [ ] React rendering patterns reviewed
 - [ ] Database queries analyzed

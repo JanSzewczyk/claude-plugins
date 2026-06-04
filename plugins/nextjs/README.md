@@ -80,7 +80,7 @@ ls your-project/.claude/skills/server-actions/SKILL.md
 
 | Problem                                     | Solution                                                                                                       |
 | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Agent doesn't pick up project conventions   | Ensure `.claude/project-context.md` exists and describes your stack, auth provider, and database               |
+| Agent doesn't pick up project conventions   | Ensure `CLAUDE.md` describes your stack, auth provider, and database                                           |
 | `/server-actions` assumes Clerk auth        | Adapt auth check to your provider (NextAuth, Supabase, JWT) — the pattern remains the same                     |
 | Error handling references Firebase          | `ServiceError` pattern works with any database — replace `categorizeServiceError` with your DB's error mapping |
 | Toast notifications not showing             | Check that `ToastHandler` is in your root layout providers and `usePathname` triggers are set up               |

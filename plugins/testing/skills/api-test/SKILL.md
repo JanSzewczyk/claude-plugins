@@ -1,19 +1,7 @@
 ---
 name: api-test
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Test Next.js Route Handlers and API endpoints using Playwright for real HTTP requests. Use when testing API endpoints, route handlers, or backend integrations.
-tags: [testing, api, route-handlers, playwright, e2e]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Test POST /api/budgets endpoint
-  - Verify authentication on /api/users route
-  - Test error handling for /api/expenses
-  - Create API test suite for onboarding endpoints
 ---
 
 # API Test Skill
@@ -26,7 +14,7 @@ Test Next.js Route Handlers with real HTTP requests using Playwright. This skill
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before creating API tests, check `.claude/project-context.md` for:
+**IMPORTANT**: Before creating API tests, check `CLAUDE.md` for:
 
 - **Authentication method** (Clerk, NextAuth, JWT, API Key)
 - **Auth testing pattern** (test tokens, session cookies, headers)
@@ -213,7 +201,7 @@ test.describe("API: [Endpoint Name]", () => {
 
 #### Testing with Authentication
 
-Check `project-context.md` for your auth provider and use the appropriate pattern:
+Check `CLAUDE.md` for your auth provider and use the appropriate pattern:
 
 ```typescript
 import { test, expect } from "@playwright/test";
@@ -249,7 +237,7 @@ function getAuthHeaders(token: string): Record<string, string> {
   // API Key:
   // return { 'X-API-Key': token };
 
-  // Check project-context.md for your pattern
+  // Check CLAUDE.md for your pattern
   return { Authorization: `Bearer ${token}` };
 }
 ```

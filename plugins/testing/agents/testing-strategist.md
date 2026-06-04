@@ -26,8 +26,7 @@ cost, and confidence levels.
 
 **IMPORTANT**: Before planning any test strategy, read the project context:
 
-1. **`.claude/project-context.md`** - For project-specific tech stack, test infrastructure, and conventions
-2. **`CLAUDE.md`** - For available test commands and project structure
+Read **`CLAUDE.md`** for project-specific tech stack, test infrastructure, conventions, available test commands, and project structure.
 
 ### Spec-Driven Development (SDD) mode
 

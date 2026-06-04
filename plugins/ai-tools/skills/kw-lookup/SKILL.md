@@ -7,6 +7,7 @@ description: >
   "sprawdź księgę wieczystą", "dane z KW", "znajdź adres/właściciela/hipoteki po KW".
   Łączy browser automation na portalu EKW (ekw.ms.gov.pl, wymaga ręcznego rozwiązania
   CAPTCHA) z REST API ULDK GUGiK do wzbogacenia o geometrię działki i współrzędne.
+allowed-tools: Read, Write, Bash, Bash(playwright-cli:*)
 ---
 
 # KW Lookup — odczyt księgi wieczystej

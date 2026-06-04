@@ -1,24 +1,12 @@
 ---
 name: firebase-firestore
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: >
   Firestore database layer for Next.js. Use when user asks to "Firestore query",
   "Firebase Admin SDK", "CRUD for Firestore", "seed Firestore",
   FieldValue.serverTimestamp(), Firestore transactions, "db collection query",
   "implement database queries", "Firestore error handling", "ServiceError for
   Firestore". Implements the ServiceError contract defined in the error-handling skill.
-tags: [firebase, firestore, database, typescript, error-handling, server-only]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__*
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Create database queries for user profiles
-  - Implement CRUD operations for budget management
-  - Add error handling to Firestore queries
-  - Set up Firebase seeding for predefined data
 ---
 
 # Firebase Firestore Skill
@@ -40,7 +28,7 @@ Create production-ready Firestore database queries with TypeScript, proper type 
 
 ### Before Implementation
 
-1. **Read project context** at `.claude/project-context.md` for project-specific patterns
+1. **Read project context** at `CLAUDE.md` for project-specific patterns
 2. **Check existing patterns** in `lib/firebase/` for configuration
 3. **Review feature structure** in `features/*/server/db/` for query patterns
 

@@ -2,7 +2,7 @@
 
 Mapping field types to appropriate mimicry-js generators and Faker methods.
 
-> **Note:** Check `.claude/project-context.md` for locale-specific values (currency, country, etc.)
+> **Note:** Check `CLAUDE.md` for locale-specific values (currency, country, etc.)
 >
 > **Tip:** Prefer mimicry-js built-in generators (`int`, `float`, `bool`, `oneOf`) over Faker for simple random values.
 >
@@ -36,7 +36,7 @@ city: () => faker.location.city();
 zipCode: () => faker.location.zipCode();
 country: () => faker.location.country();
 // Or use static value for your locale:
-// country: "USA"  // Check project-context.md for your locale
+// country: "USA"  // Check CLAUDE.md for your locale
 ```
 
 ## Commerce
@@ -44,7 +44,7 @@ country: () => faker.location.country();
 ```typescript
 productName: () => faker.commerce.productName();
 price: () => parseFloat(faker.commerce.price({ min: 10, max: 1000 }));
-currency: "USD"; // Check project-context.md for your locale currency
+currency: "USD"; // Check CLAUDE.md for your locale currency
 category: () => faker.commerce.department();
 ```
 

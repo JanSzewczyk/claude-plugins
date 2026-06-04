@@ -9,6 +9,7 @@ description: >
   programmatically interact with Google NotebookLM in any way. Also use when the user asks
   about setting up notebooklm-py, authenticating with NotebookLM, or integrating NotebookLM
   into scripts and CI/CD pipelines.
+allowed-tools: Read, Write, Bash
 ---
 
 # NotebookLM CLI & Python API

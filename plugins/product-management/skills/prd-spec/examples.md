@@ -150,5 +150,5 @@ Files to create:
 - `src/features/budgets/components/budget-form.tsx`
 - `src/features/budgets/schemas/budget-schema.ts`
 
-Reference: existing error handling pattern in `.claude/project-context.md`
+Reference: existing error handling pattern in `CLAUDE.md`
 ```

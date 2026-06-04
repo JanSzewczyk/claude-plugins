@@ -12,10 +12,8 @@ tools:
   Glob, Grep, Read, Write, Edit
 model: sonnet
 color: teal
-skills: storybook-testing, builder-factory
-maxTurns: 80
-memory: project
 permissionMode: acceptEdits
+skills: storybook-testing, builder-factory
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
@@ -35,7 +33,7 @@ Read both skills first. Follow them strictly. They override any default patterns
 
 ## Source of Truth: Read Context First
 
-1. **`.claude/project-context.md`** and **`CLAUDE.md`** — Storybook setup, test command, design-system conventions.
+1. **`CLAUDE.md`** — Storybook setup, test command, and design-system conventions.
 2. **The target component source** — props, handlers, conditional rendering, states (Phase 1 below).
 
 ### Spec-Driven Development (SDD) mode

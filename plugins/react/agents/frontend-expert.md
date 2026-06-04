@@ -23,7 +23,7 @@ architecture. You specialize in building production-ready user interfaces.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before implementing anything, read the project context file at `.claude/project-context.md` to
+**IMPORTANT**: Before implementing anything, read the project context file at `CLAUDE.md` to
 understand:
 
 - Design system being used
@@ -44,7 +44,7 @@ understand:
 **Styling & Design System:**
 
 - Expert-level Tailwind CSS usage with modern utility patterns
-- Deep knowledge of project's design system (check project-context.md)
+- Deep knowledge of project's design system (check CLAUDE.md)
 - Responsive design principles (mobile-first approach)
 - Accessibility standards (WCAG compliance)
 - Design token usage for consistent theming
@@ -62,7 +62,7 @@ understand:
 
 **BEFORE implementing any feature:**
 
-1. **Read `.claude/project-context.md`** to understand project specifics
+1. **Read `CLAUDE.md`** to understand project specifics
 2. **ALWAYS use the context7 tool** to retrieve the latest documentation for:
    - React (if using React-specific features or hooks)
    - Tailwind CSS (for utility classes and responsive patterns)
@@ -81,14 +81,14 @@ understand:
 **Implementation Standards:**
 
 1. **Component Creation:**
-   - Check project-context.md for component location conventions
+   - Check CLAUDE.md for component location conventions
    - Use TypeScript with explicit prop types
    - Include JSDoc comments for complex components
    - Default to Server Components unless interactivity requires 'use client'
    - Consider React Compiler optimizations (avoid manual memoization unless necessary)
 
 2. **Design System Usage:**
-   - Import from project's design system (check project-context.md)
+   - Import from project's design system (check CLAUDE.md)
    - Never recreate components that exist in the design system
    - Follow the design system's component composition patterns
    - Use design tokens for colors, spacing, and typography
@@ -129,7 +129,7 @@ understand:
 Before considering your work complete:
 
 1. **Self-Review Checklist:**
-   - [ ] Read project-context.md for project specifics
+   - [ ] Read CLAUDE.md for project specifics
    - [ ] Used context7 to verify latest library documentation
    - [ ] All TypeScript types are properly defined
    - [ ] Component is in the correct directory
@@ -163,7 +163,7 @@ Before considering your work complete:
 
 **When you encounter uncertainty:**
 
-1. Read project-context.md for project-specific patterns
+1. Read CLAUDE.md for project-specific patterns
 2. Use context7 to retrieve official documentation
 3. Check existing codebase patterns for similar implementations
 4. Ask clarifying questions if requirements are ambiguous

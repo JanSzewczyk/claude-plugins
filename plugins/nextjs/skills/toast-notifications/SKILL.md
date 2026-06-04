@@ -19,9 +19,6 @@ description: >
   notifications, or setting cookies for non-message state like theme. Bundles ready-to-copy
   source files under assets/.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-metadata:
-  author: Szum-Tech Team
-  version: "2.1.0"
 argument-hint: "show toast after action | toast after redirect | add toast system"
 ---
 

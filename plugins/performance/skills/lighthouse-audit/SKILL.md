@@ -1,20 +1,8 @@
 ---
 name: lighthouse-audit
-version: 1.0.0
-lastUpdated: 2026-05-31
 description: Automated Lighthouse audit for Next.js apps. Builds the production app, runs @lhci/cli across key URLs, scores all five categories, and produces a prioritized fix plan mapped to concrete Next.js code changes.
-tags: [lighthouse, performance, core-web-vitals, accessibility, seo, lhci]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
-user-invocable: true
 argument-hint: "[url1,url2,...] [--no-build] [--categories performance,accessibility,seo,best-practices,pwa]"
-examples:
-  - /lighthouse-audit
-  - /lighthouse-audit http://localhost:3000/dashboard,http://localhost:3000/products
-  - /lighthouse-audit https://my-app.vercel.app --no-build
-  - /lighthouse-audit --categories performance,accessibility
 ---
 
 # Lighthouse Audit Skill

@@ -1,7 +1,5 @@
 ---
 name: storybook-testing
-version: 3.1.0
-lastUpdated: 2026-03-30
 description:
   Create Storybook stories with browser-rendered interaction tests for React UI components using CSF Next format and
   .test() method. Covers visual states, user interactions (clicks, typing, hover), form validation UI, and component
@@ -9,58 +7,24 @@ description:
   component behavior in Storybook. Trigger this skill whenever the user mentions Storybook, stories, CSF Next,
   component interaction tests, .test() method, or wants to test a React UI component in isolation. NOT for unit testing
   pure functions/hooks (use unit-testing), API endpoints (use api-test), or full E2E page flows (use playwright-cli).
-tags:
-  [
-    testing,
-    storybook,
-    react,
-    component-testing,
-    integration-testing,
-    interaction-testing,
-    test-method,
-    csf-next,
-    stories,
-    browser-testing,
-  ]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Write Storybook tests for UserProfileCard component
-  - Create story tests for my LoginForm
-  - Add Storybook interaction tests to the ProductCard component
-  - Generate comprehensive Storybook stories with tests for NavBar
-  - Test click and hover interactions for the Tooltip component in Storybook
-  - Write Storybook tests for form validation on my CheckoutForm
 ---
 
 # Storybook Testing Skill
 
-Generate comprehensive Storybook stories with interactive tests using CSF Next format and `.test()` method for React
-components.
+Generate Storybook stories with interaction tests for React components using **Storybook 10+ CSF Next format** and the
+`.test()` method.
 
-> **Reference Files:**
->
-> - [references/mocking.md](./references/mocking.md) - Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
-> - [references/patterns.md](./references/patterns.md) - Testing patterns and examples
-> - [references/best-practices.md](./references/best-practices.md) - Best practices, migration guide, and common pitfalls
-> - [references/examples-and-templates.md](./references/examples-and-templates.md) - Practical code examples and component test templates
-> - [references/design-system.md](./references/design-system.md) - Testing @szum-tech/design-system components
-> - [references/api-reference.md](./references/api-reference.md) - Complete API documentation
+This file is the **complete rule set** — everything you need to write correct stories lives here. Open a reference file
+only when you need the thing it holds:
 
-## Context
-
-This project uses **Storybook 10+ with CSF Next format** - the latest Component Story Format with factory functions for
-full type safety.
-
-Stories are used for:
-
-- **Component testing** - Test components in isolation
-- **Interaction testing** - Verify user interactions (clicks, typing)
-- **Validation testing** - Test form validation and error states
-- **Accessibility testing** - Verify a11y with addon
+> - [references/api-reference.md](./references/api-reference.md) — exact signatures: every query, assertion, `userEvent`
+>   method, factory option, import path, plus a common-element table (which roles render in portals; dialog/toast/loading
+>   patterns). The lookup when you forget an API or how a specific element behaves.
+> - [references/mocking.md](./references/mocking.md) — copy-paste recipes for each mock mechanism (`fn()`, `sb.mock()`,
+>   MSW REST/GraphQL, Next.js navigation, Context decorators, builders, `beforeEach`).
+> - [references/examples.md](./references/examples.md) — full worked `.stories.tsx` files and per-component-type
+>   templates (Button, Form, Dialog, Select, List, Input, Card, Tabs). Reach for these when you want a whole file to adapt.
 
 ## When to Use This Skill vs Others
 
@@ -80,114 +44,24 @@ Stories are used for:
 
 ## Workflow
 
-1. **Analyze component** - Props, interactions, states, callbacks
-2. **Create story file** - Same directory as component: `component.stories.tsx`
-3. **Write minimal stories** - 1-2 stories for different component states
-4. **Add multiple tests** - Use `.test()` method; ONE content test with `step()`, separate `.test()` per behavior
-5. **Run tests** - `npm run test:storybook`
-
-## ⭐ Preferred Pattern: `.test()` Method
-
-**IMPORTANT:** Use `.test()` method to add multiple tests to a single story instead of creating separate test stories.
-
-### Why `.test()` Over Multiple Stories?
-
-- ✅ **Fewer stories** - 80% reduction in story count
-- ✅ **Better isolation** - Each test is independent
-- ✅ **Clearer intent** - Test names describe behavior
-- ✅ **Better reporting** - Individual test results in Storybook UI
-- ✅ **Less boilerplate** - No repeated `meta.story()` calls
-
-## CRITICAL: userEvent Must Be Destructured from Parameters
-
-**Never import `userEvent` from `storybook/test`.** Always destructure it from the test function parameters.
-
-```typescript
-// ❌ WRONG — breaks Storybook timing integration
-import { expect, fn, userEvent } from "storybook/test";
-Story.test("Test", async ({ canvas }) => {
-  await userEvent.click(button);
-});
-
-// ✅ CORRECT — properly integrated with Storybook
-import { expect, fn } from "storybook/test";
-Story.test("Test", async ({ canvas, userEvent }) => {
-  await userEvent.click(button);
-});
-```
-
-**Rules:**
-
-- **Import:** Only `expect`, `fn`, `waitFor`, `screen` from `storybook/test`
-- **Destructure:** `userEvent`, `canvas`, `args`, `step` always come from the function parameter
-- **Why:** The test framework provides these with proper Storybook integration to handle timing correctly
+1. **Analyze the component** — props, interactions, states, callbacks, conditional rendering.
+2. **Create the story file** — same directory as the component: `component.stories.tsx`.
+3. **Write minimal stories** — 1–2 stories per distinct component state (different args = different story).
+4. **Add tests with `.test()`** — group static content into one test; one `.test()` per distinct behavior.
+5. **Run tests** — `npm run test:storybook`. Read failures, fix, re-run.
 
 ## CSF Next Format
 
-CSF Next uses factory functions that provide full type safety:
+CSF Next uses factory functions for full type safety. The chain is:
 
 ```
 definePreview → preview.meta → meta.story
 ```
 
-### Story File Structure (Using `.test()` Method)
-
-```typescript
-import { expect, fn, waitFor } from "storybook/test";
-
-import preview from "~/.storybook/preview";
-
-import { SubmitButton } from "./submit-button";
-
-const meta = preview.meta({
-  title: "Components/Submit Button",
-  component: SubmitButton,
-  args: {
-    onClick: fn(),
-  },
-});
-
-// Story with Story suffix to avoid namespace conflict with imported component
-export const SubmitButtonStory = meta.story({ name: "Submit Button" });
-
-// Test 1: Rendering
-SubmitButtonStory.test(
-  "Renders button with correct text",
-  async ({ canvas }) => {
-    const button = canvas.getByRole("button", { name: /submit/i });
-    await expect(button).toBeVisible();
-  },
-);
-
-// Test 2: Interaction
-SubmitButtonStory.test(
-  "Clicking button triggers onClick",
-  async ({ canvas, userEvent, args }) => {
-    const button = canvas.getByRole("button", { name: /submit/i });
-    await userEvent.click(button);
-    await expect(args.onClick).toHaveBeenCalled();
-  },
-);
-
-// Test 3: Accessibility
-SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
-  const button = canvas.getByRole("button", { name: /submit/i });
-  await expect(button).toHaveAccessibleName();
-});
-```
-
-> **Note:** `SubmitButtonStory` uses the `Story` suffix because this is the **only story** for this component — the suffix avoids namespace collision with the imported binding. For components with multiple stories, use plain descriptive state names (`EmptyForm`, `FilledForm`) without the suffix.
-
-### When to Use `play` Instead of `.test()`
-
-`play` has two valid use cases — **demos** and **dependent flows**. It should **never** be used for independent test assertions.
-
-1. **Demos** — Use `play` **without assertions** to show component after user interaction in Storybook docs
-2. **Complex Dependent Flows** (rare ~10%) — Use `play` with `step()` when steps depend on each other
-
-> **See [best-practices.md](./references/best-practices.md) for the full decision matrix, component type guidelines, and code examples.**
-
-### Key Differences from CSF 3.0
+- **Import the preview**: `import preview from "~/.storybook/preview"` — provides the type-safe factories.
+- **No default export** — unlike CSF 3.0, you never `export default meta`.
+- **Let types be inferred** — don't add manual `Meta`/`StoryObj` type annotations.
+- **`definePreview` lives only in `.storybook/preview.tsx`**, never in a story file.
 
 | CSF 3.0                                     | CSF Next                                     |
 | ------------------------------------------- | -------------------------------------------- |
@@ -197,216 +71,205 @@ SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
 | `type Story = StoryObj<typeof meta>`        | Types inferred automatically                 |
 | `export const Story: Story = { }`           | `export const Story = meta.story({ })`       |
 
-## Story Configuration Conventions
+## ⭐ Prefer the `.test()` Method
 
-### Title Field
+Attach multiple independent tests to a single story with `.test()` instead of creating separate test stories. This is
+the right tool for ~90% of tests: fewer stories, each test isolated, names describe behavior, individual results in the
+Storybook UI, no repeated `meta.story()` boilerplate.
 
-Always use **human-readable, space-separated** words in the `title` field — matching the component's display name:
+### `.test()` vs `play` — when to use which
 
-```typescript
-// ❌ BAD - CamelCase (unreadable in Storybook sidebar)
-title: "Components/CountrySelect";
-title: "Components/InfoTooltip";
-title: "Components/SettingsTabs";
+- **`.test()` (≈90%)** — every independent test assertion. Default choice.
+- **`play` without assertions** — a demo that shows the component after some interaction in Storybook docs.
+- **`play` with `step()` (≈10%, rare)** — ONE cohesive flow whose steps genuinely depend on each other (e.g. a complete
+  multi-step sign-up journey viewed as one narrative).
+- **Never use `play` for independent test assertions** — that's what `.test()` is for.
 
-// ✅ GOOD - Spaced words (clean sidebar display)
-title: "Components/Country Select";
-title: "Components/Info Tooltip";
-title: "Components/Settings Tabs";
-```
+| Component type                     | Approach                                         |
+| ---------------------------------- | ------------------------------------------------ |
+| Simple (Button, Badge, Icon)       | `.test()` only, keep minimal                     |
+| Forms & inputs                     | `.test()` primary; `play` only for truly dependent flows |
+| Complex interactive (wizard, checkout) | `.test()` for features; `play` for the end-to-end workflow |
 
-The title path segments use the same spacing as the `name` field in the story config.
+## CRITICAL — Correctness Rules
 
----
+These cause real, hard-to-debug failures if violated.
 
-## Story Naming Conventions
-
-**Stories** represent component states - use descriptive, specific names:
-
-### Single Story Components
-
-If a component has only ONE story, use the `ComponentNameStory` format with a `name` field — this
-avoids namespace collision with the imported component binding:
-
-- `LoginFormStory` + `name: "Login Form"` — for the LoginForm component
-- `UserCardStory` + `name: "User Card"` — for the UserCard component
-- `SearchInputStory` + `name: "Search Input"` — for the SearchInput component
-
-### Multiple Story Components
-
-If component has multiple stories, use **descriptive state names**:
-
-- `EmptyForm` / `FilledForm` - Empty vs populated states
-- `LoadingButton` / `IdleButton` - Loading vs idle states
-- `ErrorState` / `SuccessState` - Different result states
-- `DisabledInput` / `EnabledInput` - Disabled vs enabled states
-
-### Visual Variant Stories
-
-For visual documentation (styles, themes):
-
-- `Primary` / `Secondary` / `Destructive` - Button variants
-- `Small` / `Medium` / `Large` - Size variants
-- `Light` / `Dark` - Theme variants
-
-**❌ Avoid:** Generic names like `Default`, `Basic`, `Example` **✅ Prefer:** Specific names that describe the component
-or state
-
----
-
-**Tests** describe specific behaviors (use `.test()` method):
-
-- `"Renders heading and description"` - What renders
-- `"Shows validation error on empty submit"` - Validation behavior
-- `"Clicking button triggers callback"` - Interaction behavior
-- `"Keyboard navigation works with arrow keys"` - Accessibility behavior
-
-### Examples
-
-#### Single Story Component
+- **Never import `userEvent`.** Always destructure it from the test/play function parameters. An imported `userEvent`
+  bypasses Storybook's integration and breaks interaction timing.
+  - Import **only** `expect`, `fn`, `waitFor`, `screen` from `storybook/test`.
+  - **Never import** `userEvent`, `within`, or `canvas` — `userEvent`, `canvas`, `canvasElement`, `args`, `step` all
+    come from the function parameter.
 
 ```typescript
-// Component: UserCard
-// Story: Named after component with Story suffix to avoid namespace conflict
-export const UserCardStory = meta.story({ name: "User Card" });
-
-// Tests: Specific behaviors
-UserCardStory.test("Renders user name and avatar", async ({ canvas }) => { ... });
-UserCardStory.test("Clicking card triggers onSelect", async ({ canvas }) => { ... });
-UserCardStory.test("Shows verified badge for verified users", async ({ canvas }) => { ... });
-```
-
-#### Multiple Story Component
-
-```typescript
-// Component: LoginForm
-// Story 1: Empty form state
-export const EmptyForm = meta.story({});
-
-EmptyForm.test("Renders email and password fields", async ({ canvas }) => { ... });
-EmptyForm.test("Shows validation on empty submit", async ({ canvas }) => { ... });
-
-// Story 2: Pre-filled form state
-export const FilledForm = meta.story({
-  args: { defaultValues: { email: "user@example.com" } }
+// ❌ WRONG — breaks Storybook timing integration
+import { expect, fn, userEvent } from "storybook/test";
+Story.test("Test", async ({ canvas }) => {
+  await userEvent.click(button);
 });
 
-FilledForm.test("Displays pre-filled email", async ({ canvas }) => { ... });
-FilledForm.test("Can modify pre-filled values", async ({ canvas }) => { ... });
+// ✅ CORRECT
+import { expect, fn } from "storybook/test";
+Story.test("Test", async ({ canvas, userEvent }) => {
+  await userEvent.click(button);
+});
 ```
 
-## Play Function Parameters
+- **Await everything.** Every `userEvent.*` call and every `expect(...)` assertion is async — always `await` it.
+- **Use semantic queries** — `getByRole`, `getByLabelText`, `getByText`. Never `getByTestId` or `querySelector` (they
+  test implementation, not behavior).
+- **Use `queryBy*` for negative assertions** — it returns `null` instead of throwing (`getBy*` throws and fails the
+  test before your `not.toBeInTheDocument()` runs).
+- **Use `findBy*` / `waitFor()` for dynamic content** — anything that appears after an interaction, async state change,
+  or animation.
+- **Test user-visible behavior, not implementation** — assert on `toBeVisible()`, `toBeDisabled()`,
+  `toHaveTextContent()`, not on internal component state.
 
-- `canvas` - Testing Library queries scoped to component
-- `canvasElement` - Raw DOM element (for portal queries)
-- `userEvent` - Pre-configured interaction methods
-- `args` - Story args (props)
-- `step` - Group assertions into named steps
+## canvas vs screen
 
-## Using Test Builders
-
-**Always prefer builders over inline mock data:**
+- **`canvas`** — Testing Library queries scoped to the story root. Default for normal inline content (buttons, inputs,
+  text, headings).
+- **`screen`** — queries the whole document. **Required for portal content** — modals/dialogs, tooltips, popovers,
+  dropdown/select option lists — because portals render to `document.body`, outside the story root.
+- **`canvasElement`** — the raw DOM element; only for direct DOM access (rare).
+- **Portal pattern**: trigger the interaction inside `canvas`, then query the portal content via `screen.findBy*`.
+- Prefer `screen` over `within(canvasElement.parentElement)` unless you hit test-isolation issues.
 
 ```typescript
+await userEvent.click(canvas.getByRole("button", { name: /open/i })); // trigger in canvas
+const dialog = await screen.findByRole("dialog"); // portal content via screen
+await userEvent.click(screen.getByRole("button", { name: /close/i }));
+```
+
+## Story & Test Naming
+
+**Stories** represent component states.
+
+- **Single story for a component** → name it `ComponentNameStory` with a `name:` field. The `Story` suffix avoids a
+  namespace collision with the imported component binding.
+  - `export const UserCardStory = meta.story({ name: "User Card" })`
+- **Multiple stories** → plain descriptive state names, no suffix: `EmptyForm` / `FilledForm`, `LoadingButton` /
+  `IdleButton`, `ErrorState` / `SuccessState`, `Primary` / `Secondary` / `Destructive`.
+- **Avoid generic names**: never `Default`, `Basic`, `Example`, `Test1`, `Story2`.
+- **Different args/props → separate stories.** Same args → share one story with multiple `.test()` calls.
+
+**Title field** — use human-readable, space-separated words matching the component's display name: `"Components/Country
+Select"`, not `"Components/CountrySelect"`.
+
+**Test names** describe a specific behavior as a sentence.
+
+- ✅ `"Shows validation error on empty submit"`, `"Clicking card triggers onSelect"`, `"Disabled button prevents submission"`
+- ❌ `"Test 1"`, `"Works correctly"`, `"Validation"`
+
+## Test Organization
+
+**Group assertions by category, not per element.** Over-splitting (a separate `.test()` for every text node) is an
+anti-pattern.
+
+- **Content** → ONE test per story state: `"Renders all expected content"` (all text, headings, labels, classes).
+  Skip it if behavior tests already cover those elements implicitly.
+- **Accessibility** → ONE test covering the a11y checks (roles, ARIA, focusability).
+- **Interaction / Validation / Callbacks** → ONE test per distinct action, rule, or callback.
+
+**`step()`** groups phases within a test and produces labelled, structured output in the test runner (comments are
+invisible there).
+
+- Use `step()` when a test has **3+ phases** or assertion groups (fill → submit → verify).
+- Skip `step()` for 1–2 line tests.
+- `step()` works in both `.test()` and `play`.
+
+**Story coverage checklist** — consider: initial state, prefilled, loading, error (validation & server), success, edge
+cases, interactions, multi-step flows, keyboard, accessibility.
+
+**Extract repeated setup** into shared helper functions. For elements that may not exist (e.g. responsive/mobile-only),
+**query first (`queryBy*`), then assert conditionally.**
+
+## Mocking
+
+Rules below; copy-paste recipes for each in [references/mocking.md](./references/mocking.md).
+
+- **Callback props → `fn()`** from `storybook/test`. Put the mock in `meta.args` so every test shares one instance, then
+  assert with `toHaveBeenCalled` / `toHaveBeenCalledWith` / `toHaveBeenCalledTimes`.
+- **Real network requests → MSW**, not `fn()`. (`fn()` mocks a prop the component calls; MSW mocks HTTP the component
+  makes.) Define handlers per story in `parameters.msw.handlers` so each story controls its own responses.
+- **External modules → `sb.mock(import(...))` in `.storybook/preview.ts`**, never in a story file — module mocks must be
+  registered globally before stories load. Configure behaviour per story via `mocked()` inside `beforeEach`.
+- **React Context / providers → decorators**, not props. Define globally in `.storybook/preview.tsx`, or per story to
+  override.
+- **`beforeEach`** for mock configuration and to **reset mocks between tests** so state doesn't leak; story-level
+  `beforeEach` overrides meta-level.
+
+## Using Builders
+
+Prefer test builders over hand-written inline mock data — they're reusable and typed. Use `.one()` for a single object,
+`.many(n)` for lists, and pass overrides for deterministic values you assert against. If a builder doesn't exist, invoke
+the `/builder-factory` skill to generate it.
+
+## Migrating CSF 3.0 → CSF Next
+
+1. Identify test stories whose `play` functions are independent assertions — those convert to `.test()`.
+2. Group by component state: stories with the same args collapse into one story with multiple `.test()` calls.
+3. Convert each `play` assertion to a `.test()`; destructure `userEvent` from the parameters (stop importing it).
+4. Keep `step()` only where it adds clarity (3+ phases).
+5. Verify each test runs independently — a failing test must not block the others.
+
+## Canonical Example
+
+A complete single-component story file. For more (forms, dialogs, portals, lists, tabs) see
+[references/examples.md](./references/examples.md).
+
+```tsx
+// components/submit-button.stories.tsx
 import { expect, fn } from "storybook/test";
 
 import preview from "~/.storybook/preview";
 
-import { userBuilder } from "~/features/*/test/builders";
-
-import { UserCard } from "./user-card";
+import { SubmitButton } from "./submit-button";
 
 const meta = preview.meta({
-  component: UserCard,
+  title: "Components/Submit Button",
+  component: SubmitButton,
   args: {
-    onSubmit: fn(),
+    onClick: fn(), // shared mock instance for all tests
   },
 });
 
-// Story suffix avoids namespace conflict with imported UserCard component
-export const UserCardStory = meta.story({
-  name: "User Card",
-  args: {
-    user: userBuilder.one(),
-  },
+// Only story for this component → Story suffix + name field
+export const SubmitButtonStory = meta.story({ name: "Submit Button" });
+
+SubmitButtonStory.test("Renders all expected content", async ({ canvas }) => {
+  const button = canvas.getByRole("button", { name: /submit/i });
+  await expect(button).toBeVisible();
 });
 
-// Multiple tests for that story
-UserCardStory.test("Renders user name correctly", async ({ canvas, args }) => {
-  const name = canvas.getByText(args.user.name);
-  await expect(name).toBeVisible();
-});
-
-UserCardStory.test("Displays user avatar", async ({ canvas }) => {
-  const avatar = canvas.getByRole("img", { name: /avatar/i });
-  await expect(avatar).toBeVisible();
-});
-
-UserCardStory.test(
-  "Clicking card triggers callback",
+SubmitButtonStory.test(
+  "Clicking button triggers onClick",
   async ({ canvas, userEvent, args }) => {
-    const card = canvas.getByRole("article");
-    await userEvent.click(card);
-    await expect(args.onSubmit).toHaveBeenCalled();
+    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
+    await expect(args.onClick).toHaveBeenCalledOnce();
   },
 );
+
+SubmitButtonStory.test("Is activated by the Enter key", async ({ canvas, userEvent, args }) => {
+  canvas.getByRole("button", { name: /submit/i }).focus();
+  await userEvent.keyboard("{Enter}");
+  await expect(args.onClick).toHaveBeenCalled();
+});
 ```
-
-If builder doesn't exist, invoke `/builder-factory` skill first.
-
-## Running Tests
-
-```bash
-npm run test:storybook  # Run component tests
-npm run storybook:dev   # View in Storybook UI
-```
-
-## Mocking in Storybook
-
-| Mock Type            | Tool                                | Use Case                              |
-| -------------------- | ----------------------------------- | ------------------------------------- |
-| **Callback props**   | `fn()`                              | onClick, onSubmit, event handlers     |
-| **External modules** | `sb.mock()` in preview.ts           | uuid, session, analytics              |
-| **REST/GraphQL**     | MSW `http.*` / `graphql.*`          | fetch, axios, API calls               |
-| **Next.js hooks**    | `@storybook/nextjs/navigation.mock` | useRouter, useParams, redirect        |
-| **React Context**    | Decorators                          | AuthContext, ThemeProvider            |
-| **Mock data**        | Builders (`/builder-factory`)       | User objects, complex data structures |
-
-> **See [mocking.md](./references/mocking.md) for complete examples, patterns, and best practices.**
 
 ## Common Mistakes to Avoid
 
-1. **Importing `userEvent`** — Always destructure from test parameters, never import from `storybook/test`
-2. **Using CSF 3.0 patterns** — Use `preview.meta()` / `meta.story()`, not `satisfies Meta<>` / `export default meta`
-3. **Separate stories per test** — Use `.test()` on one story instead of multiple `play` stories
-4. **Generic story names** — Use descriptive names (`EmptyForm`, `FilledForm`), not `Default` or `Basic`
-5. **Using `canvas` for portal content** — Use `screen` from `storybook/test` for modals, dropdowns, tooltips
+1. **Importing `userEvent`** — always destructure it from the test parameters.
+2. **Forgetting `await`** on `userEvent` calls or assertions — causes flaky/false passes.
+3. **Using CSF 3.0 patterns** — use `preview.meta()` / `meta.story()`, never `satisfies Meta<>` / `export default meta`.
+4. **A separate story per test** — use `.test()` on one story instead.
+5. **Generic story names** — use descriptive state names, not `Default` / `Basic`.
+6. **Using `canvas` for portal content** — use `screen` for modals, dropdowns, tooltips.
+7. **Over-splitting content assertions** — group static content into one test.
 
-> **See [best-practices.md](./references/best-practices.md) for detailed examples and fixes for each anti-pattern.**
+## Questions to Ask Before Writing
 
-## Questions to Ask
-
-Before writing tests, consider:
-
-### Interactions & Behavior
-
-- What user interactions should be tested?
-- Are there specific edge cases to cover?
-- What validation rules should be tested?
-- What keyboard navigation should work?
-
-### Mocking Requirements
-
-- **Functions:** Do callbacks need to be mocked with `fn()`?
-- **Modules:** Are there external dependencies (uuid, analytics) to mock with `sb.mock()`?
-- **APIs:** Does the component fetch data that needs MSW mocking?
-- **Next.js:** Does it use `useRouter`, `useParams`, or `useSearchParams`?
-- **Context:** Does it consume React Context that needs mocking?
-- **Data:** Should I use test builders or inline mock data?
-
-### Test Coverage
-
-- What are the critical user paths?
-- What error states should be tested?
-- Are there loading states to verify?
-- What accessibility requirements must be met?
+- What interactions, validation rules, and keyboard behaviour must be tested?
+- What states exist (loading, error, empty, success) — which need their own story?
+- What needs mocking — callbacks (`fn()`), network (MSW), modules (`sb.mock()`), Context (decorators), data (builders)?
+- Does any content render in a portal (→ `screen`)?

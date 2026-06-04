@@ -1,20 +1,7 @@
 ---
 name: unit-testing
-version: 1.0.0
-lastUpdated: 2026-02-11
 description: Write unit tests with Vitest for TypeScript projects — mocking, async testing, parameterized tests, server action testing, and coverage. Use when writing unit tests for utilities, server-side logic, schemas, or pure functions.
-tags: [testing, vitest, unit-testing, mocking, typescript]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Write unit tests for the formatCurrency utility
-  - Test the createBudget server action
-  - Add unit tests for my Zod validation schema
-  - Create tests for the transformApiResponse function
-  - Test the useDebounce hook
 ---
 
 # Unit Testing Skill (Vitest)

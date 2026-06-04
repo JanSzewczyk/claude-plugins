@@ -1,19 +1,7 @@
 ---
 name: t3-env-validation
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Type-safe environment variable validation with @t3-oss/env-nextjs and Zod. Build-time validation ensures all required env vars are present and correctly typed.
-tags: [environment, validation, zod, type-safety, security, next.js]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to add a new environment variable
-  - Validate optional env vars with defaults
-  - Client-side vs server-side environment variables
-  - Transform environment variable values
 ---
 
 # T3 Env Validation Skill

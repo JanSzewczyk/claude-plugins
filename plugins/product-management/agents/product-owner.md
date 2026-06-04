@@ -87,7 +87,7 @@ Your prompt includes the user's approved task list (possibly with modifications 
    - **Task**: clear description of what the agent must do
    - **Requirements**: specific details from the PRD/TDD
    - **Files to create/modify**: specific file paths based on feature name
-   - **Reference**: point to relevant project-context.md or skill patterns
+   - **Reference**: point to relevant CLAUDE.md or skill patterns
 3. Format:
 
 ```markdown
@@ -106,7 +106,7 @@ Your prompt includes the user's approved task list (possibly with modifications 
 **Files to create/modify:**
 - `[file-path]` — [purpose]
 
-**Reference:** [Relevant skill or project-context.md section]
+**Reference:** [Relevant skill or CLAUDE.md section]
 
 ---
 ```

@@ -1,20 +1,7 @@
 ---
 name: performance-optimization
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Performance optimization patterns for Next.js applications. Covers bundle analysis, React rendering optimization, database query optimization, Core Web Vitals, image optimization, and caching strategies.
-tags: [performance, bundle, react, optimization, core-web-vitals, caching]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to reduce bundle size
-  - Optimize React rendering
-  - Fix slow database queries
-  - Improve Core Web Vitals
-  - Implement virtualized lists
 ---
 
 # Performance Optimization Skill

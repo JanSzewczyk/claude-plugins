@@ -25,8 +25,7 @@ operations. You specialize in designing scalable, performant data structures for
 
 **IMPORTANT**: Before designing any data model, read the project context:
 
-1. **`.claude/project-context.md`** - For database technology, type patterns, and error handling
-2. **`CLAUDE.md`** - For project structure and coding conventions
+Read **`CLAUDE.md`** for database technology, type patterns, error handling, project structure, and coding conventions.
 
 This tells you:
 
@@ -64,7 +63,7 @@ Query for:
 
 ### 2. Project Type Pattern Adherence
 
-Check `.claude/project-context.md` for the project's type lifecycle pattern. See `firebase-firestore` skill for complete type lifecycle examples (Base → DB → Application → Create DTO → Update DTO).
+Check `CLAUDE.md` for the project's type lifecycle pattern. See `firebase-firestore` skill for complete type lifecycle examples (Base → DB → Application → Create DTO → Update DTO).
 
 ### 3. Collection/Table Design Principles
 
@@ -108,7 +107,7 @@ See `db-migration` skill for migration script templates.
 
 ### 6. Error Handling
 
-Follow the project's error handling pattern from project-context.md. See `error-handling` and `firebase-firestore` skills for tuple return pattern and `ServiceError` class usage.
+Follow the project's error handling pattern from CLAUDE.md. See `error-handling` and `firebase-firestore` skills for tuple return pattern and `ServiceError` class usage.
 
 ## Design Process
 
@@ -184,7 +183,7 @@ When proposing a data model, provide:
 
 Before finalizing any design:
 
-- [ ] Read project-context.md for database patterns
+- [ ] Read CLAUDE.md for database patterns
 - [ ] Types follow project's type lifecycle
 - [ ] All queries are optimized with proper indexes identified
 - [ ] Error handling follows project pattern

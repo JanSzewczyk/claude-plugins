@@ -58,7 +58,7 @@ ls your-project/.claude/skills/react-19-compiler/SKILL.md
 
 | Problem                                          | Solution                                                                                          |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| Agent doesn't pick up project conventions        | Ensure `.claude/project-context.md` exists and describes your design system and component layout  |
+| Agent doesn't pick up project conventions        | Ensure `CLAUDE.md` describes your design system and component layout                              |
 | Agent references skills from other plugins       | `frontend-expert` also uses skills from the **design** and **testing** plugins — install them too |
 | React Compiler guidance assumes a Next.js setup  | The patterns apply to any React 19 toolchain; adapt the build config to your bundler              |
 

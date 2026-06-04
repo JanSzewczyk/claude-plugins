@@ -1,7 +1,5 @@
 ---
 name: error-handling
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: >
   Comprehensive error handling for Next.js applications — use whenever adding or
   fixing error handling, building database or service layer operations, writing
@@ -13,18 +11,7 @@ description: >
   errors", "retry failed requests", "error boundary", "handle action errors",
   "toast on error", "log errors", "circuit breaker", "graceful degradation",
   "categorizeServiceError", "ServiceError".
-tags:
-  [error-handling, ServiceError, error-boundary, toast, logging, server-actions]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to handle database errors
-  - Error boundary patterns
-  - Toast notifications for errors
-  - Server action error handling
 ---
 
 # Error Handling Skill

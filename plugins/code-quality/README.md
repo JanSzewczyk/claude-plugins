@@ -90,7 +90,7 @@ Install skills from related plugins for the best review coverage.
 
 | Problem                                            | Solution                                                                                                                                                  |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| code-reviewer misses project patterns              | Ensure `.claude/project-context.md` and `CLAUDE.md` describe your conventions                                                                             |
+| code-reviewer misses project patterns              | Ensure `CLAUDE.md` describes your conventions                                                                                                             |
 | JetBrains MCP not available                        | The code-reviewer works without it — MCP integration is optional for IDE problem detection                                                                |
 | performance-analyzer shows wrong bundle sizes      | Run `npm run build` first to generate fresh build output                                                                                                  |
 | library-updater breaks after update                | Run `npm run type-check && npm run lint && npm run build` to identify issues. Revert with `git checkout -- package.json package-lock.json && npm install` |

@@ -1,6 +1,5 @@
 ---
 name: server-actions
-version: 2.0.0
 description: >
   Create Next.js Server Actions in TypeScript with a typed result contract, Zod validation, auth guards, error handling,
   and React integration. Use this skill whenever writing or modifying Server Actions in a Next.js App Router project —
@@ -10,9 +9,7 @@ description: >
   actions. Stack-agnostic: works with any auth provider, ORM, logger, and toast library. Targets Next.js 15/16+ with the
   App Router. Not for: fetching/reading data (use a Server Component), building the toast UI or post-redirect toast
   plumbing, React error boundaries, or route handlers / REST API endpoints.
-tags: [next.js, server-actions, forms, mutations, validation, zod, react-hook-form]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-user-invocable: true
 ---
 
 # Server Actions

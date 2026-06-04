@@ -1,19 +1,7 @@
 ---
 name: tailwind-css-4
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Tailwind CSS v4 patterns with CSS-first configuration, @theme directive, design system integration, and utility-first styling for Next.js applications.
-tags: [tailwind, css, styling, design-system, utility-first, responsive]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to add custom colors in Tailwind v4
-  - Configure Tailwind with design system
-  - Responsive design patterns with Tailwind
-  - Tailwind v4 breaking changes from v3
 ---
 
 # Tailwind CSS v4 Skill

@@ -1,31 +1,7 @@
 ---
 name: builder-factory
-version: 5.0.0
-lastUpdated: 2026-04-01
 description: Use this skill to create typed test data builders with mimicry-js and Faker for any TypeScript interface or type. Invoke whenever the user asks to generate mock data, create test fixtures, build factory functions, produce seed data, or construct fake objects for unit tests, Storybook stories, or E2E scenarios. Also use when migrating from test-data-bot or Fishery to mimicry-js, or when the user mentions builders, factories, or typed mock/fake/test/seed data generation — even if they describe the task indirectly (e.g. "I need realistic invoices for testing" or "generate sample users for my stories").
-tags:
-  [
-    testing,
-    factories,
-    mock-data,
-    mimicry-js,
-    faker,
-    typescript,
-    fixtures,
-    builders,
-    storybook,
-    seed-data,
-  ]
 allowed-tools: Read, Write, Edit, Glob, Grep
-compatibility:
-  dependencies: [mimicry-js, "@faker-js/faker"]
-examples:
-  - Create a builder for User type
-  - Generate builder for my Order model
-  - Build a builder for the Resource type with all relationships
-  - Create builders for Product and Order types
-  - I need mock data for testing the checkout flow
-  - Generate test fixtures for the API response types
 ---
 
 # Builder Factory Generator
@@ -39,7 +15,7 @@ Generate mimicry-js factory builders for TypeScript types.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Check `.claude/project-context.md` for:
+**IMPORTANT**: Check `CLAUDE.md` for:
 
 - **Faker locale** (e.g., `@faker-js/faker/locale/pl` for Polish or `@faker-js/faker` for default English)
 - **Builder location convention** (e.g., `features/[feature]/test/builders/`)
@@ -73,7 +49,7 @@ Use `Glob` to find existing builders:
 
 ### 3. Builder Location
 
-Check project-context.md for conventions. Common patterns:
+Check CLAUDE.md for conventions. Common patterns:
 
 - Feature-specific: `features/[feature-name]/test/builders/`
 - Shared types: `tests/builders/`
@@ -96,7 +72,7 @@ export const userProfileBuilder = build<UserProfile>({...});
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+import { faker } from "@faker-js/faker"; // Check CLAUDE.md for locale
 import type { YourType } from "~/features/[feature]/types/your-type";
 
 /**
@@ -221,7 +197,7 @@ userBuilder.one({
 
 ## Database Types Pattern
 
-Check project-context.md for the specific type lifecycle pattern. Common pattern:
+Check CLAUDE.md for the specific type lifecycle pattern. Common pattern:
 
 ```typescript
 // Base type builder (without id, timestamps)
@@ -317,7 +293,7 @@ fields: {
 ## Important Notes
 
 - Always use `mimicry-js` (NOT test-data-bot or Fishery)
-- Check project-context.md for Faker locale — if it doesn't exist, use default `@faker-js/faker` import and English locale
+- Check CLAUDE.md for Faker locale — if it doesn't exist, use default `@faker-js/faker` import and English locale
 - Use `sequence()` for numeric IDs, `() => faker.string.uuid()` for UUIDs
 - Use plain `() => ...` for values that should be fresh each build (no `perBuild` needed)
 - Static values don't need function wrapper

@@ -1,19 +1,7 @@
 ---
 name: accessibility-audit
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Perform WCAG accessibility audits on React components using automated tools and manual checks. Use when auditing accessibility, fixing a11y issues, or ensuring WCAG compliance.
-tags: [accessibility, a11y, wcag, testing, audit]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(playwright-cli:*)
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Audit Button component for WCAG compliance
-  - Check form accessibility for LoginForm
-  - Run accessibility audit on the dashboard page
-  - Fix accessibility issues in NavBar component
 ---
 
 # Accessibility Audit Skill

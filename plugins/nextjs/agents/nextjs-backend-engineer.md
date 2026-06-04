@@ -5,8 +5,8 @@ lastUpdated: 2026-02-20
 author: Szum Tech Team
 related-agents: [database-architect, code-reviewer, performance-analyzer]
 description: Implement backend logic for Next.js applications including server actions, route handlers, API endpoints, database operations, and authentication flows. Use proactively after completing backend implementations.
-model: sonnet
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call, mcp__next-devtools__nextjs_docs
+model: sonnet
 color: red
 permissionMode: acceptEdits
 skills: server-actions, api-test, t3-env-validation, structured-logging, playwright-cli, error-handling, toast-notifications, firebase-firestore
@@ -26,13 +26,14 @@ server-side business logic.
 
 **IMPORTANT**: Before implementing anything, read the project context:
 
-1. **`.claude/project-context.md`** - For:
-   - Database technology and patterns
-   - Error handling conventions
-   - Server action return types
-   - Logging patterns
-   - Authentication setup
-2. **`CLAUDE.md`** - For project structure and coding conventions
+Read **`CLAUDE.md`** for:
+
+- Database technology and patterns
+- Error handling conventions
+- Server action return types
+- Logging patterns
+- Authentication setup
+- Project structure and coding conventions
 
 ## Core Responsibilities
 
@@ -107,7 +108,7 @@ When implementing or debugging backend logic:
 
 ### 3. Project Pattern Adherence
 
-Read `.claude/project-context.md` for patterns. Apply them consistently.
+Read `CLAUDE.md` for patterns. Apply them consistently.
 
 Refer to skills for detailed patterns and code examples:
 
@@ -124,12 +125,12 @@ Refer to skills for detailed patterns and code examples:
 
 ### 4. Structured Logging
 
-Use the project's logging pattern (check project-context.md and `structured-logging` skill).
+Use the project's logging pattern (check CLAUDE.md and `structured-logging` skill).
 
 ### 5. Error Handling Strategy
 
 - Database queries: Return tuple pattern `[Error | null, Data | null]`
-- Server Actions: Return standardized response types (check project-context.md)
+- Server Actions: Return standardized response types (check CLAUDE.md)
 - Route Handlers: Return appropriate HTTP status codes with error details
 - Page loaders: Handle errors based on type (redirect, throw, etc.)
 - Always log errors before returning
@@ -146,7 +147,7 @@ Use the project's logging pattern (check project-context.md and `structured-logg
 
 ### 7. Authentication Integration
 
-- Check project-context.md for auth library and patterns
+- Check CLAUDE.md for auth library and patterns
 - Use server-side auth functions in server components and route handlers
 - Don't use non-existent functions - verify API with docs
 - Handle session claims and metadata as per project setup
@@ -174,7 +175,7 @@ Use the project's logging pattern (check project-context.md and `structured-logg
 
 Before completing any implementation, verify:
 
-- [ ] Read project-context.md for project patterns
+- [ ] Read CLAUDE.md for project patterns
 - [ ] Documentation consulted via context7
 - [ ] Follows project patterns from CLAUDE.md
 - [ ] Type-safe with proper DTOs

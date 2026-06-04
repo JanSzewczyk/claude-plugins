@@ -2,14 +2,14 @@
 
 Complete examples of mimicry-js builders for various use cases.
 
-> **Note:** Check `.claude/project-context.md` for your specific Faker locale and project types.
+> **Note:** Check `CLAUDE.md` for your specific Faker locale and project types.
 > For generator placement rules (top-level vs arrow functions), see the "Generator Placement Rules" section in SKILL.md.
 
 ## Complete Builder with Traits
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check project-context.md for locale
+import { faker } from "@faker-js/faker"; // Check CLAUDE.md for locale
 import type { User } from "~/types/user";
 
 export const userBuilder = build<User>({
@@ -138,7 +138,7 @@ const user2 = userBuilder.one({
 
 ## Database Application Type Builder
 
-> **Note:** Check project-context.md for your specific database type patterns.
+> **Note:** Check CLAUDE.md for your specific database type patterns.
 
 ```typescript
 import { build, sequence, oneOf } from "mimicry-js";

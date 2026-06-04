@@ -1,19 +1,7 @@
 ---
 name: structured-logging
-version: 1.0.0
-lastUpdated: 2026-01-18
 description: Structured logging patterns with Pino for Next.js applications. Covers log levels, context enrichment, child loggers, and production best practices.
-tags: [logging, pino, observability, debugging, monitoring]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - How to add logging to a server action
-  - What log level should I use
-  - Create a child logger with context
-  - Log errors with stack traces
 ---
 
 # Structured Logging Skill
