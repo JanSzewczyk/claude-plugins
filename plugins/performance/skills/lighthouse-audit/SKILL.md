@@ -11,8 +11,8 @@ Automated Lighthouse audit with full report and prioritized Next.js fix plan.
 
 > **Reference Files:**
 >
-> - [report-analysis.md](./report-analysis.md) — JSON structure, score thresholds, metric descriptions
-> - [fix-mapping.md](./fix-mapping.md) — Audit ID → Next.js fix mapping
+> - [report-analysis.md](./references/report-analysis.md) — JSON structure, score thresholds, metric descriptions
+> - [fix-mapping.md](./references/fix-mapping.md) — Audit ID → Next.js fix mapping
 
 ## Overview
 
@@ -125,7 +125,7 @@ cat .lighthouseci/manifest.json
 For each URL, find the `representative: true` entry — that's the median run.
 Read its corresponding `lhr-*.json` file for analysis.
 
-See [report-analysis.md](./report-analysis.md) for the full JSON structure and
+See [report-analysis.md](./references/report-analysis.md) for the full JSON structure and
 how to extract scores and failing audits.
 
 ### Step 7 — Generate the report
@@ -165,7 +165,7 @@ Group by category. For each failing audit include:
 ### Step 8 — Generate action plan
 
 For every failing audit (score < 0.9), map it to a concrete Next.js fix using
-[fix-mapping.md](./fix-mapping.md).
+[fix-mapping.md](./references/fix-mapping.md).
 
 Structure the plan as a prioritized checklist:
 

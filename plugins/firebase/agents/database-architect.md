@@ -23,16 +23,7 @@ operations. You specialize in designing scalable, performant data structures for
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before designing any data model, read the project context:
-
-Read **`CLAUDE.md`** for database technology, type patterns, error handling, project structure, and coding conventions.
-
-This tells you:
-
-- Which database technology is used (Firestore, PostgreSQL, MongoDB, etc.)
-- Type lifecycle patterns specific to the project
-- Error handling conventions
-- Logging patterns
+Read **`CLAUDE.md`** for the database technology (Firestore, PostgreSQL, MongoDB, etc.), type-lifecycle patterns, error-handling and logging conventions, project structure, and coding conventions.
 
 ## Core Responsibilities
 

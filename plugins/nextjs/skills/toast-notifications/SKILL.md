@@ -32,14 +32,14 @@ It is **library-agnostic** and **dependency-free** (no `js-cookie` — it reads
 `document.cookie` directly). You plug in whatever toast UI you already use.
 
 > **Reference files** (read as needed):
-> - [architecture.md](./architecture.md) — how it works, cookie config, security, debugging
-> - [patterns.md](./patterns.md) — when/how to use it + complete examples (redirect vs.
+> - [architecture.md](./references/architecture.md) — how it works, cookie config, security, debugging
+> - [patterns.md](./references/patterns.md) — when/how to use it + complete examples (redirect vs.
 >   client-handled, validation, bulk, upload) and the do/don't list
 >
 > **Copy-into-project source** lives under [`assets/lib/toast/`](./assets/lib/toast/).
 
 A redirect response can't carry data back to the component, but a cookie survives the
-navigation and auto-expires. See [architecture.md](./architecture.md) for the full rationale,
+navigation and auto-expires. See [architecture.md](./references/architecture.md) for the full rationale,
 cookie config, and security notes.
 
 ## Installation (run when the toast system isn't present yet)
@@ -95,7 +95,7 @@ cookie config, and security notes.
 Use `setToastCookie` **only when the action redirects** — the response is discarded, so the
 cookie carries the message to the destination page. When an action instead *returns* a result
 to the component, skip the cookie and toast on the client from that result (simpler, no
-round-trip). See [patterns.md](./patterns.md) for the full decision rule.
+round-trip). See [patterns.md](./references/patterns.md) for the full decision rule.
 
 ```ts
 "use server";

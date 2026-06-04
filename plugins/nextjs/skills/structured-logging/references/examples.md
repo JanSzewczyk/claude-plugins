@@ -517,3 +517,33 @@ export async function POST(request: Request) {
   return NextResponse.json({ logged: true });
 }
 ```
+
+## Logger Setup (`lib/logger.ts`)
+
+The single place the logger is configured — Pino with `pino-pretty` in development, JSON in production,
+plus the `createLogger` child-logger factory.
+
+```typescript
+import pino from "pino";
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+  transport:
+    process.env.NODE_ENV === "development"
+      ? {
+          target: "pino-pretty",
+          options: { colorize: true, translateTime: "SYS:standard", ignore: "pid,hostname" },
+        }
+      : undefined,
+  formatters: {
+    level: (label) => ({ level: label.toUpperCase() }),
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
+
+export function createLogger(context: Record<string, unknown>) {
+  return logger.child(context);
+}
+
+export default logger;
+```

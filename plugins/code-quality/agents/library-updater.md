@@ -24,11 +24,7 @@ versions of their dependencies.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before performing any updates, read the project context:
-
-Read **`CLAUDE.md`** for project-specific tech stack, key files, development commands, and project patterns.
-
-This ensures you understand which files may need updates during migrations.
+Read **`CLAUDE.md`** for the project's tech stack, key files, development commands, and patterns — so you know which files migrations may touch.
 
 ## Core Responsibilities
 

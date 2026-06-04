@@ -11,241 +11,71 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__*
 
 # Firebase Firestore Skill
 
-Create production-ready Firestore database queries with TypeScript, proper type lifecycle, structured error handling, and best practices.
+Production-ready Firestore queries with TypeScript, a proper type lifecycle, structured error handling,
+and the tuple return pattern. This file holds the rules; detailed code lives in the references.
 
-## Quick Reference
+| Reference                                  | Purpose                                     |
+| ------------------------------------------ | ------------------------------------------- |
+| [types.md](./references/types.md)          | Type utilities and lifecycle patterns       |
+| [errors.md](./references/errors.md)        | ServiceError class and error categorization |
+| [config.md](./references/config.md)        | Firebase Admin SDK configuration            |
+| [examples.md](./references/examples.md)    | Complete CRUD operation examples            |
+| [patterns.md](./references/patterns.md)    | Best practices and anti-patterns            |
+| [seeding.md](./references/seeding.md)      | Database seeding patterns                   |
 
-| Document                     | Purpose                                     |
-| ---------------------------- | ------------------------------------------- |
-| [types.md](./types.md)       | Type utilities and lifecycle patterns       |
-| [errors.md](./errors.md)     | ServiceError class and error categorization |
-| [config.md](./config.md)     | Firebase Admin SDK configuration            |
-| [examples.md](./examples.md) | Complete CRUD operation examples            |
-| [patterns.md](./patterns.md) | Best practices and anti-patterns            |
-| [seeding.md](./seeding.md)   | Database seeding patterns                   |
+## Workflow
 
-## Instructions
+1. **Define types** with the lifecycle pattern (Base → Firestore → Application → DTOs).
+2. **Write a transform** that converts a Firestore document to the application type (Timestamp → Date).
+3. **Implement queries** returning the tuple `[ServiceError | null, Data | null]`.
+4. **Handle errors** via `ServiceError` + `categorizeServiceError()`, logging structured context at every
+   error point.
+5. **Cover edge cases** — empty input, not found, permission denied.
 
-### Before Implementation
+Place queries in `features/[feature]/server/db/[resource]-queries.ts`; types in
+`features/[feature]/types/[resource].ts`.
 
-1. **Read project context** at `CLAUDE.md` for project-specific patterns
-2. **Check existing patterns** in `lib/firebase/` for configuration
-3. **Review feature structure** in `features/*/server/db/` for query patterns
+## Type Lifecycle
 
-### Workflow
-
-1. **Define types** using the type lifecycle pattern (Base → Firestore → Application → DTOs)
-2. **Create transform function** to convert Firestore data to application types
-3. **Implement queries** with tuple return pattern `[ServiceError | null, Data | null]`
-4. **Add error handling** using `ServiceError` class and `categorizeServiceError()`
-5. **Include logging** with structured context at all error points
-6. **Test edge cases** (empty inputs, not found, permissions)
-
-### File Organization
-
-```
-features/
-└── [feature]/
-    ├── types/
-    │   └── [resource].ts          # Type definitions
-    └── server/
-        └── db/
-            ├── [resource]-queries.ts  # CRUD operations
-            └── seed-[resource].ts     # Seeding (if needed)
-```
-
-## Core Concepts
-
-### Type Lifecycle
-
-Firebase requires different type representations at different stages:
+Firestore needs different representations at different stages (full utilities in
+[types.md](./references/types.md)):
 
 ```typescript
-// 1. Base type - Business fields only
-type ResourceBase = {
-  name: string;
-  status: "active" | "inactive";
-};
-
-// 2. Firestore type - With Timestamp objects
-type ResourceFirestore = WithFirestoreTimestamps<ResourceBase>;
-
-// 3. Application type - With id and Date objects
-type Resource = WithDates<ResourceBase>;
-
-// 4. Create DTO - For creating documents
-type CreateResourceDto = CreateDto<ResourceBase>;
-
-// 5. Update DTO - For updating documents
-type UpdateResourceDto = UpdateDto<ResourceBase>;
+type ResourceBase = { name: string; status: "active" | "inactive" };  // 1. business fields only
+type ResourceFirestore = WithFirestoreTimestamps<ResourceBase>;       // 2. with Timestamp objects
+type Resource = WithDates<ResourceBase>;                              // 3. app type: id + Date objects
+type CreateResourceDto = CreateDto<ResourceBase>;                     // 4. create DTO
+type UpdateResourceDto = UpdateDto<ResourceBase>;                     // 5. update DTO
 ```
 
-See [types.md](./types.md) for complete type utilities.
+## Error Handling
 
-### Error Handling Pattern
+> **Contract:** the `ServiceError` class and `categorizeServiceError()` here implement the universal
+> `ServiceError` contract defined in the `error-handling` skill. Consumers branch on boolean properties
+> (`isNotFound`, `isRetryable`, `isPermissionDenied`) without knowing the backend is Firestore.
 
-> **ServiceError Contract:** The `ServiceError` class and `categorizeServiceError()` in this skill implement the
-> universal `ServiceError` contract defined in the `error-handling` skill. Consumers branch on boolean
-> properties (`isNotFound`, `isRetryable`, `isPermissionDenied`) without knowing this is Firestore.
+- **Every query returns a tuple** — `[ServiceError, null]` on failure, `[null, data]` on success.
+  Validate input first, wrap the Firestore call in `try/catch`, run the caught error through
+  `categorizeServiceError(error, resourceName)`. Worked code in [errors.md](./references/errors.md) and
+  [examples.md](./references/examples.md).
+- **Consumers branch on the error flags:**
+  - **Server Action** — `isNotFound` → specific message; otherwise return `error.message` (or a generic).
+  - **Page loader** — `isNotFound` → `notFound()`; `isRetryable` → `throw` (let `error.tsx` handle);
+    otherwise throw a generic error.
 
-All database queries return tuples for explicit error handling:
+## Transform Functions
+
+Convert a Firestore document to the application type — spread the data, add `id`, and turn Timestamps
+into Dates:
 
 ```typescript
-export async function getResourceById(
-  id: string,
-): Promise<[null, Resource] | [ServiceError, null]> {
-  // Input validation
-  if (!id?.trim()) {
-    return [ServiceError.validation("Invalid id provided"), null];
-  }
-
-  try {
-    const doc = await db.collection(COLLECTION).doc(id).get();
-
-    if (!doc.exists) {
-      return [ServiceError.notFound(RESOURCE_NAME), null];
-    }
-
-    return [null, transformToResource(doc.id, doc.data()!)];
-  } catch (error) {
-    return [categorizeServiceError(error, RESOURCE_NAME), null];
-  }
+function transformToResource(docId: string, data: FirebaseFirestore.DocumentData): Resource {
+  return { id: docId, ...data, createdAt: data.createdAt?.toDate(), updatedAt: data.updatedAt?.toDate() } as Resource;
 }
 ```
-
-See [errors.md](./errors.md) for complete error handling.
-
-### Transform Functions
-
-Convert Firestore documents to application types:
-
-```typescript
-function transformToResource(
-  docId: string,
-  data: FirebaseFirestore.DocumentData,
-): Resource {
-  return {
-    id: docId,
-    ...data,
-    // Convert Timestamp to Date
-    createdAt: data.createdAt?.toDate(),
-    updatedAt: data.updatedAt?.toDate(),
-  } as Resource;
-}
-```
-
-## Questions to Ask
-
-Before implementing database queries, clarify:
-
-1. **What is the resource name?** (e.g., "Budget", "User", "Category")
-2. **What fields does the resource have?** (business fields only)
-3. **Are there custom Date fields?** (beyond createdAt/updatedAt)
-4. **What queries are needed?** (getById, getAll, getByUserId, etc.)
-5. **Is seeding required?** (predefined data)
-6. **What are the access patterns?** (by user, by status, etc.)
-
-## Usage Examples
-
-### Basic Query Function
-
-```typescript
-import "server-only";
-import { db } from "~/lib/firebase";
-import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
-import { createLogger } from "~/lib/logger";
-import type { Budget } from "../types/budget";
-
-const logger = createLogger({ module: "budget-db" });
-const COLLECTION = "budgets";
-const RESOURCE = "Budget";
-
-export async function getBudgetById(
-  id: string,
-): Promise<[null, Budget] | [ServiceError, null]> {
-  if (!id?.trim()) {
-    const error = ServiceError.validation("Invalid budget id");
-    logger.warn({ errorCode: error.code }, "Validation failed");
-    return [error, null];
-  }
-
-  try {
-    const doc = await db.collection(COLLECTION).doc(id).get();
-
-    if (!doc.exists) {
-      logger.warn({ budgetId: id }, "Budget not found");
-      return [ServiceError.notFound(RESOURCE), null];
-    }
-
-    logger.info({ budgetId: id }, "Budget retrieved");
-    return [null, transformToBudget(doc.id, doc.data()!)];
-  } catch (error) {
-    const serviceError = categorizeServiceError(error, RESOURCE);
-    logger.error(
-      { budgetId: id, errorCode: serviceError.code },
-      "Query failed",
-    );
-    return [serviceError, null];
-  }
-}
-```
-
-### Usage in Server Actions
-
-```typescript
-export async function updateBudget(
-  budgetId: string,
-  data: UpdateBudgetDto,
-): ActionResponse<Budget> {
-  const { userId } = await auth();
-  if (!userId) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  const [error, budget] = await updateBudgetInDb(budgetId, data);
-
-  if (error) {
-    if (error.isNotFound) {
-      return { success: false, error: "Budget not found" };
-    }
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath("/budgets");
-  return { success: true, data: budget };
-}
-```
-
-### Usage in Page Loaders
-
-```typescript
-async function loadBudget(budgetId: string) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
-
-  const [error, budget] = await getBudgetById(budgetId);
-
-  if (error) {
-    if (error.isNotFound) notFound();
-    if (error.isRetryable) throw error; // Let error.tsx handle
-    throw new Error("Unable to load budget");
-  }
-
-  return budget;
-}
-```
-
-## Related Documentation
-
-- [types.md](./types.md) - Complete type utilities
-- [errors.md](./errors.md) - Error handling patterns
-- [config.md](./config.md) - Firebase configuration
-- [examples.md](./examples.md) - Full CRUD examples
-- [patterns.md](./patterns.md) - Best practices
-- [seeding.md](./seeding.md) - Seeding patterns
 
 ## Related Skills
 
-- `error-handling` — Defines the `ServiceError` contract that this skill implements (error boundaries, retry, server action error patterns)
-- `server-actions` - For implementing server actions that use these queries
-- `db-migration` - For migrating Firestore data
+- `error-handling` — defines the `ServiceError` contract this skill implements.
+- `server-actions` — server actions that consume these queries.
+- `db-migration` — migrating Firestore data.

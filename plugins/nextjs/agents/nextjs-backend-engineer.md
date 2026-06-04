@@ -24,16 +24,7 @@ server-side business logic.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before implementing anything, read the project context:
-
-Read **`CLAUDE.md`** for:
-
-- Database technology and patterns
-- Error handling conventions
-- Server action return types
-- Logging patterns
-- Authentication setup
-- Project structure and coding conventions
+Read **`CLAUDE.md`** for database technology and patterns, error-handling conventions, server-action return types, logging patterns, authentication setup, and coding conventions.
 
 ## Core Responsibilities
 

@@ -6,75 +6,35 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-libra
 
 # Structured Logging Skill
 
-Structured logging patterns with Pino for Next.js applications.
+Structured logging with **Pino** for Next.js. This file holds the rules; setup and worked code are in
+the references.
 
-> **Reference Files:**
->
-> - [log-levels.md](./log-levels.md) - When to use each level
-> - [patterns.md](./patterns.md) - Common logging patterns
-> - [examples.md](./examples.md) - Practical examples
+> - [references/log-levels.md](./references/log-levels.md) - When to use each level
+> - [references/patterns.md](./references/patterns.md) - Common logging patterns (DB ops, server actions, error logging)
+> - [references/examples.md](./references/examples.md) - Practical examples and the full `lib/logger.ts` setup
 
-## Project Configuration
+## Setup
 
-The logger is configured in `lib/logger.ts`:
-
-```typescript
-import pino from "pino";
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  transport:
-    process.env.NODE_ENV === "development"
-      ? {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "SYS:standard",
-            ignore: "pid,hostname",
-          },
-        }
-      : undefined,
-  formatters: {
-    level: (label) => ({ level: label.toUpperCase() }),
-  },
-  timestamp: pino.stdTimeFunctions.isoTime,
-});
-
-export function createLogger(context: Record<string, unknown>) {
-  return logger.child(context);
-}
-
-export default logger;
-```
-
-## Quick Start
-
-### Basic Logging
+The logger is configured once in `lib/logger.ts` (Pino + `pino-pretty` in dev, JSON in prod) and
+exposes `createLogger(context)` for per-module child loggers. Full config in
+[references/examples.md](./references/examples.md).
 
 ```typescript
-import logger from "~/lib/logger";
+import logger, { createLogger } from "~/lib/logger";
 
-// Simple message
-logger.info("Server started");
-
-// With context object
 logger.info({ port: 3000 }, "Server started");
 
-// Error logging
-logger.error({ error, userId }, "Failed to process request");
+const log = createLogger({ module: "user-service" }); // every line carries { module: "user-service" }
+log.info({ userId: "123" }, "User created");
 ```
 
-### Module-Specific Logger
+## Core Rules
 
-```typescript
-import { createLogger } from "~/lib/logger";
-
-const logger = createLogger({ module: "user-service" });
-
-// All logs include { module: "user-service" }
-logger.info({ userId: "123" }, "User created");
-// Output: { module: "user-service", userId: "123", msg: "User created" }
-```
+- **Context object first, message second** — `logger.info({ userId, action }, "User authenticated")`.
+  Never interpolate values into the message string (`` `User ${id}...` ``) — it breaks structured search.
+- **Use a module child logger** (`createLogger({ module })`) so every line is attributable.
+- **Log before returning an error** — include `errorCode`, `isRetryable`, and the operation/ids.
+- **Log identifiers, not values** — see *Sensitive Data* below.
 
 ## Log Levels
 
@@ -87,135 +47,28 @@ logger.info({ userId: "123" }, "User created");
 | `debug` | Development details        | Request payload          |
 | `trace` | Fine-grained debugging     | Function entry/exit      |
 
-### Usage
+Configure with `LOG_LEVEL` per environment (`debug` in dev, `info` in prod). DB-operation and
+server-action logging patterns are in [references/patterns.md](./references/patterns.md).
 
-```typescript
-logger.fatal({ error }, "Database connection lost, shutting down");
-logger.error({ userId, errorCode: error.code }, "Failed to update user");
-logger.warn({ requestCount, limit }, "Rate limit 80% reached");
-logger.info({ userId }, "User logged in successfully");
-logger.debug({ payload }, "Processing request");
-logger.trace({ functionName: "processData" }, "Entering function");
-```
+## Sensitive Data Protection
 
-## Key Patterns
+**Never log secrets, credentials, or PII.** Log an identifier or a derived signal instead of the value:
 
-### Always Log Context Objects First
+- `email: maskEmail(email)` not `email`; `cardLast4: card.number.slice(-4)` not the card number.
+- `hasAuthHeader: !!req.headers.authorization` not the header; `bodySize: JSON.stringify(body).length`
+  not the body.
 
-```typescript
-// ✅ Good - context object first, then message
-logger.info({ userId, action: "login" }, "User authenticated");
+Never log these:
 
-// ❌ Bad - no context
-logger.info("User authenticated");
+| Category      | Fields to NEVER log                                                                    |
+| ------------- | -------------------------------------------------------------------------------------- |
+| **Auth**      | password, token, apiKey, secret, refreshToken, sessionId, cookie, authorization header |
+| **PII**       | SSN, date of birth, full address, phone number (log last 4 digits max)                 |
+| **Financial** | credit card number, bank account, CVV, routing number                                  |
+| **Health**    | medical records, diagnoses, insurance IDs                                              |
 
-// ❌ Bad - string interpolation
-logger.info(`User ${userId} authenticated`);
-```
-
-### Error Logging
-
-```typescript
-import { categorizeServiceError, ServiceError } from "~/lib/firebase/errors";
-
-try {
-  await updateUser(userId, data);
-} catch (error) {
-  const serviceError = categorizeServiceError(error, "User");
-
-  logger.error(
-    {
-      userId,
-      errorCode: serviceError.code,
-      isRetryable: serviceError.isRetryable,
-      operation: "updateUser",
-    },
-    "Failed to update user",
-  );
-
-  return [serviceError, null];
-}
-```
-
-### Database Operations
-
-```typescript
-const logger = createLogger({ module: "user-db" });
-
-export async function getUserById(id: string) {
-  logger.debug({ userId: id }, "Fetching user");
-
-  try {
-    const user = await db.collection("users").doc(id).get();
-
-    if (!user.exists) {
-      logger.warn({ userId: id }, "User not found");
-      return [ServiceError.notFound("User"), null];
-    }
-
-    logger.info({ userId: id }, "User fetched successfully");
-    return [null, transformUser(user)];
-  } catch (error) {
-    const serviceError = categorizeServiceError(error, "User");
-    logger.error(
-      {
-        userId: id,
-        errorCode: serviceError.code,
-        isRetryable: serviceError.isRetryable,
-      },
-      "Database error fetching user",
-    );
-    return [serviceError, null];
-  }
-}
-```
-
-### Server Actions
-
-```typescript
-const logger = createLogger({ module: "user-actions" });
-
-export async function updateProfile(data: ProfileData): ActionResponse {
-  const { userId } = await auth();
-
-  if (!userId) {
-    logger.warn({ action: "updateProfile" }, "Unauthorized access attempt");
-    return { success: false, error: "Unauthorized" };
-  }
-
-  logger.info({ userId, action: "updateProfile" }, "Starting profile update");
-
-  const [error] = await updateUserProfile(userId, data);
-
-  if (error) {
-    logger.error(
-      {
-        userId,
-        errorCode: error.code,
-        action: "updateProfile",
-      },
-      "Profile update failed",
-    );
-    return { success: false, error: error.message };
-  }
-
-  logger.info(
-    { userId, action: "updateProfile" },
-    "Profile updated successfully",
-  );
-  return { success: true, data: null };
-}
-```
-
-## Environment Configuration
-
-```bash
-# .env.local
-LOG_LEVEL=debug  # Development: see all logs
-
-# .env.production
-LOG_LEVEL=info   # Production: info and above
-```
+For defence in depth, add a Pino `redact` config to strip these automatically (masking helpers and the
+full `redact` paths are in [references/patterns.md](./references/patterns.md)).
 
 ## File Locations
 
@@ -225,83 +78,8 @@ LOG_LEVEL=info   # Production: info and above
 | Feature loggers  | Create in feature modules |
 | Log level config | `data/env/server.ts`      |
 
-## Sensitive Data Protection
-
-**Never log secrets, credentials, or personally identifiable information (PII).**
-
-### What NOT to Log
-
-```typescript
-// ❌ NEVER log these
-logger.info({ password, token, apiKey }, "User login");
-logger.info({ creditCard: card.number }, "Payment processed");
-logger.info({ ssn, dateOfBirth, fullAddress }, "User profile loaded");
-logger.debug({ cookie: req.headers.cookie }, "Request received");
-logger.info({ authorization: req.headers.authorization }, "API call");
-```
-
-### Safe Logging Patterns
-
-```typescript
-// ✅ Log identifiers, not values
-logger.info({ userId, email: maskEmail(email) }, "User login");
-logger.info({ cardLast4: card.number.slice(-4) }, "Payment processed");
-logger.debug({ hasAuthHeader: !!req.headers.authorization }, "API call");
-
-// ✅ Log metadata, not content
-logger.info({ bodySize: JSON.stringify(body).length }, "Request received");
-logger.info({ fieldCount: Object.keys(formData).length }, "Form submitted");
-```
-
-### Sensitive Fields Checklist
-
-| Category      | Fields to NEVER log                                                                    |
-| ------------- | -------------------------------------------------------------------------------------- |
-| **Auth**      | password, token, apiKey, secret, refreshToken, sessionId, cookie, authorization header |
-| **PII**       | SSN, date of birth, full address, phone number (log last 4 digits max)                 |
-| **Financial** | credit card number, bank account, CVV, routing number                                  |
-| **Health**    | medical records, diagnoses, insurance IDs                                              |
-
-### Masking Helper
-
-```typescript
-export function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  return `${local[0]}***@${domain}`;
-}
-
-export function maskId(id: string): string {
-  return id.length > 8 ? `${id.slice(0, 4)}...${id.slice(-4)}` : "***";
-}
-```
-
-### Framework-Level Protection
-
-Consider adding a Pino redaction config to automatically strip sensitive fields:
-
-```typescript
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  redact: {
-    paths: [
-      "password",
-      "token",
-      "apiKey",
-      "*.password",
-      "*.token",
-      "*.apiKey",
-      "authorization",
-      "cookie",
-      "creditCard",
-      "ssn",
-    ],
-    censor: "[REDACTED]",
-  },
-});
-```
-
 ## Related Skills
 
-- `firebase-firestore` - Database logging patterns
-- `server-actions` - Action logging patterns
-- `t3-env-validation` - LOG_LEVEL configuration
+- `firebase-firestore` — database logging patterns
+- `server-actions` — action logging patterns
+- `t3-env-validation` — `LOG_LEVEL` configuration

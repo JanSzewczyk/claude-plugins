@@ -24,8 +24,6 @@ cost, and confidence levels.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before planning any test strategy, read the project context:
-
 Read **`CLAUDE.md`** for project-specific tech stack, test infrastructure, conventions, available test commands, and project structure.
 
 ### Spec-Driven Development (SDD) mode

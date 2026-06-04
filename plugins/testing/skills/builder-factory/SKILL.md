@@ -6,268 +6,68 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 # Builder Factory Generator
 
-Generate mimicry-js factory builders for TypeScript types.
+Generate `mimicry-js` + `@faker-js/faker` factory builders for TypeScript types (for Vitest, Storybook,
+E2E, and dev seeding). This file is the API and rules; full builder examples are in the reference.
 
-> **Reference Files:**
->
-> - [references/field-mappings.md](./references/field-mappings.md) - Field type to Faker method mappings
-> - [references/examples.md](./references/examples.md) - Complete builder examples and patterns
+> - [references/field-mappings.md](./references/field-mappings.md) — field type → Faker method mappings.
+> - [references/examples.md](./references/examples.md) — complete builders: traits, postBuild, nested/deep-merge,
+>   database types, discriminated unions, composition, recursive types, seeding, `withPrev`, reset.
 
-## First Step: Read Project Context
-
-**IMPORTANT**: Check `CLAUDE.md` for:
-
-- **Faker locale** (e.g., `@faker-js/faker/locale/pl` for Polish or `@faker-js/faker` for default English)
-- **Builder location convention** (e.g., `features/[feature]/test/builders/`)
-- **Database type patterns** (for Application/Base/DTO type builders)
-
-## Context
-
-Builders using `mimicry-js` and `@faker-js/faker` for:
-
-- Unit tests (Vitest)
-- Storybook stories
-- E2E test data
-- Development seeding
+Check `CLAUDE.md` for the **Faker locale**, **builder location convention**, and **database type patterns**
+before generating.
 
 ## Workflow
 
-### 1. Pre-Check: Find Existing Builders
+1. **Find existing builders first** — `Glob` for `**/*.builder.ts` and `features/*/test/builders/*.ts`;
+   reuse before creating.
+2. **Analyze the type** — fields, nested types, arrays, optional/Date/enum/union fields.
+3. **Place the file** — feature-specific `features/[feature]/test/builders/` or shared `tests/builders/`.
+4. **Name it** — `camelCase(TypeName) + "Builder"`, file `kebab-case.builder.ts`
+   (`UserProfile` → `userProfileBuilder` in `user-profile.builder.ts`). Include JSDoc with usage examples.
 
-**IMPORTANT: Search for existing builders before creating new ones.**
+## Builder API
 
-Use `Glob` to find existing builders:
+**Methods** — `.one(options?)` (single), `.many(count, options?)` (array), `.reset()` (reset
+`sequence`/`unique`/iterators). Options: `overrides` (Partial<T>), `traits` (string | string[]),
+`postBuild` ((obj) => obj, per-call).
 
-- `**/*.builder.ts` — all builder files in the project
-- `features/*/test/builders/*.ts` — feature-specific builders
+**Field generators** (place as field values — see placement rules):
 
-### 2. Analyze the Type Structure
+- `sequence()` / `sequence((n) => \`prefix-\${n}\`)` — auto-increment.
+- `oneOf("a", "b")` — random from options; `unique([...])` — each value once, throws when exhausted.
+- `bool()`, `int(min?, max?)` (default 1–1000), `float(min?, max?)` (default 0–1).
+- `withPrev((prev?) => value)` — access the previous build value.
+- `fixed(fn)` — keep a function value as-is (don't call it).
+- `() => value` — plain function, fresh each build (replaces `perBuild`). Static values need no wrapper.
 
-- Identify all fields, types, and relationships
-- Check for nested types, arrays, optional fields
-- Look for Date fields, enum types, union types
+**Deterministic random** — `seed(value)` makes `oneOf`/`int`/`float`/`bool` reproducible; `getSeed()` reads it.
 
-### 3. Builder Location
+## Features (code in examples.md)
 
-Check CLAUDE.md for conventions. Common patterns:
-
-- Feature-specific: `features/[feature-name]/test/builders/`
-- Shared types: `tests/builders/`
-
-### 4. Naming Convention
-
-**Builder name = camelCase(TypeName) + "Builder"**
-
-```typescript
-// Type: OnboardingProducts
-export const onboardingProductsBuilder = build<OnboardingProducts>({...});
-// File: onboarding-products.builder.ts
-
-// Type: UserProfile
-export const userProfileBuilder = build<UserProfile>({...});
-// File: user-profile.builder.ts
-```
-
-## Basic Template
-
-```typescript
-import { build, sequence, oneOf } from "mimicry-js";
-import { faker } from "@faker-js/faker"; // Check CLAUDE.md for locale
-import type { YourType } from "~/features/[feature]/types/your-type";
-
-/**
- * Builder for YourType test data.
- *
- * @example
- * const item = yourTypeBuilder.one();
- *
- * @example
- * const customItem = yourTypeBuilder.one({
- *   overrides: { fieldName: "custom value" }
- * });
- *
- * @example
- * const items = yourTypeBuilder.many(5);
- */
-export const yourTypeBuilder = build<YourType>({
-  fields: {
-    id: sequence(),
-    name: () => faker.person.fullName(),
-    email: () => faker.internet.email(),
-    status: "active",
-  },
-});
-```
-
-## Key Methods
-
-### Builder Methods
-
-- `.one(options?)` - Generate a single instance
-- `.many(count, options?)` - Generate an array of instances
-- `.reset()` - Reset state of `sequence`, `unique`, and custom iterators
-
-Options for `.one()` and `.many()`:
-
-```typescript
-builder.one({
-  overrides?: Partial<T>,       // Override specific fields
-  traits?: string | string[],   // Apply named traits
-  postBuild?: (obj: T) => T,    // Per-call post-processing (overrides build-level postBuild)
-});
-```
-
-### Field Generators
-
-- `sequence()` - Auto-incremented number (1, 2, 3...)
-- `sequence((n) => \`prefix-\${n}\`)` - Custom sequence
-- `oneOf("a", "b", "c")` - Random value from options
-- `unique(["a", "b", "c"])` - Each value exactly once, throws when exhausted
-- `bool()` - Random `true` / `false`
-- `int()` / `int(max)` / `int(min, max)` - Random integer (default 1-1000)
-- `float()` / `float(max)` / `float(min, max)` - Random float (default 0-1)
-- `withPrev((prev?) => value)` - Access previous build value
-- `fixed(fn)` - Prevent calling a function value (keeps it as-is)
-- `() => value` - Plain function called fresh each build (replaces `perBuild`)
-- Static values don't need wrapper
-
-### Deterministic Random
-
-- `seed(value)` - Set seed for reproducible `oneOf`, `int`, `float`, `bool`
-- `getSeed()` - Get current seed value
-
-## Traits (Variants)
-
-```typescript
-export const userBuilder = build<User>({
-  fields: {
-    id: sequence(),
-    role: "user",
-    isActive: true,
-  },
-  traits: {
-    admin: {
-      overrides: { role: "admin" },
-    },
-    inactive: {
-      overrides: { isActive: false },
-    },
-  },
-});
-
-// Usage
-userBuilder.one({ traits: "admin" });
-userBuilder.one({ traits: ["admin", "inactive"] });
-```
-
-## postBuild Hook
-
-```typescript
-export const orderBuilder = build<Order>({
-  fields: {
-    products: () => productBuilder.many(3),
-    totalAmount: 0,
-  },
-  postBuild: (order) => {
-    order.totalAmount = order.products.reduce((sum, p) => sum + p.price, 0);
-    return order;
-  },
-});
-```
-
-## Nested Builders
-
-```typescript
-export const userBuilder = build<User>({
-  fields: {
-    id: sequence(),
-    address: () => addressBuilder.one(),
-  },
-});
-```
-
-**Deep merging:** Overrides on nested objects merge deeply — they patch only the specified keys without replacing the whole object:
-
-```typescript
-// Only overrides `city`, keeps other address fields intact
-userBuilder.one({
-  overrides: { address: { city: "Warsaw" } },
-});
-```
-
-## Database Types Pattern
-
-Check CLAUDE.md for the specific type lifecycle pattern. Common pattern:
-
-```typescript
-// Base type builder (without id, timestamps)
-export const resourceBaseBuilder = build<ResourceBase>({
-  fields: {
-    name: () => faker.commerce.productName(),
-    status: "active",
-  },
-});
-
-// Application type builder (with id, timestamps)
-export const resourceBuilder = build<Resource>({
-  fields: {
-    id: () => faker.string.uuid(),
-    name: () => faker.commerce.productName(),
-    status: "active",
-    createdAt: () => faker.date.past(),
-    updatedAt: () => faker.date.recent(),
-  },
-});
-```
+- **Traits** — named variants (`build({ traits: { admin: { overrides: { role: "admin" } } } })`), applied
+  via `.one({ traits: "admin" })` or an array.
+- **postBuild** — compute fields from siblings after the object is built (e.g. a total from line items).
+- **Nested builders** — `field: () => otherBuilder.one()`; overrides deep-merge (patch one nested key
+  without replacing the object).
+- **Database types** — separate Base (no id/timestamps) and Application (id + Date timestamps) builders.
 
 ## Generator Placement Rules
 
-mimicry-js generators (`oneOf`, `sequence`, `bool`, `int`, `float`, `unique`, `withPrev`) are **field-level descriptors** — the library resolves them internally when building objects. They only work when placed:
-
-- **Directly as field values** in `fields` (top-level)
-- **Inside static nested objects** that mimicry-js recursively processes
-
-They **do NOT work** inside arrow functions `() => ...` — arrow function bodies are opaque to mimicry-js, which just calls the function and expects a resolved value back.
-
-**Correct — generators at top level:**
+mimicry-js generators (`oneOf`, `sequence`, `bool`, `int`, `float`, `unique`, `withPrev`) are
+**field-level descriptors** resolved internally by the library. They work only when placed **directly as
+a field value** or **inside a static nested object** (which mimicry-js processes recursively). They do
+**NOT** work inside arrow functions — an arrow body is opaque to mimicry-js, which just calls it and
+expects a resolved value back.
 
 ```typescript
-export const userBuilder = build<User>({
-  fields: {
-    role: oneOf("admin", "user", "guest"), // mimicry-js resolves this
-    status: oneOf("active", "inactive"),
-  },
-});
-```
-
-**Correct — Faker inside arrow functions:**
-
-```typescript
-export const userBuilder = build<User>({
-  fields: {
-    profile: () => ({
-      theme: faker.helpers.arrayElement(["light", "dark", "system"]),
-      tags: faker.helpers.arrayElements(["new", "vip", "beta"], {
-        min: 1,
-        max: 2,
-      }),
-    }),
-  },
-});
-```
-
-**Wrong — generators inside arrow functions return descriptor objects, not values:**
-
-```typescript
-// WRONG
 fields: {
-  profile: () => ({
-    theme: oneOf("light", "dark"),  // Returns descriptor, NOT a resolved value
-  }),
+  role: oneOf("admin", "user"),                       // ✅ resolved by mimicry-js
+  profile: () => ({ theme: oneOf("light", "dark") }), // ❌ returns a descriptor, not a value
+  theme: () => faker.helpers.arrayElement(["light", "dark"]), // ✅ use Faker inside arrow functions
 }
 ```
 
-**Equivalents table:**
+Inside an arrow function, swap each generator for its Faker equivalent:
 
 | Generator         | Top-level `fields`       | Inside `() => ...`                                    |
 | ----------------- | ------------------------ | ----------------------------------------------------- |
@@ -277,24 +77,17 @@ fields: {
 | `bool()`          | `field: bool()`          | `field: () => faker.datatype.boolean()`               |
 | `sequence()`      | `field: sequence()`      | `field: () => faker.number.int()`                     |
 
-**Static nested objects** are recursively processed by mimicry-js, so generators work inside them. Use arrow functions only when fresh values are needed on each `.one()` call (Faker data, nested builders).
+Use arrow functions only when a fresh value is needed each `.one()` call (Faker data, nested builders).
 
 ## Best Practices
 
-- **Use `.many(count)` for arrays** — not `Array.from()` or `[...Array(n)].map()`. Supports traits/overrides, resets internal state properly
-- **Prefer `oneOf`/`int`/`float`/`bool` over Faker equivalents** at the top level — they integrate with `seed()` for deterministic builds
-- **Use `faker.helpers.weightedArrayElement`** for non-uniform distribution (only available via Faker)
-- **Use `unique()` instead of `oneOf()`** when each value must be distinct (e.g., in `.many()` calls)
-- **Use `fixed(fn)` for function-typed fields** (e.g., `onClick`, `onSubmit`) — prevents mimicry-js from calling them
-- **Use `postBuild` for computed fields** that depend on sibling field values
-- **Compose builders** with `() => otherBuilder.one()` rather than deeply nesting structures
-- **Call `.reset()` in `beforeEach`** when tests depend on `sequence()` or `unique()` starting values
-
-## Important Notes
-
-- Always use `mimicry-js` (NOT test-data-bot or Fishery)
-- Check CLAUDE.md for Faker locale — if it doesn't exist, use default `@faker-js/faker` import and English locale
-- Use `sequence()` for numeric IDs, `() => faker.string.uuid()` for UUIDs
-- Use plain `() => ...` for values that should be fresh each build (no `perBuild` needed)
-- Static values don't need function wrapper
-- Include JSDoc with usage examples
+- **`.many(count)` for arrays** — not `Array.from()` / `[...Array(n)].map()`; it supports traits/overrides
+  and resets state correctly.
+- **Prefer `oneOf`/`int`/`float`/`bool` over Faker** at top level — they integrate with `seed()`.
+- **`unique()` over `oneOf()`** when each value must be distinct (e.g. across a `.many()` call).
+- **`fixed(fn)` for function-typed fields** (`onClick`, `onSubmit`) so mimicry-js doesn't call them.
+- **`faker.helpers.weightedArrayElement`** for non-uniform distributions (Faker only).
+- **`postBuild` for computed fields**; **compose** builders with `() => otherBuilder.one()` rather than
+  deep nesting; **call `.reset()` in `beforeEach`** when tests depend on `sequence()`/`unique()` order.
+- Always use `mimicry-js` (NOT test-data-bot or Fishery). `sequence()` for numeric ids,
+  `() => faker.string.uuid()` for UUIDs.

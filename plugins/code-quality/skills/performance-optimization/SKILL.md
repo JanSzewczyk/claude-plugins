@@ -10,10 +10,10 @@ Performance optimization patterns for Next.js applications.
 
 > **Reference Files:**
 >
-> - [bundle-analysis.md](./bundle-analysis.md) - Bundle size optimization
-> - [react-rendering.md](./react-rendering.md) - React performance patterns
-> - [database-optimization.md](./database-optimization.md) - Query optimization
-> - [examples.md](./examples.md) - Practical examples
+> - [bundle-analysis.md](./references/bundle-analysis.md) - Bundle size optimization
+> - [react-rendering.md](./references/react-rendering.md) - React performance patterns
+> - [database-optimization.md](./references/database-optimization.md) - Query optimization
+> - [examples.md](./references/examples.md) - Practical examples
 
 ## Performance Philosophy
 

@@ -24,13 +24,7 @@ applications.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before analyzing performance, read the project context:
-
-Read **`CLAUDE.md`** for:
-
-- Tech stack and versions
-- Database technology being used
-- Bundle analyzer command and available npm scripts
+Read **`CLAUDE.md`** for the tech stack and versions, the database technology, and the bundle-analyzer command / available npm scripts.
 
 ## Core Responsibilities
 

@@ -10,10 +10,10 @@ Type-safe environment variable validation with @t3-oss/env-nextjs and Zod.
 
 > **Reference Files:**
 >
-> - [setup.md](./setup.md) - Configuration patterns
-> - [schema-patterns.md](./schema-patterns.md) - Common Zod validation patterns
-> - [testing.md](./testing.md) - Mocking env vars in tests
-> - [examples.md](./examples.md) - Practical examples
+> - [setup.md](./references/setup.md) - Configuration patterns
+> - [schema-patterns.md](./references/schema-patterns.md) - Common Zod validation patterns
+> - [testing.md](./references/testing.md) - Mocking env vars in tests
+> - [examples.md](./references/examples.md) - Practical examples
 
 ## Project Configuration
 

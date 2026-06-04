@@ -10,10 +10,10 @@ React 19 patterns and React Compiler optimization guidance for Next.js applicati
 
 > **Reference Files:**
 >
-> - [compiler-guide.md](./compiler-guide.md) - React Compiler capabilities and optimization
-> - [when-to-memoize.md](./when-to-memoize.md) - When manual memoization is still needed
-> - [hooks.md](./hooks.md) - useActionState, useFormStatus patterns
-> - [server-components.md](./server-components.md) - Server vs Client Components
+> - [compiler-guide.md](./references/compiler-guide.md) - React Compiler capabilities and optimization
+> - [when-to-memoize.md](./references/when-to-memoize.md) - When manual memoization is still needed
+> - [hooks.md](./references/hooks.md) - useActionState, useFormStatus patterns
+> - [server-components.md](./references/server-components.md) - Server vs Client Components
 
 ## Project Configuration
 
@@ -103,7 +103,7 @@ The React Compiler:
 
 ### When Manual Memoization IS Still Needed
 
-See [when-to-memoize.md](./when-to-memoize.md) for details. Key scenarios:
+See [when-to-memoize.md](./references/when-to-memoize.md) for details. Key scenarios:
 
 1. **External library callbacks** - Non-React code expecting stable references
 2. **Complex context values** - When context updates trigger cascading re-renders

@@ -10,12 +10,12 @@ Tailwind CSS v4 patterns with CSS-first configuration for Next.js applications.
 
 > **Reference Files:**
 >
-> - [css-first-config.md](./css-first-config.md) - CSS-first configuration with @theme
-> - [utility-patterns.md](./utility-patterns.md) - Common utility class patterns
-> - [design-system.md](./design-system.md) - Integration with @szum-tech/design-system
-> - [v4-migration.md](./v4-migration.md) - Breaking changes from v3
-> - [responsive.md](./responsive.md) - Responsive design patterns
-> - [examples.md](./examples.md) - Practical styling examples
+> - [css-first-config.md](./references/css-first-config.md) - CSS-first configuration with @theme
+> - [utility-patterns.md](./references/utility-patterns.md) - Common utility class patterns
+> - [design-system.md](./references/design-system.md) - Integration with @szum-tech/design-system
+> - [v4-migration.md](./references/v4-migration.md) - Breaking changes from v3
+> - [responsive.md](./references/responsive.md) - Responsive design patterns
+> - [examples.md](./references/examples.md) - Practical styling examples
 
 ## Project Configuration
 

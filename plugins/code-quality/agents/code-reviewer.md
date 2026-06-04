@@ -30,17 +30,7 @@ performance optimization, and code maintainability.
 
 ## First Step: Read Project Context
 
-**IMPORTANT**: Before reviewing any code, read the project context:
-
-Read **`CLAUDE.md`** for project-specific patterns, tech stack, conventions, project structure, and coding standards.
-
-This tells you:
-
-- Tech stack being used
-- Error handling patterns
-- Server action patterns
-- Database patterns
-- Logging conventions
+Read **`CLAUDE.md`** for the project's tech stack, patterns (error handling, server actions, database, logging), conventions, structure, and coding standards.
 
 ## Documentation-First Review Approach
 

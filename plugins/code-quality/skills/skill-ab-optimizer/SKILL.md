@@ -10,9 +10,9 @@ Automates A/B testing and continuous improvement of Claude Code skills. Instead 
 
 > **Reference Files:**
 >
-> - [workflow.md](./workflow.md) — Full A/B testing lifecycle and phase breakdown
-> - [metrics.md](./metrics.md) — Metric definitions, scoring rubrics, and evaluation criteria
-> - [examples.md](./examples.md) — Practical examples and real optimization runs
+> - [workflow.md](./references/workflow.md) — Full A/B testing lifecycle and phase breakdown
+> - [metrics.md](./references/metrics.md) — Metric definitions, scoring rubrics, and evaluation criteria
+> - [examples.md](./references/examples.md) — Practical examples and real optimization runs
 
 ---
 
@@ -80,7 +80,7 @@ Each variant modifies one dimension at a time (controlled experimentation):
 - Step-by-step instruction depth
 
 ### Scoring
-Each variant is scored across 5 dimensions (see [metrics.md](./metrics.md)):
+Each variant is scored across 5 dimensions (see [metrics.md](./references/metrics.md)):
 1. **Accuracy** — Does output match expected behavior?
 2. **Completeness** — Are all required steps covered?
 3. **Conciseness** — Is the output free of noise?
@@ -108,7 +108,7 @@ Uses an ML-inspired hill-climbing algorithm:
 | 5. Iteration | Repeat from step 2 with winner as new baseline | Improvement log |
 | 6. Report | Summarize all rounds, final delta | Markdown report |
 
-See [workflow.md](./workflow.md) for the full phase-by-phase breakdown.
+See [workflow.md](./references/workflow.md) for the full phase-by-phase breakdown.
 
 ---
 

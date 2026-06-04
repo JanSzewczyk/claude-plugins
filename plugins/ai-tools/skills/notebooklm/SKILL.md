@@ -14,231 +14,83 @@ allowed-tools: Read, Write, Bash
 
 # NotebookLM CLI & Python API
 
-Skill for automating Google NotebookLM through the `notebooklm-py` package — an unofficial
-Python client that provides CLI and async Python API access to NotebookLM features, many of
-which go beyond what the web interface offers.
+Automate Google NotebookLM through the `notebooklm-py` package (unofficial community client; CLI + async
+Python API). This file is the workflow and orientation; full command syntax and recipes are in the references.
 
-> **Important**: This uses undocumented Google APIs. It is a community project, not affiliated
-> with Google. Rate limiting may apply with heavy usage.
+> - [references/cli-reference.md](./references/cli-reference.md) — complete CLI commands, flags, advanced features.
+> - [references/python-api.md](./references/python-api.md) — full async Python API reference.
+> - [references/setup-guide.md](./references/setup-guide.md) — install, auth, multiple accounts, CI/CD.
+> - [references/troubleshooting.md](./references/troubleshooting.md) — detailed troubleshooting.
+>
+> **Note:** uses undocumented Google APIs — community project, not affiliated with Google; rate limits apply.
 
 ## Quick Setup
 
-Before using any commands, the user needs to install and authenticate:
-
 ```bash
-# Install
-pip install "notebooklm-py[browser]"
-playwright install chromium
-
-# Authenticate (opens browser for Google login)
-notebooklm login
-
-# Verify
-notebooklm list
-
-# Check environment health
-notebooklm auth check --test
+pip install "notebooklm-py[browser]" && playwright install chromium
+notebooklm login          # opens browser for Google login
+notebooklm auth check --test   # verify environment
 ```
 
-For detailed setup instructions including platform-specific issues, multiple accounts,
-CI/CD configuration, and troubleshooting, read `references/setup-guide.md`.
+Platform-specific setup, multiple accounts, and CI/CD config: [references/setup-guide.md](./references/setup-guide.md).
 
 ## Core Workflow
 
-A typical NotebookLM workflow follows this pattern:
+Five steps — one example each; full flags in [references/cli-reference.md](./references/cli-reference.md).
 
-### 1. Create a Notebook
-
-```bash
-notebooklm create "My Research Project"
-```
-
-### 2. Add Sources
-
-```bash
-# URLs, PDFs, YouTube, local files
-notebooklm source add "https://example.com/article"
-notebooklm source add "./research-paper.pdf"
-notebooklm source add "https://youtube.com/watch?v=..."
-
-# Google Drive source
-notebooklm source add-drive <file_id> "Document Title" --mime-type google-doc
-
-# Web research (AI-powered source discovery)
-notebooklm source add-research "quantum computing breakthroughs 2026"
-notebooklm source add-research "topic" --from drive --mode deep
-```
-
-Supported formats: PDFs, Word docs, Markdown, plain text, audio/video files, images,
-Google Drive documents, YouTube videos, pasted text.
-
-Source limits per plan: Standard (50), Plus (100), Pro (300), Ultra (600).
-
-### 3. Ask Questions
-
-```bash
-notebooklm ask "What are the key findings across all sources?"
-notebooklm ask "Compare the methodologies used in sources 1 and 3"
-notebooklm ask "Summarize key points" --save-as-note
-```
-
-### 4. Generate Content
-
-This is where NotebookLM shines. Generate rich artifacts from your sources:
-
-```bash
-# Audio podcast (deep-dive, brief, critique, or debate format)
-notebooklm generate audio "Focus on practical implications" --wait
-notebooklm generate audio --format debate --length long --wait
-
-# Video explainer (9 visual styles available)
-notebooklm generate video --format explainer --style whiteboard --wait
-notebooklm generate cinematic-video "documentary overview" --wait
-
-# Study materials
-notebooklm generate quiz --difficulty hard --quantity more
-notebooklm generate flashcards --difficulty medium --quantity standard
-
-# Documents and visuals
-notebooklm generate slide-deck --format presenter --length short
-notebooklm generate infographic --orientation portrait --detail detailed --style professional
-notebooklm generate mind-map
-notebooklm generate report --format briefing-doc
-notebooklm generate report --format custom --append "Focus on actionable insights"
-
-# Data extraction
-notebooklm generate data-table "Extract all statistics mentioned"
-
-# Source filtering — limit to specific sources
-notebooklm generate audio -s <source_id_1> -s <source_id_2> "from these sources only" --wait
-
-# Rate limit handling — automatic exponential backoff
-notebooklm generate audio --retry 3 --wait
-```
-
-### 5. Download Artifacts
-
-```bash
-notebooklm download audio ./podcast.mp3
-notebooklm download video ./explainer.mp4
-notebooklm download cinematic-video ./cinematic.mp4
-notebooklm download slide-deck ./slides.pdf
-notebooklm download slide-deck --format pptx ./slides.pptx
-notebooklm download quiz --format markdown ./quiz.md
-notebooklm download quiz --format json ./quiz.json
-notebooklm download quiz --format html ./quiz.html
-notebooklm download flashcards --format json ./cards.json
-notebooklm download infographic ./visual.png
-notebooklm download mind-map ./map.json
-notebooklm download data-table ./data.csv
-notebooklm download report ./report.md
-
-# Download options
-notebooklm download audio --all ./audio/         # Download all audio artifacts
-notebooklm download audio --name "chapter 3"     # Filter by title (fuzzy match)
-notebooklm download audio -a <artifact_id>       # Select specific artifact
-notebooklm download audio --dry-run              # Preview without downloading
-```
+1. **Create** — `notebooklm create "My Research Project"`.
+2. **Add sources** — `notebooklm source add "<url | ./file.pdf | youtube-url>"`; `source add-drive`,
+   `source add-research "<query>"` for AI source discovery. Accepts PDF/Word/Markdown/text/audio/video/
+   images/Drive/YouTube/pasted text. Per-plan source limits: Standard 50, Plus 100, Pro 300, Ultra 600.
+   **Indexing takes time** — `notebooklm source wait <id>` before asking/generating.
+3. **Ask** — `notebooklm ask "What are the key findings?"` (add `--save-as-note` to keep the answer).
+4. **Generate** an artifact (add `--wait` to block until ready, `-s <source_id>` to limit to sources):
+   - `audio` (podcast), `video` / `cinematic-video`, `quiz`, `flashcards`, `slide-deck`, `infographic`,
+     `mind-map`, `report`, `data-table`.
+   - e.g. `notebooklm generate audio "focus on practical implications" --wait`.
+5. **Download** — `notebooklm download <artifact> <path>` (e.g. `download audio ./podcast.mp3`); options
+   `--all`, `--name "<fuzzy>"`, `-a <artifact_id>`, `--format <fmt>`, `--dry-run`.
 
 ## Generation Timeframes
 
-Different artifacts take varying amounts of time:
+| Artifact                  | Typical Duration       |
+| ------------------------- | ---------------------- |
+| Mind maps                 | Instant (synchronous)  |
+| Quizzes, flashcards       | 1–5 minutes            |
+| Audio podcasts            | 5–15 minutes           |
+| Reports, slide decks      | 5–15 minutes           |
+| Video explainers          | 10–30 minutes          |
+| Cinematic videos (Veo 3)  | 30–40 minutes          |
+| Source indexing           | 30 s – 10 minutes      |
 
-| Artifact | Typical Duration |
-|----------|-----------------|
-| Mind maps | Instant (synchronous) |
-| Quizzes, flashcards | 1-5 minutes |
-| Audio podcasts | 5-15 minutes |
-| Reports, slide decks | 5-15 minutes |
-| Video explainers | 10-30 minutes |
-| Cinematic videos (Veo 3) | 30-40 minutes |
-| Source indexing | 30 seconds - 10 minutes |
+For long operations use `--wait`, or poll with `notebooklm artifact list` / `artifact poll <task_id>`.
 
-For long-running operations, use `--wait` flag or poll with `notebooklm artifact list`.
+## Artifact Options
 
-## Audio Generation Options
-
-Audio is one of the most powerful features. Available options:
-
-- **Formats** (`--format`): `deep-dive` (default), `brief`, `critique`, `debate`
-- **Lengths** (`--length`): `short`, `default`, `long`
-- **Languages**: 80+ languages supported
-
-```bash
-# Custom podcast with specific instructions
-notebooklm generate audio "Make it conversational, focus on the controversies" --wait
-
-# Debate format, long length
-notebooklm generate audio --format debate --length long --wait
-
-# Set language
-notebooklm language set pl  # Polish
-notebooklm generate audio --wait
-```
-
-## Video Generation Options
-
-- **Formats** (`--format`): `explainer` (default), `brief`, `cinematic` (Veo 3 AI)
-- **Styles** (`--style`): `auto`, `classic`, `whiteboard`, `kawaii`, `anime`, `watercolor`, `retro-print`, `heritage`, `paper-craft`
-
-```bash
-notebooklm generate video --style anime --wait
-notebooklm generate cinematic-video "noir style with dramatic music" --wait
-```
+- **Audio** — `--format deep-dive|brief|critique|debate`, `--length short|default|long`, 80+ languages
+  (`notebooklm language set pl`).
+- **Video** — `--format explainer|brief|cinematic` (Veo 3), `--style auto|classic|whiteboard|kawaii|anime|
+  watercolor|retro-print|heritage|paper-craft`.
 
 ## Python API
 
-For programmatic workflows, use the async Python API:
-
-```python
-import asyncio
-from notebooklm import NotebookLMClient
-
-async def main():
-    async with await NotebookLMClient.from_storage() as client:
-        # Create notebook and add sources
-        nb = await client.notebooks.create("Research")
-        source = await client.sources.add_url(nb.id, "https://example.com")
-
-        # Chat
-        result = await client.chat.ask(nb.id, "Summarize key points")
-        print(result.answer)
-
-        # Generate and download podcast
-        status = await client.artifacts.generate_audio(nb.id, instructions="make it fun")
-        await client.artifacts.wait_for_completion(nb.id, status.task_id)
-        await client.artifacts.download_audio(nb.id, "podcast.mp3")
-
-asyncio.run(main())
-```
-
-For full Python API reference with all methods, see `references/python-api.md`.
-
-## CLI Command Reference
-
-For the complete CLI command reference including all flags, options, and advanced features
-(profiles, sharing, research modes, slide revision), see `references/cli-reference.md`.
+For programmatic/CI workflows use the async client (`NotebookLMClient.from_storage()` →
+`notebooks.create`, `sources.add_url`, `chat.ask`, `artifacts.generate_audio` / `wait_for_completion` /
+`download_audio`). Full reference: [references/python-api.md](./references/python-api.md).
 
 ## Troubleshooting
 
-Common issues:
+- **Auth errors / CSRF** — `notebooklm auth check --test` to diagnose, then `notebooklm login` to re-auth.
+- **Rate limiting** — wait 5–10 min or use `--retry <n>` for automatic backoff.
+- **Generation stuck** — use `--wait` or poll `artifact list` / `artifact poll <task_id>`.
 
-- **Environment check**: Run `notebooklm auth check --test` to diagnose authentication issues
-- **Auth errors**: Run `notebooklm auth check --test` to diagnose, then `notebooklm login` to re-authenticate
-- **Rate limiting**: Wait 5-10 minutes, use `--retry` flag for automatic backoff
-- **Generation stuck**: Use `--wait` or poll with `artifact list` / `artifact poll <task_id>`
-- **CSRF token issues**: Usually auto-refreshed; if persistent, run `notebooklm login`
-
-For platform-specific issues and detailed troubleshooting, see `references/troubleshooting.md`.
+More: [references/troubleshooting.md](./references/troubleshooting.md).
 
 ## Key Tips
 
-- Always use `--wait` for generation commands when you need to download immediately after
-- Use `--json` flag on most commands for machine-parseable output
-- For parallel agent workflows, pass explicit notebook IDs with `-n` flag instead of relying on context
-- Use profiles (`-p work`) to manage multiple Google accounts
-- Source indexing takes time — use `notebooklm source wait <id>` before asking questions or generating content
-- The `source fulltext` command retrieves indexed content (not available in web UI)
-- Use `-s <source_id>` on generate/ask commands to limit to specific sources
-- Slide decks can be revised per-slide: `notebooklm generate revise-slide "prompt" --artifact <id> --slide N`
-- Export artifacts to Google Docs/Sheets: `notebooklm artifact export <id> --type docs`
+- Use `--wait` when you need to download immediately after generating; `--json` for machine-parseable output.
+- For parallel/agent workflows pass explicit notebook IDs with `-n` instead of relying on context.
+- Use profiles (`-p work`) for multiple Google accounts; `-s <source_id>` to scope generate/ask.
+- `source fulltext` retrieves indexed content (not in the web UI).
+- Slide decks revise per-slide: `notebooklm generate revise-slide "prompt" --artifact <id> --slide N`.
+- Export artifacts to Google Docs/Sheets: `notebooklm artifact export <id> --type docs`.

@@ -393,3 +393,18 @@ logger.info({ userId, orderId, amount }, "Order placed");
 logger.info({ user_id, budget, amt }, "Budget updated");
 logger.info({ uid, order_id, orderAmount }, "Order placed");
 ```
+
+## Masking Helpers
+
+Use these to log a safe, derived form of a sensitive value instead of the value itself.
+
+```typescript
+export function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  return `${local[0]}***@${domain}`;
+}
+
+export function maskId(id: string): string {
+  return id.length > 8 ? `${id.slice(0, 4)}...${id.slice(-4)}` : "***";
+}
+```
