@@ -28,6 +28,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
 - **🧪 [testing-strategist](./plugins/testing/)** — Plans test coverage across unit, integration, and E2E layers
 - **🧪 [storybook-tester](./plugins/testing/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
+- **🧪 [unit-tester](./plugins/testing/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
 - **🧹 [code-reviewer](./plugins/code-quality/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
 - **⚡ [performance-analyzer](./plugins/code-quality/)** — Bundle size, React rendering efficiency, and slow query analysis
 - **📦 [library-updater](./plugins/code-quality/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
@@ -227,7 +228,8 @@ What are you doing?
 │   ├── Component / Storybook tests → Agent: storybook-tester (testing)
 │   │                                  Skills: storybook-testing, builder-factory
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
-│   ├── Unit tests (Vitest)        → Skill: unit-testing (testing)
+│   ├── Unit tests (Vitest)        → Agent: unit-tester (testing)
+│   │                                  Skills: unit-testing, builder-factory
 │   ├── API / E2E tests            → Skill: api-test, playwright-cli (testing)
 │   └── Accessibility audit        → Skill: accessibility-audit (testing)
 │
@@ -257,7 +259,7 @@ What are you doing?
 | Create a server action | `nextjs-backend-engineer` agent |
 | Write Storybook tests | `storybook-tester` agent |
 | Plan which tests to write | `testing-strategist` agent |
-| Write unit tests | `/unit-testing` skill |
+| Write unit tests | `unit-tester` agent (or `/unit-testing` skill) |
 | Review code quality | `code-reviewer` agent |
 | Optimize performance | `performance-analyzer` agent |
 | Run an accessibility audit | `/accessibility-audit` skill |
@@ -295,8 +297,8 @@ claude-plugins/
     │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
-    │   ├── agents/                # testing-strategist, storybook-tester
-    │   └── skills/                # 7 skills (storybook-testing, playwright-cli, …)
+    │   ├── agents/                # testing-strategist, storybook-tester, unit-tester
+    │   └── skills/                # 7 skills (unit-testing, storybook-testing, playwright-cli, …)
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater

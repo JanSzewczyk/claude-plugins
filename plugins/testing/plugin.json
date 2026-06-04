@@ -1,13 +1,14 @@
 {
   "name": "testing",
-  "description": "Testing strategies, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.",
-  "version": "1.1.0",
+  "description": "Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.",
+  "version": "1.2.0",
   "author": {
     "name": "Szum Tech Team"
   },
   "agents": [
     "./agents/testing-strategist.md",
-    "./agents/storybook-tester.md"
+    "./agents/storybook-tester.md",
+    "./agents/unit-tester.md"
   ],
   "skills": "./skills/"
 }

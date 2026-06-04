@@ -20,6 +20,10 @@ examples:
 
 Test Next.js Route Handlers with real HTTP requests using Playwright. This skill creates comprehensive API tests that verify endpoint behavior, authentication, validation, and error handling.
 
+> **Reference Files:**
+>
+> - [references/examples.md](./references/examples.md) - Worked API test suites (auth, CRUD, validation, error mapping)
+
 ## First Step: Read Project Context
 
 **IMPORTANT**: Before creating API tests, check `.claude/project-context.md` for:

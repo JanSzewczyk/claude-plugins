@@ -890,6 +890,6 @@ const meta = preview.meta({
 
 For more examples, see:
 
-- [examples.md](./examples.md) - Practical code examples
+- [examples-and-templates.md](./examples-and-templates.md) - Practical code examples
 - [patterns.md](./patterns.md) - Testing patterns
 - [best-practices.md](./best-practices.md) - Best practices and pitfalls

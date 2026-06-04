@@ -43,12 +43,12 @@ components.
 
 > **Reference Files:**
 >
-> - [mocking.md](./mocking.md) - Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
-> - [patterns.md](./patterns.md) - Testing patterns and examples
-> - [best-practices.md](./best-practices.md) - Best practices, migration guide, and common pitfalls
-> - [examples-and-templates.md](./examples-and-templates.md) - Practical code examples and component test templates
-> - [design-system.md](./design-system.md) - Testing @szum-tech/design-system components
-> - [api-reference.md](./api-reference.md) - Complete API documentation
+> - [references/mocking.md](./references/mocking.md) - Comprehensive mocking guide (functions, modules, APIs, Next.js hooks, Context)
+> - [references/patterns.md](./references/patterns.md) - Testing patterns and examples
+> - [references/best-practices.md](./references/best-practices.md) - Best practices, migration guide, and common pitfalls
+> - [references/examples-and-templates.md](./references/examples-and-templates.md) - Practical code examples and component test templates
+> - [references/design-system.md](./references/design-system.md) - Testing @szum-tech/design-system components
+> - [references/api-reference.md](./references/api-reference.md) - Complete API documentation
 
 ## Context
 
@@ -185,7 +185,7 @@ SubmitButtonStory.test("Button has correct ARIA label", async ({ canvas }) => {
 1. **Demos** — Use `play` **without assertions** to show component after user interaction in Storybook docs
 2. **Complex Dependent Flows** (rare ~10%) — Use `play` with `step()` when steps depend on each other
 
-> **See [best-practices.md](./best-practices.md) for the full decision matrix, component type guidelines, and code examples.**
+> **See [best-practices.md](./references/best-practices.md) for the full decision matrix, component type guidelines, and code examples.**
 
 ### Key Differences from CSF 3.0
 
@@ -372,7 +372,7 @@ npm run storybook:dev   # View in Storybook UI
 | **React Context**    | Decorators                          | AuthContext, ThemeProvider            |
 | **Mock data**        | Builders (`/builder-factory`)       | User objects, complex data structures |
 
-> **See [mocking.md](./mocking.md) for complete examples, patterns, and best practices.**
+> **See [mocking.md](./references/mocking.md) for complete examples, patterns, and best practices.**
 
 ## Common Mistakes to Avoid
 
@@ -382,7 +382,7 @@ npm run storybook:dev   # View in Storybook UI
 4. **Generic story names** — Use descriptive names (`EmptyForm`, `FilledForm`), not `Default` or `Basic`
 5. **Using `canvas` for portal content** — Use `screen` from `storybook/test` for modals, dropdowns, tooltips
 
-> **See [best-practices.md](./best-practices.md) for detailed examples and fixes for each anti-pattern.**
+> **See [best-practices.md](./references/best-practices.md) for detailed examples and fixes for each anti-pattern.**
 
 ## Questions to Ask
 

@@ -103,6 +103,7 @@ Use this table to determine which specialist agent handles each type of task ext
 | Server Actions, Route Handlers, API endpoints, middleware | `nextjs-backend-engineer` |
 | Firestore schema, data model, indexes, migrations | `database-architect` |
 | Test strategy, coverage planning, test type selection | `testing-strategist` |
+| Unit tests for utilities, schemas, hooks, Server Actions (mocked) | `unit-tester` |
 | Storybook stories, interaction tests, visual tests | `storybook-tester` |
 | Performance, bundle analysis, Core Web Vitals | `performance-analyzer` |
 | Code review checkpoint, quality gate | `code-reviewer` |

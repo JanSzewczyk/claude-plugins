@@ -1,9 +1,9 @@
 ---
 name: testing-strategist
-version: 1.1.0
-lastUpdated: 2026-02-20
+version: 1.2.0
+lastUpdated: 2026-06-04
 author: Szum Tech Team
-related-agents: [storybook-tester, code-reviewer]
+related-agents: [unit-tester, storybook-tester, code-reviewer]
 description: Plan test strategies, analyze test coverage, and decide which types of tests to write. Use proactively after implementing features to ensure proper test coverage.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
@@ -28,6 +28,17 @@ cost, and confidence levels.
 
 1. **`.claude/project-context.md`** - For project-specific tech stack, test infrastructure, and conventions
 2. **`CLAUDE.md`** - For available test commands and project structure
+
+### Spec-Driven Development (SDD) mode
+
+When invoked from the SDD flow (a `product-owner` delegation prompt, or a PRD/TDD path in the
+prompt), the spec is your input and your plan is the output the orchestrator hands to implementers:
+
+- Read the **PRD Acceptance Criteria** and **TDD** (`## API Contracts`, `## Security`,
+  `## Error Handling`). Every acceptance criterion must map to at least one planned test.
+- Your job is to **plan, not implement**. Produce the strategy below, then route each test to the
+  agent that will write it (see *Collaboration with Other Agents*).
+- Be explicit about dependency position: tests come **after implementation, before code review**.
 
 ## Core Responsibilities
 
@@ -195,6 +206,7 @@ When analyzing code for testing, identify:
 
 Refer to skills for detailed code examples:
 
+- **`unit-testing` skill** — Vitest unit tests for utilities, schemas, hooks, and Server Actions (mocked)
 - **`storybook-testing` skill** — Component state testing, interaction tests, CSF Next format, `.test()` method
 - **`api-test` skill** — Route handler testing with Playwright
 - **`builder-factory` skill** — Test data builders for mock data
@@ -296,11 +308,13 @@ Before finalizing a test strategy:
 
 ## Collaboration with Other Agents
 
-After strategy is approved:
+After strategy is approved, route each planned test to the agent that implements it:
 
-- Hand off Storybook tests to `storybook-tester`
-- Hand off builder creation to `builder-factory` skill
-- Hand off E2E tests to manual implementation or dedicated agent
+- Unit tests (utilities, schemas, hooks, Server Actions) → `unit-tester`
+- Component / interaction / validation-UI tests → `storybook-tester`
+- Test data builders → `builder-factory` skill (invoked by whichever agent needs them)
+- E2E / full-page flows → `true-dom-tester` (or `playwright-cli` for ad-hoc automation)
+- API route handlers over real HTTP → `api-test` skill
 
 Remember: The goal is confidence in code correctness, not 100% coverage. A well-chosen 70% coverage beats a
 poorly-chosen 100% coverage every time.

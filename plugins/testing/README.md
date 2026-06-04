@@ -1,6 +1,6 @@
 # testing
 
-Testing strategies, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, and test data builders.
+Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.
 
 ## Contents
 
@@ -10,6 +10,7 @@ Testing strategies, Storybook interaction tests, Playwright E2E, API testing, ac
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **testing-strategist**       | Plan test strategies, analyze coverage gaps, select appropriate test types (unit/integration/E2E). Follows the Testing Trophy model.                                     |
 | **storybook-tester**         | Writes Storybook stories and interaction tests for React components in CSF Next format — play functions, component variants, edge cases, and the `.test()` method. |
+| **unit-tester**              | Writes Vitest unit tests for utilities, Zod schemas, hooks, and Server Actions (with mocked dependencies). Phased, autonomous, SDD-aware — derives cases from acceptance criteria. |
 
 ### Skills
 
@@ -20,6 +21,7 @@ Testing strategies, Storybook interaction tests, Playwright E2E, API testing, ac
 | **api-test**            | `/api-test`            | Testing Next.js Route Handlers with Playwright — real HTTP requests, response validation                                        |
 | **accessibility-audit** | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                           |
 | **playwright-cli**      | `/playwright-cli`      | Browser automation — web testing, screenshots, form filling, request mocking, tracing, video recording                          |
+| **true-dom-tester**     | `/true-dom-tester`     | Accessibility-tree-based Playwright test generation — semantic locators, faster/cheaper than screenshots, optional Firecrawl     |
 | **unit-testing**        | `/unit-testing`        | Vitest unit tests for TypeScript — mocking, async testing, parameterized tests, server action testing, coverage                 |
 
 ## Installation
@@ -29,6 +31,7 @@ Testing strategies, Storybook interaction tests, Playwright E2E, API testing, ac
 ```bash
 cp plugins/testing/agents/testing-strategist.md  your-project/.claude/agents/
 cp plugins/testing/agents/storybook-tester.md     your-project/.claude/agents/
+cp plugins/testing/agents/unit-tester.md          your-project/.claude/agents/
 ```
 
 ### 2. Copy skills
@@ -59,6 +62,16 @@ The `storybook-tester` writes CSF Next stories with play-function interaction
 tests — covering component variants, edge cases, and form/validation states —
 using the `.test()` method. It leans on the `storybook-testing` and
 `builder-factory` skills for patterns and mock data.
+
+**Write unit tests** for non-UI logic:
+
+> "Use unit-tester to write tests for src/utils/format-currency.ts"
+
+The `unit-tester` works in four phases (analyze → implement → run → optimize),
+mocks only at module boundaries, runs `npm run test:unit` and self-corrects, and
+leans on the `unit-testing` and `builder-factory` skills. In an SDD flow it derives
+test cases from the PRD acceptance criteria and reports coverage back to the
+`product-owner`.
 
 **Invoke skills directly:**
 
@@ -94,3 +107,4 @@ This plugin assumes the following test setup (adapt commands to your project):
 - [**nextjs**](../nextjs/) — Next.js skills referenced by test agents
 - [**design**](../design/) — Design-system skills referenced by test agents
 - [**code-quality**](../code-quality/) — Code review agent can verify test quality
+- [**product-management**](../product-management/) — `product-owner` orchestrates these agents in the SDD (PRD/TDD) flow

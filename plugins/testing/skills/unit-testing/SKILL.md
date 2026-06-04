@@ -23,9 +23,9 @@ Write comprehensive unit tests using Vitest for TypeScript projects. Covers util
 
 > **Reference Files:**
 >
-> - [mocking.md](./mocking.md) - **NEW:** Comprehensive mocking guide (vi.fn, vi.mock, vi.spyOn, patterns)
-> - [examples.md](./examples.md) - Practical code examples for common scenarios
-> - [patterns.md](./patterns.md) - Best practices, anti-patterns, and guidelines
+> - [references/mocking.md](./references/mocking.md) - Comprehensive mocking guide (vi.fn, vi.mock, vi.spyOn, patterns)
+> - [references/examples.md](./references/examples.md) - Practical code examples for common scenarios
+> - [references/patterns.md](./references/patterns.md) - Best practices, anti-patterns, and guidelines
 
 ## Context
 
@@ -228,7 +228,7 @@ vi.mock("~/lib/database", () => ({
 import { db } from "~/lib/database";
 ```
 
-> **See [mocking.md](./mocking.md) for comprehensive mocking guide with vi.mock, vi.fn, vi.spyOn, and best practices.**
+> **See [mocking.md](./references/mocking.md) for comprehensive mocking guide with vi.mock, vi.fn, vi.spyOn, and best practices.**
 
 ### Mocking with vi.fn
 
@@ -480,160 +480,26 @@ npm run test:unit -- --coverage
 npm run test:unit -- --reporter=verbose
 ```
 
-## 🎭 Mocking in Vitest
+## Mocking in Vitest
 
-> **See [mocking.md](./mocking.md) for comprehensive mocking documentation.**
+Vitest isolates the code under test by replacing its dependencies. The three core
+tools — covered with runnable examples earlier under [Key Patterns](#key-patterns) — are:
 
-Vitest provides powerful mocking capabilities for isolating code under test.
+- `vi.fn()` — standalone mock functions (callbacks, injected deps)
+- `vi.mock("module", factory)` — replace an entire module at its boundary
+- `vi.spyOn(obj, "method")` — observe/replace a single method, restorable with `.mockRestore()`
 
-### Quick Mocking Reference
+Two patterns worth remembering: `vi.hoisted(() => ({ ... }))` when a `vi.mock` factory
+needs shared mock references, and `vi.mock(import("./m"), async (orig) => ({ ...(await orig()), one: vi.fn() }))`
+for partial mocks that keep the real exports.
 
-**1. Mock Functions** - Use `vi.fn()` for standalone mocks:
+**Defaults that prevent flaky tests:** clear call history in `beforeEach(() => vi.clearAllMocks())`,
+restore real implementations in `afterEach(() => vi.restoreAllMocks())`, type your mocks with
+`vi.mocked(fn)`, and mock at module boundaries (DB, auth, network) — never internal utilities.
 
-```typescript
-const mockCallback = vi.fn();
-
-test("tracks calls", () => {
-  mockCallback("hello", 123);
-
-  expect(mockCallback).toHaveBeenCalledWith("hello", 123);
-  expect(mockCallback).toHaveBeenCalledTimes(1);
-});
-```
-
-**2. Mock Modules** - Use `vi.mock()` to replace entire modules:
-
-```typescript
-vi.mock("~/lib/database", () => ({
-  db: {
-    query: vi.fn().mockResolvedValue([{ id: 1 }]),
-    insert: vi.fn().mockResolvedValue({ id: "new-id" }),
-  },
-}));
-
-import { db } from "~/lib/database";
-
-test("uses mocked database", async () => {
-  const result = await db.query("SELECT * FROM users");
-
-  expect(db.query).toHaveBeenCalled();
-  expect(result).toEqual([{ id: 1 }]);
-});
-```
-
-**3. Spy on Methods** - Use `vi.spyOn()` for existing methods:
-
-```typescript
-import * as utils from "./utils";
-
-test("spies on method", () => {
-  const spy = vi.spyOn(utils, "calculateTax");
-
-  utils.calculateTax(100, 0.2);
-
-  expect(spy).toHaveBeenCalledWith(100, 0.2);
-  spy.mockRestore();
-});
-```
-
-**4. Hoisted Mocks** - Use `vi.hoisted()` for shared state:
-
-```typescript
-const mocks = vi.hoisted(() => ({
-  getUser: vi.fn(),
-}));
-
-vi.mock("~/lib/users", () => ({
-  getUser: mocks.getUser,
-}));
-
-test("configures hoisted mock", async () => {
-  mocks.getUser.mockResolvedValue({ id: "123", name: "John" });
-
-  const user = await getUser("123");
-
-  expect(user.name).toBe("John");
-});
-```
-
-**5. Async Mocking** - Mock promises and async functions:
-
-```typescript
-const mockFetch = vi.fn();
-
-test("mocks async success", async () => {
-  mockFetch.mockResolvedValue({ data: "success" });
-
-  const result = await mockFetch();
-
-  expect(result).toEqual({ data: "success" });
-});
-
-test("mocks async error", async () => {
-  mockFetch.mockRejectedValue(new Error("Failed"));
-
-  await expect(mockFetch()).rejects.toThrow("Failed");
-});
-```
-
-**6. Partial Module Mocking** - Keep original exports:
-
-```typescript
-vi.mock(import("./utils"), async (importOriginal) => {
-  const actual = await importOriginal();
-
-  return {
-    ...actual, // Keep all original exports
-    formatDate: vi.fn().mockReturnValue("2024-01-01"), // Mock this one
-  };
-});
-```
-
-### Common Mocking Patterns
-
-**Database Mocking:**
-
-```typescript
-vi.mock("~/lib/database", () => ({
-  db: {
-    users: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-  },
-}));
-```
-
-**Authentication Mocking:**
-
-```typescript
-vi.mock("~/lib/auth", () => ({
-  getCurrentUser: vi.fn(),
-  verifySession: vi.fn(),
-}));
-```
-
-**Third-Party Libraries:**
-
-```typescript
-vi.mock("uuid", () => ({
-  v4: vi.fn(() => "fixed-uuid-for-testing"),
-}));
-```
-
-### Best Practices
-
-1. ✅ **Clear mocks between tests** - Use `beforeEach(() => vi.clearAllMocks())`
-2. ✅ **Use `vi.mocked()` for type safety** - `vi.mocked(fn).mockResolvedValue(...)`
-3. ✅ **Mock at module boundaries** - Mock external dependencies, not internal utilities
-4. ✅ **Use `vi.hoisted()` for shared mocks** - Access variables in factory functions
-5. ✅ **Restore mocks in `afterEach`** - Use `vi.restoreAllMocks()`
-6. ✅ **Test both success and error paths** - Mock different scenarios
-
-> **See [mocking.md](./mocking.md) for complete examples, patterns, and advanced techniques.**
+> The full catalogue — async resolution, hoisting edge cases, third-party libraries,
+> database/auth recipes — lives in [references/mocking.md](./references/mocking.md). Read it
+> before writing non-trivial mocks.
 
 ## Questions to Ask
 

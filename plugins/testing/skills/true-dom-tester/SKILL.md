@@ -31,7 +31,7 @@ Generates production-ready Playwright tests by navigating the real DOM using the
 > - [accessibility-tree.md](./references/accessibility-tree.md) — What the DOM snapshot contains and how to read it
 > - [test-patterns.md](./references/test-patterns.md) — Patterns for auth flows, forms, navigation, APIs
 > - [firecrawl.md](./references/firecrawl.md) — Bypassing bot protection for external pages
-> - [examples.md](./examples.md) — Full worked examples with generated test files
+> - [references/examples.md](./references/examples.md) — Full worked examples with generated test files
 
 ---
 

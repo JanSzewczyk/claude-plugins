@@ -34,8 +34,8 @@ Generate mimicry-js factory builders for TypeScript types.
 
 > **Reference Files:**
 >
-> - `field-mappings.md` - Field type to Faker method mappings
-> - `examples.md` - Complete builder examples and patterns
+> - [references/field-mappings.md](./references/field-mappings.md) - Field type to Faker method mappings
+> - [references/examples.md](./references/examples.md) - Complete builder examples and patterns
 
 ## First Step: Read Project Context
 
