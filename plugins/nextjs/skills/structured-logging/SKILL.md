@@ -10,7 +10,6 @@ Structured logging patterns with Pino for Next.js applications.
 
 > **Reference Files:**
 >
-> - [pino-setup.md](./pino-setup.md) - Logger configuration
 > - [log-levels.md](./log-levels.md) - When to use each level
 > - [patterns.md](./patterns.md) - Common logging patterns
 > - [examples.md](./examples.md) - Practical examples

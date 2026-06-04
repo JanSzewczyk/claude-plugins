@@ -445,6 +445,120 @@ test.describe("API Headers", () => {
 
 ---
 
+## Health Check Endpoint
+
+```typescript
+test("health endpoint returns ok", async ({ request }) => {
+  const response = await request.get("http://localhost:3000/api/health");
+
+  expect(response.status()).toBe(200);
+  expect(response.ok()).toBe(true);
+
+  const body = await response.json();
+  expect(body.status).toBe("healthy");
+});
+```
+
+## Parameterized Validation
+
+Drive one test per invalid payload from a table instead of repeating the test body:
+
+```typescript
+const invalidPayloads = [
+  { payload: {}, error: "name is required" },
+  { payload: { name: "" }, error: "name cannot be empty" },
+  { payload: { name: "x".repeat(256) }, error: "name too long" },
+  { payload: { name: "valid", amount: "not-a-number" }, error: "amount must be number" },
+];
+
+for (const { payload, error } of invalidPayloads) {
+  test(`rejects invalid payload: ${error}`, async ({ request }) => {
+    const response = await request.post("http://localhost:3000/api/budgets", {
+      data: payload,
+    });
+
+    expect(response.status()).toBe(400);
+    const body = await response.json();
+    expect(body.error).toContain(error);
+  });
+}
+```
+
+## Conflict (Duplicate Resource)
+
+```typescript
+test("returns 409 for a duplicate resource", async ({ request }) => {
+  await request.post("http://localhost:3000/api/budgets", { data: { name: "Unique Name" } });
+
+  const response = await request.post("http://localhost:3000/api/budgets", {
+    data: { name: "Unique Name" },
+  });
+
+  expect(response.status()).toBe(409);
+});
+```
+
+## Rate Limiting
+
+```typescript
+test("enforces rate limiting", async ({ request }) => {
+  const requests = Array.from({ length: 20 }, () =>
+    request.get("http://localhost:3000/api/budgets"),
+  );
+
+  const responses = await Promise.all(requests);
+  const tooMany = responses.filter((r) => r.status() === 429);
+
+  expect(tooMany.length).toBeGreaterThan(0);
+});
+```
+
+## ActionResponse Pattern
+
+When the project wraps responses in the `ActionResponse` envelope, assert the shape:
+
+```typescript
+// Success: { success: true, data, message? }
+test("returns ActionResponse success format", async ({ request }) => {
+  const response = await request.post("http://localhost:3000/api/budgets", {
+    data: validPayload,
+  });
+
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body).toMatchObject({ success: true, data: expect.any(Object) });
+});
+
+// Failure: { success: false, error, fieldErrors? }
+test("returns fieldErrors on validation failure", async ({ request }) => {
+  const response = await request.post("http://localhost:3000/api/budgets", {
+    data: {}, // missing required fields
+  });
+
+  expect(response.status()).toBe(400);
+  const body = await response.json();
+  expect(body).toMatchObject({ success: false, error: expect.any(String) });
+
+  if (body.fieldErrors) {
+    expect(body.fieldErrors).toEqual(
+      expect.objectContaining({ name: expect.arrayContaining([expect.any(String)]) }),
+    );
+  }
+});
+
+// ServiceError → HTTP status mapping (e.g. notFound → 404)
+test("maps ServiceError to the right HTTP status", async ({ request }) => {
+  const response = await request.get("http://localhost:3000/api/budgets/non-existent-id");
+
+  expect(response.status()).toBe(404);
+  const body = await response.json();
+  expect(body.success).toBe(false);
+  expect(body.error).toContain("not found");
+});
+```
+
+---
+
 ## Test Utilities
 
 ### Auth Helper
@@ -515,26 +629,10 @@ await expectErrorResponse(response, 400, "Validation failed");
 ## Running Tests
 
 ```bash
-# Run all API tests
-npm run test:e2e -- tests/e2e/api
-
-# Run specific test file
-npm run test:e2e -- tests/e2e/api/budgets.spec.ts
-
-# Run in UI mode
-npm run test:e2e:ui -- tests/e2e/api
-
-# Run with debugging
-PWDEBUG=1 npm run test:e2e -- tests/e2e/api/budgets.spec.ts
+npm run test:e2e -- tests/e2e/api                          # all API tests
+npm run test:e2e -- tests/e2e/api/budgets.spec.ts          # one file
+npm run test:e2e:ui -- tests/e2e/api                       # UI mode
+PWDEBUG=1 npm run test:e2e -- tests/e2e/api/budgets.spec.ts # debug
 ```
 
-## Best Practices
-
-1. **Use descriptive test names** - Clearly state what is being tested
-2. **Test happy path and error cases** - Don't just test success
-3. **Clean up after tests** - Delete created resources in afterEach
-4. **Use beforeEach for setup** - Create necessary test data
-5. **Assert on response structure** - Verify shape, not just success
-6. **Test authentication** - Verify auth is enforced
-7. **Test validation** - Ensure bad input is rejected
-8. **Use env variables** - Don't hardcode URLs or tokens
+> Rules, the coverage checklist, auth schemes, and best practices live in [SKILL.md](../SKILL.md).

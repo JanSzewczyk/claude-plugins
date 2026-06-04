@@ -6,42 +6,36 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 # Firestore Migration Skill
 
-Generate safe, idempotent migration scripts for Firestore data changes. This skill helps you evolve your database schema without data loss.
+Generate safe, idempotent migration scripts to evolve Firestore data without loss — adding fields,
+renaming/restructuring, transforming formats, removing deprecated fields, backfilling, or splitting
+and merging collections.
 
-## Context
+This file holds the rules and process. The script template and worked migrations live in the reference:
 
-This skill creates migration scripts for:
-
-- Adding new fields to existing documents
-- Renaming or restructuring fields
-- Transforming data formats
-- Removing deprecated fields
-- Backfilling computed values
-- Splitting or merging collections
+> - [references/examples.md](./references/examples.md) — the full migration script template plus six
+>   worked examples (add field, rename, transform, backfill, remove field, conditional), CLI commands,
+>   and best practices. **Start every script by copying the template from here.**
 
 ## Migration Principles
 
-1. **Idempotent**: Running twice produces the same result
-2. **Resumable**: Can continue from where it left off if interrupted
-3. **Dry-run first**: Always preview changes before applying
-4. **Batched**: Process documents in batches to avoid timeouts
-5. **Logged**: Track progress and errors for debugging
+Every script must be:
 
-## Instructions
+1. **Idempotent** — running it twice produces the same result (guard with a skip check).
+2. **Resumable** — can continue from where it stopped via a `--start-after=<docId>` cursor.
+3. **Dry-run first** — preview changes before applying; default to dry run.
+4. **Batched** — process in batches (≤ 500 writes) to avoid timeouts.
+5. **Logged** — record progress, skips, and errors for debugging.
 
-When the user requests a migration:
+## Process
 
-### 1. Analyze the Change
+### 1. Analyze the change
 
-Gather information about:
+Identify the source collection, the current vs. target document structure, an estimate of affected
+documents, and any relationships/dependencies.
 
-- Source collection name
-- Current document structure
-- Target document structure
-- Number of documents affected (estimate)
-- Any dependencies or relationships
+### 2. Assess the risk level
 
-### 2. Assess Risk Level
+The risk dictates the approach — don't skip this step:
 
 | Risk     | Criteria                 | Approach                      |
 | -------- | ------------------------ | ----------------------------- |
@@ -50,374 +44,66 @@ Gather information about:
 | High     | Removing/renaming fields | Dual-write period recommended |
 | Critical | Changing primary keys    | Manual review required        |
 
-### 3. Generate Migration Script
+### 3. Generate the script
 
-**File Location:** `scripts/migrations/YYYY-MM-DD-description.ts`
+Copy the template from [references/examples.md](./references/examples.md#migration-template) into
+`scripts/migrations/YYYY-MM-DD-description.ts`, then implement the two hooks for your case:
 
-**Script Template:**
+- **`shouldSkip(data)`** — return `true` when a document is already migrated (this is what makes the
+  script idempotent).
+- **`computeUpdates(data)`** — return the field updates to apply.
 
-```typescript
-/**
- * Migration: [Description]
- * Created: [Date]
- * Author: [Name]
- *
- * Purpose:
- * [Detailed description of what this migration does]
- *
- * Affected Collection: [collection-name]
- * Estimated Documents: [number]
- *
- * Rollback Strategy:
- * [How to undo this migration if needed]
- */
+The matching `shouldSkip` / `computeUpdates` bodies for common cases (add, rename, restructure,
+convert types, remove) are in the worked examples — adapt the closest one.
 
-import { db } from "~/lib/firebase";
-import { FieldValue } from "firebase-admin/firestore";
-import { createLogger } from "~/lib/logger";
+### 4. Update type definitions
 
-const logger = createLogger({ module: "migration-[name]" });
-
-// Configuration
-const COLLECTION_NAME = "collection-name";
-const BATCH_SIZE = 500;
-const DRY_RUN_DEFAULT = true;
-
-interface MigrationOptions {
-  dryRun?: boolean;
-  startAfter?: string; // Document ID to resume from
-  limit?: number; // Max documents to process (for testing)
-}
-
-interface MigrationResult {
-  processed: number;
-  updated: number;
-  skipped: number;
-  errors: number;
-  dryRun: boolean;
-  lastDocId?: string;
-}
-
-export async function migrate(
-  options: MigrationOptions = {},
-): Promise<MigrationResult> {
-  const { dryRun = DRY_RUN_DEFAULT, startAfter, limit } = options;
-
-  logger.info({ dryRun, startAfter, limit }, "Starting migration");
-
-  const result: MigrationResult = {
-    processed: 0,
-    updated: 0,
-    skipped: 0,
-    errors: 0,
-    dryRun,
-  };
-
-  try {
-    let query = db
-      .collection(COLLECTION_NAME)
-      .orderBy("__name__")
-      .limit(BATCH_SIZE);
-
-    if (startAfter) {
-      const startDoc = await db
-        .collection(COLLECTION_NAME)
-        .doc(startAfter)
-        .get();
-      if (startDoc.exists) {
-        query = query.startAfter(startDoc);
-      }
-    }
-
-    let hasMore = true;
-    let totalLimit = limit ?? Infinity;
-
-    while (hasMore && result.processed < totalLimit) {
-      const snapshot = await query.get();
-
-      if (snapshot.empty) {
-        hasMore = false;
-        break;
-      }
-
-      const batch = db.batch();
-      let batchCount = 0;
-
-      for (const doc of snapshot.docs) {
-        if (result.processed >= totalLimit) break;
-
-        result.processed++;
-        result.lastDocId = doc.id;
-
-        const data = doc.data();
-
-        // Skip condition: Check if already migrated
-        if (shouldSkip(data)) {
-          result.skipped++;
-          logger.debug({ docId: doc.id }, "Skipping already migrated document");
-          continue;
-        }
-
-        try {
-          const updates = computeUpdates(data);
-
-          if (!dryRun) {
-            batch.update(doc.ref, {
-              ...updates,
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-            batchCount++;
-          }
-
-          result.updated++;
-          logger.debug({ docId: doc.id, updates }, "Document will be updated");
-        } catch (error) {
-          result.errors++;
-          logger.error({ docId: doc.id, error }, "Error processing document");
-        }
-      }
-
-      // Commit batch
-      if (!dryRun && batchCount > 0) {
-        await batch.commit();
-        logger.info(
-          { batchCount, totalProcessed: result.processed },
-          "Batch committed",
-        );
-      }
-
-      // Prepare next batch
-      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
-      query = db
-        .collection(COLLECTION_NAME)
-        .orderBy("__name__")
-        .startAfter(lastDoc)
-        .limit(BATCH_SIZE);
-    }
-
-    logger.info(result, "Migration completed");
-    return result;
-  } catch (error) {
-    logger.error({ error, result }, "Migration failed");
-    throw error;
-  }
-}
-
-/**
- * Determine if a document should be skipped (already migrated)
- */
-function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
-  // TODO: Implement skip logic based on migration requirements
-  // Example: return data.newField !== undefined;
-  return false;
-}
-
-/**
- * Compute the updates to apply to a document
- */
-function computeUpdates(
-  data: FirebaseFirestore.DocumentData,
-): Record<string, unknown> {
-  // TODO: Implement update logic based on migration requirements
-  // Example:
-  // return {
-  //   newField: computeNewFieldValue(data),
-  //   oldField: FieldValue.delete()
-  // };
-  return {};
-}
-
-// CLI execution
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  const dryRun = !args.includes("--apply");
-  const startAfter = args
-    .find((a) => a.startsWith("--start-after="))
-    ?.split("=")[1];
-  const limit = args.find((a) => a.startsWith("--limit="))?.split("=")[1];
-
-  console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║                    FIRESTORE MIGRATION                        ║
-╠══════════════════════════════════════════════════════════════╣
-║  Mode: ${dryRun ? "DRY RUN (no changes will be made)" : "APPLY (changes will be committed)"}
-║  Collection: ${COLLECTION_NAME}
-${startAfter ? `║  Starting after: ${startAfter}\n` : ""}${limit ? `║  Limit: ${limit}\n` : ""}╚══════════════════════════════════════════════════════════════╝
-  `);
-
-  migrate({
-    dryRun,
-    startAfter,
-    limit: limit ? parseInt(limit, 10) : undefined,
-  })
-    .then((result) => {
-      console.log("\n📊 Migration Results:");
-      console.log(`   Processed: ${result.processed}`);
-      console.log(`   Updated: ${result.updated}`);
-      console.log(`   Skipped: ${result.skipped}`);
-      console.log(`   Errors: ${result.errors}`);
-      if (result.lastDocId) {
-        console.log(`   Last Doc ID: ${result.lastDocId}`);
-      }
-      if (result.dryRun) {
-        console.log("\n⚠️  This was a DRY RUN. Use --apply to commit changes.");
-      }
-      process.exit(result.errors > 0 ? 1 : 0);
-    })
-    .catch((error) => {
-      console.error("\n❌ Migration failed:", error);
-      process.exit(1);
-    });
-}
-```
-
-### 4. Usage Instructions
-
-Include these in the migration file:
-
-````markdown
-## How to Run
-
-1. **Preview changes (dry run):**
-   ```bash
-   npx ts-node scripts/migrations/YYYY-MM-DD-description.ts
-   ```
-````
-
-2. **Apply changes:**
-
-   ```bash
-   npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply
-   ```
-
-3. **Resume from specific document:**
-
-   ```bash
-   npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply --start-after=docId123
-   ```
-
-4. **Test with limited documents:**
-   ```bash
-   npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --limit=10
-   ```
-
-````
-
-### 5. Update Type Definitions
-
-After migration, update relevant type files:
+After the data migrates, update the affected types so code matches the new shape:
 
 ```typescript
-// Before
-export type ResourceBase = {
-  name: string;
-};
-
-// After
 export type ResourceBase = {
   name: string;
   newField: string; // Added in migration YYYY-MM-DD
 };
-````
-
-## Common Migration Patterns
-
-### Adding a New Field
-
-```typescript
-function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
-  return data.newField !== undefined;
-}
-
-function computeUpdates(data: FirebaseFirestore.DocumentData) {
-  return {
-    newField: "defaultValue", // or computed from existing data
-  };
-}
 ```
 
-### Renaming a Field
+## How to Run
 
-```typescript
-function shouldSkip(data: FirebaseFirestore.DocumentData): boolean {
-  return data.newFieldName !== undefined && data.oldFieldName === undefined;
-}
+```bash
+# 1. Preview (dry run — no writes)
+npx ts-node scripts/migrations/YYYY-MM-DD-description.ts
 
-function computeUpdates(data: FirebaseFirestore.DocumentData) {
-  return {
-    newFieldName: data.oldFieldName,
-    oldFieldName: FieldValue.delete(),
-  };
-}
-```
+# 2. Apply
+npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply
 
-### Restructuring Nested Data
+# 3. Resume after an interruption
+npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --apply --start-after=docId123
 
-```typescript
-function computeUpdates(data: FirebaseFirestore.DocumentData) {
-  // Flatten nested structure
-  return {
-    "settings.theme": data.preferences?.theme ?? "light",
-    "settings.language": data.preferences?.language ?? "pl",
-    preferences: FieldValue.delete(),
-  };
-}
-```
-
-### Converting Data Types
-
-```typescript
-function computeUpdates(data: FirebaseFirestore.DocumentData) {
-  // Convert string array to object map
-  const tagsMap =
-    (data.tags as string[])?.reduce(
-      (acc, tag) => ({ ...acc, [tag]: true }),
-      {},
-    ) ?? {};
-
-  return {
-    tagsMap,
-    tags: FieldValue.delete(),
-  };
-}
+# 4. Test against a limited set
+npx ts-node scripts/migrations/YYYY-MM-DD-description.ts --limit=10
 ```
 
 ## Safety Checklist
 
-Before running migration with `--apply`:
+Before running with `--apply`:
 
 - [ ] Dry run completed successfully
-- [ ] Sample of changes reviewed manually
+- [ ] A sample of changes reviewed manually
 - [ ] Database backup created (or point-in-time recovery enabled)
 - [ ] Type definitions ready to update
 - [ ] Rollback script prepared (for high-risk migrations)
-- [ ] Team notified of migration window
-- [ ] Monitoring in place for errors
+- [ ] Team notified of the migration window
+- [ ] Error monitoring in place
 
-## Rollback Considerations
+## Rollback
 
-For reversible migrations, include a rollback function:
-
-```typescript
-export async function rollback(options: MigrationOptions = {}) {
-  // Reverse the migration logic
-  function computeRollbackUpdates(data: FirebaseFirestore.DocumentData) {
-    return {
-      oldFieldName: data.newFieldName,
-      newFieldName: FieldValue.delete(),
-    };
-  }
-  // ... rest of migration logic with rollback updates
-}
-```
+For reversible migrations, ship a `rollback()` alongside `migrate()` that inverts `computeUpdates`
+(e.g. restore `oldFieldName` from `newFieldName`, delete `newFieldName`). High-risk migrations
+(renames, removals) should always have one before `--apply`.
 
 ## Questions to Ask
 
-When unclear about the migration:
-
-- What is the current structure of affected documents?
-- How many documents need to be migrated?
-- Is there a deadline or maintenance window?
-- What happens to the application during migration?
-- Do we need dual-write support during transition?
-- What's the rollback strategy if something goes wrong?
+- What is the current structure of affected documents, and how many are there?
+- Is there a deadline or maintenance window? What happens to the app during migration?
+- Do we need dual-write support during the transition?
+- What is the rollback strategy if something goes wrong?

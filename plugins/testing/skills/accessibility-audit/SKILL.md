@@ -6,485 +6,100 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(playwright-cli:*)
 
 # Accessibility Audit Skill
 
-Perform comprehensive WCAG 2.1 accessibility audits on React components. This skill combines automated testing with manual review guidelines to ensure inclusive user experiences.
+Run a WCAG 2.1 **Level AA** audit on a React component: automated scans (axe-core, Storybook a11y
+addon) plus a manual review for the ~50–70% of issues automation can't catch.
 
-## Context
+This file is the audit **process**. The bulky reference material lives alongside it:
 
-This skill helps you:
+> - [references/audit-guide.md](./references/audit-guide.md) — the full WCAG manual checklist, common
+>   issues & fixes (before/after), and the audit report template. Open this during the manual review.
+> - [references/examples.md](./references/examples.md) — worked component audits, reusable patterns
+>   (skip links, sr-only text, icon buttons), and a Storybook a11y story.
+> - [references/screen-reader-testing.md](./references/screen-reader-testing.md) — screen reader workflow.
+> - [references/mobile-accessibility.md](./references/mobile-accessibility.md) — touch targets, zoom, gestures.
+> - [references/motion-animation.md](./references/motion-animation.md) — `prefers-reduced-motion`, seizure risk.
 
-- Identify accessibility violations (WCAG 2.1 Level AA)
-- Fix common accessibility issues
-- Add proper ARIA attributes
-- Ensure keyboard navigation
-- Improve screen reader compatibility
-- Document accessibility features
+## What This Audits
 
-> **Reference Files:**
->
-> - [references/examples.md](./references/examples.md) - Practical audit examples
-> - [references/screen-reader-testing.md](./references/screen-reader-testing.md) - Screen reader testing guide
-> - [references/mobile-accessibility.md](./references/mobile-accessibility.md) - Mobile accessibility patterns
-> - [references/motion-animation.md](./references/motion-animation.md) - Motion and animation accessibility
+Accessibility violations (WCAG 2.1 AA), ARIA usage, keyboard navigation, focus management, color
+contrast, and screen-reader compatibility for a single component or page.
 
-## Tools Used
+## Tools
 
-- **Storybook a11y addon** - Automated checks in Storybook
-- **Playwright** - Automated accessibility testing with axe-core
-- **Manual checklist** - For issues automation can't catch
+- **axe-core via Playwright** — automated violation scan against a rendered story/page.
+- **Storybook a11y addon** — live automated checks in the Storybook Accessibility panel.
+- **Manual checklist** — for everything automation misses (see audit-guide).
 
-## Instructions
+## Audit Process
 
-When the user requests an accessibility audit:
+### 1. Analyze the component
 
-### 1. Analyze the Component
+Read the source and note: interactive elements, images/media, form fields and their labels, dynamic
+content, focus management, and any color-only signalling.
 
-Read the component code and identify:
+### 2. Run automated checks
 
-- Interactive elements (buttons, links, inputs)
-- Images and media
-- Form elements and labels
-- Dynamic content updates
-- Focus management
-- Color usage
-
-### 2. Run Automated Checks
-
-#### Using Storybook a11y Addon
-
-Check the Accessibility panel in Storybook for the component's stories.
+Confirm the addon is enabled (`@storybook/addon-a11y` in `.storybook/main.ts`), then scan with axe:
 
 ```typescript
-// Verify a11y addon is configured in .storybook/main.ts
-addons: [
-  "@storybook/addon-a11y",
-  // ...
-];
-```
-
-#### Using Playwright with axe-core
-
-Create accessibility test:
-
-```typescript
-// tests/e2e/a11y/[component-name].a11y.spec.ts
+// tests/e2e/a11y/[component].a11y.spec.ts
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test.describe("Accessibility: [ComponentName]", () => {
-  test("should have no accessibility violations", async ({ page }) => {
-    // Navigate to Storybook story or page
-    await page.goto("http://localhost:6006/?path=/story/component--default");
-
-    // Wait for component to render
-    await page.waitForSelector('[data-testid="component"]');
-
-    // Run axe accessibility scan
-    const accessibilityScanResults = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-      .analyze();
-
-    expect(accessibilityScanResults.violations).toEqual([]);
-  });
-
-  test("should be keyboard navigable", async ({ page }) => {
-    await page.goto("http://localhost:6006/?path=/story/component--default");
-
-    // Test Tab navigation
-    await page.keyboard.press("Tab");
-    const focusedElement = await page.evaluate(
-      () => document.activeElement?.tagName,
-    );
-    expect(focusedElement).toBeTruthy();
-
-    // Test Enter/Space activation
-    await page.keyboard.press("Enter");
-    // Verify action occurred
-  });
+test("has no accessibility violations", async ({ page }) => {
+  await page.goto("http://localhost:6006/?path=/story/component--default");
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  expect(results.violations).toEqual([]);
 });
 ```
 
-### 3. Manual Audit Checklist
+Automated scans catch only ~30–50% of issues — never stop here.
 
-#### Perceivable (WCAG 1.x)
+### 3. Manual review
 
-```markdown
-## 1.1 Text Alternatives
+Work through the **WCAG 2.1 AA manual checklist** in
+[references/audit-guide.md](./references/audit-guide.md#wcag-21-aa-manual-checklist) — text
+alternatives, keyboard operability, focus order, contrast, ARIA name/role/value, live regions.
+Verify keyboard-only navigation (Tab/Enter/Space/Escape) and test at 200% zoom.
 
-- [ ] All images have meaningful alt text
-- [ ] Decorative images have alt=""
-- [ ] Icon buttons have aria-label
-- [ ] Complex images have long descriptions
+### 4. Fix issues
 
-## 1.2 Time-based Media
+Apply the before/after fixes in
+[references/audit-guide.md](./references/audit-guide.md#common-issues--fixes) — missing labels,
+non-descriptive buttons, alt text, contrast, focus indicators, click-only handlers, silent dynamic
+updates, dialogs. Prefer semantic HTML; reach for ARIA only when no native element fits.
 
-- [ ] Videos have captions
-- [ ] Audio has transcripts
-- [ ] No auto-playing media
+### 5. Report
 
-## 1.3 Adaptable
+Document findings with the report template in
+[references/audit-guide.md](./references/audit-guide.md#audit-report-format) — issues grouped by
+severity, each with WCAG criterion, location, impact, and a fix.
 
-- [ ] Content is structured with proper headings (h1-h6)
-- [ ] Lists use proper list markup
-- [ ] Tables have headers and captions
-- [ ] Reading order is logical
+### 6. Lock it in with a Storybook test
 
-## 1.4 Distinguishable
-
-- [ ] Color contrast ratio >= 4.5:1 for normal text
-- [ ] Color contrast ratio >= 3:1 for large text
-- [ ] Information not conveyed by color alone
-- [ ] Text can be resized to 200% without loss
-- [ ] No horizontal scrolling at 320px viewport
-```
-
-#### Operable (WCAG 2.x)
-
-```markdown
-## 2.1 Keyboard Accessible
-
-- [ ] All functionality available via keyboard
-- [ ] No keyboard traps
-- [ ] Focus visible on all interactive elements
-- [ ] Logical tab order
-
-## 2.2 Enough Time
-
-- [ ] Users can extend time limits
-- [ ] Users can pause moving content
-- [ ] No content that flashes more than 3 times/second
-
-## 2.3 Navigable
-
-- [ ] Skip links available for navigation
-- [ ] Page has descriptive title
-- [ ] Focus order preserves meaning
-- [ ] Link purpose clear from text
-
-## 2.4 Input Modalities
-
-- [ ] Touch targets at least 44x44px
-- [ ] Functionality not dependent on motion
-```
-
-#### Understandable (WCAG 3.x)
-
-```markdown
-## 3.1 Readable
-
-- [ ] Page language specified (lang attribute)
-- [ ] Abbreviations explained
-
-## 3.2 Predictable
-
-- [ ] No unexpected context changes on focus
-- [ ] Navigation consistent across pages
-- [ ] Components identified consistently
-
-## 3.3 Input Assistance
-
-- [ ] Error messages are descriptive
-- [ ] Labels or instructions provided
-- [ ] Error prevention for important actions
-- [ ] Form validation is accessible
-```
-
-#### Robust (WCAG 4.x)
-
-```markdown
-## 4.1 Compatible
-
-- [ ] Valid HTML markup
-- [ ] ARIA attributes used correctly
-- [ ] Name, role, value programmatically determined
-- [ ] Status messages announced to screen readers
-```
-
-### 4. Common Issues & Fixes
-
-#### Missing Form Labels
-
-```typescript
-// ❌ Bad
-<input type="text" placeholder="Email" />
-
-// ✅ Good - explicit label
-<label htmlFor="email">Email</label>
-<input id="email" type="text" />
-
-// ✅ Good - aria-label for icon inputs
-<input type="text" aria-label="Search" />
-
-// ✅ Good - visually hidden label
-<label htmlFor="email" className="sr-only">Email</label>
-<input id="email" type="text" placeholder="Email" />
-```
-
-#### Non-Descriptive Buttons
-
-```typescript
-// ❌ Bad
-<button><Icon name="trash" /></button>
-
-// ✅ Good
-<button aria-label="Delete item">
-  <Icon name="trash" aria-hidden="true" />
-</button>
-
-// ✅ Good - with visible text
-<button>
-  <Icon name="trash" aria-hidden="true" />
-  <span>Delete</span>
-</button>
-```
-
-#### Missing Image Alt Text
-
-```typescript
-// ❌ Bad
-<Image src="/hero.jpg" />
-
-// ✅ Good - meaningful alt
-<Image src="/hero.jpg" alt="Team collaborating in modern office" />
-
-// ✅ Good - decorative image
-<Image src="/pattern.svg" alt="" aria-hidden="true" />
-```
-
-#### Color Contrast Issues
-
-```typescript
-// ❌ Bad - low contrast
-<span className="text-gray-400">Important text</span>
-
-// ✅ Good - sufficient contrast
-<span className="text-gray-700">Important text</span>
-
-// Use design system tokens that meet contrast requirements
-<span className="text-foreground">Important text</span>
-```
-
-#### Missing Focus Indicators
-
-```typescript
-// ❌ Bad - removes focus outline
-<button className="focus:outline-none">Click me</button>
-
-// ✅ Good - visible focus
-<button className="focus:ring-2 focus:ring-primary focus:ring-offset-2">
-  Click me
-</button>
-
-// ✅ Good - using design system focus styles
-<Button>Click me</Button> // Design system handles focus
-```
-
-#### Keyboard Accessibility
-
-```typescript
-// ❌ Bad - click only
-<div onClick={handleClick}>Clickable div</div>
-
-// ✅ Good - keyboard accessible
-<button onClick={handleClick}>Clickable button</button>
-
-// ✅ Good - if div is necessary
-<div
-  role="button"
-  tabIndex={0}
-  onClick={handleClick}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      handleClick();
-    }
-  }}
->
-  Clickable div
-</div>
-```
-
-#### Dynamic Content Announcements
-
-```typescript
-// ❌ Bad - silent updates
-{isLoading && <Spinner />}
-{error && <ErrorMessage>{error}</ErrorMessage>}
-
-// ✅ Good - announced to screen readers
-<div aria-live="polite" aria-atomic="true">
-  {isLoading && <Spinner aria-label="Loading..." />}
-  {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
-</div>
-
-// ✅ Good - for important alerts
-<div role="alert" aria-live="assertive">
-  {criticalError}
-</div>
-```
-
-#### Modal/Dialog Accessibility
-
-```typescript
-// ✅ Accessible modal pattern
-<Dialog open={isOpen} onOpenChange={setIsOpen}>
-  <DialogContent
-    aria-labelledby="dialog-title"
-    aria-describedby="dialog-description"
-  >
-    <DialogHeader>
-      <DialogTitle id="dialog-title">Confirm Action</DialogTitle>
-      <DialogDescription id="dialog-description">
-        Are you sure you want to proceed?
-      </DialogDescription>
-    </DialogHeader>
-    {/* Focus trapped inside dialog */}
-    {/* Escape closes dialog */}
-    {/* Focus returns to trigger on close */}
-  </DialogContent>
-</Dialog>
-```
-
-### 5. Audit Report Format
-
-Report findings using this template (the whole report is one block; the `Fix`
-entries embed before/after code):
-
-````markdown
-# Accessibility Audit Report
-
-**Component:** [ComponentName]
-**Date:** [Date]
-**WCAG Level:** AA
-
-## Summary
-
-- **Critical Issues:** X
-- **Serious Issues:** X
-- **Moderate Issues:** X
-- **Minor Issues:** X
-
-## Critical Issues (Must Fix)
-
-### 1. [Issue Title]
-
-- **WCAG Criterion:** X.X.X - [Name]
-- **Location:** [file:line]
-- **Description:** [What's wrong]
-- **Impact:** [Who is affected]
-- **Fix:**
-
-  ```typescript
-  // Before
-  <bad code>
-
-  // After
-  <good code>
-  ```
-
-## Serious Issues
-
-### 2. [Issue Title]
-
-...
-
-## Recommendations
-
-1. [Recommendation 1]
-2. [Recommendation 2]
-
-## Passed Checks
-
-- ✅ Color contrast meets requirements
-- ✅ Form labels present
-- ✅ Keyboard navigation works
-````
-
-### 6. Storybook Accessibility Tests
-
-Stories are written in **CSF Next format** (`preview.meta()` / `meta.story()` / `.test()`) —
-the same format the `storybook-testing` skill owns. Never use CSF 3.0 (`satisfies Meta`,
-`export default meta`, `import { within }`) and never import `userEvent`; destructure it
-from the test parameters. See the `storybook-testing` skill for the full format rules.
-
-Attach the a11y addon config via story `parameters`, then assert with the addon and roles:
-
-```typescript
-import { expect } from "storybook/test";
-
-import preview from "~/.storybook/preview";
-
-import { Button } from "./button";
-
-const meta = preview.meta({
-  title: "Components/Button",
-  component: Button,
-  parameters: {
-    a11y: {
-      // axe-core rule configuration
-      config: {
-        rules: [
-          { id: "color-contrast", enabled: true },
-          { id: "button-name", enabled: true },
-        ],
-      },
-    },
-  },
-});
-
-export const ButtonStory = meta.story({
-  name: "Button",
-  args: { children: "Click me" },
-});
-
-ButtonStory.test("Button is reachable and focusable", async ({ canvas }) => {
-  const button = canvas.getByRole("button", { name: /click me/i });
-  await expect(button).toBeVisible();
-  await expect(button).toBeEnabled();
-
-  button.focus();
-  await expect(button).toHaveFocus();
-});
-
-// Icon-only buttons must expose an accessible name via aria-label
-export const IconButton = meta.story({
-  args: { children: <Icon name="plus" />, "aria-label": "Add item" },
-});
-
-IconButton.test("Icon button exposes an accessible name", async ({ canvas }) => {
-  const button = canvas.getByRole("button", { name: /add item/i });
-  await expect(button).toBeVisible();
-});
-```
-
-## Running Audits
+Add an a11y story/test (CSF Next, owned by the `storybook-testing` skill) so regressions are caught —
+see the example in [references/examples.md](./references/examples.md#storybook-a11y-story).
 
 ```bash
-# Run Storybook and check a11y panel
-npm run storybook:dev
-
-# Run Playwright a11y tests
-npm run test:e2e -- tests/e2e/a11y/
-
-# Generate a11y report
-npm run test:e2e -- tests/e2e/a11y/ --reporter=html
+npm run storybook:dev                                    # check the a11y panel
+npm run test:e2e -- tests/e2e/a11y/                      # run axe tests
+npm run test:e2e -- tests/e2e/a11y/ --reporter=html      # html report
 ```
 
 ## Best Practices
 
-1. **Test with real assistive tech**: Use VoiceOver (Mac), NVDA (Windows)
-2. **Keyboard-first development**: Navigate without mouse
-3. **Use semantic HTML**: Right element for the job
-4. **Don't disable focus styles**: Make them better instead
-5. **Test at 200% zoom**: Content should remain usable
-6. **Announce dynamic changes**: Use aria-live regions
-7. **Provide alternatives**: Captions, transcripts, descriptions
+- **Semantic HTML first** — the right element gives you behaviour and a11y for free.
+- **Keyboard-first** — if it works without a mouse, it usually works for assistive tech.
+- **Never disable focus styles** — improve them instead.
+- **Announce dynamic changes** with `aria-live` regions.
+- **Verify with real assistive tech** (VoiceOver on macOS, NVDA on Windows) and at 200% zoom.
+- **Provide alternatives** — captions, transcripts, descriptions.
 
 ## Questions to Ask
 
-When performing an audit:
-
-- What user actions does this component support?
-- Are there any time-sensitive interactions?
-- What happens on error states?
-- Is there any dynamic content?
-- Are there any custom interactive patterns?
-- What's the expected screen reader experience?
+- What user actions does this component support, and are any time-sensitive?
+- What happens in error and loading states — is the change announced?
+- Is there dynamic content or any custom (non-native) interactive pattern?
+- What's the expected screen-reader experience?

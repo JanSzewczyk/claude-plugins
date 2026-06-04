@@ -6,496 +6,104 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 # Unit Testing Skill (Vitest)
 
-Write comprehensive unit tests using Vitest for TypeScript projects. Covers utilities, server actions, schemas, hooks, and pure logic.
+Write fast, isolated unit tests with **Vitest** for TypeScript logic — utilities, Zod schemas, hooks,
+and Server Actions (with dependencies mocked). Unit tests do NOT render components in a browser
+(use the `storybook-testing` skill for that).
 
-> **Reference Files:**
->
-> - [references/mocking.md](./references/mocking.md) - Comprehensive mocking guide (vi.fn, vi.mock, vi.spyOn, patterns)
-> - [references/examples.md](./references/examples.md) - Practical code examples for common scenarios
-> - [references/patterns.md](./references/patterns.md) - Best practices, anti-patterns, and guidelines
+This file holds the rules. Code lives in the references:
 
-## Context
-
-This skill uses **Vitest** as the test runner for unit tests. Vitest provides:
-
-- Native TypeScript and ESM support
-- Jest-compatible API (`describe`, `test`, `expect`)
-- Built-in mocking (`vi.mock`, `vi.fn`, `vi.spyOn`)
-- Watch mode with instant feedback
-- Coverage reporting via `@vitest/coverage-v8`
-- Parameterized tests with `test.each`
-
-Unit tests target **isolated logic** - functions, utilities, schemas, server actions (with mocked dependencies), and hooks. They do NOT render full components in a browser (use Storybook testing for that).
+> - [references/examples.md](./references/examples.md) — seven worked examples: pure utility, Zod schema,
+>   Server Action with mocked DB, transform function, parameterized (`it.each`), async error handling, hooks.
+> - [references/patterns.md](./references/patterns.md) — AAA, test isolation, mock boundaries, the
+>   `vi.mock` vs `vi.fn` vs `vi.spyOn` decision table, coverage targets, and anti-patterns.
+> - [references/mocking.md](./references/mocking.md) — the full mocking catalogue (factories, hoisting,
+>   partial/dynamic mocks, async, DB/auth/time/env recipes). Read before writing non-trivial mocks.
 
 ## Global Test Utilities
 
-This project has **global test utilities enabled**, so you don't need to import them:
+This project enables **global test utilities** — do **not** import them:
 
 ```typescript
-// ❌ NOT NEEDED - Don't import these
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+// ❌ Not needed
+import { describe, test, expect, vi, beforeEach } from "vitest";
 
-// ✅ AUTOMATIC - Just use them directly
-describe("myFunction", () => {
-  test("does something", () => {
-    expect(result).toBe(expected);
-  });
-});
+// ✅ Available globally: describe, test (= it), expect, beforeEach/afterEach/beforeAll/afterAll, vi
 ```
 
-**Available globally:**
-
-- `describe`, `test` (same as `it`), `expect`
-- `beforeEach`, `afterEach`, `beforeAll`, `afterAll`
-- `vi` (mock utilities)
-
-**Setup:** This is configured in `vitest.config.ts` with `globals: true` and `tsconfig.json` with `"types": ["vitest/globals"]`.
+Configured via `globals: true` in `vitest.config.ts` and `"types": ["vitest/globals"]` in `tsconfig.json`.
 
 ## Workflow
 
-1. **Analyze the code** - Read the source file, understand inputs, outputs, side effects, and dependencies
-2. **Identify test cases** - Happy path, edge cases, error paths, boundary values
-3. **Write tests** - Follow AAA pattern (Arrange, Act, Assert), mock external dependencies at module boundaries
-4. **Run tests** - `npm run test:unit` to verify all pass, check coverage
+1. **Analyze the code** — inputs, outputs, side effects, dependencies, and every branch.
+2. **Identify cases** — happy path, edge cases, error paths, boundary values.
+3. **Write tests** — AAA pattern (Arrange, Act, Assert); mock external dependencies at module boundaries.
+4. **Run** — `npm run test:unit`; verify all pass and check coverage.
 
-## Quick Start
+## File Naming
+
+Tests live **next to the source file**, named `<source-filename>.test.ts` (`.test.tsx` if it imports
+React/JSX):
+
+```
+src/utils/format-currency.ts        → src/utils/format-currency.test.ts
+src/features/budgets/actions/create-budget.ts → .../create-budget.test.ts
+```
+
+## Core Rules
+
+- **AAA structure** — Arrange, Act, Assert; group with nested `describe` (module → function → case).
+- **Test behavior, not implementation** — assert on return values and observable effects, never on
+  private internals; don't test private functions or abuse snapshots.
+- **Mock only at module boundaries** — external dependencies (DB, auth, network, time, UUID). Never
+  mock the internal utility you're testing.
+- **Pick the right mock tool** (full decision table in [patterns.md](./references/patterns.md#when-to-use-vimock-vs-vifn-vs-vispyon)):
+  - `vi.mock("module", factory)` — replace an entire module (DB, auth).
+  - `vi.fn()` — a standalone mock (callback / injected dependency).
+  - `vi.spyOn(obj, "method")` — observe or replace one method, restorable via `.mockRestore()`.
+- **Reset between tests** — `beforeEach(() => vi.clearAllMocks())`; `afterEach(() => vi.restoreAllMocks())`.
+- **Type your mocks** — `vi.mocked(fn).mockResolvedValue(...)`.
+- **Parameterize repetitive cases** with `test.each([...])` instead of copy-pasting tests.
+- **Async** — `await` the call; use `await expect(p).rejects.toThrow(...)` / `.resolves.toMatchObject(...)`.
+- **Pure functions need no mocking** — the easiest and highest-value tests.
+
+## Mocking
+
+The three core tools (`vi.fn`, `vi.mock`, `vi.spyOn`) are summarized above. Two more worth knowing:
+`vi.hoisted(() => ({ ... }))` when a `vi.mock` factory needs shared mock references, and
+`vi.mock(import("./m"), async (orig) => ({ ...(await orig()), one: vi.fn() }))` for partial mocks that
+keep the real exports.
+
+> The full catalogue — async resolution, hoisting edge cases, third-party libraries, and database/auth
+> recipes — is in [references/mocking.md](./references/mocking.md).
+
+## Setup (vitest.config.ts essentials)
 
 ```typescript
-// src/utils/format-currency.ts
-export function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(
-    amount,
-  );
+test: {
+  globals: true,              // no test-utility imports needed
+  environment: "node",        // "jsdom" for hooks/DOM
+  include: ["src/**/*.test.{ts,tsx}"],
+  coverage: {
+    provider: "v8",
+    exclude: ["src/**/*.test.{ts,tsx}", "src/**/*.stories.{ts,tsx}", "src/**/index.ts", "src/types/**"],
+  },
 }
 ```
-
-```typescript
-// src/utils/format-currency.test.ts
-import { describe, it, expect } from "vitest";
-
-import { formatCurrency } from "./format-currency";
-
-describe("formatCurrency", () => {
-  test("formats USD by default", () => {
-    expect(formatCurrency(1234.56)).toBe("$1,234.56");
-  });
-
-  test("formats with specified currency", () => {
-    expect(formatCurrency(1000, "EUR")).toBe("\u20AC1,000.00");
-  });
-
-  test("handles zero", () => {
-    expect(formatCurrency(0)).toBe("$0.00");
-  });
-
-  test("handles negative amounts", () => {
-    expect(formatCurrency(-50)).toBe("-$50.00");
-  });
-});
-```
-
-## Test File Structure and Naming
-
-### File Naming
-
-Test files live **next to the source file** they test:
-
-```
-src/
-  utils/
-    format-currency.ts
-    format-currency.test.ts      # <-- test file
-  features/
-    budgets/
-      actions/
-        create-budget.ts
-        create-budget.test.ts    # <-- test file
-      schemas/
-        budget-schema.ts
-        budget-schema.test.ts    # <-- test file
-```
-
-**Convention:** `<source-filename>.test.ts` (or `.test.tsx` for files that import React/JSX).
-
-### Test File Structure
-
-```typescript
-// Import the module under test
-import { myFunction } from "./my-module";
-
-// Mock dependencies (hoisted automatically by Vitest)
-vi.mock("~/lib/database", () => ({
-  db: {
-    query: vi.fn(),
-  },
-}));
-
-describe("myFunction", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe("happy path", () => {
-    test("returns expected result for valid input", () => {
-      // Arrange
-      const input = { name: "Test" };
-
-      // Act
-      const result = myFunction(input);
-
-      // Assert
-      expect(result).toEqual({ name: "Test", id: expect.any(String) });
-    });
-  });
-
-  describe("error handling", () => {
-    test("throws on invalid input", () => {
-      expect(() => myFunction(null)).toThrow("Input is required");
-    });
-  });
-});
-```
-
-## Key Patterns
-
-### describe / test / expect
-
-```typescript
-describe("ModuleName", () => {
-  describe("functionName", () => {
-    test("does something specific", () => {
-      expect(result).toBe(expected);
-    });
-  });
-});
-```
-
-Use nested `describe` blocks to group related tests. Use `test` for individual test cases.
-
-### beforeEach / afterEach
-
-```typescript
-describe("UserService", () => {
-  let service: UserService;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    service = new UserService();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  test("creates a user", () => {
-    // service is fresh for each test
-  });
-});
-```
-
-- `beforeEach` - Reset state before each test (clear mocks, create fresh instances)
-- `afterEach` - Clean up (restore mocks, close connections)
-- `vi.clearAllMocks()` - Resets call history and return values
-- `vi.restoreAllMocks()` - Restores original implementations
-
-### Mocking with vi.mock
-
-Mock entire modules at the top of the test file:
-
-```typescript
-// Mock a module — factory function returns the mock shape
-vi.mock("~/lib/database", () => ({
-  db: {
-    insert: vi.fn().mockResolvedValue({ id: "123" }),
-    select: vi.fn().mockResolvedValue([]),
-  },
-}));
-
-// Access the mocked module in tests
-import { db } from "~/lib/database";
-```
-
-> **See [mocking.md](./references/mocking.md) for comprehensive mocking guide with vi.mock, vi.fn, vi.spyOn, and best practices.**
-
-### Mocking with vi.fn
-
-Create standalone mock functions:
-
-```typescript
-const mockCallback = vi.fn();
-
-// With return value
-const mockFetch = vi.fn().mockResolvedValue({ data: [] });
-
-// Assertions
-expect(mockCallback).toHaveBeenCalled();
-expect(mockCallback).toHaveBeenCalledWith("arg1", "arg2");
-expect(mockCallback).toHaveBeenCalledTimes(2);
-expect(mockFetch).toHaveBeenCalledOnce();
-```
-
-### Mocking with vi.spyOn
-
-Spy on existing object methods without replacing the module:
-
-```typescript
-import * as mathUtils from "./math-utils";
-
-const spy = vi.spyOn(mathUtils, "calculateTax");
-spy.mockReturnValue(100);
-
-// Later
-expect(spy).toHaveBeenCalledWith(1000, 0.1);
-spy.mockRestore(); // restore original
-```
-
-### Async Testing
-
-```typescript
-test("fetches user data", async () => {
-  const user = await fetchUser("123");
-
-  expect(user).toEqual({ id: "123", name: "Alice" });
-});
-
-test("rejects with error for missing user", async () => {
-  await expect(fetchUser("unknown")).rejects.toThrow("User not found");
-});
-
-test("resolves with the created record", async () => {
-  await expect(createRecord({ name: "Test" })).resolves.toMatchObject({
-    id: expect.any(String),
-    name: "Test",
-  });
-});
-```
-
-### Parameterized Tests with test.each
-
-```typescript
-test.each([
-  { input: 0, expected: "zero" },
-  { input: 1, expected: "one" },
-  { input: 2, expected: "two" },
-  { input: -1, expected: "negative" },
-])("numberToWord($input) returns $expected", ({ input, expected }) => {
-  expect(numberToWord(input)).toBe(expected);
-});
-
-// Table syntax
-test.each`
-  amount  | currency | expected
-  ${1000} | ${"USD"} | ${"$1,000.00"}
-  ${1000} | ${"EUR"} | ${"\u20AC1,000.00"}
-  ${0}    | ${"USD"} | ${"$0.00"}
-`(
-  "formats $amount $currency as $expected",
-  ({ amount, currency, expected }) => {
-    expect(formatCurrency(amount, currency)).toBe(expected);
-  },
-);
-```
-
-## Testing Server-Side Code
-
-### Server Actions with Mocked Database
-
-```typescript
-// Mock the database module
-vi.mock("~/lib/database", () => ({
-  db: {
-    insert: vi.fn(),
-    select: vi.fn(),
-  },
-}));
-
-// Mock auth
-vi.mock("~/lib/auth", () => ({
-  getCurrentUser: vi.fn(),
-}));
-
-import { db } from "~/lib/database";
-import { getCurrentUser } from "~/lib/auth";
-import { createBudget } from "./create-budget";
-
-describe("createBudget", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  test("creates a budget for authenticated user", async () => {
-    // Arrange
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "user-1", role: "user" });
-    vi.mocked(db.insert).mockResolvedValue({
-      id: "budget-1",
-      name: "Groceries",
-    });
-
-    // Act
-    const result = await createBudget({ name: "Groceries", limit: 500 });
-
-    // Assert
-    expect(result).toEqual({
-      success: true,
-      data: { id: "budget-1", name: "Groceries" },
-    });
-    expect(db.insert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "Groceries",
-        limit: 500,
-        userId: "user-1",
-      }),
-    );
-  });
-
-  test("returns error when user is not authenticated", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
-
-    const result = await createBudget({ name: "Groceries", limit: 500 });
-
-    expect(result).toEqual({ success: false, error: "Unauthorized" });
-    expect(db.insert).not.toHaveBeenCalled();
-  });
-});
-```
-
-### Database Functions
-
-```typescript
-vi.mock("~/lib/drizzle", () => ({
-  db: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    execute: vi.fn(),
-  },
-}));
-```
-
-## Testing Utility Functions and Pure Logic
-
-Pure functions are the easiest to test - no mocking needed:
-
-```typescript
-import { slugify } from "./slugify";
-
-describe("slugify", () => {
-  test("converts spaces to hyphens", () => {
-    expect(slugify("hello world")).toBe("hello-world");
-  });
-
-  test("lowercases all characters", () => {
-    expect(slugify("Hello World")).toBe("hello-world");
-  });
-
-  test("removes special characters", () => {
-    expect(slugify("hello@world!")).toBe("helloworld");
-  });
-
-  test("trims leading and trailing whitespace", () => {
-    expect(slugify("  hello  ")).toBe("hello");
-  });
-
-  test("handles empty string", () => {
-    expect(slugify("")).toBe("");
-  });
-});
-```
-
-## Vitest Config Reference
-
-Typical `vitest.config.ts` for a Next.js project:
-
-```typescript
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
-import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
-  test: {
-    globals: true, // Enable global test utilities (no imports needed)
-    environment: "node", // or "jsdom" for React hooks
-    include: ["src/**/*.test.{ts,tsx}"],
-    exclude: ["node_modules", ".next", "tests/e2e"],
-    coverage: {
-      provider: "v8",
-      include: ["src/**/*.{ts,tsx}"],
-      exclude: [
-        "src/**/*.test.{ts,tsx}",
-        "src/**/*.stories.{ts,tsx}",
-        "src/**/index.ts",
-        "src/types/**",
-      ],
-    },
-    setupFiles: ["./vitest.setup.ts"],
-  },
-});
-```
-
-**TypeScript Configuration** (`tsconfig.json`):
-
-```json
-{
-  "compilerOptions": {
-    "types": ["vitest/globals"]
-  }
-}
-```
-
-This enables TypeScript to recognize global test utilities without imports.
 
 ## Running Tests
 
 ```bash
-# Run all unit tests
-npm run test:unit
-
-# Run in watch mode (re-runs on file changes)
-npm run test:unit -- --watch
-
-# Run a specific test file
-npm run test:unit -- src/utils/format-currency.test.ts
-
-# Run tests matching a pattern
-npm run test:unit -- --grep "formatCurrency"
-
-# Run with coverage report
-npm run test:unit -- --coverage
-
-# Run with verbose output
-npm run test:unit -- --reporter=verbose
+npm run test:unit                                   # all unit tests
+npm run test:unit -- --watch                        # watch mode
+npm run test:unit -- src/utils/format-currency.test.ts  # one file
+npm run test:unit -- --grep "formatCurrency"        # by pattern
+npm run test:unit -- --coverage                     # coverage report
 ```
-
-## Mocking in Vitest
-
-Vitest isolates the code under test by replacing its dependencies. The three core
-tools — covered with runnable examples earlier under [Key Patterns](#key-patterns) — are:
-
-- `vi.fn()` — standalone mock functions (callbacks, injected deps)
-- `vi.mock("module", factory)` — replace an entire module at its boundary
-- `vi.spyOn(obj, "method")` — observe/replace a single method, restorable with `.mockRestore()`
-
-Two patterns worth remembering: `vi.hoisted(() => ({ ... }))` when a `vi.mock` factory
-needs shared mock references, and `vi.mock(import("./m"), async (orig) => ({ ...(await orig()), one: vi.fn() }))`
-for partial mocks that keep the real exports.
-
-**Defaults that prevent flaky tests:** clear call history in `beforeEach(() => vi.clearAllMocks())`,
-restore real implementations in `afterEach(() => vi.restoreAllMocks())`, type your mocks with
-`vi.mocked(fn)`, and mock at module boundaries (DB, auth, network) — never internal utilities.
-
-> The full catalogue — async resolution, hoisting edge cases, third-party libraries,
-> database/auth recipes — lives in [references/mocking.md](./references/mocking.md). Read it
-> before writing non-trivial mocks.
 
 ## Questions to Ask
 
-Before writing tests, clarify:
-
 - What are the function's inputs and expected outputs?
 - What external dependencies need mocking (database, auth, APIs)?
-- What error conditions should be handled?
-- Are there edge cases (empty input, null, boundary values)?
-- Is this a pure function or does it have side effects?
-- Does the function need authentication/authorization checks?
-- Should coverage targets be met for this module?
+- What error conditions and edge cases (empty, null, boundaries) must be handled?
+- Is this a pure function or does it have side effects / auth checks?
+- Are there coverage targets for this module?

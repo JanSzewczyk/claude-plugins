@@ -502,3 +502,53 @@ export function Modal({
 - [ ] 2.4.7 - Focus indicator visible
 - [ ] 3.3.2 - Labels or instructions for input
 - [ ] 4.1.2 - Name, role, value for UI components
+
+---
+
+## Storybook a11y Story
+
+Stories use **CSF Next** (`preview.meta()` / `meta.story()` / `.test()`) — see the `storybook-testing`
+skill for the format rules. Attach the a11y addon config via story `parameters`, then assert with roles:
+
+```tsx
+import { expect } from "storybook/test";
+
+import preview from "~/.storybook/preview";
+
+import { Button } from "./button";
+
+const meta = preview.meta({
+  title: "Components/Button",
+  component: Button,
+  parameters: {
+    a11y: {
+      // axe-core rule configuration
+      config: {
+        rules: [
+          { id: "color-contrast", enabled: true },
+          { id: "button-name", enabled: true },
+        ],
+      },
+    },
+  },
+});
+
+export const ButtonStory = meta.story({ name: "Button", args: { children: "Click me" } });
+
+ButtonStory.test("Button is reachable and focusable", async ({ canvas }) => {
+  const button = canvas.getByRole("button", { name: /click me/i });
+  await expect(button).toBeVisible();
+  await expect(button).toBeEnabled();
+  button.focus();
+  await expect(button).toHaveFocus();
+});
+
+// Icon-only buttons must expose an accessible name via aria-label
+export const IconButton = meta.story({
+  args: { children: <Icon name="plus" />, "aria-label": "Add item" },
+});
+
+IconButton.test("Icon button exposes an accessible name", async ({ canvas }) => {
+  await expect(canvas.getByRole("button", { name: /add item/i })).toBeVisible();
+});
+```
