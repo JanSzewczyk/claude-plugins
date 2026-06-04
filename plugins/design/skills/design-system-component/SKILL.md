@@ -9,17 +9,7 @@ description: >
   write component stories, or restructure an existing component directory — even for tasks
   that seem straightforward like "create a Button" or "add a variant", because the skill
   ensures correct file placement and naming conventions.
-tags: [react, typescript, tailwind, cva, design-system, components, radix-ui, storybook]
 allowed-tools: Read, Write, Edit, Glob, Grep
-compatibility:
-  dependencies: [react, class-variance-authority, tailwind-css]
-examples:
-  - Create a new Button component with variants
-  - Build a Tabs composite component with trigger and content sub-parts
-  - Add a size variant to the existing Card component
-  - Refactor the Dialog component to use context and store
-  - Create Storybook stories for the Badge component
-  - "@design-system-component src/components/ui/data-table/index.tsx"
 ---
 
 # Design System Component Guidelines

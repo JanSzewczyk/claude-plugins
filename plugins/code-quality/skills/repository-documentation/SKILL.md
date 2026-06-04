@@ -10,7 +10,6 @@ description: >
   "update README", "document repository", "generate project docs",
   "GitHub description", "GitHub topics", or invokes
   /repository-documentation.
-tags: [documentation, readme, github, project-setup, markdown]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 

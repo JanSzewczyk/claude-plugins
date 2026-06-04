@@ -588,35 +588,9 @@ export const UnauthenticatedUser = meta.story({
 });
 ```
 
-### Mock Theme Provider
-
-```typescript
-import { ThemeProvider } from "~/components/theme-provider";
-
-const meta = preview.meta({
-  component: ThemedButton,
-});
-
-export const LightTheme = meta.story({
-  decorators: [
-    (Story) => (
-      <ThemeProvider theme="light">
-        <Story />
-      </ThemeProvider>
-    ),
-  ],
-});
-
-export const DarkTheme = meta.story({
-  decorators: [
-    (Story) => (
-      <ThemeProvider theme="dark">
-        <Story />
-      </ThemeProvider>
-    ),
-  ],
-});
-```
+The same decorator pattern wraps any provider — swap `AuthContext.Provider` for `ThemeProvider`,
+`QueryClientProvider`, etc., and set per-story values (e.g. `theme="light"` vs `theme="dark"`) to
+produce different story variants.
 
 ### Global Decorators in `.storybook/preview.tsx`
 
@@ -786,20 +760,12 @@ FormSubmission.test(
 
 ---
 
-## Best Practices
+## Mocking rules
 
-> **For comprehensive mocking best practices, see [best-practices.md](./best-practices.md).**
-
-Key rules:
-
-1. Always use `fn()` for callback props
-2. Destructure `userEvent` from test parameters (never import)
-3. Use MSW for network requests, not `fn()`
-4. Mock modules in `.storybook/preview.ts`, not story files
-5. Use `beforeEach` for mock configuration
-6. Prefer builders over inline mock data
-7. Use specific MSW handlers per story
-8. Always await async assertions
+The rules these recipes follow — callbacks → `fn()`, network → MSW (not `fn()`), modules →
+`sb.mock()` in `.storybook/preview.ts`, Context → decorators, `beforeEach` for config and reset,
+builders over inline data, await everything — live in [SKILL.md → Mocking](../SKILL.md#mocking).
+This file is recipes only.
 
 ---
 
@@ -818,78 +784,5 @@ Key rules:
 
 ---
 
-## Common Patterns
-
-### Pattern: Mock API with Loading State
-
-```typescript
-export const Loading = meta.story({
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/users", async () => {
-          await delay("infinite");
-          return HttpResponse.json([]);
-        }),
-      ],
-    },
-  },
-});
-```
-
-### Pattern: Mock API with Error After Delay
-
-```typescript
-export const Error = meta.story({
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/users", async () => {
-          await delay(1000);
-          return new HttpResponse(null, { status: 500 });
-        }),
-      ],
-    },
-  },
-});
-```
-
-### Pattern: Mock Authenticated User
-
-```typescript
-const meta = preview.meta({
-  component: Dashboard,
-  beforeEach: async () => {
-    mocked(getCurrentUser).mockResolvedValue({
-      id: "user-123",
-      name: "John Doe",
-      role: "admin",
-    });
-  },
-});
-```
-
-### Pattern: Mock Third-Party Package
-
-```typescript
-// .storybook/preview.ts
-sb.mock(import("uuid"));
-
-// component.stories.tsx
-import { mocked } from "storybook/test";
-import { v4 as uuidv4 } from "uuid";
-
-const meta = preview.meta({
-  beforeEach: async () => {
-    mocked(uuidv4).mockReturnValue("fixed-uuid-for-testing");
-  },
-});
-```
-
----
-
-For more examples, see:
-
-- [examples-and-templates.md](./examples-and-templates.md) - Practical code examples
-- [patterns.md](./patterns.md) - Testing patterns
-- [best-practices.md](./best-practices.md) - Best practices and pitfalls
+For full worked story files using these mocks, see [examples.md](./examples.md). For the rules, see
+[SKILL.md](../SKILL.md).

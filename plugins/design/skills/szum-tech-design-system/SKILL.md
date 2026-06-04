@@ -9,6 +9,7 @@ description: >
   all typography utility classes, every available component with its variants and props, animation
   classes, icon imports, and the CVA-based styling system. Always use this skill when the user
   asks about design tokens, Tailwind classes, or component APIs in the context of this library.
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # @szum-tech/design-system — Complete Reference

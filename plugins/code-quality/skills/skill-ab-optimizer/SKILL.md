@@ -1,20 +1,7 @@
 ---
 name: skill-ab-optimizer
-version: 1.0.0
-lastUpdated: 2026-04-21
 description: Continuously tests and improves Claude Code skills using A/B experimentation and Auto Research ML loop. Provides quantitative metrics on skill effectiveness and automatically approves only changes that improve outcomes.
-tags: [skills, optimization, a/b-testing, auto-research, skill-creator, metrics, ml]
-author: Szum Tech Team
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, TodoWrite
-context: fork
-agent: general-purpose
-user-invocable: true
-examples:
-  - Run A/B test on the unit-testing skill
-  - Optimize the react-doctor skill and measure improvements
-  - Which version of this skill performs better?
-  - Benchmark skill-ab-optimizer against baseline
-  - Auto-optimize all skills in the code-quality plugin
 ---
 
 # Skill A/B Optimizer

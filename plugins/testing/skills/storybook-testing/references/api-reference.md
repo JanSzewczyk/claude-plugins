@@ -79,10 +79,9 @@ StoryName.test(testName: string, testFunction: TestFunction): void
 ### Example
 
 ```typescript
-// ONE story for component
 export const LoginForm = meta.story({});
 
-// MULTIPLE tests using .test() method
+// Attach as many independent tests as you need to the one story
 LoginForm.test(
   "Shows validation error on empty submit",
   async ({ canvas, userEvent }) => {
@@ -90,27 +89,9 @@ LoginForm.test(
     await expect(canvas.getByText(/email is required/i)).toBeVisible();
   },
 );
-
-LoginForm.test(
-  "Submits form with valid data",
-  async ({ canvas, userEvent, args }) => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
-    await userEvent.click(canvas.getByRole("button", { name: /submit/i }));
-    await expect(args.onSubmit).toHaveBeenCalled();
-  },
-);
-
-LoginForm.test(
-  "Keyboard navigation works correctly",
-  async ({ canvas, userEvent }) => {
-    const emailInput = canvas.getByLabelText(/email/i);
-    emailInput.focus();
-    await userEvent.tab();
-    await expect(canvas.getByLabelText(/password/i)).toHaveFocus();
-  },
-);
 ```
+
+For full worked story files (forms, dialogs, portals, lists, tabs), see [examples.md](./examples.md).
 
 ### Parameters
 
@@ -139,7 +120,7 @@ interface TestContext {
 - **`.test()`** (90% of cases) — All independent test assertions, multiple tests per story
 - **`play`** (10%) — Demos without assertions, or complex dependent multi-step flows
 
-> **See [best-practices.md](./best-practices.md) for the full decision matrix and component type guidelines.**
+> **See [SKILL.md](../SKILL.md) for the full decision matrix and component-type guidelines.**
 
 ## Query Methods
 
@@ -273,23 +254,8 @@ const meta = preview.meta({
 
 ## Play Function Context
 
-```typescript
-export const MyStory = meta.story({
-  play: async ({
-    canvas, // Testing Library queries scoped to story
-    canvasElement, // Raw DOM element (HTMLElement)
-    userEvent, // Pre-configured user event instance
-    args, // Story args (component props)
-    step, // Function to group assertions
-    // Additional context properties:
-    // - globals
-    // - parameters
-    // - viewMode
-  }) => {
-    // Test implementation
-  },
-});
-```
+`play` receives the same context object as `.test()` (`canvas`, `canvasElement`, `userEvent`,
+`args`, `step`) plus `globals`, `parameters`, and `viewMode`. See the `.test()` Context Object above.
 
 ## canvas vs screen
 
@@ -320,40 +286,58 @@ const element = canvasElement.querySelector(".some-class");
 | `screen.getByRole()`            | Element is in portal (outside canvas) | Modals, tooltips, dropdown options |
 | `canvasElement.querySelector()` | Need raw DOM access                   | Direct DOM manipulation (rare)     |
 
-### Why `screen` for portals?
-
-**Advantages:**
-
-- ✅ Simpler API - `screen.getByRole()` vs `within(canvasElement.parentElement).getByRole()`
-- ✅ More readable code
-- ✅ Standard Testing Library pattern
-- ✅ Works with document.body portals (common pattern)
-
-**Example:**
+Portal pattern: trigger inside `canvas`, query the portal content via `screen`:
 
 ```typescript
-// Portal content (modal, tooltip, dropdown)
-export const ModalStory = meta.story({});
+await userEvent.click(canvas.getByRole("button", { name: /open/i }));
+const dialog = await screen.findByRole("dialog"); // renders to document.body
+await userEvent.click(screen.getByRole("button", { name: /close/i }));
+```
 
-ModalStory.test(
-  "Opens and closes modal via portal",
-  async ({ canvas, userEvent, step }) => {
-    await step("Open modal", async () => {
-      // Trigger inside canvas
-      await userEvent.click(canvas.getByRole("button", { name: /open/i }));
-    });
+## Common Element Patterns
 
-    await step("Modal renders to document.body — use screen", async () => {
-      const dialog = await screen.findByRole("dialog");
-      await expect(dialog).toBeInTheDocument();
-    });
+Role, query, and portal behaviour for common UI elements. Component libraries built on Radix UI,
+Headless UI, or Floating UI render overlay content (dialogs, tooltips, menus, dropdown option lists)
+in **portals** to `document.body` — query those with `screen`, everything else with `canvas`.
 
-    await step("Close modal via portal button", async () => {
-      // Close button inside portal — still use screen
-      await userEvent.click(screen.getByRole("button", { name: /close/i }));
-    });
+| Element        | Role                | Query                            | Portal?                      |
+| -------------- | ------------------- | -------------------------------- | ---------------------------- |
+| Button         | `button`            | `canvas.getByRole("button")`     | No                           |
+| Text input     | `textbox`           | `canvas.getByRole("textbox")`    | No                           |
+| Checkbox       | `checkbox`          | `canvas.getByRole("checkbox")`   | No                           |
+| Radio          | `radio`             | `canvas.getByRole("radio")`      | No                           |
+| Tabs           | `tab` / `tabpanel`  | `canvas.getByRole("tab")`        | No                           |
+| Select         | `combobox` / `option` | trigger: `canvas`; options: `screen` | Options: Yes            |
+| Dialog / Modal | `dialog`            | `screen.getByRole("dialog")`     | Yes                          |
+| Tooltip        | `tooltip`           | `screen.getByRole("tooltip")`    | Yes                          |
+| Alert / Toast  | `status` / `alert`  | `canvas` or `screen`             | Depends on the library       |
+
+Element-specific facts worth asserting:
+
+- **Animated / portaled content** — it appears after a transition, so query it with `findBy*` /
+  `waitFor`, never `getBy*` (which throws immediately, before the animation settles).
+- **Dialog ARIA** — assert `aria-modal="true"`, `aria-labelledby`, and (when there's body copy)
+  `aria-describedby`.
+- **Dialog focus** — focus is trapped inside the open dialog and returns to the trigger on close;
+  assert with `toHaveFocus()` after closing.
+- **Auto-dismissing elements (toasts)** — they disappear on a timer; assert their removal with an
+  extended timeout, e.g. `waitFor(..., { timeout: 6000 })`.
+- **Loading buttons** — assert `aria-busy="true"` plus a visible `progressbar` (and `toBeDisabled()`).
+
+```typescript
+// Toast that auto-dismisses
+await waitFor(
+  async () => {
+    await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
   },
+  { timeout: 6000 },
 );
+
+// Dialog focus returns to the trigger after Escape
+await userEvent.keyboard("{Escape}");
+await waitFor(async () => {
+  await expect(trigger).toHaveFocus();
+});
 ```
 
 ## Step Function

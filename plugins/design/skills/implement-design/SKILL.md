@@ -1,7 +1,5 @@
 ---
 name: implement-design
-argument-hint: <claude-design-share-url> ["adjustment notes"]
-allowed-tools: Read, Write, Edit, Glob, Grep, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 description: >
   Implement UI in any project that imports from @szum-tech/design-system,
   especially when pasting output from Claude Design, porting a mockup,
@@ -19,6 +17,8 @@ description: >
   Trigger phrases: "build this view", "implement this design",
   "from Claude Design", "create landing page", "port mockup", "recreate
   this UI", "zbuduj ten widok", "zaimplementuj design", "z Claude Design".
+allowed-tools: Read, Write, Edit, Glob, Grep, WebFetch, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+argument-hint: <claude-design-share-url> ["adjustment notes"]
 ---
 
 # implement-design
