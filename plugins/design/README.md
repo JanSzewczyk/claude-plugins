@@ -11,7 +11,7 @@ Design system & styling — skills for building UI with the Szum-Tech design sys
 | **szum-tech-design-system** | `/szum-tech-design-system` | Complete reference for `@szum-tech/design-system` — color tokens, typography, all components, animations, icons         |
 | **tailwind-css-4**          | `/tailwind-css-4`          | Tailwind CSS v4 — CSS-first config, `@theme` directive, design system integration, responsive patterns                  |
 | **design-system-component** | `/design-system-component` | File structure, types, styles (CVA), context, store, barrel exports, and Storybook for React + TS + Tailwind components |
-| **implement-design**        | `/implement-design`        | Inventory-first protocol for porting an external design (Claude Design output, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them |
+| **implement-design**        | `/implement-design`        | Inventory-first protocol for porting an external design (native Claude Design handoff, `/design-sync`'d project, share URL, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them |
 
 ## Installation
 
