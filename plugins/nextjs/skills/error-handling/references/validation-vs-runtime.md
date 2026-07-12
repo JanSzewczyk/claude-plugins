@@ -85,10 +85,10 @@ export async function createBudgetAction(
 Business rules go beyond schema validation. They enforce domain-specific constraints that depend on existing data or application state.
 
 ```typescript
-import { ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { ServiceError } from "~/lib/services/errors";
 import { createLogger } from "~/lib/logger";
 
-const logger = createLogger({ module: "budget-db" });
+const logger = createLogger({ module: "budget-service" });
 
 export async function createBudget(
   userId: string,
@@ -174,21 +174,18 @@ catch (error) {
 }
 ```
 
-### Database Errors
+### Data Source Errors
 
 ```typescript
-// Firestore unavailable, deadline exceeded, internal errors
+// Source unavailable, deadline exceeded, internal errors — let categorizeServiceError
+// normalize the raw error onto the neutral ServiceError codes regardless of the source.
 catch (error) {
-  // Firestore-specific: FirebaseError check — for other DB layers, replace with your own error class
-  if (error instanceof FirebaseError) {
-    // "unavailable", "deadline-exceeded", "internal"
-    const serviceError = categorizeServiceError(error, "Budget");
-    logger.error(
-      { userId, firebaseCode: error.code, errorCode: serviceError.code },
-      "Firestore error",
-    );
-    return [serviceError, null];
-  }
+  const serviceError = categorizeServiceError(error, "Budget");
+  logger.error(
+    { userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable },
+    "Data source error",
+  );
+  return [serviceError, null];
 }
 ```
 
@@ -339,9 +336,9 @@ import { z } from "zod";
 import { createLogger } from "~/lib/logger";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import {
-  createBudget as createBudgetDb,
+  createBudget as createBudgetService,
   countUserBudgets,
-} from "../db/budgets";
+} from "../services/budgets";
 import type { ActionResponse } from "~/lib/action-types";
 import type { Budget } from "../types/budget";
 
@@ -428,7 +425,7 @@ export async function createBudgetAction(
   // ── RUNTIME PATH: Database write ───────────────────────────
   // Input is valid, business rules pass. Now we're in runtime territory.
   // Any failure here is a system error.
-  const [error, budget] = await createBudgetDb(userId, parsed.data);
+  const [error, budget] = await createBudgetService(userId, parsed.data);
 
   if (error) {
     // Runtime errors: log as error, return generic message, set toast

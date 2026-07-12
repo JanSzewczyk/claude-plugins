@@ -11,7 +11,7 @@ These errors are temporary and may succeed on a subsequent attempt:
 | Network failure        | `isRetryable: true`   | Connection reset, DNS resolution failure      |
 | Timeout                | `isRetryable: true`   | `deadline-exceeded`, request took too long    |
 | Rate limit (429)       | `isRetryable: true`   | Too many requests to API or database          |
-| Service unavailable    | `isRetryable: true`   | Firestore `unavailable`, third-party API down |
+| Service unavailable    | `isRetryable: true`   | Connection refused, third-party API down, HTTP 503 |
 | Temporary server error | `isRetryable: true`   | 502/503/504 from upstream services            |
 
 ### Non-Retryable Errors (Permanent)
@@ -98,18 +98,18 @@ async function withRetry<T>(
 
 ## Retry Helper Using ServiceError.isRetryable
 
-Use this pattern in the database layer to retry only transient errors while immediately returning permanent failures:
+Use this pattern in the service layer to retry only transient errors while immediately returning permanent failures. It works the same whether the wrapped operation hits a database or a remote API:
 
 ```typescript
-import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors";
 import { createLogger } from "~/lib/logger";
 
-const logger = createLogger({ module: "budget-db" });
+const logger = createLogger({ module: "budget-service" });
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 500;
 
-async function withDbRetry<T>(
+async function withServiceRetry<T>(
   operation: () => Promise<[null, T] | [ServiceError, null]>,
   context: { resource: string; action: string; userId?: string },
 ): Promise<[null, T] | [ServiceError, null]> {
@@ -149,7 +149,7 @@ async function withDbRetry<T>(
           errorCode: error.code,
           delayMs: Math.round(delay),
         },
-        "Retrying transient database error",
+        "Retrying transient service error",
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -168,7 +168,7 @@ async function withDbRetry<T>(
   return [lastError!, null];
 }
 
-// Usage in database layer
+// Usage in the service layer (budgetSource = ORM, DB driver, or fetch() wrapper)
 export async function getBudgetById(
   userId: string,
   budgetId: string,
@@ -177,21 +177,20 @@ export async function getBudgetById(
     return [ServiceError.validation("Invalid userId or budgetId"), null];
   }
 
-  return withDbRetry(
+  return withServiceRetry(
     async () => {
       try {
-        const doc = await db.collection("budgets").doc(budgetId).get();
+        const budget = await budgetSource.findById(budgetId);
 
-        if (!doc.exists) {
+        if (!budget) {
           return [ServiceError.notFound("Budget"), null];
         }
 
-        const data = doc.data()!;
-        if (data.userId !== userId) {
-          return [ServiceError.permissionDenied(), null];
+        if (budget.userId !== userId) {
+          return [ServiceError.permissionDenied("Budget"), null];
         }
 
-        return [null, transformToBudget(doc.id, data)];
+        return [null, budget];
       } catch (error) {
         const serviceError = categorizeServiceError(error, "Budget");
         return [serviceError, null];
@@ -408,7 +407,7 @@ export async function syncExternalData(
 When a service fails, fall back to cached or reduced-functionality responses instead of showing errors:
 
 ```typescript
-import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your DB layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors";
 import { createLogger } from "~/lib/logger";
 
 const logger = createLogger({ module: "dashboard-loader" });
@@ -625,7 +624,7 @@ async function createOrderWithRetry(data: OrderData) {
 
 // Good - only retry the read portion, not the write
 async function getOrCreateOrder(data: OrderData) {
-  const [error, existing] = await withDbRetry(
+  const [error, existing] = await withServiceRetry(
     () => getOrderByExternalId(data.externalId),
     { resource: "Order", action: "getByExternalId" },
   );
@@ -648,7 +647,7 @@ while (true) {
 }
 
 // Good - bounded with clear failure path
-const [error, data] = await withDbRetry(() => fetchData(), {
+const [error, data] = await withServiceRetry(() => fetchData(), {
   resource: "Data",
   action: "fetch",
 });

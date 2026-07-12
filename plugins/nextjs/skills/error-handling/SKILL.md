@@ -41,8 +41,12 @@ Server Action → ActionResponse<T> / RedirectAction · Zod validation with fiel
    ↑
 Service      → ServiceError class · tuple pattern [error, data] · categorizeServiceError()
    ↑
-Logging      → Pino structured logs · error context (errorCode, isRetryable, userId), logged before return
+Logging      → structured logs · error context (errorCode, isRetryable, userId), logged before return
 ```
+
+The **service layer is source-agnostic**: the same `ServiceError` contract wraps failures from a
+database query, a REST/`fetch()` API call, or a validation/business-rule check. Nothing below is
+tied to a particular data store.
 
 Rules per layer (code in [references/examples.md](./references/examples.md)):
 
@@ -57,37 +61,62 @@ Rules per layer (code in [references/examples.md](./references/examples.md)):
 
 ## ServiceError Contract
 
-`ServiceError` is the typed error every service-layer implementation must provide. It's a TypeScript
-contract — the **Firestore concrete implementation lives in the `firebase-firestore` skill**
-(`errors.md`). `categorizeServiceError(error, resourceName)` maps a raw error onto it.
+`ServiceError` is the typed error every service-layer operation returns, **regardless of where the
+failure came from** — a database driver/ORM, a `fetch()`/REST call to another service, or a
+validation/business-rule check. It's a plain TypeScript class with no dependency on any data store.
+`categorizeServiceError(error, resourceName)` maps a raw error from any source onto it.
 
 | Property             | Type    | Meaning                                                     |
 | -------------------- | ------- | ----------------------------------------------------------- |
-| `code`               | string  | Error code (validation, not-found, permission-denied, etc.) |
+| `code`               | string  | Error code from the neutral vocabulary below                |
 | `message`            | string  | User-friendly message                                       |
-| `isRetryable`        | boolean | Transient error (network, timeout)                          |
+| `isRetryable`        | boolean | Transient error (network, timeout, service unavailable)     |
 | `isNotFound`         | boolean | Resource doesn't exist                                      |
 | `isAlreadyExists`    | boolean | Creating a resource that already exists                     |
 | `isPermissionDenied` | boolean | Auth/permission issue                                       |
 
-Static factory methods every implementation exposes:
+### Neutral error-code vocabulary
+
+`code` is one of these source-independent values. Each concrete adapter (DB driver, HTTP client,
+validator) maps its own raw error codes/HTTP statuses onto this set:
+
+| `code`            | `isRetryable` | Typical source                                          |
+| ----------------- | ------------- | ------------------------------------------------------- |
+| `validation`      | no            | Zod parse, business-rule check, HTTP 400/422            |
+| `not-found`       | no            | Missing row/document, HTTP 404                          |
+| `already-exists`  | no            | Unique-constraint violation, HTTP 409                   |
+| `permission-denied` | no          | Auth/authorization failure, HTTP 401/403                |
+| `data-corruption` | no            | Record exists but fails its shape/parse                 |
+| `unavailable`     | **yes**       | Connection refused, service down, HTTP 502/503          |
+| `timeout`         | **yes**       | Deadline exceeded, `AbortError`, HTTP 504               |
+| `rate-limited`    | **yes**       | Too many requests, HTTP 429                             |
+| `external-api`    | **yes**       | Non-specific upstream/third-party failure               |
+| `internal`        | no            | Unknown/unexpected error                                |
+
+### Factory methods and constructor
 
 ```typescript
-ServiceError.notFound("User");          // resource not found
-ServiceError.alreadyExists("Budget");   // resource already exists
-ServiceError.validation("Invalid input"); // validation failed
-ServiceError.dataCorruption("Event");   // document exists but data invalid
-ServiceError.permissionDenied();        // auth/permission issue
+ServiceError.notFound("User");            // resource not found
+ServiceError.alreadyExists("Budget");     // resource already exists
+ServiceError.validation("Invalid input"); // validation / business-rule failed
+ServiceError.dataCorruption("Event");     // record exists but data invalid
+ServiceError.permissionDenied("Budget");  // auth/permission issue (resource optional)
+ServiceError.internal("Budget");          // unknown/unexpected failure
+
+// Full constructor for any other code (e.g. a retryable upstream failure):
+//   new ServiceError(code: string, message: string, isRetryable = false)
+new ServiceError("external-api", "Payment service unavailable", true);
 ```
 
 ## Error Response Flow
 
-`db error → categorizeServiceError() → log with context → return [error, null] → server action inspects
-error flags → set toast cookie → return ActionResponse with a generic message → client shows toast`.
+`source error (DB / fetch / validation) → categorizeServiceError() → log with context →
+return [error, null] → server action inspects error flags → set toast cookie → return ActionResponse
+with a generic message → client shows toast`.
 
 ## Related Skills
 
-- `firebase-firestore` — Firestore implementation of the contract (`ServiceError` + `categorizeServiceError`).
+- `firebase-firestore` — one concrete adapter that maps a specific data store's raw errors onto this contract.
 - `server-actions` — `ActionResponse` types and patterns.
 - `toast-notifications` — user feedback via toasts.
-- `structured-logging` — Pino logging patterns.
+- `structured-logging` — structured logging patterns.

@@ -2,23 +2,21 @@
 
 ## Complete CRUD Error Handling
 
-> **Note — DB Layer Examples:** The database layer examples below use Firestore-specific imports
-> (`~/lib/firebase/errors`, `~/lib/firebase`, `firebase-admin/firestore`). For a different DB layer,
-> replace these with your own implementation of the ServiceError contract. See the `firebase-firestore`
-> skill for the complete Firestore implementation.
+> **Note — Service Layer Examples:** The examples below are written against a generic `budgetSource`
+> data access object to stay source-agnostic. `budgetSource.*` stands for whatever you use — an ORM
+> call, a raw DB driver, or a `fetch()` to another service. Swap it for your own implementation; only
+> `categorizeServiceError` needs to know the specifics of your source (see `patterns.md`).
 
-### Database Layer
+### Service Layer
 
 ```typescript
-// features/budget/server/db/budgets.ts
-import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // ~/lib/firebase/errors for Firestore
+// features/budget/server/services/budgets.ts
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors";
 import { createLogger } from "~/lib/logger";
-import { db } from "~/lib/db"; // ~/lib/firebase for Firestore
-import { FieldValue } from "firebase-admin/firestore"; // Firestore-specific
+import { budgetSource } from "~/lib/data/budget-source"; // ORM, DB driver, or fetch() wrapper
 import type { Budget, CreateBudgetDto, UpdateBudgetDto } from "../types/budget";
 
-const logger = createLogger({ module: "budget-db" });
-const COLLECTION_NAME = "budgets";
+const logger = createLogger({ module: "budget-service" });
 const RESOURCE_NAME = "Budget";
 
 // CREATE
@@ -35,15 +33,7 @@ export async function createBudget(
   logger.debug({ userId, budgetName: data.name }, "Creating budget");
 
   try {
-    const docRef = await db.collection(COLLECTION_NAME).add({
-      ...data,
-      userId,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-
-    const doc = await docRef.get();
-    const budget = transformToBudget(doc.id, doc.data()!);
+    const budget = await budgetSource.create({ ...data, userId });
 
     logger.info({ userId, budgetId: budget.id }, "Budget created");
     return [null, budget];
@@ -75,9 +65,9 @@ export async function getBudgetById(
   logger.debug({ userId, budgetId }, "Fetching budget");
 
   try {
-    const doc = await db.collection(COLLECTION_NAME).doc(budgetId).get();
+    const budget = await budgetSource.findById(budgetId);
 
-    if (!doc.exists) {
+    if (!budget) {
       const error = ServiceError.notFound(RESOURCE_NAME);
       logger.warn(
         { userId, budgetId, errorCode: error.code },
@@ -86,16 +76,17 @@ export async function getBudgetById(
       return [error, null];
     }
 
-    const data = doc.data()!;
-
     // Check ownership
-    if (data.userId !== userId) {
+    if (budget.userId !== userId) {
       const error = ServiceError.permissionDenied("Budget");
-      logger.warn({ userId, budgetId, ownerId: data.userId }, "Access denied");
+      logger.warn(
+        { userId, budgetId, ownerId: budget.userId },
+        "Access denied",
+      );
       return [error, null];
     }
 
-    return [null, transformToBudget(doc.id, data)];
+    return [null, budget];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
     logger.error(
@@ -118,7 +109,7 @@ export async function updateBudget(
   data: UpdateBudgetDto,
 ): Promise<[null, Budget] | [ServiceError, null]> {
   // First verify ownership
-  const [existsError, existing] = await getBudgetById(userId, budgetId);
+  const [existsError] = await getBudgetById(userId, budgetId);
   if (existsError) {
     return [existsError, null];
   }
@@ -126,17 +117,7 @@ export async function updateBudget(
   logger.debug({ userId, budgetId }, "Updating budget");
 
   try {
-    await db
-      .collection(COLLECTION_NAME)
-      .doc(budgetId)
-      .update({
-        ...data,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-    // Fetch updated document
-    const doc = await db.collection(COLLECTION_NAME).doc(budgetId).get();
-    const budget = transformToBudget(doc.id, doc.data()!);
+    const budget = await budgetSource.update(budgetId, data);
 
     logger.info({ userId, budgetId }, "Budget updated");
     return [null, budget];
@@ -168,7 +149,7 @@ export async function deleteBudget(
   logger.debug({ userId, budgetId }, "Deleting budget");
 
   try {
-    await db.collection(COLLECTION_NAME).doc(budgetId).delete();
+    await budgetSource.delete(budgetId);
     logger.info({ userId, budgetId }, "Budget deleted");
     return [null, undefined];
   } catch (error) {
@@ -197,10 +178,10 @@ import { revalidatePath } from "next/cache";
 import { createLogger } from "~/lib/logger";
 import { setToastCookie } from "~/lib/toast/server/toast.cookie";
 import {
-  createBudget as createBudgetDb,
-  updateBudget as updateBudgetDb,
-  deleteBudget as deleteBudgetDb,
-} from "../db/budgets";
+  createBudget as createBudgetService,
+  updateBudget as updateBudgetService,
+  deleteBudget as deleteBudgetService,
+} from "../services/budgets";
 import { createBudgetSchema, updateBudgetSchema } from "../schemas/budget";
 import type { ActionResponse, RedirectAction } from "~/lib/action-types";
 import type { Budget } from "../types/budget";
@@ -238,7 +219,7 @@ export async function createBudgetAction(
   }
 
   // Create
-  const [error, budget] = await createBudgetDb(userId, parsed.data);
+  const [error, budget] = await createBudgetService(userId, parsed.data);
 
   if (error) {
     logger.error(
@@ -281,7 +262,7 @@ export async function updateBudgetAction(
     };
   }
 
-  const [error, budget] = await updateBudgetDb(userId, budgetId, parsed.data);
+  const [error, budget] = await updateBudgetService(userId, budgetId, parsed.data);
 
   if (error) {
     if (error.isNotFound) {
@@ -313,7 +294,7 @@ export async function deleteBudgetAction(budgetId: string): RedirectAction {
     return redirect("/sign-in");
   }
 
-  const [error] = await deleteBudgetDb(userId, budgetId);
+  const [error] = await deleteBudgetService(userId, budgetId);
 
   if (error) {
     if (error.isNotFound) {
@@ -340,7 +321,7 @@ export async function deleteBudgetAction(budgetId: string): RedirectAction {
 ```typescript
 // app/budgets/[id]/page.tsx
 import { redirect, notFound } from "next/navigation";
-import { getBudgetById } from "~/features/budget/server/db/budgets";
+import { getBudgetById } from "~/features/budget/server/services/budgets";
 import { BudgetDetails } from "~/features/budget/components/budget-details";
 
 interface PageProps {

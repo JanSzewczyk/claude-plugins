@@ -3,8 +3,9 @@ name: update-deps
 description: >
   Update npm dependencies safely in sequential, theme-grouped batches. For each group: verify the app still works
   (type-check, lint, build, tests), commit the group on success or roll it back on failure, and pause to confirm before
-  any major (breaking) bump after fetching its migration guide. Ends with a full report of what changed and which
-  updates forced code migrations. Use this skill whenever the user wants to update, upgrade, or bump npm packages,
+  any major (breaking) bump after fetching its migration guide. Once all groups are done, runs a dependency security
+  audit (npm/pnpm/yarn audit) against the final tree and resolves what it can. Ends with a full report of what changed,
+  which updates forced code migrations, and the audit results. Use this skill whenever the user wants to update, upgrade, or bump npm packages,
   dependencies, or libraries in bulk — "update my deps", "upgrade everything to latest", "bump the outdated packages",
   "update Storybook / Next / Vitest", "do a dependency update pass" — even if they don't say "update-deps". Prefer the
   library-updater agent instead for a single one-off package change; prefer this skill whenever there are several
@@ -98,6 +99,27 @@ For every group, in order:
      group must not abort the rest.
 6. **If verification passes: commit the group** (see commit rules below), then move on.
 
+### Step 4 — Dependency security audit
+
+Once every group has been processed (updated, deferred, or rolled back), run the package manager's audit command
+(`npm audit --json`, `pnpm audit --json`, or `yarn npm audit --json`) to check for known vulnerabilities across the
+**final** dependency tree.
+
+1. **Run the audit** and parse the findings by severity (critical / high / moderate / low).
+2. **Resolve what can be resolved automatically:**
+   - Try the manager's non-breaking auto-fix first (`npm audit fix`, `pnpm audit --fix`, `yarn npm audit fix`, as
+     available). This only ever bumps within existing semver ranges, so it's safe to run without a confirm gate.
+   - For vulnerabilities that need a version bump **outside** the current range (i.e. `--force` territory, or a
+     package not already covered by a group above): treat it like a major-group update — fetch context via Context7
+     if it's a breaking bump, **pause and confirm** with the user before applying, then verify (type-check → lint →
+     build → tests) exactly as in Step 3.
+3. **Verify after any audit-driven change** using the same check order as Step 3, and commit separately from the
+   version-bump groups: `chore(deps): resolve security audit findings` (or a more specific scope if only one package
+   was touched). Roll back on verification failure, same as Step 3.
+4. **What can't be resolved** (no fix available yet, or the user declined a breaking bump): leave it and record it —
+   don't block the rest of the process on it.
+5. Record the audit's before/after vulnerability counts (by severity) for the final report.
+
 ## Commit rules (read carefully — the runtime will fight you here)
 
 When a group passes verification, commit **only that group's changes** (`package.json` + lockfile, plus any code
@@ -115,11 +137,13 @@ migration files for that group).
 
 ## Final report
 
-After the last group, write the report following [references/report-template.md](./references/report-template.md). It
-must answer the user's three explicit questions: **what was updated** (old → new, per group), **which updates required
-code changes and what those changes were**, and **what was skipped/deferred/failed and why**. Categorize every package
-into exactly one of: _updated cleanly_, _updated with a code migration (described)_, _deferred (major, awaiting your
-go-ahead)_, or _failed / rolled back_.
+After the last group **and** the Step 4 security audit, write the report following
+[references/report-template.md](./references/report-template.md). It must answer the user's three explicit questions:
+**what was updated** (old → new, per group), **which updates required code changes and what those changes were**, and
+**what was skipped/deferred/failed and why**. Categorize every package into exactly one of: _updated cleanly_, _updated
+with a code migration (described)_, _deferred (major, awaiting your go-ahead)_, or _failed / rolled back_. Add a
+**Security audit** section: vulnerability counts by severity before/after, what was auto-fixed, what required a
+breaking bump (and whether it was applied or deferred), and what remains unresolved.
 
 ## Edge cases
 

@@ -54,6 +54,17 @@ Attempted but reverted because verification couldn't be made to pass. The tree i
 - **Why rolled back:** <what blocked the fix>
 - **Suggestion:** <e.g. "upgrade via intermediate v2 first", "wait for patch release", "needs design decision">
 
+## 🔒 Security audit
+
+Run after all groups were processed, against the final dependency tree.
+
+**Vulnerabilities before → after:** critical <N→N> · high <N→N> · moderate <N→N> · low <N→N>
+
+- **Auto-fixed:** <packages fixed within existing semver ranges, commit reference>
+- **Fixed via breaking bump (confirmed):** <package old → new, commit reference>
+- **Deferred (breaking bump declined):** <package, advisory summary, why held>
+- **Unresolved (no fix available):** <package, advisory summary>
+
 ## Summary
 
 <1–3 sentences: how many groups committed, anything that needs the user's attention, suggested next step.>

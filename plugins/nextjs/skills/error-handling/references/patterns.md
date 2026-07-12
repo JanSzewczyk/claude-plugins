@@ -1,16 +1,17 @@
 # Error Handling Patterns
 
-## Pattern 1: Database Layer Errors
+## Pattern 1: Service Layer Errors
 
 ### Tuple Return Pattern
 
-Always return `[error, data]` tuple from database functions.
+Always return an `[error, data]` tuple from service-layer functions. The **same shape works for any
+source** — a database query, a `fetch()` to another service, or a validation check.
 
 ```typescript
-import { categorizeServiceError, ServiceError } from "~/lib/services/errors"; // path depends on your service layer (e.g. ~/lib/firebase/errors for Firestore)
+import { categorizeServiceError, ServiceError } from "~/lib/services/errors";
 import { createLogger } from "~/lib/logger";
 
-const logger = createLogger({ module: "user-db" });
+const logger = createLogger({ module: "user-service" });
 
 export async function getUserById(
   userId: string,
@@ -23,26 +24,26 @@ export async function getUserById(
   }
 
   try {
-    // 2. Database operation
-    const doc = await db.collection("users").doc(userId).get();
+    // 2. External operation — your data source: DB/ORM query, fetch() call, etc.
+    const record = await userSource.findById(userId);
 
     // 3. Not found check
-    if (!doc.exists) {
+    if (!record) {
       const error = ServiceError.notFound("User");
       logger.warn({ userId, errorCode: error.code }, "User not found");
       return [error, null];
     }
 
-    // 4. Data integrity check
-    const data = doc.data();
-    if (!data) {
+    // 4. Data integrity check (record exists but fails its expected shape)
+    const parsed = userSchema.safeParse(record);
+    if (!parsed.success) {
       const error = ServiceError.dataCorruption("User");
-      logger.error({ userId, errorCode: error.code }, "Data undefined");
+      logger.error({ userId, errorCode: error.code }, "Malformed user data");
       return [error, null];
     }
 
     // 5. Success
-    return [null, transformToUser(doc.id, data)];
+    return [null, parsed.data];
   } catch (error) {
     // 6. Categorize unexpected errors
     const serviceError = categorizeServiceError(error, "User");
@@ -52,7 +53,7 @@ export async function getUserById(
         errorCode: serviceError.code,
         isRetryable: serviceError.isRetryable,
       },
-      "Database error",
+      "Service error",
     );
     return [serviceError, null];
   }
@@ -61,30 +62,52 @@ export async function getUserById(
 
 ### Error Categorization
 
+`categorizeServiceError` is where each source's raw errors are normalized onto the neutral
+`ServiceError` codes. Match on whatever your source exposes — a driver/ORM `code`, an HTTP `status`,
+or an error name/class — and set the correct flags. The structure below covers all three:
+
 ```typescript
-// lib/services/errors.ts — generic structure (full Firestore implementation: see firebase-firestore/errors.md)
+// lib/services/errors.ts
 export function categorizeServiceError(
   error: unknown,
   resource: string,
 ): ServiceError {
-  // Each service layer maps its own error types to ServiceError.
-  // The implementation checks service-specific error codes/classes and returns
-  // the appropriate ServiceError with correct boolean flags set.
+  // 1. Sources that expose a string `code` (many DB drivers/ORMs, Node system errors)
   if (error && typeof error === "object" && "code" in error) {
     const { code } = error as { code: string };
-    if (code === "not-found") return ServiceError.notFound(resource);
-    if (code === "already-exists") return ServiceError.alreadyExists(resource);
-    if (code === "permission-denied" || code === "unauthenticated")
+    if (code === "NOT_FOUND") return ServiceError.notFound(resource);
+    if (code === "ALREADY_EXISTS" || code === "23505") // e.g. unique-violation
+      return ServiceError.alreadyExists(resource);
+    if (code === "PERMISSION_DENIED" || code === "UNAUTHENTICATED")
       return ServiceError.permissionDenied(resource);
-    // Add DB-layer-specific retryable codes here (e.g. "unavailable", "deadline-exceeded")
+    if (code === "ECONNREFUSED" || code === "UNAVAILABLE")
+      return new ServiceError("unavailable", `${resource} service unavailable`, true);
+    if (code === "ETIMEDOUT")
+      return new ServiceError("timeout", `${resource} request timed out`, true);
   }
+
+  // 2. Sources that expose an HTTP `status` (fetch/REST responses)
+  if (error && typeof error === "object" && "status" in error) {
+    const { status } = error as { status: number };
+    if (status === 404) return ServiceError.notFound(resource);
+    if (status === 409) return ServiceError.alreadyExists(resource);
+    if (status === 401 || status === 403)
+      return ServiceError.permissionDenied(resource);
+    if (status === 429)
+      return new ServiceError("rate-limited", "Too many requests", true);
+    if (status >= 500)
+      return new ServiceError("external-api", `${resource} service error`, true);
+  }
+
+  // 3. Fallback for anything else
   if (error instanceof Error)
     return ServiceError.internal(resource, error.message);
   return ServiceError.internal(resource);
 }
 ```
 
-> **Firestore-specific implementation** (using `FirebaseError` class and Firestore error codes) is in `firebase-firestore/errors.md`.
+> Adapt the specific `code`/`status` values to the source you're mapping. A concrete adapter (e.g.
+> the `firebase-firestore` skill) simply fills this function with its store's error codes.
 
 ## Pattern 2: Server Action Errors
 
@@ -128,7 +151,7 @@ export async function createBudget(formData: FormData): ActionResponse<Budget> {
   }
 
   // 3. Database operation
-  const [error, budget] = await createBudgetInDb(userId, parsed.data);
+  const [error, budget] = await createBudgetService(userId, parsed.data);
 
   if (error) {
     logger.error(
@@ -173,7 +196,7 @@ export async function deleteBudget(budgetId: string): RedirectAction {
     return redirect("/sign-in");
   }
 
-  const [error] = await deleteBudgetInDb(userId, budgetId);
+  const [error] = await deleteBudgetService(userId, budgetId);
 
   if (error) {
     if (error.isNotFound) {
@@ -197,7 +220,7 @@ export async function deleteBudget(budgetId: string): RedirectAction {
 ```typescript
 // app/budgets/[id]/page.tsx
 import { redirect, notFound } from "next/navigation";
-import { getBudgetById } from "~/features/budget/server/db/budgets";
+import { getBudgetById } from "~/features/budget/server/services/budgets";
 
 export default async function BudgetPage({
   params
