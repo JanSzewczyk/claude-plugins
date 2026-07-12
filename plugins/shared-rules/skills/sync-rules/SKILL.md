@@ -1,6 +1,6 @@
 ---
 name: sync-rules
-description: Pull canonical `.claude/rules/` files from the claude-plugins shared-rules source of truth into the current project. Analyzes the repo to judge which rules apply, then presents them as an approval checklist (via AskUserQuestion) so the user picks exactly which ones to add or update — nothing is written without approval. Use when the user wants to add shared/company-wide Claude rules to a repo, update rules that changed upstream, or check whether a repo's rules have drifted from the canonical version. Trigger on "sync rules", "update shared rules", "pull the latest rules", "/sync-rules", "add company rules to this repo", "are our rules out of date".
+description: Pull canonical `.claude/rules/` files from the claude-plugins shared-rules source of truth into the current project. Does a shallow relevance check (package.json + CLAUDE.md, at most) then presents rules as an approval checklist (via AskUserQuestion) so the user picks exactly which ones to add or update — nothing is written without approval. Use when the user wants to add shared/company-wide Claude rules to a repo, update rules that changed upstream, or check whether a repo's rules have drifted from the canonical version. Trigger on "sync rules", "update shared rules", "pull the latest rules", "/sync-rules", "add company rules to this repo", "are our rules out of date".
 allowed-tools: Bash, Read, Glob, AskUserQuestion
 argument-hint: "[--force]"
 ---
@@ -35,10 +35,15 @@ by walking up from the current working directory to the nearest `.git`.
    this for `stale`, since the source file is gone) to understand what it governs and which
    `paths:` frontmatter it scopes to.
 
-3. **Judge relevance against this repo.** Inspect the project (e.g. `package.json` for
-   Drizzle/Supabase/Next.js, presence of `app/` or `features/` directories) and compare against
-   each rule's `paths:` scope and content. Form a one-line recommendation per rule: applies
-   directly, applies partially, or likely not relevant to this stack.
+3. **Judge relevance against this repo — keep this shallow.** This is a cheap sanity check, not
+   an audit: read at most two files, `package.json` (dependencies — Drizzle/Supabase/Next.js/etc.)
+   and `CLAUDE.md` if present (stated stack/conventions), plus one `Glob` check each for `app/`
+   and `features/` directories if their presence isn't already obvious from those two files. Do
+   not grep the codebase, open source files, or read multiple config files looking for evidence —
+   if `package.json` and `CLAUDE.md` don't settle it, mark the rule's relevance as unclear rather
+   than digging further. Compare what you found against each rule's `paths:` scope and content,
+   and form a one-line recommendation per rule: applies directly, applies partially, likely not
+   relevant to this stack, or unclear.
 
 4. **Ask the user to approve the selection** with `AskUserQuestion`, `multiSelect: true`. One
    option per candidate rule from step 2, its `description` stating: what it covers, its status
@@ -71,16 +76,19 @@ runs `/sync-rules`.
 
 **Example 1**
 Input: `/sync-rules` in a Next.js + Drizzle/Supabase repo that has never synced before.
-Action: `--list` shows all four canonical rules as `add`. Read each, note that
-`db-patterns.md`, `nextjs-page-layout-patterns.md`, and `feature-architecture.md` match the
-stack directly and `code-style.md` is stack-agnostic and generally applicable. Present all four
-as a checklist recommending all four; sync whatever the user leaves checked.
+Action: `--list` shows all four canonical rules as `add`. Read each, then check `package.json`
+(finds `next`, `drizzle-orm`, `@supabase/*`) and `CLAUDE.md` (confirms the stack) — no further
+digging needed. Note that `db-patterns.md`, `nextjs-page-layout-patterns.md`, and
+`feature-architecture.md` match the stack directly and `code-style.md` is stack-agnostic and
+generally applicable. Present all four as a checklist recommending all four; sync whatever the
+user leaves checked.
 
 **Example 2**
-Input: `/sync-rules` in a repo with no `app/` directory (Pages Router or non-Next.js).
-Action: still list `nextjs-page-layout-patterns.md` as a candidate (don't silently exclude it),
-but flag in its description that this repo doesn't appear to use the App Router, so the
-recommendation is to leave it unchecked.
+Input: `/sync-rules` in a repo with no `next` dependency in `package.json` and no `CLAUDE.md`.
+Action: still list `nextjs-page-layout-patterns.md` as a candidate (don't silently exclude it).
+A quick `Glob` for `app/**/*.tsx` comes back empty, so flag in its description that this repo
+doesn't appear to use the Next.js App Router, so the recommendation is to leave it unchecked —
+don't go further (e.g. reading route files) just to be sure.
 
 **Example 3**
 Input: `/sync-rules` where `code-style.md` shows `conflict` because someone hand-edited it

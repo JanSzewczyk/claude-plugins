@@ -2,6 +2,8 @@
 paths:
   - "app/**/*.tsx"
   - "app/**/*.ts"
+  - "src/app/**/*.tsx"
+  - "src/app/**/*.ts"
 ---
 
 # Next.js App Router — Page and Layout Patterns
