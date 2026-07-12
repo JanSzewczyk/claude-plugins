@@ -1,6 +1,6 @@
 ---
 name: generate-feature-package
-description: Scaffold a new feature domain package under features/<name>/ in this project, following the feature-architecture spec. Use whenever the user wants to create/start/bootstrap a new feature, domain, module, or slice — e.g. "create a feature for invoices", "scaffold a new domain", "/generate-feature-package payments", "set up the folder structure for a new module". Creates the zone folders (components, constants, schemas, types, server/{actions,api,db,services}, test/builders) with empty barrel index files ready for exports.
+description: Scaffold a new feature domain package under features/<name>/ in this project, following the feature-architecture spec. Use whenever the user wants to create/start/bootstrap a new feature, domain, module, or slice — e.g. "create a feature for invoices", "scaffold a new domain", "/generate-feature-package payments", "set up the folder structure for a new module". Creates the client-safe zones (components, schemas, types) and the server zone (actions, db, services, permissions) with ready-to-fill barrel and stub files — constants/, server/api/, utils/, context/, and hooks/ are optional and added later, on demand.
 allowed-tools: Bash, Read
 argument-hint: "<feature-name> | scaffold <feature-name> | create feature <feature-name>"
 ---
@@ -8,9 +8,12 @@ argument-hint: "<feature-name> | scaffold <feature-name> | create feature <featu
 # Generate feature package
 
 Scaffolds a new feature domain package under `features/<name>/` matching the structure defined in
-this skill's `references/feature-architecture.md`: one folder per zone, each with an empty barrel
-(`index`) file ready to re-export that zone's public API. A bundled script does the deterministic
-file creation — invoke it, don't hand-create the files, so every feature comes out identical.
+this skill's `references/feature-architecture.md`: one folder per zone, with the files that zone
+always needs — a barrel (`index`) where the zone re-exports its public API (`components/`,
+`types/`, `server/db/`, `test/builders/`), a ready-to-fill stub where it doesn't
+(`schemas/<name>-schema.ts`, `server/db/schema.ts`, `server/permissions.ts`, etc.). A bundled
+script does the deterministic file creation — invoke it, don't hand-create the files, so every
+feature comes out identical.
 
 Paths in this skill are relative to the skill's own directory (provided to you when the skill is
 invoked), **not** to the target project. The skill operates on whatever project the user is in: the
@@ -53,27 +56,33 @@ but there is nothing to type-check yet.
 ```
 features/<name>/
 ├── components/index.tsx        # barrel — components only
-├── constants/index.ts          # barrel
-├── schemas/index.ts            # barrel — Zod + *FormData
+├── schemas/<name>-schema.ts    # Zod + *FormData stub for the domain
 ├── types/index.ts              # barrel — client-safe domain types
 ├── server/
-│   ├── index.ts                # server zone public API, starts with import "server-only"
-│   ├── actions/.gitkeep        # filled with {verb}-{noun}.action.ts later
-│   ├── api/.gitkeep            # optional external-integration helpers
-│   ├── db/index.ts             # internal sub-barrel: schema + queries + mutations
-│   └── services/.gitkeep       # filled with {entity}.service.ts later
+│   ├── actions/.gitkeep        # filled with {verb}-<name>.action.ts later
+│   ├── db/
+│   │   ├── schema.ts           # data model + inferred row types
+│   │   ├── queries.ts          # read operations, one per function
+│   │   ├── mutations.ts        # write operations, one per function
+│   │   └── index.ts            # re-exports queries + mutations only
+│   ├── services/.gitkeep       # filled with <name>.service.ts later
+│   └── permissions.ts          # canDoX guards, starts with import "server-only"
 └── test/builders/index.ts      # barrel — builders
 ```
 
 Design choices baked into the scaffold (so they match the spec — don't second-guess them):
-- **One barrel per zone.** `components/`, `constants/`, `schemas/`, `types/`, `server/`,
-  `server/db/`, and `test/builders/` each get an `index`. There is intentionally **no**
-  `server/actions/index.ts` or `server/services/index.ts` (deeper barrels are noise) and **no**
-  feature-root `index.ts` (consumers must choose a client-safe vs server entry deliberately).
-- **`server/index.ts` is stamped server-only** via `import "server-only"`. It is the single public
-  face of the server zone; the files behind it are private implementation details.
-- **Barrel-less folders** (`server/actions`, `server/api`, `server/services`) get a `.gitkeep` so
-  git tracks them while empty.
+- **No top-level `index.ts`** for the feature, and **no `server/index.ts` barrel either.**
+  Consumers import from a client-safe barrel (`components/`, `types/`, `schemas/`) or, on the
+  server, directly from the file they need (e.g.
+  `~/features/<name>/server/services/<name>.service`) — deep imports into `server/` are expected,
+  not a smell.
+- **`server/db/index.ts` is the one internal sub-barrel**, and it re-exports `queries` + `mutations`
+  only — never `schema.ts`. There is intentionally no `server/actions/index.ts` or
+  `server/services/index.ts` (deeper barrels there are noise).
+- **`constants/`, `server/api/`, `utils/`, `context/`, and `hooks/` are optional zones**, added on
+  demand when a feature actually needs them — the script does not scaffold empty folders for them.
+- **Barrel-less folders** (`server/actions`, `server/services`) get a `.gitkeep` so git tracks them
+  while empty.
 - **Empty barrels contain `export {};`** so they are valid ES modules under `isolatedModules`.
 
 For the rules that govern what goes in each zone (naming suffixes, the server/client boundary,

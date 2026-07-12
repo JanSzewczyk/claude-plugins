@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Scaffolds a new feature domain package under features/<name>/ following the
 // feature-architecture spec (see ../references/feature-architecture.md): zone folders
-// + one barrel (index) per zone.
+// with the files each zone always needs, ready to fill in.
 // Usage: node scaffold-feature.mjs <feature-name> [--dry-run]
 
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -46,27 +46,34 @@ if (existsSync(featureDir)) {
 
 const barrel = (purpose) => `// Barrel — ${purpose}\n// Re-export this zone's public API here.\nexport {};\n`;
 
-const serverBarrel = `import "server-only";
+const stub = (purpose) => `// ${purpose}\n`;
 
-// Public API of the "${name}" server zone — re-export actions, services and db members here.
-// Consumers outside the feature import ONLY from "~/features/${name}/server"; files inside are private.
-export {};
+const dbIndexBarrel = `// Re-exports queries + mutations only — never re-exports schema.ts.
+export * from "./queries";
+export * from "./mutations";
+`;
+
+const permissionsStub = `import "server-only";
+
+// canDoX guard functions for the "${name}" domain.
 `;
 
 const gitkeep = "";
 
 // path -> file contents. Directories are created implicitly from file paths.
-// Folders without a barrel (actions/api/services) get a .gitkeep so git tracks them empty.
+// Folders without a fixed file set (actions/services) get a .gitkeep so git tracks them empty.
+// constants/, server/api/, utils/, context/, hooks/ are optional zones — added on demand, not scaffolded.
 const files = {
   "components/index.tsx": barrel("components only (no types, no re-exports from server/)."),
-  "constants/index.ts": barrel("constants."),
-  "schemas/index.ts": barrel("Zod schemas + *FormData types."),
+  [`schemas/${name}-schema.ts`]: stub(`Zod schemas + *FormData types for the "${name}" domain.`),
   "types/index.ts": barrel("shared, client-safe domain types."),
-  "server/index.ts": serverBarrel,
   "server/actions/.gitkeep": gitkeep,
-  "server/api/.gitkeep": gitkeep,
-  "server/db/index.ts": barrel("internal DB sub-barrel: schema + queries + mutations."),
+  "server/db/schema.ts": stub("Data model definitions + row/entity types inferred from them."),
+  "server/db/queries.ts": stub("Read operations, one per function."),
+  "server/db/mutations.ts": stub("Write operations (create/update/delete), one per function."),
+  "server/db/index.ts": dbIndexBarrel,
   "server/services/.gitkeep": gitkeep,
+  "server/permissions.ts": permissionsStub,
   "test/builders/index.ts": barrel("test data builders (import from types/, never from server/)."),
 };
 
@@ -86,5 +93,8 @@ console.log(`features/${name}/`);
 for (const rel of created.sort()) {
   console.log(`  ${rel}`);
 }
-console.log(`\nNext: add tables/types/components, then re-export them from each zone's index.`);
-console.log(`Leaf server files (services, permissions, db/queries, db/mutations) each get \`import "server-only"\`.`);
+console.log(`\nNext: fill in the schema, db, service, action and component files, then re-export`);
+console.log(`from components/index.tsx, types/index.ts and test/builders/index.ts.`);
+console.log(`There is no server/index.ts barrel — consumers import directly from the server/ file`);
+console.log(`they need (e.g. ~/features/${name}/server/services/${name}.service).`);
+console.log(`constants/, server/api/, utils/, context/, hooks/ are optional — add them only when needed.`);
