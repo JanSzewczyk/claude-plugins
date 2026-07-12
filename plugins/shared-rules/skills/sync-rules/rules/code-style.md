@@ -27,7 +27,7 @@ const formatDate = (date: Date): string => date.toISOString();
 Inline arrow functions are allowed only where a callback is expected (e.g. `array.map`, `array.filter`, event handlers passed as JSX props).
 
 ```typescript
-// ✓ — inline callb
+// ✓ — inline callback
 const sorted = steps.sort((a, b) => a.orderIndex - b.orderIndex);
 ```
 

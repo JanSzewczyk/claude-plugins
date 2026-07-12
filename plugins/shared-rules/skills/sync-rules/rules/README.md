@@ -13,7 +13,7 @@ to mirror the grouping described in the
 | `code-style.md` | unscoped (applies everywhere) | Function declarations, React namespace import, `Array<Type>`, ternary conditional rendering, enum const objects, list keys |
 | `db-patterns.md` | `**/server/**/*.ts` | Drizzle ORM + PostgreSQL (Supabase) canonical DB/service layer patterns |
 | `nextjs-page-layout-patterns.md` | `app/**/*.{ts,tsx}` | `page.tsx` / `layout.tsx` structure for the Next.js App Router |
-| `feature-architecture.md` | `features/**/*.{ts,tsx}` | `features/<domain>/` directory structure, server/client boundary, layer rules |
+| `feature-architecture.md` | `features/**/*.{ts,tsx}`, `src/features/**/*.{ts,tsx}` | `features/<domain>/` directory structure, server/client boundary, layer rules |
 
 `sync-rules` never assumes a rule applies just because it exists here — the skill judges
 relevance against the target repo's stack and asks the user to approve before writing anything.

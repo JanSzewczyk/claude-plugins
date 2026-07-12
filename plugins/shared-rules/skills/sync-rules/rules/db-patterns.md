@@ -36,7 +36,7 @@ import { categorizeSupabaseError } from "~/lib/supabase/errors";
 import { type BaseServiceError, type ServiceResult } from "~/lib/services/errors";
 
 // Service layer (reads)
-import { cache } from "react";
+import * as React from "react";
 ```
 
 These live in the project's shared `lib/supabase/` (DB client, transaction helper, error
@@ -54,7 +54,7 @@ export const {entities} = pgTable("{entities}", {
   id: uuid("id").primaryKey().defaultRandom(),
   {parentId}: varchar("{parent_id}", { length: 255 })
     .notNull()
-    .references(() => {parentTable}.id, { onDelete: "cascade" }),
+    .references(() => {parentEntity}.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   items: jsonb("items").$type<Array<{EmbeddedItem}>>().notNull().default([]),
@@ -62,11 +62,40 @@ export const {entities} = pgTable("{entities}", {
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
-export type {EmbeddedItem} = { title: string; description: string | null; orderIndex: number };
 export type {Entity} = typeof {entities}.$inferSelect;
 ```
 
-Embedded jsonb types are defined **before** the table so `.$type<Array<{EmbeddedItem}>>()` can reference them. Export the type alongside the table — never duplicate it in mutations or queries.
+`{Entity}` (the inferred row type) stays in `schema.ts` — but only as an internal implementation
+detail, not because it's forbidden from ever reaching the client. It **can't** be relocated to
+`types/` the way `{EmbeddedItem}` was: `$inferSelect` is derived from the `{entities}` table
+object itself, so defining `{Entity}` in `types/` would require importing `{entities}` from
+`server/db/schema.ts` there — exactly the `types/` → `server/` dependency the architecture
+forbids.
+
+When client code needs entity data, don't pass `{Entity}` to a component prop directly. Follow
+`feature-architecture.md`'s DTO pattern instead: define a view type in `types/{entity}.ts` (e.g.
+`Client{Entity}ListItem`) and have the service map `{Entity}` into it before returning —
+structurally, the DTO can be identical to the row type (a plain `Pick`/mirrored shape), it just
+must be declared independently in `types/` rather than imported from `schema.ts`.
+
+`{EmbeddedItem}` (the shape of one item inside the `jsonb` column) is different: it almost always
+also has to match a `schemas/{domain}-schema.ts` Zod field and a form/component prop for editing
+the list — both of which live in zones that **cannot** import from `server/`. So define it in
+`types/{entity}.ts` instead, and import it into `schema.ts` purely for the `.$type<Array<...>>()`
+annotation:
+
+```ts
+// features/{domain}/types/{entity}.ts
+export type {EmbeddedItem} = { title: string; description: string | null; orderIndex: number };
+```
+
+```ts
+// features/{domain}/server/db/schema.ts
+import type { {EmbeddedItem} } from "~/features/{domain}/types/{entity}";
+```
+
+Only keep an embedded type local to `schema.ts` (defined **before** the table, exported alongside
+it) when it is genuinely internal — never referenced by a Zod schema, action, or component prop.
 
 Register every new table in the project's central schema registry (e.g. `lib/supabase/schema.ts`).
 
@@ -75,9 +104,9 @@ Relations (for `with:` queries) go in a separate `relations()` call in the same 
 ```ts
 // features/{domain}/server/db/{entity}/schema.ts
 export const {entity}Relations = relations({entity}, ({ one }) => ({
-  {related}: one({relatedTable}, {
-    fields: [{entity}.{relatedId}],
-    references: [{relatedTable}.id]
+  {relatedEntity}: one({relatedEntities}, {
+    fields: [{entity}.{relatedEntity}Id],
+    references: [{relatedEntities}.id]
   })
 }));
 ```
@@ -186,14 +215,14 @@ Use `dbClient.query.<table>.findFirst()` when the schema has a `relations()` def
 ```ts
 const row = await dbClient.query.{parentEntity}.findFirst({
   where: eq({parentEntity}.id, {parentId}),
-  with: { {related}: true }
+  with: { {relatedEntity}: true }
 });
 ```
 
 Return type via `BuildQueryResult`:
 
 ```ts
-export type {ParentEntity} = BuildQueryResult<TSchema, TSchema["{parentEntity}"], { with: { {related}: true } }>;
+export type {ParentEntity} = BuildQueryResult<TSchema, TSchema["{parentEntity}"], { with: { {relatedEntity}: true } }>;
 ```
 
 Where `TSchema` comes from `~/lib/supabase/types`. Use this pattern when a query includes relations — do not manually compose the type.
@@ -220,7 +249,7 @@ const items = rows.map((row) => ({
 Wrap with React `cache()` at the **query function level** for request deduplication:
 
 ```ts
-export const getCached{ParentEntity} = cache(get{ParentEntity});
+export const getCached{ParentEntity} = React.cache(get{ParentEntity});
 ```
 
 ---
@@ -232,26 +261,26 @@ Use `withTransaction` from `~/lib/supabase/db`. Pass `tx` as `dbClient` to each 
 ```ts
 try {
   await withTransaction(async (tx) => {
-    if ({related} === null) {
-      const [profErr] = await update{ParentEntity}({ {parentId}, data: { ...fields, {relatedId}: null }, dbClient: tx });
-      if (profErr) throw profErr;
+    if ({relatedEntity} === null) {
+      const [parentErr] = await update{ParentEntity}({ {parentId}, data: { ...fields, {relatedEntity}Id: null }, dbClient: tx });
+      if (parentErr) throw parentErr;
 
       if (existing{RelatedEntity}Id) {
-        const [delErr] = await delete{RelatedEntity}({ {related}Id: existing{RelatedEntity}Id, dbClient: tx });
+        const [delErr] = await delete{RelatedEntity}({ {relatedEntity}Id: existing{RelatedEntity}Id, dbClient: tx });
         if (delErr) throw delErr;
       }
     } else if (!existing{RelatedEntity}Id) {
-      const [insErr, inserted{RelatedEntity}] = await insert{RelatedEntity}({ data: {related}, dbClient: tx });
+      const [insErr, inserted{RelatedEntity}] = await insert{RelatedEntity}({ data: {relatedEntity}, dbClient: tx });
       if (insErr) throw insErr;
 
-      const [profErr] = await update{ParentEntity}({ {parentId}, data: { ...fields, {relatedId}: inserted{RelatedEntity}.id }, dbClient: tx });
-      if (profErr) throw profErr;
+      const [parentErr] = await update{ParentEntity}({ {parentId}, data: { ...fields, {relatedEntity}Id: inserted{RelatedEntity}.id }, dbClient: tx });
+      if (parentErr) throw parentErr;
     } else {
-      const [updErr] = await update{RelatedEntity}({ {related}Id: existing{RelatedEntity}Id, data: {related}, dbClient: tx });
+      const [updErr] = await update{RelatedEntity}({ {relatedEntity}Id: existing{RelatedEntity}Id, data: {relatedEntity}, dbClient: tx });
       if (updErr) throw updErr;
 
-      const [profErr] = await update{ParentEntity}({ {parentId}, data: fields, dbClient: tx });
-      if (profErr) throw profErr;
+      const [parentErr] = await update{ParentEntity}({ {parentId}, data: fields, dbClient: tx });
+      if (parentErr) throw parentErr;
     }
   });
 } catch (error) {
@@ -312,7 +341,7 @@ const [createErr, {entity}] = await create{Entity}Db({
 | Layer | Return type | Import |
 |-------|------------|--------|
 | DB queries / mutations | `SupabaseServiceResult<T>` = `[SupabaseServiceError, null] \| [null, T]` | `~/lib/supabase/errors` |
-| Service reads | `SupabaseServiceResult<T>` wrapped in `cache()` | same |
+| Service reads | `SupabaseServiceResult<T>` wrapped in `React.cache()` | same |
 | Service mutations | `ServiceResult<BaseServiceError, T>` | `~/lib/services/errors` |
 
 `ServiceResult` is the same tuple shape. The distinction is that mutations use the wider `BaseServiceError` (service layer can surface non-DB errors like permission failures).

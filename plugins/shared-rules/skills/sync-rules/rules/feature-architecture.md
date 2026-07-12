@@ -2,6 +2,8 @@
 paths:
   - "features/**/*.ts"
   - "features/**/*.tsx"
+  - "src/features/**/*.ts"
+  - "src/features/**/*.tsx"
 ---
 
 ## Directory structure
@@ -57,14 +59,14 @@ state/logic beyond the server-driven zones above — add on demand, don't scaffo
 - `utils/` — pure, framework-free (no React imports), unit-tested.
 - `context/` — files named `{name}.context.tsx`, each holding the code around **one**
   `React.createContext` call: the context object, its `Provider`, and the consumer hook that reads
-  it (e.g. `useTemplateEditor`), co-located in one file.
+  it (e.g. `useProjectFilters`), co-located in one file.
 - `hooks/` — general-purpose React hooks that do **not** define their own Context: standalone
   client-side logic (state, effects, polling, subscriptions), or hooks that build extra
   functionality on top of a `context/` consumer hook. A hook whose job is to create/expose a
   Context belongs in `context/`, not here.
 
 **No top-level `index.ts`** for the feature — import from sub-paths directly:
-`import { TemplateCard } from "~/features/templates/components"` ✓, never `.../templates` ✗.
+`import { ProjectCard } from "~/features/projects/components"` ✓, never `.../projects` ✗.
 
 ---
 
@@ -107,8 +109,8 @@ The **only** path from which client components may import domain types. All code
 | Domain enum const + type    | `ProjectStatus`                                | Used in component props and server queries alike  |
 | Service result / DTO types  | `ClientProjectListItem`, `ClientProjectDetail` | Returned by services, received as component props |
 | Public view types           | `PublicProjectView`                            | Used in both server pages and client components   |
-| Filter / option types       | `ProjectStatusFilter`, `ContractorListOptions` | Passed from server to components as query params  |
-| Cross-domain list items     | `ClientContractorListItem`                     | Passed from server to client card/table components|
+| Filter / option types       | `ProjectStatusFilter`, `MemberListOptions`     | Passed from server to components as query params  |
+| Cross-domain list items     | `ClientMemberListItem`                         | Passed from server to client card/table components|
 
 Types tightly coupled to the persistence layer (raw row types, relation-query result types,
 ORM-specific enum definitions) stay in `server/db/schema.ts` — they're used only inside
@@ -179,13 +181,13 @@ Import sources: `~/lib/supabase/errors` (`SupabaseServiceResult`, `SupabaseServi
 ## Service mutation guard chain (always in this order)
 
 ```ts
-const [roleErr] = await requireRole(userId, [Role.CONTRACTOR]);
+const [roleErr] = await requireRole(userId, [Role.MEMBER]);
 if (roleErr) return [roleErr, null];
 
-const [profileErr, profile] = await getCachedContractorProfile(userId);
+const [profileErr, profile] = await getCachedMemberProfile(userId);
 if (profileErr) return [profileErr, null];
 
-const [permErr] = await canAddTemplate(profile.id); // feature-specific guard from permissions.ts
+const [permErr] = await canCreateProject(profile.id); // feature-specific guard from permissions.ts
 if (permErr) return [permErr, null];
 
 const [dbErr, result] = await ...; // DB mutation
@@ -200,21 +202,21 @@ return [null, result];
 
 ```ts
 "use server";
-export async function createTemplateAction(data: TemplateFormData): ActionResponse<Template> {
+export async function createProjectAction(data: ProjectFormData): ActionResponse<Project> {
   const { isAuthenticated, userId } = await auth();
-  if (!isAuthenticated) return { success: false, error: "Nie jesteś zalogowany" };
+  if (!isAuthenticated) return { success: false, error: "Not authenticated" }; // project's UI language
 
-  const [error, template] = await createTemplate(userId, data);
-  if (error) return mapTemplateServiceError(error);
+  const [error, project] = await createProject(userId, data);
+  if (error) return mapProjectServiceError(error);
 
-  revalidatePath("/app/templates");
-  return { success: true, data: template, message: "Szablon został utworzony" };
+  revalidatePath("/app/projects");
+  return { success: true, data: project, message: "Project created" }; // project's UI language
 }
 ```
 
 No business logic in actions — delegate entirely to the service. `revalidatePath` only on success.
-`map-service-error.ts` translates `BaseServiceError.code` to Polish user strings; never expose
-internal codes.
+`map-service-error.ts` translates `BaseServiceError.code` to user-facing strings in the project's
+UI language; never expose internal codes.
 
 ---
 
@@ -329,7 +331,7 @@ functions never call each other — composition happens in `services/`. Wrap rea
 ```ts
 import "server-only";
 
-export async function canAddTemplate(contractorId: string): Promise<SupabaseServiceResult<void>> {
+export async function canCreateProject(memberId: string): Promise<SupabaseServiceResult<void>> {
   if (overLimit) return [SupabaseServiceError.limitExceeded(max), null];
   return [null, undefined];
 }
@@ -340,7 +342,7 @@ export async function canAddTemplate(contractorId: string): Promise<SupabaseServ
 ## Test builders
 
 ```ts
-export const templateBuilder = build<Template>({
+export const projectBuilder = build<Project>({
   fields: { id: () => faker.string.uuid(), name: () => faker.lorem.words(3) },
   traits: { noDescription: { overrides: { description: null } } }
 });
