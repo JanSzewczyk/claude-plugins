@@ -32,6 +32,7 @@ plugins/
 | **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                                              |
 | **ai-tools**           | AI tool integrations & automation          | —                                                    | notebooklm, youtube-scraper                                                                                                                                                                           |
 | **performance**        | Web performance auditing                   | —                                                    | lighthouse-audit                                                                                                                                                                                      |
+| **shared-rules**       | Source of truth for `.claude/rules/` files | —                                                    | sync-rules                                                                                                                                                                                            |
 
 ## How registration works (the big picture)
 

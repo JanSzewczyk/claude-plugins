@@ -50,6 +50,11 @@
       "name": "performance",
       "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications",
       "source": "./plugins/performance"
+    },
+    {
+      "name": "shared-rules",
+      "description": "Single source of truth for .claude/rules/ files shared across many repositories — pull the latest canonical rules with drift detection",
+      "source": "./plugins/shared-rules"
     }
   ]
 }

@@ -63,6 +63,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
 - **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
+- **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 
 ---
 
@@ -93,8 +94,9 @@ The collection covers eight domains: Next.js development, React UI development, 
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
 | [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
+| [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 
-**Total: 9 agents · 29 skills**
+**Total: 9 agents · 30 skills**
 
 ---
 
@@ -120,6 +122,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 /plugin install product-management@szum-tech
 /plugin install ai-tools@szum-tech
 /plugin install performance@szum-tech
+/plugin install shared-rules@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -243,9 +246,12 @@ What are you doing?
 ├── Updating dependencies
 │   └── Agent: library-updater (code-quality)
 │
-└── Coordinating a full feature from PRD/TDD
-    └── Agent: product-owner (product-management)
-        Skill: prd-spec
+├── Coordinating a full feature from PRD/TDD
+│   └── Agent: product-owner (product-management)
+│       Skill: prd-spec
+│
+└── Keeping shared .claude/rules/ files in sync across repos
+    └── Skill: sync-rules (shared-rules)
 ```
 
 ### ⚡ Quick Reference
@@ -274,6 +280,7 @@ What are you doing?
 | Write a PRD or TDD document | `/prd-spec` skill |
 | Automate NotebookLM | `/notebooklm` skill |
 | Scrape YouTube content | `/youtube-scraper` skill |
+| Sync shared `.claude/rules/` files into this repo | `/sync-rules` skill |
 
 ---
 
@@ -314,9 +321,12 @@ claude-plugins/
     ├── ai-tools/                  # AI tool integrations & automation
     │   ├── plugin.json
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
-    └── performance/               # Web performance auditing
+    ├── performance/                # Web performance auditing
+    │   ├── plugin.json
+    │   └── skills/                # 1 skill (lighthouse-audit)
+    └── shared-rules/               # Source of truth for .claude/rules/ files
         ├── plugin.json
-        └── skills/                # 1 skill (lighthouse-audit)
+        └── skills/                # 1 skill (sync-rules)
 ```
 
 ### 🗂️ Key Files
