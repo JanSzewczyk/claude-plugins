@@ -53,6 +53,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
 - **🖥️ [true-dom-tester](./plugins/testing/skills/true-dom-tester/)** — Accessibility-tree-based automated tests using Playwright CLI
 - **🧪 [unit-testing](./plugins/testing/skills/unit-testing/)** — Vitest unit test patterns, mocking strategies, and examples
+- **🎯 [coverage-gaps](./plugins/testing/skills/coverage-gaps/)** — Ranks the coverage gaps worth closing, weighting uncovered branches, critical paths, and git churn over line percentages
 - **🔌 [api-test](./plugins/testing/skills/api-test/)** — API endpoint testing patterns and examples
 - **♿ [accessibility-audit](./plugins/testing/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
 - **⚡ [performance-optimization](./plugins/code-quality/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
@@ -234,6 +235,7 @@ What are you doing?
 │   ├── Unit tests (Vitest)        → Agent: unit-tester (testing)
 │   │                                  Skills: unit-testing, builder-factory
 │   ├── API / E2E tests            → Skill: api-test, playwright-cli (testing)
+│   ├── What's untested / gaps?    → Skill: coverage-gaps (testing)
 │   └── Accessibility audit        → Skill: accessibility-audit (testing)
 │
 ├── Code review / quality check
@@ -266,6 +268,7 @@ What are you doing?
 | Write Storybook tests | `storybook-tester` agent |
 | Plan which tests to write | `testing-strategist` agent |
 | Write unit tests | `unit-tester` agent (or `/unit-testing` skill) |
+| Find out what's untested and what to test first | `/coverage-gaps` skill |
 | Review code quality | `code-reviewer` agent |
 | Optimize performance | `performance-analyzer` agent |
 | Run an accessibility audit | `/accessibility-audit` skill |
@@ -305,7 +308,7 @@ claude-plugins/
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
     │   ├── agents/                # testing-strategist, storybook-tester, unit-tester
-    │   └── skills/                # 7 skills (unit-testing, storybook-testing, playwright-cli, …)
+    │   └── skills/                # 8 skills (unit-testing, coverage-gaps, storybook-testing, playwright-cli, …)
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater

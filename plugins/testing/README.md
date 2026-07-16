@@ -23,6 +23,7 @@ Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E
 | **playwright-cli**      | `/playwright-cli`      | Browser automation — web testing, screenshots, form filling, request mocking, tracing, video recording                          |
 | **true-dom-tester**     | `/true-dom-tester`     | Accessibility-tree-based Playwright test generation — semantic locators, faster/cheaper than screenshots, optional Firecrawl     |
 | **unit-testing**        | `/unit-testing`        | Vitest unit tests for TypeScript — mocking, async testing, parameterized tests, server action testing, coverage                 |
+| **coverage-gaps**       | `/coverage-gaps`       | Finds and ranks the coverage gaps that matter — weights uncovered branches, critical paths, and git churn over line percentages |
 
 ## Installation
 
