@@ -19,7 +19,7 @@ export async function getUserById(
   // 1. Input validation
   if (!userId?.trim()) {
     const error = ServiceError.validation("Invalid userId provided");
-    logger.warn({ userId, errorCode: error.code }, "Invalid input");
+    logger.withMetadata({ userId, errorCode: error.code }).warn("Invalid input");
     return [error, null];
   }
 
@@ -30,7 +30,7 @@ export async function getUserById(
     // 3. Not found check
     if (!record) {
       const error = ServiceError.notFound("User");
-      logger.warn({ userId, errorCode: error.code }, "User not found");
+      logger.withMetadata({ userId, errorCode: error.code }).warn("User not found");
       return [error, null];
     }
 
@@ -38,7 +38,7 @@ export async function getUserById(
     const parsed = userSchema.safeParse(record);
     if (!parsed.success) {
       const error = ServiceError.dataCorruption("User");
-      logger.error({ userId, errorCode: error.code }, "Malformed user data");
+      logger.withMetadata({ userId, errorCode: error.code }).error("Malformed user data");
       return [error, null];
     }
 
@@ -47,14 +47,13 @@ export async function getUserById(
   } catch (error) {
     // 6. Categorize unexpected errors
     const serviceError = categorizeServiceError(error, "User");
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         errorCode: serviceError.code,
         isRetryable: serviceError.isRetryable,
-      },
-      "Service error",
-    );
+      })
+      .error("Service error");
     return [serviceError, null];
   }
 }
@@ -127,21 +126,20 @@ export async function createBudget(formData: FormData): ActionResponse<Budget> {
   // 1. Authentication (adapt to your auth provider: Clerk, NextAuth, Auth.js, etc.)
   const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
-    logger.warn({ action: "createBudget" }, "Unauthorized access attempt");
+    logger.withMetadata({ action: "createBudget" }).warn("Unauthorized access attempt");
     return { success: false, error: "Please sign in to continue" };
   }
 
   // 2. Validation with field-level errors
   const parsed = createBudgetSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    logger.warn(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         errors: parsed.error.flatten().fieldErrors,
-      },
-      "Validation failed",
-    );
+      })
+      .warn("Validation failed");
 
     return {
       success: false,
@@ -154,15 +152,14 @@ export async function createBudget(formData: FormData): ActionResponse<Budget> {
   const [error, budget] = await createBudgetService(userId, parsed.data);
 
   if (error) {
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         errorCode: error.code,
         isRetryable: error.isRetryable,
-      },
-      "Failed to create budget",
-    );
+      })
+      .error("Failed to create budget");
 
     // User-friendly toast
     await setToastCookie("Failed to create budget. Please try again.", "error");
@@ -172,7 +169,7 @@ export async function createBudget(formData: FormData): ActionResponse<Budget> {
   }
 
   // 4. Success
-  logger.info({ userId, budgetId: budget.id }, "Budget created");
+  logger.withMetadata({ userId, budgetId: budget.id }).info("Budget created");
   await setToastCookie("Budget created successfully!", "success");
   revalidatePath("/budgets");
 
@@ -410,40 +407,31 @@ export async function POST(request: Request) {
     const signature = request.headers.get("stripe-signature");
 
     if (!signature) {
-      logger.warn({}, "Missing Stripe signature");
+      logger.warn("Missing Stripe signature");
       return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }
 
     const body = await request.text();
     const event = stripe.webhooks.constructEvent(body, signature, secret);
 
-    logger.info(
-      { eventType: event.type, eventId: event.id },
-      "Processing webhook",
-    );
+    logger.withMetadata({ eventType: event.type, eventId: event.id }).info("Processing webhook");
 
     // Handle event...
     await handleWebhookEvent(event);
 
     const durationMs = Math.round(performance.now() - startTime);
-    logger.info({ eventId: event.id, durationMs }, "Webhook processed");
+    logger.withMetadata({ eventId: event.id, durationMs }).info("Webhook processed");
 
     return NextResponse.json({ received: true });
   } catch (error) {
     const durationMs = Math.round(performance.now() - startTime);
 
     if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
-      logger.warn({ durationMs }, "Invalid webhook signature");
+      logger.withMetadata({ durationMs }).warn("Invalid webhook signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    logger.error(
-      {
-        durationMs,
-        error: error instanceof Error ? error.message : "Unknown",
-      },
-      "Webhook processing failed",
-    );
+    logger.withMetadata({ durationMs, error }).error("Webhook processing failed");
 
     return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
@@ -462,7 +450,7 @@ catch (error) {
 
 // ✅ Good - log internally, return generic message
 catch (error) {
-  logger.error({ error: error.message, userId }, "Operation failed");
+  logger.withMetadata({ error, userId }).error("Operation failed");
   return { success: false, error: "Unable to complete operation" };
 }
 ```
@@ -477,7 +465,7 @@ if (error) {
 
 // ✅ Good - log before returning
 if (error) {
-  logger.error({ errorCode: error.code, userId }, "Operation failed");
+  logger.withMetadata({ errorCode: error.code, userId }).error("Operation failed");
   return { success: false, error: "Failed" };
 }
 ```

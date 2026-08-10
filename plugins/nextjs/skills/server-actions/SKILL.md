@@ -87,7 +87,9 @@ export async function createThingAction(input: ThingInput): ActionResponse<Thing
 
   const [error, thing] = await createThing({ ...parsed.data, ownerId: userId });
   if (error) {
-    logger.error({ userId, operation: "createThing", errorCode: error.code }, "Failed to create thing");
+    logger
+      .withMetadata({ userId, operation: "createThing", errorCode: error.code })
+      .error("Failed to create thing");
     return { success: false, error: "Could not create the item" }; // user-safe message
   }
 
@@ -126,6 +128,9 @@ button: delete/toggle) · `useOptimistic` (instant feedback). See [references/ho
 - [references/hooks.md](./references/hooks.md) — `useActionState`, `useFormStatus`, `useTransition`, `useOptimistic`.
 - [references/react-hook-form.md](./references/react-hook-form.md) — RHF integration, `useFieldArray`, wizards, UI
   binding.
+
+For the logger itself (`createLogger`, required libraries, full config) see the `structured-logging` skill's
+[references/setup.md](../structured-logging/references/setup.md).
 
 ## Before reporting done
 

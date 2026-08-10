@@ -26,27 +26,26 @@ export async function createBudget(
 ): Promise<[null, Budget] | [ServiceError, null]> {
   if (!userId?.trim()) {
     const error = ServiceError.validation("Invalid userId");
-    logger.warn({ errorCode: error.code }, "Create budget: invalid userId");
+    logger.withMetadata({ errorCode: error.code }).warn("Create budget: invalid userId");
     return [error, null];
   }
 
-  logger.debug({ userId, budgetName: data.name }, "Creating budget");
+  logger.withMetadata({ userId, budgetName: data.name }).debug("Creating budget");
 
   try {
     const budget = await budgetSource.create({ ...data, userId });
 
-    logger.info({ userId, budgetId: budget.id }, "Budget created");
+    logger.withMetadata({ userId, budgetId: budget.id }).info("Budget created");
     return [null, budget];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         errorCode: serviceError.code,
         isRetryable: serviceError.isRetryable,
-      },
-      "Failed to create budget",
-    );
+      })
+      .error("Failed to create budget");
     return [serviceError, null];
   }
 }
@@ -58,46 +57,39 @@ export async function getBudgetById(
 ): Promise<[null, Budget] | [ServiceError, null]> {
   if (!userId?.trim() || !budgetId?.trim()) {
     const error = ServiceError.validation("Invalid userId or budgetId");
-    logger.warn({ userId, budgetId, errorCode: error.code }, "Invalid input");
+    logger.withMetadata({ userId, budgetId, errorCode: error.code }).warn("Invalid input");
     return [error, null];
   }
 
-  logger.debug({ userId, budgetId }, "Fetching budget");
+  logger.withMetadata({ userId, budgetId }).debug("Fetching budget");
 
   try {
     const budget = await budgetSource.findById(budgetId);
 
     if (!budget) {
       const error = ServiceError.notFound(RESOURCE_NAME);
-      logger.warn(
-        { userId, budgetId, errorCode: error.code },
-        "Budget not found",
-      );
+      logger.withMetadata({ userId, budgetId, errorCode: error.code }).warn("Budget not found");
       return [error, null];
     }
 
     // Check ownership
     if (budget.userId !== userId) {
       const error = ServiceError.permissionDenied("Budget");
-      logger.warn(
-        { userId, budgetId, ownerId: budget.userId },
-        "Access denied",
-      );
+      logger.withMetadata({ userId, budgetId, ownerId: budget.userId }).warn("Access denied");
       return [error, null];
     }
 
     return [null, budget];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         budgetId,
         errorCode: serviceError.code,
         isRetryable: serviceError.isRetryable,
-      },
-      "Failed to fetch budget",
-    );
+      })
+      .error("Failed to fetch budget");
     return [serviceError, null];
   }
 }
@@ -114,23 +106,22 @@ export async function updateBudget(
     return [existsError, null];
   }
 
-  logger.debug({ userId, budgetId }, "Updating budget");
+  logger.withMetadata({ userId, budgetId }).debug("Updating budget");
 
   try {
     const budget = await budgetSource.update(budgetId, data);
 
-    logger.info({ userId, budgetId }, "Budget updated");
+    logger.withMetadata({ userId, budgetId }).info("Budget updated");
     return [null, budget];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         budgetId,
         errorCode: serviceError.code,
-      },
-      "Failed to update budget",
-    );
+      })
+      .error("Failed to update budget");
     return [serviceError, null];
   }
 }
@@ -146,22 +137,21 @@ export async function deleteBudget(
     return [existsError, null];
   }
 
-  logger.debug({ userId, budgetId }, "Deleting budget");
+  logger.withMetadata({ userId, budgetId }).debug("Deleting budget");
 
   try {
     await budgetSource.delete(budgetId);
-    logger.info({ userId, budgetId }, "Budget deleted");
+    logger.withMetadata({ userId, budgetId }).info("Budget deleted");
     return [null, undefined];
   } catch (error) {
     const serviceError = categorizeServiceError(error, RESOURCE_NAME);
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         budgetId,
         errorCode: serviceError.code,
-      },
-      "Failed to delete budget",
-    );
+      })
+      .error("Failed to delete budget");
     return [serviceError, null];
   }
 }
@@ -195,21 +185,20 @@ export async function createBudgetAction(
   const userId = await getCurrentUserId(); // your auth helper
 
   if (!userId) {
-    logger.warn({ action: "createBudget" }, "Unauthorized");
+    logger.withMetadata({ action: "createBudget" }).warn("Unauthorized");
     return { success: false, error: "Please sign in to continue" };
   }
 
   // Validate
   const parsed = createBudgetSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    logger.warn(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         fieldErrors: Object.keys(parsed.error.flatten().fieldErrors),
-      },
-      "Validation failed",
-    );
+      })
+      .warn("Validation failed");
 
     return {
       success: false,
@@ -222,20 +211,19 @@ export async function createBudgetAction(
   const [error, budget] = await createBudgetService(userId, parsed.data);
 
   if (error) {
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         errorCode: error.code,
-      },
-      "Create failed",
-    );
+      })
+      .error("Create failed");
 
     await setToastCookie("Failed to create budget", "error");
     return { success: false, error: "Unable to create budget" };
   }
 
-  logger.info({ userId, budgetId: budget.id }, "Budget created via action");
+  logger.withMetadata({ userId, budgetId: budget.id }).info("Budget created via action");
   await setToastCookie(`Budget "${budget.name}" created!`, "success");
   revalidatePath("/budgets");
 
@@ -502,24 +490,20 @@ export async function POST(request: Request) {
     const userId = await getCurrentUserId(); // your auth helper (optional)
     const { message, digest, stack, url, userAgent } = await request.json();
 
-    logger.error(
-      {
+    logger
+      .withMetadata({
         source: "client",
         userId: userId ?? "anonymous",
         digest,
         url,
         userAgent: userAgent?.slice(0, 200),
         stack: stack?.slice(0, 1000),
-      },
-      `Client error: ${message}`,
-    );
+      })
+      .error(`Client error: ${message}`);
 
     return NextResponse.json({ logged: true });
   } catch (error) {
-    logger.error(
-      { error: "Failed to log client error" },
-      "Error logging failed",
-    );
+    logger.withMetadata({ error }).error("Error logging failed");
     return NextResponse.json({ logged: false }, { status: 500 });
   }
 }

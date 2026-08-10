@@ -78,15 +78,14 @@ async function withRetry<T>(
         ? cappedDelay * (0.5 + Math.random() * 0.5)
         : cappedDelay;
 
-      logger.warn(
-        {
+      logger
+        .withMetadata({
           attempt: attempt + 1,
           maxRetries,
           delayMs: Math.round(delay),
-          error: error instanceof Error ? error.message : "Unknown",
-        },
-        "Retrying after transient error",
-      );
+          error,
+        })
+        .warn("Retrying after transient error");
 
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
@@ -121,10 +120,7 @@ async function withServiceRetry<T>(
     // Success - return immediately
     if (!error) {
       if (attempt > 0) {
-        logger.info(
-          { ...context, attempt: attempt + 1 },
-          "Succeeded after retry",
-        );
+        logger.withMetadata({ ...context, attempt: attempt + 1 }).info("Succeeded after retry");
       }
       return [null, data];
     }
@@ -141,29 +137,27 @@ async function withServiceRetry<T>(
       const delay =
         BASE_DELAY_MS * Math.pow(2, attempt) * (0.5 + Math.random() * 0.5);
 
-      logger.warn(
-        {
+      logger
+        .withMetadata({
           ...context,
           attempt: attempt + 1,
           maxRetries: MAX_RETRIES,
           errorCode: error.code,
           delayMs: Math.round(delay),
-        },
-        "Retrying transient service error",
-      );
+        })
+        .warn("Retrying transient service error");
 
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
-  logger.error(
-    {
+  logger
+    .withMetadata({
       ...context,
       errorCode: lastError?.code,
       totalAttempts: MAX_RETRIES + 1,
-    },
-    "All retry attempts exhausted",
-  );
+    })
+    .error("All retry attempts exhausted");
 
   return [lastError!, null];
 }
@@ -247,15 +241,11 @@ class CircuitBreaker {
       // Check if timeout has elapsed to allow a probe
       if (Date.now() - this.lastFailureTime >= this.options.resetTimeoutMs) {
         this.state = "HALF_OPEN";
-        logger.info(
-          { circuit: this.options.name },
-          "Circuit half-open, allowing probe request",
-        );
+        logger.withMetadata({ circuit: this.options.name }).info("Circuit half-open, allowing probe request");
       } else {
-        logger.warn(
-          { circuit: this.options.name, state: this.state },
-          "Circuit open, rejecting request",
-        );
+        logger
+          .withMetadata({ circuit: this.options.name, state: this.state })
+          .warn("Circuit open, rejecting request");
         throw new Error(`Circuit breaker open for ${this.options.name}`);
       }
     }
@@ -272,10 +262,7 @@ class CircuitBreaker {
 
   private onSuccess(): void {
     if (this.state === "HALF_OPEN") {
-      logger.info(
-        { circuit: this.options.name },
-        "Circuit closed after successful probe",
-      );
+      logger.withMetadata({ circuit: this.options.name }).info("Circuit closed after successful probe");
     }
     this.failureCount = 0;
     this.state = "CLOSED";
@@ -290,14 +277,13 @@ class CircuitBreaker {
       this.state === "HALF_OPEN"
     ) {
       this.state = "OPEN";
-      logger.error(
-        {
+      logger
+        .withMetadata({
           circuit: this.options.name,
           failureCount: this.failureCount,
           resetTimeoutMs: this.options.resetTimeoutMs,
-        },
-        "Circuit opened due to failures",
-      );
+        })
+        .error("Circuit opened due to failures");
     }
   }
 }
@@ -358,7 +344,7 @@ async function fetchWithTimeout<T>(
     return await response.json();
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      logger.error({ url, timeoutMs }, "Request timed out");
+      logger.withMetadata({ url, timeoutMs }).error("Request timed out");
       throw new Error(`Request to ${url} timed out after ${timeoutMs}ms`);
     }
     throw error;
@@ -391,11 +377,7 @@ export async function syncExternalData(
     await setToastCookie("Data synced successfully!", "success");
     return { success: true, data: undefined };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    logger.error(
-      { userId, resourceId, error: message },
-      "External sync failed",
-    );
+    logger.withMetadata({ userId, resourceId, error }).error("External sync failed");
     await setToastCookie("External service unavailable", "error");
     return { success: false, error: "Unable to sync data" };
   }
@@ -430,25 +412,22 @@ export async function getDashboardSummary(
     await cacheSummary(userId, summary);
     return { ...summary, isStale: false };
   } catch (error) {
-    logger.warn(
-      { userId, error: error instanceof Error ? error.message : "Unknown" },
-      "Live summary unavailable, trying cache",
-    );
+    logger.withMetadata({ userId, error }).warn("Live summary unavailable, trying cache");
   }
 
   // 2. Fall back to cached data
   try {
     const cached = await getCachedSummary(userId);
     if (cached) {
-      logger.info({ userId }, "Serving cached summary");
+      logger.withMetadata({ userId }).info("Serving cached summary");
       return { ...cached, isStale: true };
     }
   } catch (cacheError) {
-    logger.warn({ userId }, "Cache also unavailable");
+    logger.withMetadata({ userId }).warn("Cache also unavailable");
   }
 
   // 3. Fall back to empty state
-  logger.warn({ userId }, "Serving fallback summary");
+  logger.withMetadata({ userId }).warn("Serving fallback summary");
   return FALLBACK_SUMMARY;
 }
 
@@ -501,10 +480,7 @@ async function fetchWithRateLimitRetry<T>(
 
     if (response.status === 429) {
       if (attempt === maxRetries) {
-        logger.error(
-          { url, totalAttempts: maxRetries + 1 },
-          "Rate limit retries exhausted",
-        );
+        logger.withMetadata({ url, totalAttempts: maxRetries + 1 }).error("Rate limit retries exhausted");
         throw new RateLimitError(0, "Rate limit retries exhausted");
       }
 
@@ -525,15 +501,14 @@ async function fetchWithRateLimitRetry<T>(
       // Cap the delay at 60 seconds
       delayMs = Math.min(delayMs, 60_000);
 
-      logger.warn(
-        {
+      logger
+        .withMetadata({
           url,
           attempt: attempt + 1,
           retryAfterHeader: retryAfter,
           delayMs,
-        },
-        "Rate limited, waiting before retry",
-      );
+        })
+        .warn("Rate limited, waiting before retry");
 
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       continue;
@@ -592,16 +567,15 @@ for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
 
   if (!error) {
     if (attempt > 0) {
-      logger.info({ attempt: attempt + 1, action }, "Succeeded after retry");
+      logger.withMetadata({ attempt: attempt + 1, action }).info("Succeeded after retry");
     }
     return [null, data];
   }
 
   if (error.isRetryable && attempt < MAX_RETRIES) {
-    logger.warn(
-      { attempt: attempt + 1, maxRetries: MAX_RETRIES, errorCode: error.code },
-      "Retrying transient error",
-    );
+    logger
+      .withMetadata({ attempt: attempt + 1, maxRetries: MAX_RETRIES, errorCode: error.code })
+      .warn("Retrying transient error");
   }
 }
 ```
@@ -653,7 +627,7 @@ const [error, data] = await withServiceRetry(() => fetchData(), {
 });
 
 if (error) {
-  logger.error({ errorCode: error.code }, "All retries exhausted");
+  logger.withMetadata({ errorCode: error.code }).error("All retries exhausted");
   await setToastCookie("Service temporarily unavailable", "error");
   return { success: false, error: "Please try again later" };
 }
@@ -687,24 +661,17 @@ async function fetchWithRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error;
-      logger.warn(
-        {
+      logger
+        .withMetadata({
           ...context,
           attempt: attempt + 1,
-          error: error instanceof Error ? error.message : "Unknown",
-        },
-        "Attempt failed",
-      );
+          error,
+        })
+        .warn("Attempt failed");
     }
   }
 
-  logger.error(
-    {
-      ...context,
-      error: lastError instanceof Error ? lastError.message : "Unknown",
-    },
-    "All retry attempts failed",
-  );
+  logger.withMetadata({ ...context, error: lastError }).error("All retry attempts failed");
   throw lastError;
 }
 ```

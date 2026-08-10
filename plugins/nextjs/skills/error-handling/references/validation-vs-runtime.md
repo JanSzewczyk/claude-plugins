@@ -60,14 +60,13 @@ export async function createBudgetAction(
 
   if (!parsed.success) {
     // Log as warn - this is expected user behavior, not a system error
-    logger.warn(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         fieldErrors: Object.keys(parsed.error.flatten().fieldErrors),
-      },
-      "Validation failed",
-    );
+      })
+      .warn("Validation failed");
 
     return {
       success: false,
@@ -102,10 +101,7 @@ export async function createBudget(
     const error = ServiceError.validation(
       "You have reached the maximum of 20 budgets",
     );
-    logger.warn(
-      { userId, existingCount, errorCode: error.code },
-      "Budget limit exceeded",
-    );
+    logger.withMetadata({ userId, existingCount, errorCode: error.code }).warn("Budget limit exceeded");
     return [error, null];
   }
 
@@ -113,10 +109,9 @@ export async function createBudget(
   const [, existing] = await getBudgetByName(userId, data.name);
   if (existing) {
     const error = ServiceError.alreadyExists("Budget");
-    logger.warn(
-      { userId, budgetName: data.name, errorCode: error.code },
-      "Duplicate budget name",
-    );
+    logger
+      .withMetadata({ userId, budgetName: data.name, errorCode: error.code })
+      .warn("Duplicate budget name");
     return [error, null];
   }
 
@@ -126,10 +121,9 @@ export async function createBudget(
     const error = ServiceError.validation(
       "Adding this budget would exceed your plan's total budget limit",
     );
-    logger.warn(
-      { userId, currentTotal: totalAmount, newAmount: data.amount },
-      "Tier limit would be exceeded",
-    );
+    logger
+      .withMetadata({ userId, currentTotal: totalAmount, newAmount: data.amount })
+      .warn("Tier limit would be exceeded");
     return [error, null];
   }
 
@@ -166,10 +160,9 @@ catch (error) {
   const serviceError = categorizeServiceError(error, "Budget");
   // serviceError.code might be "unavailable"
   // serviceError.isRetryable will be true
-  logger.error(
-    { userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable },
-    "Network error during budget fetch",
-  );
+  logger
+    .withMetadata({ userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable })
+    .error("Network error during budget fetch");
   return [serviceError, null];
 }
 ```
@@ -181,10 +174,9 @@ catch (error) {
 // normalize the raw error onto the neutral ServiceError codes regardless of the source.
 catch (error) {
   const serviceError = categorizeServiceError(error, "Budget");
-  logger.error(
-    { userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable },
-    "Data source error",
-  );
+  logger
+    .withMetadata({ userId, errorCode: serviceError.code, isRetryable: serviceError.isRetryable })
+    .error("Data source error");
   return [serviceError, null];
 }
 ```
@@ -205,14 +197,7 @@ async function processPayment(
 
     return [null, { id: result.id, status: result.status }];
   } catch (error) {
-    logger.error(
-      {
-        userId,
-        amount,
-        error: error instanceof Error ? error.message : "Unknown",
-      },
-      "Payment processing failed",
-    );
+    logger.withMetadata({ userId, amount, error }).error("Payment processing failed");
 
     // Treat third-party failures as retryable by default
     return [
@@ -235,7 +220,7 @@ try {
   // ...
 } catch (error) {
   if (error instanceof DOMException && error.name === "AbortError") {
-    logger.error({ url, timeoutMs: 10_000 }, "Request timed out");
+    logger.withMetadata({ url, timeoutMs: 10_000 }).error("Request timed out");
     return [
       new ServiceError("deadline-exceeded", "Request timed out", true),
       null,
@@ -365,7 +350,7 @@ export async function createBudgetAction(
   // ── Authentication ──────────────────────────────────────────
   const userId = await getCurrentUserId(); // your auth helper
   if (!userId) {
-    logger.warn({ action: "createBudget" }, "Unauthorized access attempt");
+    logger.withMetadata({ action: "createBudget" }).warn("Unauthorized access attempt");
     return { success: false, error: "Please sign in to continue" };
   }
 
@@ -376,14 +361,13 @@ export async function createBudgetAction(
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors;
 
-    logger.warn(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         invalidFields: Object.keys(fieldErrors),
-      },
-      "Schema validation failed",
-    );
+      })
+      .warn("Schema validation failed");
 
     // No toast - field errors are displayed inline in the form
     return {
@@ -400,19 +384,15 @@ export async function createBudgetAction(
 
   if (countError) {
     // This is a RUNTIME error (couldn't even check the rule)
-    logger.error(
-      { userId, errorCode: countError.code },
-      "Failed to check budget count",
-    );
+    logger.withMetadata({ userId, errorCode: countError.code }).error("Failed to check budget count");
     await setToastCookie("Something went wrong. Please try again.", "error");
     return { success: false, error: "Unable to create budget" };
   }
 
   if (budgetCount >= MAX_BUDGETS_PER_USER) {
-    logger.warn(
-      { userId, budgetCount, limit: MAX_BUDGETS_PER_USER },
-      "Budget limit exceeded",
-    );
+    logger
+      .withMetadata({ userId, budgetCount, limit: MAX_BUDGETS_PER_USER })
+      .warn("Budget limit exceeded");
 
     // Business rule violation: specific message, no fieldErrors
     // (the form fields are valid - the problem is the limit)
@@ -429,15 +409,14 @@ export async function createBudgetAction(
 
   if (error) {
     // Runtime errors: log as error, return generic message, set toast
-    logger.error(
-      {
+    logger
+      .withMetadata({
         userId,
         action: "createBudget",
         errorCode: error.code,
         isRetryable: error.isRetryable,
-      },
-      "Database error during budget creation",
-    );
+      })
+      .error("Database error during budget creation");
 
     if (error.isAlreadyExists) {
       // Edge case: another request created a budget with the same name
@@ -454,10 +433,7 @@ export async function createBudgetAction(
   }
 
   // ── SUCCESS ────────────────────────────────────────────────
-  logger.info(
-    { userId, budgetId: budget.id, budgetName: budget.name },
-    "Budget created",
-  );
+  logger.withMetadata({ userId, budgetId: budget.id, budgetName: budget.name }).info("Budget created");
   await setToastCookie(`Budget "${budget.name}" created!`, "success");
   revalidatePath("/budgets");
 

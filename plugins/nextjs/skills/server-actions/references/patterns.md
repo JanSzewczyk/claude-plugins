@@ -41,7 +41,7 @@ if (error) {
   if (error.isNotFound) return { success: false, error: "Not found" };
   if (error.isConflict) return { success: false, error: "Already exists" };
   if (error.isRetryable) return { success: false, error: "Please try again in a moment" };
-  logger.error({ operation: "dataOp", errorCode: error.code }, "Unexpected error");
+  logger.withMetadata({ operation: "dataOp", errorCode: error.code }).error("Unexpected error");
   return { success: false, error: "Something went wrong" };
 }
 ```
@@ -59,7 +59,7 @@ is one — that's what makes logs queryable. Log at the layer where the error or
 Never log secrets/PII (`last4: card.slice(-4)`, not the raw value).
 
 ```typescript
-logger.error({ userId, operation: "createUser", errorCode: error.code }, "Create failed");
+logger.withMetadata({ userId, operation: "createUser", errorCode: error.code }).error("Create failed");
 ```
 
 ## Cache revalidation

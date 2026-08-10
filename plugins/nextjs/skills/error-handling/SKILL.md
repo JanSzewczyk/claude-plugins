@@ -119,4 +119,5 @@ with a generic message → client shows toast`.
 - `firebase-firestore` — one concrete adapter that maps a specific data store's raw errors onto this contract.
 - `server-actions` — `ActionResponse` types and patterns.
 - `toast-notifications` — user feedback via toasts.
-- `structured-logging` — structured logging patterns.
+- `structured-logging` — structured logging patterns; see its
+  [references/setup.md](../structured-logging/references/setup.md) for the logger itself and required libraries.

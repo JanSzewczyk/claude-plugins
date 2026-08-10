@@ -30,7 +30,9 @@ export async function createPost(data: CreatePostInput): ActionResponse<Post> {
 
   const [error, post] = await createPostInDb({ ...parsed.data, authorId: userId });
   if (error) {
-    logger.error({ userId, operation: "createPost", errorCode: error.code }, "Failed to create post");
+    logger
+      .withMetadata({ userId, operation: "createPost", errorCode: error.code })
+      .error("Failed to create post");
     return { success: false, error: "Could not create the post" };
   }
 
@@ -46,7 +48,7 @@ the same minus validation, returning `ActionResponse<void>` with `data: undefine
 const [fetchError, existing] = await getPostById(postId);
 if (fetchError) return { success: false, error: "Post not found" };
 if (existing.authorId !== userId) {
-  logger.warn({ userId, postId }, "Unauthorized attempt");
+  logger.withMetadata({ userId, postId }).warn("Unauthorized attempt");
   return { success: false, error: "Not authorized" };
 }
 ```
