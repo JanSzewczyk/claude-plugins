@@ -20,6 +20,7 @@ Next.js full-stack development — an agent and skills for building modern web a
 | **toast-notifications**      | `/toast-notifications`      | Cookie-based toast notification system for Server Actions                                                                 |
 | **error-handling**           | `/error-handling`           | ServiceError patterns, error boundaries, standardized error responses                                                     |
 | **generate-feature-package** | `/generate-feature-package` | Scaffolds a new `features/<name>/` domain package — zone folders and barrel files following the feature-architecture spec |
+| **devlogs**                  | `/devlogs`                  | Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations |
 
 ## Installation
 
@@ -38,6 +39,7 @@ cp -r plugins/nextjs/skills/structured-logging       your-project/.claude/skills
 cp -r plugins/nextjs/skills/toast-notifications      your-project/.claude/skills/
 cp -r plugins/nextjs/skills/error-handling           your-project/.claude/skills/
 cp -r plugins/nextjs/skills/generate-feature-package your-project/.claude/skills/
+cp -r plugins/nextjs/skills/devlogs                  your-project/.claude/skills/
 ```
 
 Or copy everything at once:

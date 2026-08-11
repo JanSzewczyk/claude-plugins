@@ -48,6 +48,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **🎨 [szum-tech-design-system](./plugins/design/skills/szum-tech-design-system/)** — Reference for `@szum-tech/design-system` — OKLCH tokens, Radix UI components, Tailwind CSS v4
 - **🧱 [implement-design](./plugins/design/skills/implement-design/)** — Inventory-first protocol for porting an external design (native Claude Design handoff, `/design-sync`'d project, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them
 - **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
+- **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations
 - **📖 [storybook-testing](./plugins/testing/skills/storybook-testing/)** — Storybook stories with browser-rendered interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
