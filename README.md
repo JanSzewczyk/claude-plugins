@@ -64,6 +64,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
+- **🐦 [x-twitter-scraper](./plugins/ai-tools/skills/x-twitter-scraper/)** — Xquik REST API, MCP, SDK, monitor, export, and webhook workflow planning
 - **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 
@@ -87,18 +88,18 @@ The collection covers eight domains: Next.js development, React UI development, 
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 6 | [README](./plugins/nextjs/README.md) |
+| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 7 | [README](./plugins/nextjs/README.md) |
 | [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
-| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 2 | 7 | [README](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
+| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 8 | [README](./plugins/testing/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 5 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
-| [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
+| [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, Xquik planning, AI integrations | — | 4 | — |
 | [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 
-**Total: 9 agents · 30 skills**
+**Total: 10 agents · 34 skills**
 
 ---
 
@@ -298,7 +299,7 @@ claude-plugins/
     ├── nextjs/                    # Next.js full-stack development
     │   ├── plugin.json
     │   ├── agents/                # nextjs-backend-engineer
-    │   └── skills/                # 6 skills (server-actions, error-handling, …)
+    │   └── skills/                # 7 skills (server-actions, error-handling, …)
     ├── react/                     # React 19 UI development
     │   ├── plugin.json
     │   ├── agents/                # frontend-expert
@@ -313,7 +314,7 @@ claude-plugins/
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
-    │   └── skills/                # 4 skills (performance-optimization, update-deps, …)
+    │   └── skills/                # 5 skills (performance-optimization, update-deps, …)
     ├── firebase/                  # Firebase & database architecture
     │   ├── plugin.json
     │   ├── agents/                # database-architect
@@ -324,7 +325,7 @@ claude-plugins/
     │   └── skills/                # 1 skill (prd-spec)
     ├── ai-tools/                  # AI tool integrations & automation
     │   ├── plugin.json
-    │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
+    │   └── skills/                # 4 skills (notebooklm, youtube-scraper, kw-lookup, x-twitter-scraper)
     ├── performance/                # Web performance auditing
     │   ├── plugin.json
     │   └── skills/                # 1 skill (lighthouse-audit)
