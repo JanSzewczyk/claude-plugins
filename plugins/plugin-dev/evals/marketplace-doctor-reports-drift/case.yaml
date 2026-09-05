@@ -1,0 +1,71 @@
+schema_version: "1.1"
+name: marketplace-doctor-reports-drift
+description: >
+  The outcome case for marketplace-doctor: given a marketplace repo with four planted defects,
+  does the skill actually find them and say so? Routing is graded too, but the point of this case
+  is the report, not the Skill call.
+tags: [outcome, marketplace-doctor]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./demo-marketplace/ with the four defects. Requires the operator's --scaffold.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Audit the marketplace repo in ./demo-marketplace and write what you find to findings.md in
+    the current directory — one bullet per problem, each naming the file it is in. If everything
+    is consistent, say so instead.
+  max_turns: 25
+  timeout_seconds: 900
+  # Bash and Write still need the operator's --allow-tools; see the suite README.
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write]
+
+graders:
+  - type: tool_used
+    name: routes-to-marketplace-doctor
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?marketplace-doctor"'
+    min: 1
+
+  - type: file_exists
+    name: wrote-findings
+    path: "**/findings.md"
+
+  - type: regex
+    name: finds-unregistered-plugin
+    target: { source: file, path: findings.md }
+    pattern: 'beta'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: finds-unlisted-agent
+    target: { source: file, path: findings.md }
+    pattern: 'orphan'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: does-not-invent-a-clean-verdict
+    target: { source: file, path: findings.md }
+    pattern: '(everything|all).{0,30}(consistent|in sync|agree)'
+    flags: i
+    match: not_contains
+
+  - type: llm
+    name: reports-all-four-defects
+    focus: { source: file, path: findings.md }
+    criteria: |
+      The report must identify all four of these problems. Wording may differ; the substance must be there.
+      1. plugins/beta exists on disk but is not registered in .claude-plugin/marketplace.json.
+      2. plugins/alpha/agents/orphan.md is not listed in the plugin.json agents array, so it never loads.
+      3. The root README claims alpha has 3 skills when it has 2.
+      4. The `second` skill's SKILL.md frontmatter carries a `version` key, which is outside the allowed set.
+      PASS if all four appear and each names the file involved.
+      FAIL if any is missing, or if the report asserts problems that were not planted.
+
+expected_outcome: >
+  findings.md lists all four planted defects with their file paths, and the skill was invoked
+  rather than the model hand-rolling an ad-hoc scan.

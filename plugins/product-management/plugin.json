@@ -1,7 +1,7 @@
 {
   "name": "product-management",
   "description": "Product management orchestration — parse PRD/TDD documents and coordinate specialist agents across implementation phases.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Szum Tech Team"
   },

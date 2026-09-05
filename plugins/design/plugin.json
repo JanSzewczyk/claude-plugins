@@ -1,7 +1,7 @@
 {
   "name": "design",
   "description": "Design system & styling — skills for building UI with the Szum-Tech design system, Tailwind CSS v4, and CVA-based component conventions.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Szum Tech Team"
   },

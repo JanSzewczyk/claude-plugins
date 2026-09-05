@@ -27,11 +27,12 @@ plugins/
 | **react**              | React 19 UI development                    | frontend-expert                                      | react-19-compiler                                                                                                                                                                                     |
 | **design**             | Design system & styling                    | —                                                    | szum-tech-design-system, tailwind-css-4, design-system-component, implement-design                                                                                                                    |
 | **testing**            | Testing strategies & QA                    | testing-strategist, storybook-tester, unit-tester    | unit-testing, storybook-testing, builder-factory, api-test, accessibility-audit, playwright-cli, true-dom-tester, coverage-gaps                                                                        |
-| **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization, repository-documentation, update-deps, dead-code                                                                                                                            |
+| **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization, repository-documentation, update-deps, dead-code                                                                                                                             |
 | **firebase**           | Firebase & DB architecture                 | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                                     |
 | **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                                              |
-| **ai-tools**           | AI tool integrations & automation          | —                                                    | notebooklm, youtube-scraper                                                                                                                                                                           |
+| **ai-tools**           | AI tool integrations & automation          | —                                                    | notebooklm, youtube-scraper, kw-lookup                                                                                                                                                                |
 | **performance**        | Web performance auditing                   | —                                                    | lighthouse-audit                                                                                                                                                                                      |
+| **plugin-dev**         | Authoring & releasing Claude Code plugins  | —                                                    | marketplace-doctor, plugin-release, skill-ab-optimizer                                                                                                                                                |
 | **shared-rules**       | Source of truth for `.claude/rules/` files | —                                                    | sync-rules                                                                                                                                                                                            |
 
 ## How registration works (the big picture)
@@ -71,11 +72,42 @@ When several plugins/agents change in one turn, bump each one independently acco
 
 ## Validation & testing
 
-There is no automated test suite. To validate changes:
+There is no application code to unit-test, so validation means two different questions: *does the
+repo describe itself truthfully?* and *do the skills actually fire?*
 
-- **Manifests** — ensure `marketplace.json` and every `plugin.json` are valid JSON and that referenced agent paths exist.
-- **Skill scripts** — skills that bundle executable scripts can be exercised directly, e.g. the `generate-feature-package` scaffold script supports a dry run:
-  ```bash
-  node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mjs" <feature-name> --dry-run
-  ```
-- **End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`) and invoke the skill/agent in a real Claude Code session.
+**1. Manifests and documentation — `/marketplace-doctor`.** The check that must pass before every
+commit that adds, renames or removes a skill or agent. It compares the plugins, agents and skills
+on disk against `marketplace.json`, every `plugin.json`, the Plugins table above, the root
+`README.md` counts, and each per-plugin README, and enforces the frontmatter contracts below.
+
+```bash
+node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
+```
+
+Exit 0 clean, 1 on any error; `--strict` also fails on warnings, `--json` for machine output,
+`--no-native` to skip the wrapped `claude plugin validate --strict` pass. This runs in CI on every
+push and pull request — see `.github/workflows/validate.yml`.
+
+**2. Skill routing — `claude plugin eval`.** Every plugin has an `evals/` suite: one routing case
+per skill, plus outcome cases where the artifact is worth grading. See [EVALS.md](./EVALS.md) for
+the layout, how to run them, and the early-access caveat (the harness is gated per organization,
+so the cases are authored but not yet executed).
+
+```bash
+claude plugin eval plugins/<name> --tag smoke --runs 1 --ablation none
+```
+
+**3. Skill scripts** — skills that bundle executable scripts can be exercised directly, e.g. the
+`generate-feature-package` scaffold script supports a dry run:
+
+```bash
+node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mjs" <feature-name> --dry-run
+```
+
+**4. End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`)
+and invoke the skill/agent in a real Claude Code session.
+
+**Releasing.** `/plugin-release` works out which plugins changed since the last tag, proposes the
+semver bump each change implies against the rules in the Versioning section, and drives
+`claude plugin tag` to create `<plugin>--v<version>`. Run `/marketplace-doctor` first — a release
+that ships a stale README is the exact failure this repo keeps hitting.

@@ -18,7 +18,7 @@
 
 This repository is a [Claude Code](https://claude.com/claude-code) marketplace — a curated collection of **skills** and **agents** that extend Claude Code with domain-specific knowledge for modern full-stack development. Install a plugin once and every project you open gets access to specialist assistants that know your stack's conventions, patterns, and pitfalls.
 
-The collection covers eight domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, and AI tool integrations. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
+The collection covers nine domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, AI tool integrations, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
 
 ## ✨ Features
 
@@ -59,6 +59,11 @@ The collection covers eight domains: Next.js development, React UI development, 
 - **♿ [accessibility-audit](./plugins/testing/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
 - **⚡ [performance-optimization](./plugins/code-quality/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
 - **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, commits, and a final report
+- **🧹 [dead-code](./plugins/code-quality/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
+- **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
+- **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
+- **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
+- **🔬 [skill-ab-optimizer](./plugins/plugin-dev/skills/skill-ab-optimizer/)** — A/B tests skill wording and accepts a change only when the measured outcome improves
 - **🔥 [firebase-firestore](./plugins/firebase/skills/firebase-firestore/)** — Firestore patterns, security rules, data types, and seeding
 - **🔄 [db-migration](./plugins/firebase/skills/db-migration/)** — Firebase data migration scripts and patterns
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
@@ -87,18 +92,19 @@ The collection covers eight domains: Next.js development, React UI development, 
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 6 | [README](./plugins/nextjs/README.md) |
+| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 7 | [README](./plugins/nextjs/README.md) |
 | [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
-| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 2 | 7 | [README](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
+| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 8 | [README](./plugins/testing/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dead-code sweeps, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
-| [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube scraping, AI integrations | — | 3 | — |
+| [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
 | [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
+| [**plugin-dev**](./plugins/plugin-dev/) | Authoring Claude Code plugins — marketplace auditing, releases, skill A/B tests | — | 3 | [README](./plugins/plugin-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 
-**Total: 9 agents · 30 skills**
+**Total: 10 agents · 35 skills**
 
 ---
 
@@ -124,6 +130,7 @@ The collection covers eight domains: Next.js development, React UI development, 
 /plugin install product-management@szum-tech
 /plugin install ai-tools@szum-tech
 /plugin install performance@szum-tech
+/plugin install plugin-dev@szum-tech
 /plugin install shared-rules@szum-tech
 ```
 
@@ -298,7 +305,7 @@ claude-plugins/
     ├── nextjs/                    # Next.js full-stack development
     │   ├── plugin.json
     │   ├── agents/                # nextjs-backend-engineer
-    │   └── skills/                # 6 skills (server-actions, error-handling, …)
+    │   └── skills/                # 7 skills (server-actions, error-handling, …)
     ├── react/                     # React 19 UI development
     │   ├── plugin.json
     │   ├── agents/                # frontend-expert
@@ -328,6 +335,9 @@ claude-plugins/
     ├── performance/                # Web performance auditing
     │   ├── plugin.json
     │   └── skills/                # 1 skill (lighthouse-audit)
+    ├── plugin-dev/                 # Authoring & releasing Claude Code plugins
+    │   ├── plugin.json
+    │   └── skills/                # 3 skills (marketplace-doctor, plugin-release, skill-ab-optimizer)
     └── shared-rules/               # Source of truth for .claude/rules/ files
         ├── plugin.json
         └── skills/                # 1 skill (sync-rules)

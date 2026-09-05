@@ -19,6 +19,7 @@ Code review, performance analysis, bundle optimization, and dependency managemen
 | **performance-optimization** | `/performance-optimization` | Bundle analysis, React rendering optimization, database query tuning, code splitting patterns                         |
 | **update-deps**              | `/update-deps`              | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group, pause on majors, full report |
 | **dead-code**                | `/dead-code`                | Find unused files, exports, types, and dependencies via Knip's reachability graph; rank by confidence, propose safe removal |
+| **repository-documentation** | `/repository-documentation` | Generate or update README.md plus a ready-to-paste GitHub description and topics list, per the Szum-Tech documentation standard |
 
 ## Installation
 
@@ -120,4 +121,4 @@ Install skills from related plugins for the best review coverage.
 - [**react**](../react/) — React Compiler skill referenced during code review
 - [**design**](../design/) — Tailwind and design-system skills referenced during code review
 - [**testing**](../testing/) — Testing skills referenced during review
-- [**dev-experience**](../dev-experience/) — Auto-formatting hooks complement code review
+- [**plugin-dev**](../plugin-dev/) — Marketplace auditing and plugin release tooling, split out of this plugin

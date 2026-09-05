@@ -28,7 +28,7 @@
     },
     {
       "name": "code-quality",
-      "description": "Code review, performance analysis, bundle optimization, dependency management",
+      "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management",
       "source": "./plugins/code-quality"
     },
     {
@@ -50,6 +50,11 @@
       "name": "performance",
       "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications",
       "source": "./plugins/performance"
+    },
+    {
+      "name": "plugin-dev",
+      "description": "Author and maintain Claude Code plugins — marketplace drift auditing, semver release tagging, and skill A/B optimization",
+      "source": "./plugins/plugin-dev"
     },
     {
       "name": "shared-rules",

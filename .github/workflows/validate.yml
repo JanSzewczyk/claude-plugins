@@ -1,0 +1,83 @@
+name: validate
+
+# The repo ships Markdown and JSON, so there is nothing to build or unit-test. What can break is
+# agreement: a plugin nobody registered, an agent missing from plugin.json, a README claiming a
+# skill count that stopped being true. This workflow is the guard for that.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  manifests:
+    name: manifests and documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The native schema pass needs the CLI; without it the script warns and skips that part
+      # rather than failing, so this step is allowed to fail on a fork without the install.
+      - name: Install Claude Code
+        continue-on-error: true
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Check manifests and documentation
+        run: node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
+
+  evals:
+    name: skill routing evals (smoke)
+    runs-on: ubuntu-latest
+    # `claude plugin eval` is early access and needs both an API key and the enablement
+    # variable, so this job only runs when the secrets are present. Without them it is skipped,
+    # not failed — see plugins/*/evals/ for what it would run.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin:
+          - ai-tools
+          - code-quality
+          - design
+          - firebase
+          - nextjs
+          - performance
+          - product-management
+          - react
+          - shared-rules
+          - testing
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run the smoke routing cases
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude plugin eval "plugins/${{ matrix.plugin }}" \
+            --tag smoke \
+            --runs 2 \
+            --model sonnet \
+            --judge-model haiku \
+            --threshold 0.8 \
+            --no-publish \
+            --json "eval-${{ matrix.plugin }}.json"
+
+      - name: Upload the result document
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-${{ matrix.plugin }}
+          path: eval-${{ matrix.plugin }}.json
+          if-no-files-found: ignore

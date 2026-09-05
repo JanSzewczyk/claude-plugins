@@ -20,7 +20,7 @@ description: >
   landing page", "port mockup", "recreate this UI", "zbuduj ten widok",
   "zaimplementuj design", "z Claude Design".
 allowed-tools: Read, Write, Edit, Glob, Grep, WebFetch, DesignSync, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
-argument-hint: [claude-design-source] ["adjustment notes"]
+argument-hint: '[claude-design-source] ["adjustment notes"]'
 ---
 
 # implement-design
