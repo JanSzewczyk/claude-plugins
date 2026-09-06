@@ -18,7 +18,7 @@
 
 This repository is a [Claude Code](https://claude.com/claude-code) marketplace — a curated collection of **skills** and **agents** that extend Claude Code with domain-specific knowledge for modern full-stack development. Install a plugin once and every project you open gets access to specialist assistants that know your stack's conventions, patterns, and pitfalls.
 
-The collection covers nine domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, AI tool integrations, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
+The collection covers ten domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, AI tool integrations, Git workflow on GitHub, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
 
 ## ✨ Features
 
@@ -71,6 +71,9 @@ The collection covers nine domains: Next.js development, React UI development, d
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
 - **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
+- **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
+- **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
+- **🔀 [create-pull-request](./plugins/git-workflow/skills/create-pull-request/)** — Pushes the branch if needed and opens a GitHub PR with a unified four-section description, shown for approval first
 
 ---
 
@@ -103,8 +106,9 @@ The collection covers nine domains: Next.js development, React UI development, d
 | [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
 | [**plugin-dev**](./plugins/plugin-dev/) | Authoring Claude Code plugins — marketplace auditing, releases, skill A/B tests | — | 3 | [README](./plugins/plugin-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
+| [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests | — | 3 | [README](./plugins/git-workflow/README.md) |
 
-**Total: 10 agents · 35 skills**
+**Total: 10 agents · 38 skills**
 
 ---
 
@@ -132,6 +136,7 @@ The collection covers nine domains: Next.js development, React UI development, d
 /plugin install performance@szum-tech
 /plugin install plugin-dev@szum-tech
 /plugin install shared-rules@szum-tech
+/plugin install git-workflow@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -260,8 +265,11 @@ What are you doing?
 │   └── Agent: product-owner (product-management)
 │       Skill: prd-spec
 │
-└── Keeping shared .claude/rules/ files in sync across repos
-    └── Skill: sync-rules (shared-rules)
+├── Keeping shared .claude/rules/ files in sync across repos
+│   └── Skill: sync-rules (shared-rules)
+│
+└── Branching, committing, opening a pull request
+    └── Skills: create-branch, create-commit, create-pull-request (git-workflow)
 ```
 
 ### ⚡ Quick Reference
@@ -292,6 +300,9 @@ What are you doing?
 | Automate NotebookLM | `/notebooklm` skill |
 | Scrape YouTube content | `/youtube-scraper` skill |
 | Sync shared `.claude/rules/` files into this repo | `/sync-rules` skill |
+| Start a new branch for the work at hand | `/create-branch` skill |
+| Commit what I just changed | `/create-commit` skill |
+| Open a pull request for this branch | `/create-pull-request` skill |
 
 ---
 
@@ -338,9 +349,13 @@ claude-plugins/
     ├── plugin-dev/                 # Authoring & releasing Claude Code plugins
     │   ├── plugin.json
     │   └── skills/                # 3 skills (marketplace-doctor, plugin-release, skill-ab-optimizer)
-    └── shared-rules/               # Source of truth for .claude/rules/ files
+    ├── shared-rules/               # Source of truth for .claude/rules/ files
+    │   ├── plugin.json
+    │   └── skills/                # 1 skill (sync-rules)
+    └── git-workflow/               # Branches, commits, pull requests
         ├── plugin.json
-        └── skills/                # 1 skill (sync-rules)
+        ├── references/            # Shared conventions for all three skills
+        └── skills/                # 3 skills (create-branch, create-commit, create-pull-request)
 ```
 
 ### 🗂️ Key Files
