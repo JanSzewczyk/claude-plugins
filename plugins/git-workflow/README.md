@@ -22,8 +22,15 @@ reviewing the code itself see [code-quality](../code-quality/).
 | **create-commit** | `/create-commit` | Splits uncommitted work into logical commits and writes each message in Conventional Commits format |
 | **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR with a unified four-section description, shown for approval first |
 
-Shared rules for all three live in [`references/conventions.md`](./references/conventions.md) —
-commit types, scope derivation, branch naming, the PR body format, and the AI-attribution ban.
+[`references/conventions.md`](./references/conventions.md) holds only what more than one skill needs:
+the English-only rule, the Conventional Commits type table (read as a commit type, a branch prefix and
+a PR title label), and the AI-attribution ban. Everything with a single owner lives in that skill —
+branch naming in `create-branch`, scope derivation and message shape in `create-commit`, the PR title
+and body format in `create-pull-request`.
+
+Commits and PR titles deliberately differ: a commit subject is `type(scope): imperative summary` in
+lowercase, a PR title is `Type: Sentence describing the change`. One is read inside `git log`, the
+other inside a list of pull requests.
 
 ## Installation
 
@@ -68,9 +75,10 @@ Reads the diff, groups it into logical commits, stages each group by path, and c
 /create-pull-request
 ```
 
-Pushes the branch when it has no upstream, builds the title from the branch's commits and diff,
-fills the four standard sections, and shows you the full draft before calling `gh pr create`. If a
-PR already exists for the branch, it refreshes it with `gh pr edit` instead of failing.
+Pushes the branch when it has no upstream, titles the PR `Type: Sentence describing the change`
+(e.g. `Feature: Add status and date range filters to the invoice list`) from the branch's commits and
+diff, fills the four standard sections, and shows you the full draft before calling `gh pr create`.
+If a PR already exists for the branch, it refreshes it with `gh pr edit` instead of failing.
 
 ## How the pieces fit
 

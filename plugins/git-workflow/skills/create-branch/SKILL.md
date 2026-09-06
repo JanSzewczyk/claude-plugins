@@ -1,7 +1,7 @@
 ---
 name: create-branch
 description: Creates a Git branch for the work at hand, named `<type>/<english-kebab-case-description>` using Conventional Commits types as prefixes. Works with no arguments — it derives the name from the current session and the uncommitted changes; an argument is a hint that shapes the name, never literal text. On `main`/`master` it fetches and branches from the remote's real default branch; on an existing working branch it branches from HEAD so stacked work keeps its base. Never pushes, never leaves you committing on the default branch. Use when starting a new piece of work, or when you notice changes are being made directly on the default branch. Trigger on "create a branch", "start a new branch", "branch for this", "new feature branch", "I should be on a branch for this", "stwórz brancha", "zrób nowego brancha", "nowa gałąź", "przełącz na brancha dla tej zmiany".
-allowed-tools: Bash, Read, Glob, Grep
+allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[change description hint, optional]"
 ---
 
@@ -11,10 +11,11 @@ Starting work on the default branch is the mistake this skill exists to prevent,
 `fix-stuff` is the second one. It reads what is actually going on — the uncommitted diff, the current
 session, an optional hint — and creates one correctly named branch from the correct base.
 
-Full naming rules, the type table and the language rule live in
-[`../../references/conventions.md`](../../references/conventions.md). The one-line version, in case
-that file is not available: **`<type>/<english-kebab-case-description>`, always English, prefix from
-`feature` / `fix` / `chore` / `docs` / `refactor` / `test` / `perf`.**
+The prefix vocabulary and the English-only rule are shared with the other two skills and live in
+[`../../references/conventions.md`](../../references/conventions.md). The naming rules below are this
+skill's own. The one-line version, in case the conventions file is not available:
+**`<type>/<english-kebab-case-description>`, always English, prefix from `feature` / `fix` / `chore` /
+`docs` / `refactor` / `test` / `perf`.**
 
 ## Prerequisites
 
@@ -46,10 +47,13 @@ needed depends on step 2.
 Detect the remote's real default branch rather than assuming `main`:
 
 ```bash
-git symbolic-ref --quiet refs/remotes/origin/HEAD | sed 's@.*/@@'
-# fallback if that ref is not set locally:
-git remote show origin | sed -n 's/.*HEAD branch: //p'
+git symbolic-ref --short --quiet refs/remotes/origin/HEAD   # prints e.g. origin/main
+# fallback if that ref is not set locally — read the "HEAD branch:" line of the output:
+git remote show origin
 ```
+
+Both are plain `git` calls on purpose: the skill's `allowed-tools` only grants `Bash(git:*)`, so a
+pipe into `sed` or `awk` would fall outside it and prompt for permission.
 
 Then branch according to where you are:
 
@@ -82,10 +86,18 @@ Sources, in order of authority:
 3. **The current session** — if the conversation just designed or implemented something, that is
    what the branch is for.
 
-Choose the prefix from the change's nature: new capability → `feature/`, corrected defect → `fix/`,
-documentation only → `docs/`, restructuring → `refactor/`, tests only → `test/`, everything else →
-`chore/`. Describe the *outcome*, not the diff: `feature/invoice-list-filters`, never
-`feature/changed-invoice-page-tsx`.
+The shape is fixed:
+
+```
+<prefix>/<english-kebab-case-description>
+```
+
+- **Prefix** from the change's nature: new capability → `feature/`, corrected defect → `fix/`,
+  documentation only → `docs/`, restructuring → `refactor/`, tests only → `test/`, everything else →
+  `chore/`. The full type table is in the conventions file.
+- **Description** is 2–5 words, lowercase, hyphen-separated, and describes the *outcome*, not the
+  diff: `feature/invoice-list-filters`, never `feature/changed-invoice-page-tsx`.
+- No trailing slashes, no spaces, no uppercase, no Polish words, no personal names.
 
 Do not ask the user what to call it. Deriving the name from context is the whole job.
 
