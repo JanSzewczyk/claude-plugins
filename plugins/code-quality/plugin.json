@@ -1,10 +1,14 @@
 {
   "name": "code-quality",
   "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management agents and skills.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
   "agents": [
     "./agents/code-reviewer.md",
     "./agents/performance-analyzer.md",

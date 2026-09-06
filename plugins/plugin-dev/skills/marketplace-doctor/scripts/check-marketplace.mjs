@@ -79,6 +79,61 @@ const pluginsDir = join(root, "plugins");
 const onDisk = dirs(pluginsDir);
 const entries = Array.isArray(marketplace?.plugins) ? marketplace.plugins : [];
 
+// ------------------------------------------------------------- attribution contract
+// Every surface that lists a plugin (`/plugin`, the marketplace browser, a published listing)
+// renders the author, homepage and license from the manifest it is reading — the marketplace
+// entry for the browse view, plugin.json for the installed view. A manifest that omits them
+// shows a plugin attributed to nobody, so both layers must carry the block, and agree.
+
+const AUTHOR_KEYS = ["name", "email", "url"];
+
+function checkAttribution(scope, file, subject, label) {
+  const author = subject?.author;
+  if (!author || typeof author !== "object" || Array.isArray(author)) {
+    error(
+      scope,
+      file,
+      `${label} has no \`author\` object`,
+      "author.name is what every plugin surface displays — without it the plugin is attributed to nobody"
+    );
+    return;
+  }
+  if (!author.name) {
+    error(scope, file, `${label} author has no \`name\``);
+  }
+  const soft = AUTHOR_KEYS.filter((k) => k !== "name" && !author[k]);
+  if (soft.length) {
+    warn(scope, file, `${label} author is missing: ${soft.join(", ")}`, "the contract is author: { name, email, url }");
+  }
+  const unknown = Object.keys(author).filter((k) => !AUTHOR_KEYS.includes(k));
+  if (unknown.length) {
+    warn(scope, file, `${label} author carries unrecognized keys: ${unknown.join(", ")}`, "allowed: name, email, url");
+  }
+  if (!subject.homepage) {
+    warn(scope, file, `${label} has no \`homepage\``, "the listing links a plugin back to its repository from here");
+  }
+  if (!subject.license) {
+    warn(scope, file, `${label} has no \`license\``, "an unlicensed plugin is legally unusable by whoever installs it");
+  }
+}
+
+// The marketplace owner is the attribution fallback for the repo as a whole.
+if (marketplace) {
+  if (!marketplace.owner?.name) {
+    error("marketplace", marketplacePath, "marketplace has no `owner.name`");
+  } else {
+    const soft = AUTHOR_KEYS.filter((k) => k !== "name" && !marketplace.owner[k]);
+    if (soft.length) {
+      warn(
+        "marketplace",
+        marketplacePath,
+        `marketplace owner is missing: ${soft.join(", ")}`,
+        "the contract is owner: { name, email, url }"
+      );
+    }
+  }
+}
+
 const declared = new Set();
 for (const entry of entries) {
   if (!entry?.name) {
@@ -86,6 +141,7 @@ for (const entry of entries) {
     continue;
   }
   declared.add(entry.name);
+  checkAttribution("marketplace", marketplacePath, entry, `entry "${entry.name}"`);
   if (!entry.source) {
     error("marketplace", marketplacePath, `entry "${entry.name}" has no \`source\``);
     continue;
@@ -149,6 +205,23 @@ for (const name of onDisk) {
   }
   if (!/^\d+\.\d+\.\d+$/.test(manifest.version ?? "")) {
     error(name, manifestPath, `version "${manifest.version}" is not semver (x.y.z)`);
+  }
+
+  checkAttribution(name, manifestPath, manifest, "plugin.json");
+
+  // The two layers are read by different surfaces, so they must agree — otherwise a plugin is
+  // attributed to one author while browsing the marketplace and to another once installed.
+  const entry = entries.find((e) => e?.name === name);
+  if (entry?.author?.name && manifest.author?.name && entry.author.name !== manifest.author.name) {
+    error(
+      name,
+      manifestPath,
+      `author.name is "${manifest.author.name}" but marketplace.json says "${entry.author.name}"`,
+      "the browse view reads the marketplace entry, the installed view reads plugin.json"
+    );
+  }
+  if (entry?.license && manifest.license && entry.license !== manifest.license) {
+    error(name, manifestPath, `license "${manifest.license}" disagrees with marketplace.json ("${entry.license}")`);
   }
 
   // agents: an explicit array, so both directions can drift

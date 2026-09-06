@@ -1,10 +1,16 @@
 {
   "name": "firebase",
   "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
-  "agents": ["./agents/database-architect.md"],
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
+  "agents": [
+    "./agents/database-architect.md"
+  ],
   "skills": "./skills/"
 }

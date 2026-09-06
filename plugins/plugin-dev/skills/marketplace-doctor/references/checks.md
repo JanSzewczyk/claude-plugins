@@ -61,6 +61,38 @@ script reads it correctly. A `description:` that is genuinely empty is an error.
 
 ---
 
+## The attribution contract (cuts across layers 1 and 2)
+
+Two surfaces read two different files. The marketplace browser renders the **entry in
+`marketplace.json`**; an installed plugin renders its **own `plugin.json`**. Attribution written
+into only one of them is invisible in the other view — the plugin shows up with no author at all.
+So both layers carry the same block, and it must agree:
+
+```json
+{
+  "author": { "name": "...", "email": "...", "url": "..." },
+  "homepage": "https://github.com/<owner>/<repo>",
+  "license": "MIT"
+}
+```
+
+| Message | What actually broke | Repair |
+| --- | --- | --- |
+| ``entry "<name>" has no `author` object`` / ``plugin.json has no `author` object`` | The plugin is displayed attributed to nobody in that surface. Usually a new plugin created by copying a manifest before the standard existed. | Add the block above. Copy it verbatim from a sibling plugin — it is the same for every plugin in this repo. |
+| ``author has no `name` `` | `author` exists but is empty or a bare string. `name` is the field every surface actually renders. | Make `author` an object with at least `name`. |
+| `author is missing: email, url` (warning) | Partial attribution. Renders, but there is no way to reach the author. | Fill both in. |
+| `author carries unrecognized keys` (warning) | Someone added `github`, `twitter`, `nick`, … The contract is a closed set of three. | Drop the extra keys. |
+| ``has no `homepage` `` (warning) | Nothing links the listing back to the source repository. | Point it at the repo root. |
+| ``has no `license` `` (warning) | Legally the plugin cannot be used by whoever installs it. | Add the SPDX id (`MIT` in this repo), and make sure a `LICENSE` file actually exists. |
+| `author.name is "X" but marketplace.json says "Y"` | The two layers drifted — the plugin is attributed to one author while browsing and another once installed. | Make them identical. The marketplace entry is the one users see first, but neither is more authoritative: pick the correct value and write it into both. |
+| `license "X" disagrees with marketplace.json` | Same drift, on the license. | Same repair. |
+| ``marketplace has no `owner.name` `` | The marketplace itself is unattributed; every plugin without its own author falls back to nothing. | Add `owner: { name, email, url }` at the top of `marketplace.json`. |
+
+When adding a **new plugin**, write this block into both manifests at creation time rather than
+letting the doctor find it later — it is the single most-forgotten part of registering a plugin.
+
+---
+
 ## Layer 3 — documentation
 
 Nothing here affects runtime. All of it affects whether a user can find a capability, and whether

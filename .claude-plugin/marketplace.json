@@ -3,63 +3,142 @@
   "name": "szum-tech",
   "description": "Szum-Tech shared skills and agents for Claude Code",
   "owner": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
   "plugins": [
     {
       "name": "nextjs",
+      "source": "./plugins/nextjs",
       "description": "Next.js full-stack development — App Router, Server Actions, error handling, structured logging, env validation",
-      "source": "./plugins/nextjs"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "react",
+      "source": "./plugins/react",
       "description": "React development — React 19 Compiler, new hooks, and component-driven UI architecture",
-      "source": "./plugins/react"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "design",
+      "source": "./plugins/design",
       "description": "Design system & styling — Szum-Tech design system, Tailwind CSS v4, and CVA-based component conventions",
-      "source": "./plugins/design"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "testing",
+      "source": "./plugins/testing",
       "description": "Testing strategies, Storybook interaction tests, Playwright E2E, accessibility audits",
-      "source": "./plugins/testing"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "code-quality",
+      "source": "./plugins/code-quality",
       "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management",
-      "source": "./plugins/code-quality"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "firebase",
+      "source": "./plugins/firebase",
       "description": "Firebase Firestore database patterns, data migrations, and database architecture",
-      "source": "./plugins/firebase"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "product-management",
+      "source": "./plugins/product-management",
       "description": "Product management orchestration — parse PRD/TDD documents and coordinate specialist agents across implementation phases",
-      "source": "./plugins/product-management"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "ai-tools",
+      "source": "./plugins/ai-tools",
       "description": "AI tool integrations — NotebookLM automation, content generation, and research workflows",
-      "source": "./plugins/ai-tools"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "performance",
+      "source": "./plugins/performance",
       "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications",
-      "source": "./plugins/performance"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "plugin-dev",
+      "source": "./plugins/plugin-dev",
       "description": "Author and maintain Claude Code plugins — marketplace drift auditing, semver release tagging, and skill A/B optimization",
-      "source": "./plugins/plugin-dev"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     },
     {
       "name": "shared-rules",
+      "source": "./plugins/shared-rules",
       "description": "Single source of truth for .claude/rules/ files shared across many repositories — pull the latest canonical rules with drift detection",
-      "source": "./plugins/shared-rules"
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     }
   ]
 }

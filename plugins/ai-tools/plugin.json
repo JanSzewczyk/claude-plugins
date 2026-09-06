@@ -1,10 +1,14 @@
 {
   "name": "ai-tools",
   "description": "AI tool integrations — NotebookLM automation, content generation, research workflows, and Polish real estate (KW) lookup.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
   "agents": [],
   "skills": "./skills/"
 }

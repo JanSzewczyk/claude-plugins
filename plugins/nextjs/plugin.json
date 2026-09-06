@@ -1,10 +1,14 @@
 {
   "name": "nextjs",
   "description": "Next.js full-stack development — agents and skills for the App Router: Server Actions, error handling, structured logging, env validation, toast notifications, and feature scaffolding.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
   "agents": [
     "./agents/nextjs-backend-engineer.md"
   ],

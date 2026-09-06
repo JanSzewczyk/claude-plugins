@@ -28,6 +28,15 @@ itself truthfully?"** A `plugin.json` that lists two agents when three exist on 
 valid JSON — and the third agent will never load. A README claiming 6 skills when there are 7 is
 valid Markdown — and the seventh is invisible to anyone reading the docs.
 
+## Attribution is checked in both layers
+
+The one contract that spans two files: `author` (`{ name, email, url }`), `homepage` and `license`
+must be present in the marketplace entry **and** in the plugin's own `plugin.json`, with matching
+values. The browse view reads the first, the installed view reads the second — a block written into
+only one of them means the plugin renders with no author in the other. A missing `author` object is
+an error; missing `email`/`url`/`homepage`/`license` are warnings; a mismatch between the layers is
+an error. See [references/checks.md](./references/checks.md#the-attribution-contract-cuts-across-layers-1-and-2).
+
 ## Run it
 
 The script sits next to this SKILL.md at `scripts/check-marketplace.mjs` — invoke it by its

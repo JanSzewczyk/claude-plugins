@@ -1,7 +1,7 @@
 {
   "enableAllProjectMcpServers": true,
   "extraKnownMarketplaces": {
-    "szum-tech-local": {
+    "szum-tech": {
       "source": {
         "source": "directory",
         "path": "."
@@ -9,6 +9,6 @@
     }
   },
   "enabledPlugins": {
-    "plugin-dev@szum-tech-local": true
+    "plugin-dev@szum-tech": true
   }
 }

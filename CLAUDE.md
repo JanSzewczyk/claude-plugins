@@ -51,6 +51,41 @@ Three manifest layers must stay in sync when adding capabilities:
 - All paths in manifests are relative to the plugin directory.
 - Skills target **Next.js 15+**, **React 19+**, **TypeScript 5.7+** unless the skill's `SKILL.md` says otherwise.
 
+## Attribution
+
+Every plugin must be attributed in **both** manifest layers, because two different surfaces read
+two different files: the marketplace browser renders the entry in `.claude-plugin/marketplace.json`,
+while an installed plugin renders its own `plugins/<name>/plugin.json`. A block present in only one
+of them leaves the plugin nameless in the other view — which is exactly why author information was
+not showing up before.
+
+The block is identical in both places, and must be byte-for-byte the same for a given plugin:
+
+```json
+{
+  "author": {
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
+  },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT"
+}
+```
+
+- `author` is an **object**, never a bare string, and carries exactly `name`, `email`, `url` — no
+  other keys. `name` is required (it is what every surface displays); `email` and `url` are strongly
+  expected and flagged as warnings when absent.
+- `homepage` points at the repository, so a listing can link back to the source.
+- `license` must be present on every plugin — an unlicensed plugin is legally unusable by whoever
+  installs it.
+- `.claude-plugin/marketplace.json` additionally carries `owner` with the same `{ name, email, url }`
+  shape; it is the attribution fallback for the marketplace as a whole.
+- A **new plugin must be created with this block already filled in**, in both layers. `/marketplace-doctor`
+  enforces it: a missing `author` object or `owner.name` is an error, a missing `email`/`url`/`homepage`/
+  `license` is a warning, and an `author.name` or `license` that disagrees between the two layers is an
+  error.
+
 ## Versioning
 
 Versions live in two places: `plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to exactly the four fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.

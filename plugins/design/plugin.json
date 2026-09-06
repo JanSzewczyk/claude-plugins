@@ -1,9 +1,13 @@
 {
   "name": "design",
   "description": "Design system & styling — skills for building UI with the Szum-Tech design system, Tailwind CSS v4, and CVA-based component conventions.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
   "skills": "./skills/"
 }

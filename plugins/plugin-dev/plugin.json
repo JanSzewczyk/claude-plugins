@@ -1,9 +1,13 @@
 {
   "name": "plugin-dev",
   "description": "Author and maintain Claude Code plugins — audit a marketplace repo for manifest/documentation drift, cut versioned plugin releases, and A/B test skills against measured outcomes.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
-    "name": "Szum Tech Team"
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
   },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
   "skills": "./skills/"
 }
