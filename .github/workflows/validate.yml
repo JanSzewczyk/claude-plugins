@@ -45,8 +45,10 @@ jobs:
           - code-quality
           - design
           - firebase
+          - git-workflow
           - nextjs
           - performance
+          - plugin-dev
           - product-management
           - react
           - shared-rules

@@ -34,6 +34,7 @@ plugins/
 | **performance**        | Web performance auditing                   | —                                                    | lighthouse-audit                                                                                                                                                                                      |
 | **plugin-dev**         | Authoring & releasing Claude Code plugins  | —                                                    | marketplace-doctor, plugin-release, skill-ab-optimizer                                                                                                                                                |
 | **shared-rules**       | Source of truth for `.claude/rules/` files | —                                                    | sync-rules                                                                                                                                                                                            |
+| **git-workflow**       | Git workflow — branches, commits, pull requests | —                                                    | create-branch, create-commit, create-pull-request                                                                                                                                                      |
 
 ## How registration works (the big picture)
 

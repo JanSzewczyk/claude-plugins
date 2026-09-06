@@ -139,6 +139,18 @@
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT"
+    },
+    {
+      "name": "git-workflow",
+      "source": "./plugins/git-workflow",
+      "description": "Everyday Git workflow on GitHub — branches, Conventional Commits, and pull requests with a unified description",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     }
   ]
 }
