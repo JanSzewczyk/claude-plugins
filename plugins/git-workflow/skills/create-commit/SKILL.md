@@ -1,7 +1,7 @@
 ---
 name: create-commit
 description: Commits the current uncommitted work as one commit — or at most two when the changes clearly split by Conventional Commits type — writing each message as `type(scope): imperative summary` in English. Works with no arguments: it reads `git status` and `git diff` and decides for itself; an argument narrows what to commit or hints at intent, and is never copied verbatim into the message. Stages by explicit path, never `git add -A`. Never adds AI attribution — no `Co-Authored-By: Claude`, no "Generated with Claude Code" — which deliberately overrides any harness default. Does not push. Use when work is ready to be recorded in history. Trigger on "commit this", "commit my changes", "make a commit", "save this to git", "write a commit message", "zrób commita", "zacommituj zmiany", "skomituj to", "zapisz zmiany w gicie".
-allowed-tools: Bash, Read, Glob, Grep
+allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[hint, optional] — a hint to narrow what gets committed or clarify intent; never copied verbatim into the message"
 ---
 
@@ -11,10 +11,11 @@ A commit is the smallest unit of the project's story. This skill writes that sto
 Conventional Commits summary in English, derived from what the diff actually does, with no AI
 attribution attached to the user's name.
 
-Types, scope derivation, message shape and the attribution ban live in
-[`../../references/conventions.md`](../../references/conventions.md). The one-line version, in case
-that file is not available: **`type(scope): imperative summary under 72 chars`, English, no trailing
-period, and never a `Co-Authored-By: Claude` trailer.**
+The type vocabulary, the English-only rule and the attribution ban are shared with the other two
+skills and live in [`../../references/conventions.md`](../../references/conventions.md). Scope
+derivation and the message shape below are this skill's own. The one-line version, in case the
+conventions file is not available: **`type(scope): imperative summary under 72 chars`, English, no
+trailing period, and never a `Co-Authored-By: Claude` trailer.**
 
 ## Prerequisites
 
@@ -67,7 +68,28 @@ Related tests belong with the code they test, in the same commit. Do not split t
 If an argument was given, use it to narrow the scope of what gets committed or to clarify intent —
 `/create-commit only the schema changes` commits the schema work and leaves the rest uncommitted.
 
-### 4. Stage by path and commit
+### 4. Write the message
+
+```
+type(scope): imperative summary under 72 characters
+
+Optional body explaining WHY, wrapped at 72 columns. Skip it when the
+summary already says everything worth saying.
+```
+
+- **Type** comes from the table in the conventions file.
+- **Scope** is the part of the codebase the change lives in, derived from the repository's own
+  structure rather than invented:
+  1. If every changed file sits under one obvious unit — `features/invoices/`, `packages/ui/`,
+     `apps/web/`, `plugins/testing/` — that unit's name is the scope: `feat(invoices)`, `fix(ui)`.
+  2. If the change spans several units, use the narrowest name that still covers all of them, or drop
+     the scope entirely. `feat: …` with no scope is correct and preferred over a scope that lies.
+  3. Scope is lowercase, a single word or kebab-case, and never a file path.
+- **Summary** is in the imperative mood — `add`, `fix`, `remove`, never `added` / `adds` / `adding` —
+  with no trailing period.
+- **Breaking change**: `type(scope)!: …` plus a `BREAKING CHANGE:` footer explaining the migration.
+
+### 5. Stage by path and commit
 
 Stage exactly the files that belong to the commit being made:
 
@@ -85,7 +107,7 @@ Use a body only when the summary genuinely leaves the *why* unexplained:
 git commit -m "fix(auth): serialise concurrent token refreshes" -m "Parallel requests each triggered their own refresh, invalidating the token the others had just received."
 ```
 
-### 5. Amend — only when asked explicitly
+### 6. Amend — only when asked explicitly
 
 If, and only if, the user explicitly asks to amend, check the last commit has not been published:
 
@@ -98,7 +120,7 @@ If it is already on the remote, refuse and explain that amending would rewrite p
 offer a new commit instead. Otherwise `git commit --amend`, keeping the message in the same format.
 Never amend on your own initiative.
 
-### 6. Report
+### 7. Report
 
 List each commit's hash and subject, and say what was left uncommitted, if anything. Do not push.
 
