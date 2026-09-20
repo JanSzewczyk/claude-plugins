@@ -1,0 +1,82 @@
+schema_version: "1.1"
+name: skill-audit-reports-authoring-defects
+description: >
+  The outcome case for skill-audit: given a deliberately badly-authored skill with six planted
+  defects, does the audit find them, and does it leave the skill untouched? The report is the
+  point of this case; routing is graded too, but incidentally.
+tags: [outcome, skill-audit]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./demo-skill/ with the six defects. Requires the operator's --scaffold.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Audit the skill in ./demo-skill and write what you find to findings.md in the current
+    directory — one bullet per problem, each naming the file it is in. If the skill is well
+    built, say so instead.
+  max_turns: 25
+  timeout_seconds: 900
+  # Bash and Write still need the operator's --allow-tools; see the suite README.
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Task]
+
+graders:
+  - type: tool_used
+    name: routes-to-skill-audit
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?skill-audit"'
+    min: 1
+
+  - type: file_exists
+    name: wrote-findings
+    path: "**/findings.md"
+
+  - type: regex
+    name: finds-the-orphan
+    target: { source: file, path: findings.md }
+    pattern: 'helper\.md'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: finds-the-dead-link
+    target: { source: file, path: findings.md }
+    pattern: 'missing\.md'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: does-not-invent-a-clean-verdict
+    target: { source: file, path: findings.md }
+    pattern: '(well built|nothing to fix|no (problems|issues) found)'
+    flags: i
+    match: not_contains
+
+  # The audit proposes edits, it does not make them. The planted Polish sentence must still be
+  # in the audited skill after the run — this is what makes "writes nothing" testable.
+  - type: regex
+    name: leaves-the-audited-skill-untouched
+    target: { source: file, path: demo-skill/SKILL.md }
+    pattern: 'Aby uruchomic przetwarzanie'
+    weight: 2
+
+  - type: llm
+    name: reports-all-six-defects
+    focus: { source: file, path: findings.md }
+    criteria: |
+      The report must identify all six of these problems. Wording may differ; the substance must be there.
+      1. The description is written in the first person and never says when to use the skill.
+      2. references/helper.md is linked from nowhere, so nothing reads it.
+      3. SKILL.md links references/missing.md, which does not exist.
+      4. references/deep.md is reachable only through references/background.md — two hops from SKILL.md.
+         A finding phrased as "background.md links sideways to deep.md" is the same defect and counts.
+      5. A Polish paragraph sits in an otherwise English body.
+      6. A Windows-style path with backslashes appears in prose.
+      PASS if all six appear and each names the file involved.
+      FAIL if any is missing, or if the report asserts problems that were not planted.
+
+expected_outcome: >
+  findings.md lists all six planted defects with their file paths, demo-skill/SKILL.md is
+  unchanged, and the skill was invoked rather than the model hand-rolling an ad-hoc review.

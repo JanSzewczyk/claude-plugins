@@ -119,7 +119,19 @@
     {
       "name": "plugin-dev",
       "source": "./plugins/plugin-dev",
-      "description": "Author and maintain Claude Code plugins — marketplace drift auditing, semver release tagging, and skill A/B optimization",
+      "description": "Author and maintain a Claude Code plugin marketplace — manifest and documentation drift auditing, plus semver release tagging",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
+    },
+    {
+      "name": "skill-dev",
+      "source": "./plugins/skill-dev",
+      "description": "Write better skills — authoring-quality audits of a single skill, and A/B testing that accepts a wording change only when the outcome improves",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",

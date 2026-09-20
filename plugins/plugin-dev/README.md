@@ -1,8 +1,8 @@
 # plugin-dev
 
-Author and maintain Claude Code plugins — audit a marketplace repo for manifest and documentation drift, cut versioned plugin releases, and A/B test skills against measured outcomes.
+Author and maintain a Claude Code plugin marketplace — audit a repo for drift between its manifest layers and the documentation that enumerates them by hand, then cut versioned plugin releases.
 
-This plugin is for people building *plugins*, not for people building applications. If you are writing app code, you want [**code-quality**](../code-quality/) instead — these three skills were split out of it so neither audience carries the other's tooling.
+This plugin is about **distribution**: whether the repo describes itself truthfully, and what version a change deserves. Both skills need a marketplace repo to work on. If what you want is to make one *skill* better, that is [**skill-dev**](../skill-dev/) — the two were split so neither audience carries the other's tooling.
 
 ## Contents
 
@@ -12,7 +12,6 @@ This plugin is for people building *plugins*, not for people building applicatio
 |-------|-------------|-------------|
 | **marketplace-doctor** | `/marketplace-doctor` | Audit a plugin marketplace repo for drift between manifest layers and the docs that enumerate them by hand |
 | **plugin-release** | `/plugin-release` | Work out which plugins changed, propose the semver bump each change implies, write it into plugin.json, and tag the release |
-| **skill-ab-optimizer** | `/skill-ab-optimizer` | A/B test and improve Claude Code skills — quantitative metrics on triggering and outcomes, changes accepted only when they measurably help |
 
 ## Installation
 
@@ -54,17 +53,13 @@ Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` for ma
 
 Run `/marketplace-doctor` first — shipping a stale README is the failure this pairing exists to prevent.
 
-### Improve a skill against evidence
-
-```bash
-/skill-ab-optimizer auto plugins/code-quality/skills/performance-optimization --iterations 5
-```
-
 ## How the pieces fit
 
 1. **marketplace-doctor** answers *does the repo describe itself truthfully?* — it compares the plugins, agents and skills on disk against `marketplace.json`, every `plugin.json`, the tables in `CLAUDE.md`, the root `README.md`, and each per-plugin README, and enforces the frontmatter contracts.
 2. **plugin-release** answers *what version does this change deserve?* — it diffs against the last tag, groups changes per plugin, proposes a semver bump with reasons, writes it into `plugin.json`, and drives `claude plugin tag`.
-3. **skill-ab-optimizer** answers *did the edit actually help?* — it runs A/B experiments over a skill's wording and accepts a change only when the measured outcome improves.
+
+Both answer questions *about the repo*. The question *about one skill* — is it well written, and did
+that edit help — belongs to [**skill-dev**](../skill-dev/).
 
 ## Requirements
 
@@ -80,9 +75,9 @@ Run `/marketplace-doctor` first — shipping a stale README is the failure this 
 | `claude plugin validate` fails but the script passes | Run with `--no-native` to isolate which layer complains, then read the native error — it checks schema details the script does not |
 | `plugin-release` proposes no bump | Nothing changed since the last tag for that plugin, or the tag is missing; check `git tag --list '<plugin>--v*'` |
 | `plugin-release` proposes the wrong bump size | The semver rules live in the repo's `CLAUDE.md` Versioning section — the skill implements them rather than replacing them, so correct the rules there |
-| `skill-ab-optimizer` runs are inconsistent | Increase `--iterations`; a single run tells you almost nothing about a description change |
 
 ## Related Plugins
 
+- [**skill-dev**](../skill-dev/) — the other half of the split: authoring-quality audits and A/B testing for a single skill
 - [**code-quality**](../code-quality/) — code review, dead-code, and dependency tooling for application repos
 - [**shared-rules**](../shared-rules/) — canonical `.claude/rules/` files distributed to projects

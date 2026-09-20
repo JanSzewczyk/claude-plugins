@@ -1,7 +1,7 @@
 {
-  "name": "plugin-dev",
-  "description": "Author and maintain a Claude Code plugin marketplace — audit a repo for manifest and documentation drift, and cut versioned plugin releases.",
-  "version": "2.0.0",
+  "name": "skill-dev",
+  "description": "Write better skills — audit one skill for authoring quality and propose the edits, then A/B test whether a wording change actually improved the outcome.",
+  "version": "1.0.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

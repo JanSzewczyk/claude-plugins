@@ -46,7 +46,10 @@ Two kinds of case:
 - **Outcome cases** — fewer, and only where the artifact is worth grading. They scaffold a fixture,
   let the skill work, then grade what it produced. `plugins/plugin-dev/evals/marketplace-doctor-reports-drift/`
   is the worked example: a mini-marketplace with four planted defects, graded on whether the
-  report names all four.
+  report names all four. `plugins/skill-dev/evals/skill-audit-reports-authoring-defects/` is the second: a deliberately
+  badly-authored skill with six planted defects, graded on whether the report names all six **and**
+  on whether the audited skill is still untouched afterwards — the audit proposes edits, it does
+  not make them, and that is asserted rather than assumed.
 
 Every case is tagged `routing` or `outcome`; roughly a third are additionally tagged `smoke` — the
 cheap subset CI runs.
@@ -67,14 +70,20 @@ claude plugin eval plugins/nextjs --case routing-devlogs
 Results land in `plugins/<plugin>/evals/results/<timestamp>/` (`aggregate-result.json` plus an
 HTML report). Add `--no-publish` to keep the report local.
 
-**The outcome case needs two extra grants**, because its fixture writes files and the skill shells
-out to node:
+**The outcome cases need two extra grants**, because their fixtures write files and the skills
+shell out to node:
 
 ```bash
 claude plugin eval plugins/plugin-dev \
   --case marketplace-doctor-reports-drift \
   --scaffold \
   --allow-tools Write "Bash(node:*)" "Bash(bash:*)"
+```
+
+The second one lives in a different plugin, so swap both halves — it takes the same grants:
+
+```bash
+claude plugin eval plugins/skill-dev \n  --case skill-audit-reports-authoring-defects \n  --scaffold \n  --allow-tools Write "Bash(node:*)" "Bash(bash:*)"
 ```
 
 `--scaffold` runs author-supplied bash as you. It is off by default for good reason — only pass it

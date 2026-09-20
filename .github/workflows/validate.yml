@@ -52,6 +52,7 @@ jobs:
           - product-management
           - react
           - shared-rules
+          - skill-dev
           - testing
     steps:
       - uses: actions/checkout@v4
