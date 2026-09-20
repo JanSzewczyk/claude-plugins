@@ -1,102 +1,35 @@
 # Mocking in Vitest
 
-Comprehensive guide to mocking modules, functions, and dependencies in Vitest unit tests.
+Examples use the `~/` alias for project modules — substitute whatever alias or relative path the
+project resolves. Test utilities are global (`globals: true`), so nothing is imported from `vitest`.
 
-## Table of Contents
+## Contents
 
-1. [Mock Functions with `vi.fn()`](#mock-functions-with-vifn)
-2. [Mock Modules with `vi.mock()`](#mock-modules-with-vimock)
-3. [Spy on Methods with `vi.spyOn()`](#spy-on-methods-with-vispyon)
-4. [Hoisting with `vi.hoisted()`](#hoisting-with-vihoisted)
-5. [Partial Module Mocking](#partial-module-mocking)
-6. [Dynamic Mocking with `vi.doMock()`](#dynamic-mocking-with-vidomock)
-7. [Mocking Async Functions](#mocking-async-functions)
-8. [Mocking External Dependencies](#mocking-external-dependencies)
-9. [Best Practices](#best-practices)
+1. [Mock Functions with `vi.fn()`](#mock-functions-with-vifn) — callbacks and injected dependencies
+2. [Mock Modules with `vi.mock()`](#mock-modules-with-vimock) — replacing a whole module, factories, typing
+3. [Spy on Methods with `vi.spyOn()`](#spy-on-methods-with-vispyon) — watching or overriding one method
+4. [Hoisting with `vi.hoisted()`](#hoisting-with-vihoisted) — when a `vi.mock` factory needs a reference the test also uses
+5. [Partial Module Mocking](#partial-module-mocking) — keep the real exports, replace one
+6. [Dynamic Mocking with `vi.doMock()`](#dynamic-mocking-with-vidomock) — a different mock per test
+7. [Mocking Async Functions](#mocking-async-functions) — resolved, rejected, sequential, database
+8. [Mocking External Dependencies](#mocking-external-dependencies) — auth, env vars, third-party libraries, date/time
+9. [Rules](#rules) — the three not covered by `patterns.md`
+10. [Quick Reference](#quick-reference) — the async and timer shapes
+11. [Mocking Chained Query Builders](#mocking-chained-query-builders) — fluent `.where().limit().execute()` APIs
 
 ---
 
 ## Mock Functions with `vi.fn()`
 
-**Use Case:** Create standalone mock functions to spy on calls, control return values, and test callbacks.
-
-### Basic Mock Functions
-
-```typescript
-test("tracks function calls", () => {
-  const mockCallback = vi.fn();
-
-  mockCallback("hello", 123);
-  mockCallback("world", 456);
-
-  expect(mockCallback).toHaveBeenCalledTimes(2);
-  expect(mockCallback).toHaveBeenCalledWith("hello", 123);
-  expect(mockCallback).toHaveBeenLastCalledWith("world", 456);
-  expect(mockCallback.mock.calls[0]).toEqual(["hello", 123]);
-});
-```
-
-### Mock with Return Values
+Standard Vitest API — `mockReturnValue` / `mockReturnValueOnce`, `mockImplementation`,
+`mock.calls`, `mock.results`. Use `vi.fn()` for callbacks and injected dependencies; everything
+module-level is below.
 
 ```typescript
-test("returns mocked values", () => {
-  const mockFn = vi.fn();
+const onSave = vi.fn().mockReturnValue(true);
 
-  // Return static value
-  mockFn.mockReturnValue(42);
-  expect(mockFn()).toBe(42);
-
-  // Return once, then default
-  mockFn.mockReturnValueOnce(100);
-  expect(mockFn()).toBe(100);
-  expect(mockFn()).toBe(42);
-
-  // Chain multiple returns
-  mockFn.mockReturnValueOnce(1).mockReturnValueOnce(2).mockReturnValue(3);
-
-  expect(mockFn()).toBe(1);
-  expect(mockFn()).toBe(2);
-  expect(mockFn()).toBe(3);
-  expect(mockFn()).toBe(3);
-});
-```
-
-### Mock with Custom Implementation
-
-```typescript
-test("uses custom implementation", () => {
-  const mockAdd = vi.fn((a: number, b: number) => a + b);
-
-  expect(mockAdd(2, 3)).toBe(5);
-  expect(mockAdd).toHaveBeenCalledWith(2, 3);
-
-  // Change implementation
-  mockAdd.mockImplementation((a, b) => a * b);
-  expect(mockAdd(2, 3)).toBe(6);
-
-  // One-time implementation
-  mockAdd.mockImplementationOnce((a, b) => a - b);
-  expect(mockAdd(5, 2)).toBe(3);
-  expect(mockAdd(2, 3)).toBe(6); // Back to multiply
-});
-```
-
-### Check Mock Results
-
-```typescript
-test("inspects mock results", () => {
-  const mockFn = vi.fn(() => "result");
-
-  mockFn();
-  mockFn();
-
-  expect(mockFn.mock.results[0]).toEqual({
-    type: "return",
-    value: "result",
-  });
-
-  expect(mockFn.mock.results).toHaveLength(2);
-});
+expect(onSave).toHaveBeenCalledWith({ id: "1" });
+expect(onSave).toHaveBeenCalledTimes(1);
 ```
 
 ---
@@ -641,243 +574,39 @@ describe("Time-sensitive tests", () => {
 
 ---
 
-## Best Practices
+## Rules
 
-### 1. ✅ Clear Mocks Between Tests
+These three are stated nowhere else in the bundle. Cleanup, module boundaries and
+success/error coverage are in `patterns.md`.
 
-```typescript
-describe("User Service", () => {
-  beforeEach(() => {
-    vi.clearAllMocks(); // Reset call history and return values
-  });
-
-  test("test 1", () => {
-    // Fresh mocks
-  });
-
-  test("test 2", () => {
-    // Independent from test 1
-  });
-});
-```
-
-**Why:** Prevents test pollution and ensures isolation.
-
-### 2. ✅ Use `vi.mocked()` for Type Safety
+- **Clear mocks between tests** — `beforeEach(() => vi.clearAllMocks())`. Without it, call
+  counts from one test leak into the next and assertions pass for the wrong reason.
+- **Prefer `vi.mock()` over `vi.spyOn()` for modules** — `vi.mock` works in every environment,
+  including browser mode, where an ES module export is not reliably writable.
+- **Mock async functions with `mockResolvedValue`, never `mockReturnValue`** — the caller awaits
+  the result, so the mock must return a promise or the test fails on a confusing `undefined`.
 
 ```typescript
-import { getCurrentUser } from "~/lib/auth";
-
-// ❌ BAD - No type checking
-getCurrentUser.mockResolvedValue({ wrong: "type" });
-
-// ✅ GOOD - TypeScript enforces correct types
-vi.mocked(getCurrentUser).mockResolvedValue({
-  id: "123",
-  name: "John",
-  email: "john@example.com",
-});
-```
-
-### 3. ✅ Mock at Module Boundaries
-
-```typescript
-// ✅ GOOD - Mock external dependencies
-vi.mock("~/lib/database");
-vi.mock("~/lib/auth");
-vi.mock("uuid");
-
-// ❌ BAD - Don't mock internal utilities
-// Let them run with real implementations
-```
-
-**Why:** Tests should verify your logic, not third-party libraries.
-
-### 4. ✅ Use `vi.hoisted()` for Shared Mocks
-
-```typescript
-// ✅ GOOD - Accessible in factory and tests
-const mocks = vi.hoisted(() => ({
-  getUser: vi.fn(),
-}));
-
-vi.mock("~/lib/users", () => ({
-  getUser: mocks.getUser,
-}));
-
-// ❌ BAD - Won't work, variable not hoisted
-const mockGetUser = vi.fn();
-vi.mock("~/lib/users", () => ({
-  getUser: mockGetUser, // undefined!
-}));
-```
-
-### 5. ✅ Prefer `vi.mock()` Over `vi.spyOn()` for Modules
-
-```typescript
-// ✅ GOOD - Mock entire module
-vi.mock("~/lib/database", () => ({
-  db: { query: vi.fn() },
-}));
-
-// ⚠️ OK but less ideal - Spy on exports
-import * as db from "~/lib/database";
-vi.spyOn(db, "query");
-```
-
-**Why:** `vi.mock()` is more reliable and works in all environments (including browser mode).
-
-### 6. ✅ Restore Mocks in `afterEach`
-
-```typescript
-describe("Tests", () => {
-  afterEach(() => {
-    vi.restoreAllMocks(); // Restore original implementations
-  });
-
-  test("with spy", () => {
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    // ...
-  });
-});
-```
-
-### 7. ✅ Use Partial Mocking for Large Modules
-
-```typescript
-// ✅ GOOD - Keep original implementations
-vi.mock(import("~/lib/utils"), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    formatDate: vi.fn(), // Mock only this one
-  };
-});
-
-// ❌ BAD - Replaces entire module
-vi.mock("~/lib/utils", () => ({
-  formatDate: vi.fn(),
-  // Oops, lost all other exports!
-}));
-```
-
-### 8. ✅ Mock Async Functions with Proper Types
-
-```typescript
-// ✅ GOOD - Type-safe async mock
-vi.mocked(fetchUser).mockResolvedValue({
-  id: "123",
-  name: "John",
-});
-
-// ❌ BAD - Wrong return type
-vi.mocked(fetchUser).mockReturnValue({
-  id: "123",
-  name: "John",
-});
-```
-
-### 9. ✅ Test Both Success and Error Paths
-
-```typescript
-describe("createUser", () => {
-  test("succeeds with valid data", async () => {
-    vi.mocked(db.insert).mockResolvedValue({ id: "new-id" });
-    // Test success path
-  });
-
-  test("fails with duplicate email", async () => {
-    vi.mocked(db.insert).mockRejectedValue(new Error("Duplicate email"));
-    // Test error path
-  });
-
-  test("fails when database is down", async () => {
-    vi.mocked(db.insert).mockRejectedValue(new Error("Connection failed"));
-    // Test error path
-  });
-});
-```
-
-### 10. ✅ Use `vi.resetModules()` for Dynamic Imports
-
-```typescript
-describe("Config tests", () => {
-  beforeEach(() => {
-    vi.resetModules(); // Clear module cache
-  });
-
-  test("test A", async () => {
-    vi.doMock("./config", () => ({ MODE: "A" }));
-    const { MODE } = await import("./config");
-    expect(MODE).toBe("A");
-  });
-
-  test("test B", async () => {
-    vi.doMock("./config", () => ({ MODE: "B" }));
-    const { MODE } = await import("./config");
-    expect(MODE).toBe("B");
-  });
-});
+vi.mocked(getUser).mockResolvedValue({ id: "1" }); // ✅ awaitable
+vi.mocked(getUser).mockReturnValue({ id: "1" });   // ❌ not a promise
 ```
 
 ---
 
 ## Quick Reference
 
+The `vi.fn` / `vi.mock` / `vi.spyOn` / partial-mock choice is the Decision Table in
+`patterns.md`. This table only adds the shapes that table lacks.
+
 | Mock Type               | Tool                         | Use Case                              |
 | ----------------------- | ---------------------------- | ------------------------------------- |
-| **Standalone function** | `vi.fn()`                    | Callbacks, spies, controlled behavior |
-| **Entire module**       | `vi.mock()`                  | External dependencies, libraries      |
-| **Existing method**     | `vi.spyOn()`                 | Object methods, console, globals      |
-| **Shared mock state**   | `vi.hoisted()`               | Access variables in factory functions |
-| **Partial module**      | `vi.mock() + importOriginal` | Keep some original exports            |
-| **Dynamic per-test**    | `vi.doMock()`                | Test-specific configurations          |
 | **Async success**       | `mockResolvedValue()`        | Promises, async functions             |
 | **Async error**         | `mockRejectedValue()`        | Promise rejections, errors            |
 | **Timers**              | `vi.useFakeTimers()`         | Date, setTimeout, setInterval         |
 
 ---
 
-## Common Patterns
-
-### Pattern: Mock Database with All CRUD Operations
-
-```typescript
-vi.mock("~/lib/database", () => ({
-  db: {
-    users: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-  },
-}));
-```
-
-### Pattern: Mock Auth with User States
-
-```typescript
-const mockAuth = vi.hoisted(() => ({
-  getCurrentUser: vi.fn(),
-}));
-
-vi.mock("~/lib/auth", () => ({
-  getCurrentUser: mockAuth.getCurrentUser,
-}));
-
-// In tests:
-test("authenticated", () => {
-  mockAuth.getCurrentUser.mockResolvedValue({ id: "123" });
-});
-
-test("unauthenticated", () => {
-  mockAuth.getCurrentUser.mockResolvedValue(null);
-});
-```
-
-### Pattern: Mock with Chained Methods
+## Mocking Chained Query Builders
 
 ```typescript
 vi.mock("~/lib/query-builder", () => ({
@@ -896,10 +625,3 @@ const results = await query()
   .limit(10)
   .execute();
 ```
-
----
-
-For more examples, see:
-
-- [examples.md](./examples.md) - Practical code examples
-- [patterns.md](./patterns.md) - Testing patterns and best practices

@@ -1,30 +1,14 @@
 # Unit Testing - Best Practices and Patterns
 
-Guidelines for writing maintainable, reliable unit tests with Vitest.
+## Contents
 
-## AAA Pattern (Arrange, Act, Assert)
-
-Every test should follow three distinct phases:
-
-```typescript
-it("creates a budget with valid input", async () => {
-  // Arrange - Set up test data and mocks
-  const input = { name: "Groceries", limit: 500 };
-  vi.mocked(db.insert).mockResolvedValue({ id: "1", ...input });
-
-  // Act - Execute the code under test
-  const result = await createBudget(input);
-
-  // Assert - Verify the outcome
-  expect(result).toEqual({ success: true, data: { id: "1" } });
-});
-```
-
-**Rules:**
-
-- Keep each phase clearly separated (blank line between phases for readability)
-- One logical action per test in the "Act" phase
-- Assert on the outcome, not the implementation
+1. [Test Isolation](#test-isolation) — why shared state between tests makes assertions lie
+2. [Mock Boundaries](#mock-boundaries) — what to mock, and the line you stop at
+3. [When to Use vi.mock vs vi.fn vs vi.spyOn](#when-to-use-vimock-vs-vifn-vs-vispyon) — the decision table
+4. [Testing Error Paths](#testing-error-paths) — thrown, rejected, and returned-as-value failures
+5. [Avoid Testing Implementation Details](#avoid-testing-implementation-details) — assert on behavior instead
+6. [Coverage Targets and What to Skip](#coverage-targets-and-what-to-skip) — the numbers, and the files not worth them
+7. [Anti-Patterns](#anti-patterns) — five ways a passing suite still fails you
 
 ---
 
@@ -36,12 +20,12 @@ Each test must be independent. No test should depend on another test's state or 
 // BAD - Shared mutable state leaks between tests
 let counter = 0;
 
-it("increments counter", () => {
+test("increments counter", () => {
   counter++;
   expect(counter).toBe(1);
 });
 
-it("checks counter", () => {
+test("checks counter", () => {
   expect(counter).toBe(0); // FAILS - counter is 1 from previous test
 });
 ```
@@ -55,12 +39,12 @@ describe("counter", () => {
     counter = 0;
   });
 
-  it("increments counter", () => {
+  test("increments counter", () => {
     counter++;
     expect(counter).toBe(1);
   });
 
-  it("starts at zero", () => {
+  test("starts at zero", () => {
     expect(counter).toBe(0); // PASSES - reset by beforeEach
   });
 });
@@ -115,54 +99,6 @@ vi.mock("./create-budget", async () => {
 
 ## When to Use vi.mock vs vi.fn vs vi.spyOn
 
-### vi.mock - Module-level replacement
-
-Use when you need to replace an entire imported module.
-
-```typescript
-// Replaces the entire ~/lib/database module
-vi.mock("~/lib/database", () => ({
-  db: {
-    insert: vi.fn(),
-    select: vi.fn(),
-  },
-}));
-```
-
-**When:** The module under test imports something you cannot or should not call in tests (database, network, file system).
-
-### vi.fn - Standalone mock function
-
-Use for callback props, event handlers, or any function you pass as an argument.
-
-```typescript
-const onSubmit = vi.fn();
-const onChange = vi.fn().mockReturnValue(true);
-
-// Pass as a callback
-await processForm(data, onSubmit);
-expect(onSubmit).toHaveBeenCalledWith(data);
-```
-
-**When:** You need a function to track calls, or to pass a fake callback into the code under test.
-
-### vi.spyOn - Watch an existing method
-
-Use when you want to observe or temporarily override a method on an existing object without replacing the entire module.
-
-```typescript
-const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-doSomethingThatLogs();
-
-expect(spy).toHaveBeenCalledWith("Expected error message");
-spy.mockRestore();
-```
-
-**When:** You want to verify a method was called, or temporarily replace one method while keeping the rest of the module intact.
-
-### Decision Table
-
 | Scenario                                  | Tool                          |
 | ----------------------------------------- | ----------------------------- |
 | Replace an entire imported module         | `vi.mock`                     |
@@ -179,11 +115,11 @@ Every function that can fail should have tests for its failure modes.
 
 ```typescript
 describe("error handling", () => {
-  it("throws on null input", () => {
+  test("throws on null input", () => {
     expect(() => processData(null)).toThrow("Input is required");
   });
 
-  it("rejects with ApiError on 404", async () => {
+  test("rejects with ApiError on 404", async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 404,
@@ -196,7 +132,7 @@ describe("error handling", () => {
     });
   });
 
-  it("returns error response for unauthorized access", async () => {
+  test("returns error response for unauthorized access", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
 
     const result = await createBudget(validInput);
@@ -204,7 +140,7 @@ describe("error handling", () => {
     expect(result).toEqual({ success: false, error: "Unauthorized" });
   });
 
-  it("handles database connection failure", async () => {
+  test("handles database connection failure", async () => {
     vi.mocked(db.insert).mockRejectedValue(new Error("ECONNREFUSED"));
 
     await expect(createBudget(validInput)).rejects.toThrow("ECONNREFUSED");
@@ -227,14 +163,14 @@ Test observable behavior (inputs and outputs), not internal mechanics.
 
 ```typescript
 // BAD - Testing implementation details
-it("calls internal validate function", () => {
+test("calls internal validate function", () => {
   const spy = vi.spyOn(module, "_validate");
   module.process(data);
   expect(spy).toHaveBeenCalled(); // Who cares? Test the RESULT instead.
 });
 
 // BAD - Testing internal state
-it("sets internal flag", () => {
+test("sets internal flag", () => {
   const instance = new Processor();
   instance.process(data);
   expect(instance._processed).toBe(true); // Internal state, not public API
@@ -243,12 +179,12 @@ it("sets internal flag", () => {
 
 ```typescript
 // GOOD - Testing observable behavior
-it("returns processed data for valid input", () => {
+test("returns processed data for valid input", () => {
   const result = module.process(validData);
   expect(result).toEqual(expectedOutput);
 });
 
-it("throws validation error for invalid input", () => {
+test("throws validation error for invalid input", () => {
   expect(() => module.process(invalidData)).toThrow("Validation failed");
 });
 ```
@@ -293,6 +229,9 @@ it("throws validation error for invalid input", () => {
 
 ### Checking Coverage
 
+Coverage needs `@vitest/coverage-v8` installed as a devDependency, matching
+`provider: "v8"` in `vitest.config.ts`; without it Vitest aborts on the first `--coverage` run.
+
 ```bash
 npm run test:unit -- --coverage
 
@@ -324,7 +263,7 @@ vi.mock("./utils");
 vi.mock("./helpers");
 vi.mock("./validators");
 
-it("works", async () => {
+test("works", async () => {
   // All the real logic is mocked away. This test verifies... mocks?
   const result = await processData(input);
   expect(result).toBeDefined(); // Meaningless
@@ -335,7 +274,7 @@ it("works", async () => {
 // GOOD - Mock only external boundaries, let internal logic run
 vi.mock("~/lib/database");
 
-it("processes and stores data", async () => {
+test("processes and stores data", async () => {
   vi.mocked(db.insert).mockResolvedValue({ id: "1" });
 
   const result = await processData(input);
@@ -352,7 +291,7 @@ it("processes and stores data", async () => {
 
 ```typescript
 // BAD - Snapshots for dynamic or complex objects
-it("returns user data", async () => {
+test("returns user data", async () => {
   const user = await getUser("123");
   expect(user).toMatchSnapshot(); // Snapshot of an entire user object
   // What happens when a new field is added? Auto-update hides real issues.
@@ -361,7 +300,7 @@ it("returns user data", async () => {
 
 ```typescript
 // GOOD - Explicit assertions on what matters
-it("returns user data", async () => {
+test("returns user data", async () => {
   const user = await getUser("123");
 
   expect(user.id).toBe("123");
@@ -381,25 +320,11 @@ Snapshots are problematic for:
 - Objects with dates, IDs, or random values
 - Anything where reviewers cannot easily verify correctness
 
-### 4. Test Descriptions That Do Not Describe Behavior
-
-```typescript
-// BAD
-it("test 1", () => { ... });
-it("should work", () => { ... });
-it("handles the case", () => { ... });
-
-// GOOD
-it("returns formatted currency string for positive amount", () => { ... });
-it("throws validation error when email is empty", () => { ... });
-it("retries request up to 3 times on network failure", () => { ... });
-```
-
-### 5. Multiple Unrelated Assertions in One Test
+### 4. Multiple Unrelated Assertions in One Test
 
 ```typescript
 // BAD - Testing multiple unrelated behaviors
-it("processes user", async () => {
+test("processes user", async () => {
   const user = await createUser(input);
   expect(user.id).toBeDefined();
   expect(user.email).toBe("test@example.com");
@@ -408,30 +333,30 @@ it("processes user", async () => {
 });
 
 // GOOD - Split into focused tests
-it("creates user with generated ID", async () => {
+test("creates user with generated ID", async () => {
   const user = await createUser(input);
   expect(user.id).toBeDefined();
   expect(user.email).toBe("test@example.com");
 });
 
-it("sends welcome email on user creation", async () => {
+test("sends welcome email on user creation", async () => {
   await createUser(input);
   expect(sendEmail).toHaveBeenCalledWith(
     expect.objectContaining({ to: "test@example.com" }),
   );
 });
 
-it("logs user creation to audit log", async () => {
+test("logs user creation to audit log", async () => {
   await createUser(input);
   expect(auditLog).toHaveBeenCalledWith("user.created", expect.any(Object));
 });
 ```
 
-### 6. Not Cleaning Up Mocks
+### 5. Not Cleaning Up Mocks
 
 ```typescript
 // BAD - Mocks leak between tests
-it("test A", () => {
+test("test A", () => {
   vi.spyOn(Math, "random").mockReturnValue(0.5);
   // ...
   // Forgot to restore! Now Math.random returns 0.5 for ALL subsequent tests.

@@ -1,69 +1,21 @@
 # Unit Testing - Examples
 
-Practical Vitest examples for common testing scenarios.
+Test utilities are global (`globals: true` in `vitest.config.ts`); only project modules are
+imported below. Examples use the `~/` alias for project modules — substitute whatever alias or
+relative path the project resolves.
 
-## Example 1: Testing a Pure Utility Function
+## Contents
 
-**Source:**
-
-```typescript
-// src/utils/clamp.ts
-export function clamp(value: number, min: number, max: number): number {
-  if (min > max) {
-    throw new Error("min must be less than or equal to max");
-  }
-  return Math.min(Math.max(value, min), max);
-}
-```
-
-**Test:**
-
-```typescript
-// src/utils/clamp.test.ts
-import { describe, it, expect } from "vitest";
-
-import { clamp } from "./clamp";
-
-describe("clamp", () => {
-  it("returns value when within range", () => {
-    expect(clamp(5, 0, 10)).toBe(5);
-  });
-
-  it("clamps to min when value is below range", () => {
-    expect(clamp(-5, 0, 10)).toBe(0);
-  });
-
-  it("clamps to max when value is above range", () => {
-    expect(clamp(15, 0, 10)).toBe(10);
-  });
-
-  it("returns min when value equals min", () => {
-    expect(clamp(0, 0, 10)).toBe(0);
-  });
-
-  it("returns max when value equals max", () => {
-    expect(clamp(10, 0, 10)).toBe(10);
-  });
-
-  it("handles equal min and max", () => {
-    expect(clamp(5, 3, 3)).toBe(3);
-  });
-
-  it("throws when min is greater than max", () => {
-    expect(() => clamp(5, 10, 0)).toThrow(
-      "min must be less than or equal to max",
-    );
-  });
-
-  it("handles negative ranges", () => {
-    expect(clamp(-5, -10, -1)).toBe(-5);
-  });
-});
-```
+1. [Testing a Zod Schema](#example-1-testing-a-zod-schema) — validation success, failure, and error shape
+2. [Testing a Server Action with Mocked Database](#example-2-testing-a-server-action-with-mocked-database) — `vi.mock` on the DB, auth guard, returned result contract
+3. [Testing a Transform Function](#example-3-testing-a-transform-function) — mapping and reshaping data, no mocks needed
+4. [Testing with Parameterized Data (`test.each`)](#example-4-testing-with-parameterized-data-testeach) — one table, many cases
+5. [Testing Async Functions with Error Handling](#example-5-testing-async-functions-with-error-handling) — `rejects.toThrow`, mocked `fetch`, fake timers
+6. [Testing Hooks with `@testing-library/react`](#example-6-testing-hooks-with-testing-libraryreact) — `renderHook` + `act` under a jsdom environment
 
 ---
 
-## Example 2: Testing a Zod Schema
+## Example 1: Testing a Zod Schema
 
 **Source:**
 
@@ -97,7 +49,6 @@ export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
 
 ```typescript
 // src/features/budgets/schemas/budget-schema.test.ts
-import { describe, it, expect } from "vitest";
 
 import { createBudgetSchema } from "./budget-schema";
 
@@ -108,7 +59,7 @@ describe("createBudgetSchema", () => {
     category: "food" as const,
   };
 
-  it("accepts valid input", () => {
+  test("accepts valid input", () => {
     const result = createBudgetSchema.safeParse(validInput);
 
     expect(result.success).toBe(true);
@@ -117,7 +68,7 @@ describe("createBudgetSchema", () => {
     }
   });
 
-  it("accepts valid input with optional description", () => {
+  test("accepts valid input with optional description", () => {
     const result = createBudgetSchema.safeParse({
       ...validInput,
       description: "Monthly grocery budget",
@@ -127,7 +78,7 @@ describe("createBudgetSchema", () => {
   });
 
   describe("name validation", () => {
-    it("rejects empty name", () => {
+    test("rejects empty name", () => {
       const result = createBudgetSchema.safeParse({ ...validInput, name: "" });
 
       expect(result.success).toBe(false);
@@ -136,7 +87,7 @@ describe("createBudgetSchema", () => {
       }
     });
 
-    it("rejects name exceeding 100 characters", () => {
+    test("rejects name exceeding 100 characters", () => {
       const result = createBudgetSchema.safeParse({
         ...validInput,
         name: "a".repeat(101),
@@ -152,13 +103,13 @@ describe("createBudgetSchema", () => {
   });
 
   describe("limit validation", () => {
-    it("rejects zero limit", () => {
+    test("rejects zero limit", () => {
       const result = createBudgetSchema.safeParse({ ...validInput, limit: 0 });
 
       expect(result.success).toBe(false);
     });
 
-    it("rejects negative limit", () => {
+    test("rejects negative limit", () => {
       const result = createBudgetSchema.safeParse({
         ...validInput,
         limit: -100,
@@ -167,7 +118,7 @@ describe("createBudgetSchema", () => {
       expect(result.success).toBe(false);
     });
 
-    it("rejects limit exceeding maximum", () => {
+    test("rejects limit exceeding maximum", () => {
       const result = createBudgetSchema.safeParse({
         ...validInput,
         limit: 1_000_001,
@@ -178,7 +129,7 @@ describe("createBudgetSchema", () => {
   });
 
   describe("category validation", () => {
-    it("rejects invalid category", () => {
+    test("rejects invalid category", () => {
       const result = createBudgetSchema.safeParse({
         ...validInput,
         category: "invalid",
@@ -187,7 +138,7 @@ describe("createBudgetSchema", () => {
       expect(result.success).toBe(false);
     });
 
-    it.each([
+    test.each([
       "food",
       "transport",
       "entertainment",
@@ -204,7 +155,7 @@ describe("createBudgetSchema", () => {
 
 ---
 
-## Example 3: Testing a Server Action with Mocked Database
+## Example 2: Testing a Server Action with Mocked Database
 
 **Source:**
 
@@ -248,7 +199,6 @@ export async function createBudget(
 
 ```typescript
 // src/features/budgets/actions/create-budget.test.ts
-import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("~/lib/database", () => ({
   db: {
@@ -275,7 +225,7 @@ describe("createBudget", () => {
     vi.clearAllMocks();
   });
 
-  it("creates a budget for an authenticated user", async () => {
+  test("creates a budget for an authenticated user", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({ id: "user-1", role: "user" });
     vi.mocked(db.insert).mockResolvedValue({ id: "budget-1" });
 
@@ -293,7 +243,7 @@ describe("createBudget", () => {
     );
   });
 
-  it("returns error when not authenticated", async () => {
+  test("returns error when not authenticated", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(null);
 
     const result = await createBudget(validInput);
@@ -302,7 +252,7 @@ describe("createBudget", () => {
     expect(db.insert).not.toHaveBeenCalled();
   });
 
-  it("returns validation errors for invalid input", async () => {
+  test("returns validation errors for invalid input", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({ id: "user-1", role: "user" });
 
     const result = await createBudget({
@@ -319,7 +269,7 @@ describe("createBudget", () => {
     expect(db.insert).not.toHaveBeenCalled();
   });
 
-  it("propagates database errors", async () => {
+  test("propagates database errors", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({ id: "user-1", role: "user" });
     vi.mocked(db.insert).mockRejectedValue(
       new Error("Database connection failed"),
@@ -334,7 +284,7 @@ describe("createBudget", () => {
 
 ---
 
-## Example 4: Testing a Transform Function
+## Example 3: Testing a Transform Function
 
 **Source:**
 
@@ -380,7 +330,6 @@ export function transformUsers(apiUsers: ApiUser[]): User[] {
 
 ```typescript
 // src/utils/transform-api-response.test.ts
-import { describe, it, expect } from "vitest";
 
 import {
   transformUser,
@@ -398,7 +347,7 @@ describe("transformUser", () => {
     created_at: "2025-06-15T10:00:00Z",
   };
 
-  it("maps snake_case fields to camelCase", () => {
+  test("maps snake_case fields to camelCase", () => {
     const result = transformUser(apiUser);
 
     expect(result.id).toBe("usr-123");
@@ -408,13 +357,13 @@ describe("transformUser", () => {
     expect(result.isActive).toBe(true);
   });
 
-  it("computes fullName from first and last name", () => {
+  test("computes fullName from first and last name", () => {
     const result = transformUser(apiUser);
 
     expect(result.fullName).toBe("Jane Doe");
   });
 
-  it("converts created_at string to Date object", () => {
+  test("converts created_at string to Date object", () => {
     const result = transformUser(apiUser);
 
     expect(result.createdAt).toBeInstanceOf(Date);
@@ -423,7 +372,7 @@ describe("transformUser", () => {
 });
 
 describe("transformUsers", () => {
-  it("transforms an array of API users", () => {
+  test("transforms an array of API users", () => {
     const apiUsers: ApiUser[] = [
       {
         user_id: "1",
@@ -451,7 +400,7 @@ describe("transformUsers", () => {
     expect(result[1].isActive).toBe(false);
   });
 
-  it("returns empty array for empty input", () => {
+  test("returns empty array for empty input", () => {
     expect(transformUsers([])).toEqual([]);
   });
 });
@@ -459,7 +408,7 @@ describe("transformUsers", () => {
 
 ---
 
-## Example 5: Testing with Parameterized Data (it.each)
+## Example 4: Testing with Parameterized Data (test.each)
 
 **Source:**
 
@@ -498,7 +447,6 @@ export function isEditable(status: Status): boolean {
 
 ```typescript
 // src/utils/get-status-label.test.ts
-import { describe, it, expect } from "vitest";
 
 import {
   getStatusLabel,
@@ -508,7 +456,7 @@ import {
 } from "./get-status-label";
 
 describe("getStatusLabel", () => {
-  it.each<{ status: Status; expected: string }>([
+  test.each<{ status: Status; expected: string }>([
     { status: "draft", expected: "Draft" },
     { status: "pending", expected: "Pending Review" },
     { status: "active", expected: "Active" },
@@ -520,7 +468,7 @@ describe("getStatusLabel", () => {
 });
 
 describe("getStatusColor", () => {
-  it.each`
+  test.each`
     status        | expected
     ${"draft"}    | ${"gray"}
     ${"pending"}  | ${"yellow"}
@@ -536,7 +484,7 @@ describe("getStatusColor", () => {
 });
 
 describe("isEditable", () => {
-  it.each<{ status: Status; expected: boolean }>([
+  test.each<{ status: Status; expected: boolean }>([
     { status: "draft", expected: true },
     { status: "pending", expected: true },
     { status: "active", expected: false },
@@ -550,7 +498,7 @@ describe("isEditable", () => {
 
 ---
 
-## Example 6: Testing Async Functions with Error Handling
+## Example 5: Testing Async Functions with Error Handling
 
 **Source:**
 
@@ -594,7 +542,6 @@ export async function fetchJson<T>(
 
 ```typescript
 // src/lib/api-client.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { fetchJson, ApiError } from "./api-client";
 
@@ -609,7 +556,7 @@ describe("fetchJson", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns parsed JSON on success", async () => {
+  test("returns parsed JSON on success", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: 1, name: "Test" }),
@@ -628,7 +575,7 @@ describe("fetchJson", () => {
     );
   });
 
-  it("throws ApiError on non-ok response", async () => {
+  test("throws ApiError on non-ok response", async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 404,
@@ -642,7 +589,7 @@ describe("fetchJson", () => {
     });
   });
 
-  it("includes default message when body is empty", async () => {
+  test("includes default message when body is empty", async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,
@@ -654,7 +601,7 @@ describe("fetchJson", () => {
     );
   });
 
-  it("merges custom headers with defaults", async () => {
+  test("merges custom headers with defaults", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({}),
@@ -675,7 +622,7 @@ describe("fetchJson", () => {
     );
   });
 
-  it("propagates network errors", async () => {
+  test("propagates network errors", async () => {
     mockFetch.mockRejectedValue(new TypeError("Failed to fetch"));
 
     await expect(fetchJson("/api/test")).rejects.toThrow("Failed to fetch");
@@ -685,7 +632,10 @@ describe("fetchJson", () => {
 
 ---
 
-## Example 7: Testing Hooks with @testing-library/react
+## Example 6: Testing Hooks with @testing-library/react
+
+Requires `@testing-library/react` as a devDependency and a jsdom environment for this file — add
+`// @vitest-environment jsdom` at the top of the test file when the project default is `node`.
 
 **Source:**
 
@@ -714,7 +664,6 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 ```typescript
 // src/hooks/use-debounce.test.ts
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 import { useDebounce } from "./use-debounce";
@@ -724,13 +673,13 @@ describe("useDebounce", () => {
     vi.useFakeTimers();
   });
 
-  it("returns initial value immediately", () => {
+  test("returns initial value immediately", () => {
     const { result } = renderHook(() => useDebounce("hello", 500));
 
     expect(result.current).toBe("hello");
   });
 
-  it("does not update value before delay", () => {
+  test("does not update value before delay", () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "hello", delay: 500 } },
@@ -746,7 +695,7 @@ describe("useDebounce", () => {
     expect(result.current).toBe("hello");
   });
 
-  it("updates value after delay", () => {
+  test("updates value after delay", () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "hello", delay: 500 } },
@@ -761,7 +710,7 @@ describe("useDebounce", () => {
     expect(result.current).toBe("world");
   });
 
-  it("resets timer on rapid value changes", () => {
+  test("resets timer on rapid value changes", () => {
     const { result, rerender } = renderHook(
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: "a", delay: 500 } },
@@ -793,7 +742,7 @@ describe("useDebounce", () => {
     expect(result.current).toBe("abcd");
   });
 
-  it("cleans up timer on unmount", () => {
+  test("cleans up timer on unmount", () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
     const { unmount } = renderHook(() => useDebounce("hello", 500));
