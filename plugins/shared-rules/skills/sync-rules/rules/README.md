@@ -10,7 +10,8 @@ to mirror the grouping described in the
 
 | File | Scope (`paths:`) | Covers |
 |------|-------------------|--------|
-| `code-style.md` | unscoped (applies everywhere) | Function declarations, React namespace import, `Array<Type>`, ternary conditional rendering, enum const objects, list keys |
+| `typescript.md` | `**/*.ts`, `**/*.tsx`, `**/*.vue` | Function declarations, method-signature function types, `Array<Type>`, enum const objects, JSDoc comments |
+| `react.md` | `**/*.ts`, `**/*.tsx`, `**/*.js`, `**/*.jsx` | React namespace import, ternary conditional rendering, stable list keys (`.ts` included because `React.cache` lives in server modules) |
 | `db-patterns.md` | `**/server/**/*.ts` | Drizzle ORM + PostgreSQL (Supabase) canonical DB/service layer patterns |
 | `nextjs-page-layout-patterns.md` | `app/**/*.{ts,tsx}` | `page.tsx` / `layout.tsx` structure for the Next.js App Router |
 | `feature-architecture.md` | `features/**/*.{ts,tsx}`, `src/features/**/*.{ts,tsx}` | `features/<domain>/` directory structure, server/client boundary, layer rules |

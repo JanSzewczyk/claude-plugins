@@ -1,7 +1,7 @@
 {
   "name": "shared-rules",
   "description": "Single source of truth for `.claude/rules/` files shared across many repositories — pull the latest canonical rules into any project with drift detection.",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

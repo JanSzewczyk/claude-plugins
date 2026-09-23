@@ -76,12 +76,12 @@ runs `/sync-rules`.
 
 **Example 1**
 Input: `/sync-rules` in a Next.js + Drizzle/Supabase repo that has never synced before.
-Action: `--list` shows all four canonical rules as `add`. Read each, then check `package.json`
+Action: `--list` shows all five canonical rules as `add`. Read each, then check `package.json`
 (finds `next`, `drizzle-orm`, `@supabase/*`) and `CLAUDE.md` (confirms the stack) — no further
 digging needed. Note that `db-patterns.md`, `nextjs-page-layout-patterns.md`, and
-`feature-architecture.md` match the stack directly and `code-style.md` is stack-agnostic and
-generally applicable. Present all four as a checklist recommending all four; sync whatever the
-user leaves checked.
+`feature-architecture.md` match the stack directly, `react.md` matches the `react` dependency,
+and `typescript.md` applies to any TypeScript repo. Present all five as a checklist
+recommending all five; sync whatever the user leaves checked.
 
 **Example 2**
 Input: `/sync-rules` in a repo with no `next` dependency in `package.json` and no `CLAUDE.md`.
@@ -91,7 +91,7 @@ doesn't appear to use the Next.js App Router, so the recommendation is to leave 
 don't go further (e.g. reading route files) just to be sure.
 
 **Example 3**
-Input: `/sync-rules` where `code-style.md` shows `conflict` because someone hand-edited it
+Input: `/sync-rules` where `typescript.md` shows `conflict` because someone hand-edited it
 locally.
 Action: include it in the checklist with a note that it has local edits and selecting it will
 discard them; if approved, sync that file with `--force`.
