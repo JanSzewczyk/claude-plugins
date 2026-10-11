@@ -4,12 +4,14 @@ description: >
   Generate or update a project's README.md plus a ready-to-paste GitHub
   repository description and topics list, following the Szum-Tech
   documentation standard. Auto-detects project type (web app, mobile app,
-  npm package, CLI tool, monorepo, Claude plugin) by analyzing
-  package.json, configs, and folder structure, then confirms with the user
-  before generating. Use whenever the user asks to "create README",
-  "update README", "document repository", "generate project docs",
-  "GitHub description", "GitHub topics", or invokes
-  /repository-documentation.
+  npm package, CLI tool, monorepo, Claude plugin) and confirms it with the
+  user before generating. Use whenever the user wants a README written,
+  refreshed or fixed, asks to document a repo or a freshly scaffolded
+  project, or needs the GitHub About text, description or topics — even if
+  they only say "this repo has no docs" or "the README is outdated after
+  the refactor". Also invoked as /repository-documentation. Not for
+  CLAUDE.md (use claude-md-improver) or for catching a repo up with its
+  template (use template-sync).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -33,25 +35,14 @@ GitHub's global search and discoverability.
 
 ## Workflow
 
-Follow these steps in order. Do not skip steps — each one feeds the next.
+Follow these steps in order; a step is skipped only under its stated condition (Step 5, and the `gh` sub-steps of 9b).
 
 ### Step 1 — Detect project type
 
-Read configuration files in the repository root to determine the project
-type. Apply the rules in `references/detection-rules.md`. Use parallel
-`Read`/`Glob` calls for speed.
-
-Files to probe (in priority order):
-
-- `.claude-plugin/marketplace.json` or any `plugin.json` with `skills`/`agents` → **claude-plugin**
-- `package.json` → check `dependencies`, `bin`, `workspaces`, `main`/`exports`
-- `app.json`, `expo.json`, `metro.config.js` → **mobile-app**
-- `pubspec.yaml` → **mobile-app** (Flutter)
-- `turbo.json`, `nx.json`, `pnpm-workspace.yaml`, `lerna.json` → **monorepo**
-- `next.config.*`, `vite.config.*`, `app/` or `pages/` directory → **web-app**
-- `bin/` directory or `package.json#bin` field → **cli-tool**
-- npm package indicators: `main`, `module`, `exports`, `types`, `files`, `publishConfig` → **npm-package**
-- nothing matches → **generic**
+Read the configuration files in the repository root (`package.json`,
+`app.json`, `pubspec.yaml`, `turbo.json`, `next.config.*`, `bin/`, the plugin
+manifests) in parallel `Read`/`Glob` calls, and apply the priority-ordered
+rules in `references/detection-rules.md` — first match wins.
 
 Build an **evidence list** (e.g., `["expo@~50 in deps", "app.json present", "metro.config.js"]`)
 so you can show the user *why* you picked the type.
@@ -92,9 +83,7 @@ Extract everything you can from the filesystem without asking:
 
 `package.json#description` is often too short or stale. Before writing the
 description and tagline, read the actual source to understand what the project
-really does. Use parallel `Read`/`Grep` calls for speed.
-
-**What to read (in priority order):**
+really does. **What to read (in priority order):**
 
 1. **Entry points** — `src/index.ts`, `src/main.ts`, `app/layout.tsx`,
    `src/App.tsx`, `src/cli.ts`, `bin/<name>` — reveals core API surface and
@@ -130,8 +119,12 @@ can read from disk.
 
 ### Step 4 — Load the right template
 
-Read `templates/<detected-type>.md`. The template uses `{{placeholders}}`
-that map directly to fields gathered in Step 3.
+Read the template for the confirmed type: [web-app](templates/web-app.md),
+[mobile-app](templates/mobile-app.md), [npm-package](templates/npm-package.md),
+[cli-tool](templates/cli-tool.md), [monorepo](templates/monorepo.md),
+[claude-plugin](templates/claude-plugin.md), or
+[generic](templates/generic.md) as the fallback. The template uses
+`{{placeholders}}` that map directly to fields gathered in Step 3.
 
 ### Step 5 — Merge with existing README (if any)
 
@@ -161,17 +154,11 @@ Apply standards from `references/section-standards.md`:
 - Language tags on every code fence
 - Closing footer with "Back to Top" link
 
-Pick badges from `references/badges-registry.md` matching the detected
+Read `references/badges-registry.md` and pick badges matching the detected
 stack (license, package version, build, coverage, etc.).
 
-**Dependencies must be rendered as dynamic version badges.** Anywhere the
-README enumerates project dependencies — Features → Core Technologies,
-Tech Stack, Peer Dependencies in npm packages, "Built with" lists — emit
-one shields.io `github/package-json/dependency-version` badge per entry,
-pulling the live version from `package.json`. Static colour-chip badges
-are forbidden for anything that exists as a package in `package.json`.
-See `references/section-standards.md` → *Dependencies / tech stack
-rendering* for the exact format.
+Render every dependency list as dynamic version badges, as specified in
+`references/section-standards.md` → *Dependencies / tech stack rendering*.
 
 ### Step 7 — Generate GitHub description
 
@@ -199,22 +186,43 @@ Prefer well-known GitHub topics (check that they exist on
 github.com/topics if uncertain). Avoid niche names no one searches for.
 See `references/github-metadata.md` for curated topic pools per type.
 
+### Quality bar (run against the draft before Step 9)
+
+Run every item against the draft README, description and topics. Fix each
+failure and re-check until all pass; only then write the README and touch
+GitHub.
+
+- [ ] Header is wrapped in `<div align="center">` and contains title + at least one badge + tagline
+- [ ] Every H2 and H3 starts with an emoji
+- [ ] Table of Contents links resolve (anchors match section titles)
+- [ ] All code fences specify a language
+- [ ] Project Structure tree reflects actual directories (verified with `Glob`)
+- [ ] License section matches actual `LICENSE` file (read it; don't assume MIT)
+- [ ] Scripts section lists scripts present in `package.json` (no invented commands)
+- [ ] GitHub description ≤ 350 chars and contains no markdown
+- [ ] GitHub topics: 5–20 items, all kebab-case, no duplicates
+- [ ] No `{{placeholders}}` remain unsubstituted in the final file
+- [ ] Every dependency / tech-stack entry is a dependency-version badge
+
 ### Step 9 — Write README, auto-update GitHub & report
 
 #### 9a — Write README.md
 
-`Write` the generated content to `README.md` in the repository root.
+Once the quality bar passes, `Write` the generated content to `README.md`
+in the repository root.
 
 #### 9b — Auto-update GitHub repository (via gh CLI)
 
-Run the following sequence using `Bash`. At each step, capture the exit
-code; on failure record the error and continue to 9c — do NOT abort.
+This overwrites the repository's description and **all** topics on GitHub, and
+the old values are not recoverable afterwards — so read them first and get
+approval. If any `gh` command fails, record the error and continue to 9c —
+do NOT abort.
 
 1. **Check auth:**
    ```bash
    gh auth status
    ```
-   If the command fails (not installed or not logged in), skip steps 2–4
+   If the command fails (not installed or not logged in), skip steps 2–5
    and note the reason in the report.
 
 2. **Get repo owner/name:**
@@ -222,24 +230,34 @@ code; on failure record the error and continue to 9c — do NOT abort.
    gh repo view --json nameWithOwner -q .nameWithOwner
    ```
    If this fails (not a GitHub remote, no remote configured), skip
-   steps 3–4 and note the reason.
+   steps 3–5 and note the reason.
 
-3. **Set description:**
+3. **Read current state and ask:**
+   ```bash
+   gh repo view --json description,repositoryTopics
+   ```
+   Show old vs new description and topics, then ask once with
+   `AskUserQuestion` whether to apply. If the user declines, skip steps 4–5
+   and print the manual commands in the report. Keep the old values in the
+   report so they can be restored.
+
+4. **Set description:**
    ```bash
    gh repo edit --description "<generated description>"
    ```
 
-4. **Replace all topics** (PUT overwrites existing topics completely):
-   Build one `-f "names[]=<topic>"` argument per topic, then call:
+5. **Replace all topics** (PUT overwrites existing topics completely) with the
+   list validated in Step 8, one `-f "names[]=<topic>"` argument per topic:
    ```bash
-   gh api repos/<owner>/<repo>/topics -X PUT \
-     -f "names[]=topic1" -f "names[]=topic2" ...
+   gh api repos/<owner>/<repo>/topics -X PUT      -f "names[]=nextjs" -f "names[]=typescript" -f "names[]=vitest"
    ```
 
 #### 9c — Final report
 
 Output a structured summary. Use the exact layout below, filling in the
-correct values. Omit the `[If updating…]` block for new READMEs.
+correct values. Omit the `[If updating…]` block for new READMEs. Always end
+the GitHub section with the description text and topic list, whether or not
+the update succeeded.
 
 ```
 ─────────────────────────────────────────────────────────────────
@@ -281,38 +299,3 @@ correct values. Omit the `[If updating…]` block for new READMEs.
 
 ─────────────────────────────────────────────────────────────────
 ```
-
----
-
-## Quality bar (must-pass before finishing)
-
-- [ ] Header is wrapped in `<div align="center">` and contains title + at least one badge + tagline
-- [ ] Every H2 starts with an emoji
-- [ ] Table of Contents links resolve (anchors match section titles)
-- [ ] All code fences specify a language
-- [ ] Project Structure tree reflects actual directories (verified with `Glob`)
-- [ ] License section matches actual `LICENSE` file (read it; don't assume MIT)
-- [ ] Scripts section lists scripts present in `package.json` (no invented commands)
-- [ ] GitHub description ≤ 350 chars and contains no markdown
-- [ ] GitHub topics: 5–20 items, all kebab-case, no duplicates
-- [ ] No `{{placeholders}}` remain unsubstituted in the final file
-- [ ] Every dependency / tech-stack entry is rendered as a shields.io
-      `github/package-json/dependency-version/{owner}/{repo}/...` badge
-      (or `npm/v/...` fallback) — no static colour-chip badges for
-      anything that exists in `package.json`
-
----
-
-## Files in this skill
-
-- `templates/web-app.md` — Next.js / Vite / React SPA
-- `templates/mobile-app.md` — React Native / Expo / Flutter
-- `templates/npm-package.md` — Published library
-- `templates/cli-tool.md` — Command-line tool
-- `templates/monorepo.md` — Turborepo / Nx / pnpm workspaces
-- `templates/claude-plugin.md` — This repo's plugin format
-- `templates/generic.md` — Fallback
-- `references/detection-rules.md` — Type detection signals
-- `references/section-standards.md` — Canonical section structure & style
-- `references/badges-registry.md` — shields.io badge catalog
-- `references/github-metadata.md` — Description format + topics pools

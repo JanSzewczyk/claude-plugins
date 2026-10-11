@@ -1,5 +1,7 @@
 # Badges Registry
 
+Contents: header badges per project type · CI / quality badges · dependency version badges (required for tech stack and dependencies) · logo slug cheat-sheet · static fallback · license badges · rules.
+
 Curated shields.io badges for the README header and inline sections.
 Pick 2-5 for the header (signal + status + meta) and use the rest inline
 in their relevant sections.
