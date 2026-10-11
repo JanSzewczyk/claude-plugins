@@ -1,0 +1,58 @@
+{
+  "flow": "example-triage",
+  "phases": [
+    {
+      "n": 0,
+      "title": "Preflight",
+      "artifact": "00-preflight.md",
+      "checks": [
+        { "type": "field", "name": "Tools", "enum": ["ok"], "message": "every tool the run touches must answer before phase 1 — record Tools: ok" },
+        { "type": "sections", "headings": ["## Target"] }
+      ]
+    },
+    {
+      "n": 1,
+      "title": "Read the input",
+      "artifact": "01-reading.md",
+      "checks": [
+        { "type": "sections", "headings": ["## What happened", "## What the input does not say"], "min_chars": 40 }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "Find the cause",
+      "artifact": "02-evidence.md",
+      "checks": [
+        { "type": "field", "name": "Level", "enum": ["unlocated", "located", "verified"] },
+        { "type": "sections", "headings": ["## Where", "## Not verified"] },
+        { "type": "regex", "pattern": "^Where: \\S+:\\d+", "message": "02-evidence.md needs a 'Where: <path>:<line>' line from this run's search" }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Improve the signal",
+      "artifact": "03-signal.md",
+      "conditional": true,
+      "run_when": { "artifact": "02-evidence.md", "field": "Level", "equals": "unlocated" },
+      "checks": [
+        { "type": "sections", "headings": ["## Proposal"] }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Verdict",
+      "artifact": "04-verdict.md",
+      "checks": [
+        { "type": "field", "name": "Ticket", "enum": ["yes", "no"] },
+        { "type": "field", "name": "Do-next" },
+        {
+          "type": "implies",
+          "if": { "artifact": "04-verdict.md", "field": "Ticket", "equals": "yes" },
+          "then": { "artifact": "02-evidence.md", "field": "Level", "equals": "verified" },
+          "message": "a ticket documents a defect already proved — Ticket: yes needs Level: verified in 02-evidence.md"
+        },
+        { "type": "absent", "pattern": "(?i)\\bprobably\\b", "message": "the verdict says 'probably' — state the level of evidence instead" }
+      ]
+    }
+  ]
+}
