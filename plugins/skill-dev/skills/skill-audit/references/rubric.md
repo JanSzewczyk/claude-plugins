@@ -103,6 +103,7 @@ not *does it cost anything*.
 | `R4.solve-dont-defer` | Does a bundled script handle its error conditions, or throw and leave the model to work it out? A script that fails with a bare stack trace has handed the problem back. |
 | `R4.constants` | Check the script's `magicNumbers` metric. A number with no explanation that the reader cannot derive is a voodoo constant — but most entries are HTTP statuses, indices or obvious limits. Report only the ones where you could not work out the value's reason. |
 | `R4.deps` | Does the script assume something is installed without saying so? |
+| `R4.prerequisites` | A skill that bundles scripts, or whose text calls external tools (CLI commands, MCP servers, env vars), needs a `## Prerequisites` section in `SKILL.md` listing each one, a check command and how to install it. Missing section or an unlisted dependency is a `warn`. |
 | `R4.execute-or-read` | At the call site, is it clear whether to run the file or read it? Running costs the output; reading costs every line. |
 | `R4.mcp-names` | MCP tools referenced in prose need the fully qualified `ServerName:tool_name` form. Without the prefix the lookup fails when several servers are connected. |
 
