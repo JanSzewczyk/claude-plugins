@@ -13,6 +13,7 @@ This plugin is about **craft**: whether a single skill is well built, and whethe
 | **skill-audit** | `/skill-audit` | Audit one skill for authoring quality — triggering, context budget, dead links and orphan references, prose economy — and get back a report with proposed edits |
 | **skill-ab-optimizer** | `/skill-ab-optimizer` | A/B test and improve Claude Code skills — quantitative metrics on triggering and outcomes, changes accepted only when they measurably help |
 | **workflow-creator** | `/workflow-creator` | Create, audit or optimize a Claude Code dynamic workflow script — `agent()` / `pipeline()` / `parallel()` orchestration, with a static checker and an audit rubric |
+| **workflow-skill-creator** | `/workflow-skill-creator` | Create, rework or audit a multi-step workflow skill — picks the lowest enforcement tier that holds the process, with a structural audit script and an optional phase gate |
 
 ## Installation
 
