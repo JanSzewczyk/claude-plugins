@@ -1,6 +1,6 @@
 ---
 name: template-sync
-description: "Run inside a repository that was created from a GitHub template repository ('Use this template') to find what the template has changed since — dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding — check which of those changes this repository is still missing, has already made by hand, or has deliberately done differently, and write an ordered implementation plan for bringing it up to date. Use whenever someone wants a derived project caught up with its template or starter: 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'przenieś zmiany z template'u', 'zsynchronizuj z szablonem', 'template się zmienił, co trzeba zrobić tutaj', 'plan aktualizacji z template'u', 'sync with the template', 'what did the template change that we don't have', 'catch this repo up with the starter', 'backport template updates', 'template drift'. Also when someone asks how far a project has drifted from the boilerplate it started from. Read-only apart from writing the plan file: it plans, it does not apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to their latest registry versions (update-deps), or migrating one component to a new library (migration)."
+description: "Catch a repository created from a GitHub template ('Use this template') up with what the template changed since: dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding. Finds which changes the repo is missing, already made by hand, or deliberately does differently, and writes an ordered implementation plan. Use for 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'zsynchronizuj z szablonem', 'sync with the template', 'what did the template change that we don't have', 'backport template updates', 'template drift', or how far a project has drifted from its starter. Read-only apart from the plan file: it plans, it does not apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to latest (update-deps), or migrating one component to a new library (migration)."
 argument-hint: "[template OWNER/NAME | URL | local path — optional, discovered from GitHub when omitted] [--since SHA]"
 ---
 
@@ -18,8 +18,28 @@ the template made since the project was cut, what state the project is in for
 each one, and the ordered steps to bring it in. It is read-only. It writes one
 plan file and changes nothing else in the repository.
 
-Talk to the user in the language they use. Write the plan in that language
-too, unless they ask otherwise.
+Write the plan in the user's language unless they ask otherwise.
+
+## Prerequisites
+
+The inventory script needs Python 3.8+ and `git`; `gh` (authenticated) is
+needed to discover the template from GitHub and to open its PRs. Check first:
+
+```bash
+python3 --version && git --version && gh auth status
+```
+
+If `python3` is missing, install it, then re-run the check:
+
+| Platform | Install |
+|---|---|
+| Windows | `winget install Python.Python.3.12`, then reopen the terminal. The command may be `python` or `py -3` instead of `python3`; use whichever works. |
+| macOS | `brew install python` |
+| Debian/Ubuntu | `sudo apt install python3` |
+| Fedora | `sudo dnf install python3` |
+
+Do not install anything without the user's go-ahead; say what is missing and
+the command, and wait.
 
 ## The path
 
@@ -46,8 +66,7 @@ python3 <skill-dir>/scripts/template_drift.py --repo . --workdir <scratchpad>/te
 It finds the template (from `--template`, else the `.template-sync.json`
 marker, else GitHub's `templateRepository`), clones it blob-less into the
 workdir, finds the **anchor** — the template commit the project last matched —
-and classifies every file the template changed since. Read
-`references/script-output.md` for the fields and states.
+and classifies every file the template changed since.
 
 The anchor decides everything downstream, so check how it was found:
 
@@ -161,14 +180,10 @@ move or turn into tickets.
   keep this repo's extra `vue/` rules (lines 14–22 of the old file)" is.
 - **Every changed file in drift.json is accounted for** — in an item, in
   *Already done*, or in *Not applicable / set aside*. Nothing silently dropped.
-- **The last item records the sync:** create or update `.template-sync.json`
-  in the repo root so the next run starts from here instead of re-detecting:
-
-  ```json
-  { "template": "<OWNER/NAME or URL>", "ref": "<branch>", "last_synced_sha": "<template head SHA>", "synced_at": "<date>" }
-  ```
-
-  Changes the user decides not to take go into a `skipped` list,
+- **The last item records the sync** in `.template-sync.json` in the repo root
+  (shape in `references/plan-template.md`) so the next run starts from here
+  instead of re-detecting. Changes the user decides not to take go into its
+  `skipped` list,
   `[{ "change": "...", "paths": ["..."], "reason": "..." }]`, so the next run
   reports them as previously skipped instead of as new. If only part of the
   plan is applied, `last_synced_sha` stays at the old anchor: the applied part
