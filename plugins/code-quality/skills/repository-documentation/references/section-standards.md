@@ -1,6 +1,8 @@
 # Section Standards (Szum-Tech README)
 
-The canonical structure derived from `nextjs-szumplate/README.md`. Every
+Contents: canonical section order · header block (title, badges, tagline, nav) · style rules (heading emojis, features format, dependency badges, code blocks, tables, links) · Getting Started, Project Structure and footer skeletons · anti-patterns.
+
+The canonical structure for every generated README. Every
 generated README follows this skeleton; per-type templates add or omit
 specific sections but preserve the overall flow and style.
 
@@ -90,19 +92,13 @@ Group features into sub-sections by category. Each feature line:
 
 ### Dependencies / tech stack rendering
 
-Whenever the README enumerates project dependencies, the **Tech Stack**, the
-"Core Technologies" sub-section of Features, or any list of libraries the
-project depends on — render every entry as a **shields.io dependency-version
-badge** that auto-reflects the version pinned in `package.json`. Static
-colour-chip badges are forbidden for anything that exists as a package in
-`package.json`.
-
-Use the format from `badges-registry.md` →
-*Dependency version badges*:
-
-```
-https://img.shields.io/github/package-json/dependency-version/{owner}/{repo}/{kind?}/{scope?}/{package}?logo={slug}&logoColor=white&label={Label}
-```
+Whenever the README enumerates project dependencies — the **Tech Stack**, the
+"Core Technologies" sub-section of Features, Peer Dependencies, "Built with"
+lists — render every entry as a **shields.io dependency-version badge** that
+auto-reflects the version pinned in `package.json`. Static colour-chip badges
+are forbidden for anything that exists as a package in `package.json`. The URL
+format and the `npm/v/` fallback live in `badges-registry.md` →
+*Dependency version badges*.
 
 For grouped bullet lists, place the badge before the description:
 
@@ -116,9 +112,6 @@ For a compact "Tech Stack" line, render badges inline:
 ```markdown
 [![Next.js](…/next?…)](…) [![React](…/react?…)](…) [![TypeScript](…/dev/typescript?…)](…)
 ```
-
-Use `npm/v/{package}` only as a fallback when there's no public GitHub repo
-to read `package.json` from.
 
 ### Code blocks
 
