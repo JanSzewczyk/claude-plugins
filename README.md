@@ -61,6 +61,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, commits, and a final report
 - **🧹 [dead-code](./plugins/code-quality/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
 - **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
+- **🧬 [template-sync](./plugins/code-quality/skills/template-sync/)** — Finds what a GitHub template repository changed since your project was created from it and writes an ordered catch-up plan
 - **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
 - **🔎 [skill-audit](./plugins/skill-dev/skills/skill-audit/)** — Audits one skill for authoring quality — triggering, context budget, dead references, and prose that does not earn its tokens
@@ -100,7 +101,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 | [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 8 | [README](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dead-code sweeps, dependency management | 3 | 4 | [README](./plugins/code-quality/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dead-code sweeps, dependency management | 3 | 5 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
@@ -333,7 +334,7 @@ claude-plugins/
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
-    │   └── skills/                # 4 skills (performance-optimization, update-deps, …)
+    │   └── skills/                # 5 skills (performance-optimization, update-deps, …)
     ├── firebase/                  # Firebase & database architecture
     │   ├── plugin.json
     │   ├── agents/                # database-architect
