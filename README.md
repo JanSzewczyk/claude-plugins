@@ -66,6 +66,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
 - **🔎 [skill-audit](./plugins/skill-dev/skills/skill-audit/)** — Audits one skill for authoring quality — triggering, context budget, dead references, and prose that does not earn its tokens
 - **🔬 [skill-ab-optimizer](./plugins/skill-dev/skills/skill-ab-optimizer/)** — A/B tests skill wording and accepts a change only when the measured outcome improves
+- **🧩 [workflow-creator](./plugins/skill-dev/skills/workflow-creator/)** — Creates, audits and optimizes Claude Code dynamic workflow scripts (`agent()` / `pipeline()` / `parallel()`)
 - **🔥 [firebase-firestore](./plugins/firebase/skills/firebase-firestore/)** — Firestore patterns, security rules, data types, and seeding
 - **🔄 [db-migration](./plugins/firebase/skills/db-migration/)** — Firebase data migration scripts and patterns
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
@@ -107,11 +108,11 @@ The collection covers ten domains: Next.js development, React UI development, de
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
 | [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
 | [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging | — | 2 | [README](./plugins/plugin-dev/README.md) |
-| [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes | — | 2 | [README](./plugins/skill-dev/README.md) |
+| [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts | — | 3 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests | — | 3 | [README](./plugins/git-workflow/README.md) |
 
-**Total: 10 agents · 39 skills**
+**Total: 10 agents · 41 skills**
 
 ---
 
@@ -354,7 +355,7 @@ claude-plugins/
     │   └── skills/                # 2 skills (marketplace-doctor, plugin-release)
     ├── skill-dev/                  # Skill authoring quality & A/B testing
     │   ├── plugin.json
-    │   └── skills/                # 2 skills (skill-audit, skill-ab-optimizer)
+    │   └── skills/                # 3 skills (skill-audit, skill-ab-optimizer, workflow-creator)
     ├── shared-rules/               # Source of truth for .claude/rules/ files
     │   ├── plugin.json
     │   └── skills/                # 1 skill (sync-rules)

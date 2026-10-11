@@ -1,0 +1,69 @@
+{
+  "skill_name": "workflow-creator",
+  "evals": [
+    {
+      "id": 0,
+      "name": "create-audit-workflow",
+      "prompt": "Napisz mi Claude Code dynamic workflow (plik .js do ~/.claude/workflows/) o nazwie audit-routes, który sprawdza każdy handler w src/routes/ pod kątem brakujących sprawdzeń autoryzacji, a każdy finding weryfikuje adwersaryjnie zanim go zaraportuje. Chcę móc podać katalog przez args. Zapisz skrypt do outputs/ i napisz, co trzeba dodać do allow rules przed uruchomieniem.",
+      "expected_output": "A file audit-routes.js with export const meta first (pure literal, name audit-routes, phases), a discover agent with a schema, a pipeline over files with a refute stage per finding, args guarded, results filtered for null, log() at transitions, labels on fan-out agents, and a short note listing allow rules. The checker returns PASS or WARN with no blockers.",
+      "files": [],
+      "expectations": [
+        "audit-routes.js exists and the checker finds no blocker (PASS or WARN)",
+        "meta is the first statement, a pure literal, named audit-routes",
+        "the discover step and the finding handoff use a schema",
+        "each finding goes through an adversarial refute stage (prompt says refute/obal, default to refuted)",
+        "the target directory comes from args and args is guarded",
+        "parallel/pipeline results are filtered for null before use",
+        "fan-out agents carry labels and the script logs stage transitions",
+        "no nondeterministic call, module import or runtime access",
+        "notes name at least one concrete allow rule and the ~/.claude/workflows save location",
+        "notes recommend a pilot run on a slice before the full run"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "audit-broken-script",
+      "prompt": "Sprawdź ten skrypt workflow zanim go odpalę na całym repo i powiedz, co w nim jest nie tak, z priorytetami. Plik: broken-audit-routes.js (dołączony). Nie poprawiaj go, tylko zraportuj.",
+      "expected_output": "A ranked report that names, at minimum: meta is not the first statement and is not a pure literal, Date.now() breaks resume, parallel() receives promises instead of thunks, the budget.remaining() loop never ends without budget.total, FINDING schema requires a key it does not declare, args is used unguarded, the first agent has no schema although its result is destructured, nulls from parallel() are not filtered, the slice(0, 10) cap is silent. Verdict is fix first or re-shape, not ship. No edits to the file.",
+      "files": [
+        "tests/fixtures/broken-audit-routes.js"
+      ],
+      "expectations": [
+        "report says meta is not the first statement",
+        "report says meta is not a pure literal (DIMENSIONS reference)",
+        "report flags Date.now() as breaking resume",
+        "report flags parallel() receiving promises instead of thunks",
+        "report flags the budget.remaining() loop as unbounded without budget.total",
+        "report flags the FINDING schema requiring \"summary\" that is not declared",
+        "report flags args used without a guard",
+        "report flags the first agent returning prose because it has no schema",
+        "report flags null results from parallel() not being filtered",
+        "report flags the slice(0, 10) cap as silent",
+        "report gives a verdict that is not ship",
+        "the input file was not modified",
+        "findings are ranked by severity"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "optimize-slow-review",
+      "prompt": "Ten workflow działa poprawnie, ale ostatni run zjadł 1.4M tokenów i trwał 26 minut na 3 wymiarach i 31 findingach. Zoptymalizuj go: mniej tokenów i krótszy wall-clock bez utraty weryfikacji. Plik slow-review.js jest dołączony. Zapisz poprawioną wersję do outputs/slow-review.js i wypisz, co zmieniłeś i dlaczego.",
+      "expected_output": "A rewritten slow-review.js where the two barriers become a pipeline over DIMENSIONS with the verify stage per finding, model overrides removed or justified, effort lowered on the review stage only if justified, labels and log() added, null slots filtered, meta unchanged and still first. The explanation names the levers: pipeline over barrier, prompt-cache prefix sharing, effort per stage. The checker returns PASS.",
+      "files": [
+        "tests/fixtures/slow-review.js"
+      ],
+      "expectations": [
+        "optimized slow-review.js exists and the checker returns PASS (no blocker, no major)",
+        "the two barriers became a pipeline over DIMENSIONS",
+        "per-agent model overrides removed",
+        "null slots filtered or guarded",
+        "labels on fan-out agents and log() at transitions",
+        "meta still first, name slow-review, phases consistent with the body",
+        "verification per finding is kept (a refute/verify agent with a verdict schema)",
+        "changes.md names pipeline-over-barrier as a lever",
+        "changes.md names prompt-cache prefix sharing",
+        "changes.md names effort per stage"
+      ]
+    }
+  ]
+}
