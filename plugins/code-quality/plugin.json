@@ -1,5 +1,6 @@
 {
   "name": "code-quality",
+  "displayName": "Code Quality",
   "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management agents and skills.",
   "version": "2.5.0",
   "author": {
@@ -9,6 +10,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
+  "keywords": ["code-review", "performance", "dead-code", "dependencies", "documentation"],
   "agents": [
     "./agents/code-reviewer.md",
     "./agents/performance-analyzer.md",

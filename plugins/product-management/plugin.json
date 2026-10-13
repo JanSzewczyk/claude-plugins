@@ -1,7 +1,8 @@
 {
   "name": "product-management",
+  "displayName": "Product Management",
   "description": "Product management orchestration — parse PRD/TDD documents and coordinate specialist agents across implementation phases.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -9,6 +10,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
+  "keywords": ["prd", "tdd", "product-management", "orchestration"],
   "agents": [
     "./agents/product-owner.md"
   ],

@@ -93,6 +93,28 @@ letting the doctor find it later — it is the single most-forgotten part of reg
 
 ---
 
+## Display metadata (`plugin.json`)
+
+`claude plugin validate` doesn't require either of these — a plugin without them still loads and
+runs. They only affect how the plugin looks in the `/plugin` marketplace browser:
+
+- **`displayName`** replaces the raw kebab-case `name` in the UI. Without it, `code-quality`
+  shows up as `code-quality` instead of `Code Quality`.
+- **`keywords`** (array of strings) is what the browser's search matches against. Without them,
+  a plugin is findable only by typing its exact `name`.
+
+Neither field controls the icon, the "by `<author>`" line (that's `author.name`), or a "New"
+badge — those come from the attribution block above and from Anthropic's own curated directory,
+which a self-hosted marketplace entry can't reproduce.
+
+| Message | What actually broke | Repair |
+| --- | --- | --- |
+| ``plugin.json has no `displayName` `` (warning) | The browser falls back to the raw slug. | Add a Title Case name, e.g. `"displayName": "Code Quality"` for `name: "code-quality"`. |
+| ``displayName` is identical to `name`` (warning) | The field is set but adds nothing over the slug. | Give it an actual human-readable title. |
+| ``plugin.json has no `keywords` `` (warning) | The plugin can't be found by topic search in the browser. | Add 3-5 lowercase terms a user would search for — the tech stack and the capability, not the plugin name itself. |
+
+---
+
 ## Layer 3 — documentation
 
 Nothing here affects runtime. All of it affects whether a user can find a capability, and whether

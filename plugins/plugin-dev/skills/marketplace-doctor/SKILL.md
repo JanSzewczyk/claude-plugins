@@ -1,6 +1,6 @@
 ---
 name: marketplace-doctor
-description: Audit a Claude Code plugin marketplace repository for drift between its manifest layers and the documentation that enumerates them by hand — marketplace.json vs the plugins on disk, plugin.json's explicit agents array vs the agent files, SKILL.md frontmatter contracts, and the skill/agent tables in CLAUDE.md and every README. Use whenever the user asks to validate, audit, or health-check a marketplace or plugin repo, before publishing or tagging a plugin release, after adding or renaming a skill or agent, or when they say the docs are out of sync, "check the manifests", "did I forget to register something", or "is this repo consistent".
+description: Audit a Claude Code plugin marketplace repository for drift between its manifest layers and the documentation that enumerates them by hand — marketplace.json vs the plugins on disk, plugin.json's explicit agents array vs the agent files, SKILL.md frontmatter contracts, the skill/agent tables in CLAUDE.md and every README, and the display metadata (displayName, keywords) that controls how each plugin looks in the /plugin marketplace browser. Use whenever the user asks to validate, audit, or health-check a marketplace or plugin repo, before publishing or tagging a plugin release, after adding or renaming a skill or agent, when plugins aren't showing descriptions/names properly in the browser, or when they say the docs are out of sync, "check the manifests", "did I forget to register something", or "is this repo consistent".
 allowed-tools: Read, Glob, Grep, Bash, Edit
 argument-hint: "[path to the marketplace repo root, defaults to the current directory]"
 ---
@@ -36,6 +36,13 @@ values. The browse view reads the first, the installed view reads the second —
 only one of them means the plugin renders with no author in the other. A missing `author` object is
 an error; missing `email`/`url`/`homepage`/`license` are warnings; a mismatch between the layers is
 an error. See [references/checks.md](./references/checks.md#the-attribution-contract-cuts-across-layers-1-and-2).
+
+## Display metadata controls how a plugin looks in the browser
+
+`displayName` and `keywords` in `plugin.json` are what make a plugin show a readable title and be
+findable by search in the `/plugin` marketplace browser — the thing to check when a user says their
+plugins "don't display nicely". Both are checked but only ever warnings, since the plugin still
+loads without them. See [references/checks.md](./references/checks.md#display-metadata-pluginjson).
 
 ## Run it
 
