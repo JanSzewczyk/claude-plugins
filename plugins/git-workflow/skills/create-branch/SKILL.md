@@ -57,6 +57,26 @@ pipe into `sed` or `awk` would fall outside it and prompt for permission.
 
 Then branch according to where you are:
 
+- **On a placeholder branch of a linked worktree** — a worktree started by Claude Code (or `git worktree
+  add`) begins on an auto-named branch such as `worktree-<name>`. That branch is a stand-in, not
+  work in progress, so **rename it** instead of creating a second one next to it. It qualifies only
+  when all three hold:
+
+  ```bash
+  git rev-parse --git-dir --git-common-dir        # the two paths differ → linked worktree
+  git branch --show-current                       # name has no <type>/ prefix from the conventions
+  git rev-list --count origin/<default-branch>..HEAD   # 0 → no commits of its own
+  ```
+
+  Then, after step 3 gives the name and step 4 clears the collision check:
+
+  ```bash
+  git branch -m <name>
+  ```
+
+  If any of the three fails (a prefixed branch, commits of its own, the main checkout), it is real
+  work — fall through to the two cases below. Do not fetch for a rename; the branch keeps its base.
+
 - **On the default branch** (`main`, `master`, or whatever the command above returned) — fetch and
   branch from the fresh remote tip, so the new branch does not inherit a stale local base:
 
@@ -123,7 +143,9 @@ Say which branch was created, from which base, and why that base. One or two lin
   and mimic whatever is there.
 - **Never ask the user for the branch name.** Missing argument is the normal case, not a blocker.
 - **English only.** The conversation may be Polish; the branch name is not.
-- Do not delete, rename, reset or force anything. This skill only creates a branch.
+- Do not delete, reset or force anything. The only rename allowed is the empty placeholder branch of
+  a linked worktree (step 2); never rename a branch that has commits of its own or follows the
+  naming convention. Otherwise this skill only creates a branch.
 
 ## Examples
 
@@ -142,7 +164,12 @@ Input: `/create-branch` while on `feature/invoice-list-filters`
 Action: branch from `HEAD`, no fetch: `git checkout -b test/invoice-filter-cases`. Report that the
 base was the current branch, not `main`.
 
-**Example 4 — collision**
+**Example 4 — fresh Claude worktree**
+Input: `/create-branch` while on `worktree-quiet-river`, a linked worktree with no commits of its own
+Action: the branch is a placeholder → `git branch -m chore/update-dependencies`. No second branch is
+created and no fetch is needed. Report that the placeholder was renamed.
+
+**Example 5 — collision**
 Input: `/create-branch add invoice filters`, but `feature/invoice-filters` already exists
 Action: stop. "Branch `feature/invoice-filters` already exists — tell me whether to work on it or
 pick a different name." Nothing is created.
