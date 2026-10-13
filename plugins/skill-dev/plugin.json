@@ -1,7 +1,8 @@
 {
   "name": "skill-dev",
+  "displayName": "Skill Dev",
   "description": "Write better skills — audit one skill for authoring quality and propose the edits, then A/B test whether a wording change actually improved the outcome.",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -9,5 +10,6 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
+  "keywords": ["skills", "authoring", "ab-testing", "claude-code"],
   "skills": "./skills/"
 }
