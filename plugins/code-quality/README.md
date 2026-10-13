@@ -17,7 +17,7 @@ Code review, performance analysis, bundle optimization, and dependency managemen
 | Skill                        | Invoke with                 | Description                                                                                                             |
 | ---------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | **performance-optimization** | `/performance-optimization` | Bundle analysis, React rendering optimization, database query tuning, code splitting patterns                         |
-| **update-deps**              | `/update-deps`              | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group, pause on majors, full report |
+| **update-deps**              | `/update-deps`              | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group on its own branch, pause on majors, then open a PR with the full report |
 | **dead-code**                | `/dead-code`                | Find unused files, exports, types, and dependencies via Knip's reachability graph; rank by confidence, propose safe removal |
 | **repository-documentation** | `/repository-documentation` | Generate or update README.md plus a ready-to-paste GitHub description and topics list, per the Szum-Tech documentation standard |
 | **template-sync**            | `/template-sync`            | Find what the GitHub template a repo was created from has changed since, assess each change against the repo, and write an ordered catch-up plan, then (on approval) apply it on a new branch, commit and open a PR |

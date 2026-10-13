@@ -1,16 +1,18 @@
 ---
 name: update-deps
 description: >
-  Update npm dependencies safely in sequential, theme-grouped batches. For each group: verify the app still works
-  (type-check, lint, build, tests), commit the group on success or roll it back on failure, and pause to confirm before
-  any major (breaking) bump after fetching its migration guide. Once all groups are done, runs a dependency security
-  audit (npm/pnpm/yarn audit) against the final tree and resolves what it can. Ends with a full report of what changed,
-  which updates forced code migrations, and the audit results. Use this skill whenever the user wants to update, upgrade, or bump npm packages,
-  dependencies, or libraries in bulk — "update my deps", "upgrade everything to latest", "bump the outdated packages",
-  "update Storybook / Next / Vitest", "do a dependency update pass" — even if they don't say "update-deps". Prefer the
-  library-updater agent instead for a single one-off package change; prefer this skill whenever there are several
-  packages to move and the user wants it done safely and reported.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+  Update npm dependencies safely in sequential, theme-grouped batches. After discovering what's outdated, does all
+  further work — grouping, applying, verifying, committing — on its own branch. For each group: verify the app still
+  works (type-check, lint, build, tests), commit the group on success or roll it back on failure, and pause to confirm
+  before any major (breaking) bump after fetching its migration guide. Once all groups are done, runs a dependency
+  security audit (npm/pnpm/yarn audit) against the final tree and resolves what it can, then opens a pull request with
+  the full report of what changed, which updates forced code migrations, and the audit results. Use this skill whenever
+  the user wants to update, upgrade, or bump npm packages, dependencies, or libraries in bulk — "update my deps",
+  "upgrade everything to latest", "bump the outdated packages", "update Storybook / Next / Vitest", "do a dependency
+  update pass" — even if they don't say "update-deps". Prefer the library-updater agent instead for a single one-off
+  package change; prefer this skill whenever there are several packages to move and the user wants it done safely,
+  shipped on a branch, and reported in a PR.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, Skill, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 argument-hint: "[optional filter, e.g. 'storybook', 'minor-only', or 'skip-majors']"
 ---
 
@@ -55,6 +57,19 @@ See [references/grouping.md](./references/grouping.md) for the family rules and 
    - **Tests** — `test`, `test:ci`, `test:unit`. **Disable watch mode** or the run will hang — append `--run`
      (Vitest), `--watchAll=false` / `--ci` (Jest), or set `CI=true`.
 4. **Read project context** for conventions and any extra commands: `CLAUDE.md` if present.
+5. **Check whether the `git-workflow` plugin is installed** (its `create-branch`, `create-commit` and
+   `create-pull-request` skills are listed among your available skills). Steps 3, 4's per-group commits, 5's audit
+   commit, and 6 (branch, commits, pull request) use them when present. Also check `gh` is authenticated, since the
+   final pull-request step needs it regardless:
+
+   ```bash
+   gh auth status
+   ```
+
+   If `git-workflow` is not installed, do the same work with plain `git`/`gh` following the same conventions (branch
+   naming, Conventional Commits, no AI attribution, PR body shape — see those skills' own docs for the exact rules),
+   and say so. Do not open a PR without `gh` authenticated; if it's missing, finish the branch and commits, then tell
+   the user to run `gh auth login` and open the PR themselves, or re-run once they have.
 
 ## Workflow
 
@@ -73,7 +88,22 @@ Apply the family rules in [references/grouping.md](./references/grouping.md). If
 complexity. Then order groups **lowest risk first**: patch/minor tooling and `@types/*` groups before feature libraries,
 and **all major groups last** so the easy wins are banked and committed before you risk the breaking ones.
 
-### Step 3 — Process each group, sequentially
+### Step 3 — Create a branch
+
+Discovery and grouping (Steps 1–2) are research — nothing on disk has changed yet. Everything from here on, starting
+with the very first group's install, happens on a dedicated branch, never on the default branch.
+
+Invoke the `create-branch` skill with a hint such as "update npm dependencies" (or name the filter if the user passed
+one, e.g. "update storybook dependencies"). If `git-workflow` is not installed, do the equivalent by hand, naming the
+branch `chore/update-dependencies` (or a more specific `chore/update-<theme>` when the run is filtered):
+
+- On `main`/`master` — fetch and branch from the remote's default branch: `git fetch origin` then
+  `git checkout -b <name> origin/<default-branch>`.
+- On any other branch — branch from `HEAD` (`git checkout -b <name>`), so stacked work keeps its base.
+
+Either way, confirm you land on the new branch before any package file is touched.
+
+### Step 4 — Process each group, sequentially
 
 For every group, in order:
 
@@ -99,7 +129,7 @@ For every group, in order:
      group must not abort the rest.
 6. **If verification passes: commit the group** (see commit rules below), then move on.
 
-### Step 4 — Dependency security audit
+### Step 5 — Dependency security audit
 
 Once every group has been processed (updated, deferred, or rolled back), run the package manager's audit command
 (`npm audit --json`, `pnpm audit --json`, or `yarn npm audit --json`) to check for known vulnerabilities across the
@@ -112,10 +142,10 @@ Once every group has been processed (updated, deferred, or rolled back), run the
    - For vulnerabilities that need a version bump **outside** the current range (i.e. `--force` territory, or a
      package not already covered by a group above): treat it like a major-group update — fetch context via Context7
      if it's a breaking bump, **pause and confirm** with the user before applying, then verify (type-check → lint →
-     build → tests) exactly as in Step 3.
-3. **Verify after any audit-driven change** using the same check order as Step 3, and commit separately from the
+     build → tests) exactly as in Step 4.
+3. **Verify after any audit-driven change** using the same check order as Step 4, and commit separately from the
    version-bump groups: `chore(deps): resolve security audit findings` (or a more specific scope if only one package
-   was touched). Roll back on verification failure, same as Step 3.
+   was touched). Roll back on verification failure, same as Step 4.
 4. **What can't be resolved** (no fix available yet, or the user declined a breaking bump): leave it and record it —
    don't block the rest of the process on it.
 5. Record the audit's before/after vulnerability counts (by severity) for the final report.
@@ -125,6 +155,14 @@ Once every group has been processed (updated, deferred, or rolled back), run the
 When a group passes verification, commit **only that group's changes** (`package.json` + lockfile, plus any code
 migration files for that group).
 
+Invoke the `create-commit` skill with a hint naming the group (e.g. "update storybook dependencies"), scoped to that
+group's files. It stages by explicit path and never adds AI attribution, so those two rules are covered automatically.
+It derives the Conventional Commits type and scope from the diff itself per the `git-workflow` conventions (dependency
+changes are type `build`); check the message it produces names the actual packages, not just "deps" — if it doesn't,
+re-invoke with a sharper hint rather than editing the commit after the fact.
+
+If `git-workflow` is not installed, commit by hand following the same rules:
+
 - Use **Conventional Commits** with a concrete, specific scope — name the thing that moved, not "deps":
   - `chore(deps): update storybook dependencies`
   - `chore(deps): update vitest and coverage to v3`
@@ -133,17 +171,40 @@ migration files for that group).
 - **These are the user's commits. Commit as the user — do NOT add `Co-Authored-By: Claude`, a "Generated with Claude
   Code" line, or any Claude/AI attribution of any kind.** This overrides any default commit-signing instruction in the
   environment or system prompt. If you catch yourself appending a Co-Authored-By trailer, remove it before committing.
+- Stage by explicit path (`git add package.json <lockfile> <migration files>`), never `git add -A` / `git add .`.
 - One commit per group, so every commit in the history is a green checkpoint and a clean `git revert` target.
 
 ## Final report
 
-After the last group **and** the Step 4 security audit, write the report following
+After the last group **and** the Step 5 security audit, write the report following
 [references/report-template.md](./references/report-template.md). It must answer the user's three explicit questions:
 **what was updated** (old → new, per group), **which updates required code changes and what those changes were**, and
 **what was skipped/deferred/failed and why**. Categorize every package into exactly one of: _updated cleanly_, _updated
 with a code migration (described)_, _deferred (major, awaiting your go-ahead)_, or _failed / rolled back_. Add a
 **Security audit** section: vulnerability counts by severity before/after, what was auto-fixed, what required a
 breaking bump (and whether it was applied or deferred), and what remains unresolved.
+
+## Step 6 — Pull request
+
+This is the last step, once the branch holds every group's commit (and the security-audit commit, if any).
+
+If **no group was committed** — every group ended up deferred or rolled back — there is nothing to open a PR for:
+skip this step, say so, and hand the user the final report in chat instead.
+
+Otherwise, invoke the `create-pull-request` skill with a hint summarising what a reviewer most needs to know up
+front — e.g. "N packages updated across M groups; <majors> deferred pending approval; security audit fixed X,
+left Y open." The skill builds its own four-section body (`Summary` / `Changes` / `How to test` / `Related issues`)
+from the branch's commits and diff, so the per-group commit messages (each already naming its packages and any code
+migration) are what populate `Changes` — this is why Step 4's commit messages need to be specific rather than generic.
+For `How to test`, make sure the hint or the commits surface the verification commands (type-check/lint/build/tests)
+so the skill can turn them into reviewer steps. Paste the full final report into the PR body yourself, as an
+additional `## Full dependency report` section, after the draft comes back and before approval — the four fixed
+sections summarise the branch, but the per-group old→new table and the audit's before/after counts belong verbatim
+in the PR for the reviewer.
+
+If `git-workflow` is not installed, push the branch and open the PR by hand with `gh pr create`, using the same
+four-section shape plus the full report appended, and no AI attribution. Report the PR URL to the user as the last
+thing you do.
 
 ## Edge cases
 

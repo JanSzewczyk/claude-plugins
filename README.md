@@ -58,7 +58,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **🔌 [api-test](./plugins/testing/skills/api-test/)** — API endpoint testing patterns and examples
 - **♿ [accessibility-audit](./plugins/testing/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
 - **⚡ [performance-optimization](./plugins/code-quality/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
-- **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, commits, and a final report
+- **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, committed on its own branch and shipped as a pull request with the final report
 - **🧹 [dead-code](./plugins/code-quality/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
 - **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
 - **🧬 [template-sync](./plugins/code-quality/skills/template-sync/)** — Finds what a GitHub template repository changed since your project was created from it and writes an ordered catch-up plan
