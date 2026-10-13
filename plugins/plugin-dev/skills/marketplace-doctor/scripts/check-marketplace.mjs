@@ -117,6 +117,33 @@ function checkAttribution(scope, file, subject, label) {
   }
 }
 
+// ------------------------------------------------------------ display metadata contract
+// The /plugin marketplace browser renders `displayName` in place of the raw kebab-case
+// `name`, and matches `keywords` against search terms. Neither field is required by
+// `claude plugin validate`, so a plugin that omits them still loads — it just shows up in
+// the browser as a bare slug with no way to be found by topic.
+
+function checkDisplayMetadata(scope, file, manifest) {
+  if (!manifest.displayName || !manifest.displayName.trim()) {
+    warn(
+      scope,
+      file,
+      "plugin.json has no `displayName`",
+      "without it the marketplace browser shows the raw kebab-case `name` instead of a readable title"
+    );
+  } else if (manifest.displayName === manifest.name) {
+    warn(scope, file, "`displayName` is identical to `name`", "set a human-readable title, e.g. Title Case of the slug");
+  }
+  if (!Array.isArray(manifest.keywords) || manifest.keywords.length === 0) {
+    warn(
+      scope,
+      file,
+      "plugin.json has no `keywords`",
+      "keywords are what the marketplace browser's search matches against — without them the plugin is only found by its exact name"
+    );
+  }
+}
+
 // The marketplace owner is the attribution fallback for the repo as a whole.
 if (marketplace) {
   if (!marketplace.owner?.name) {
@@ -208,6 +235,7 @@ for (const name of onDisk) {
   }
 
   checkAttribution(name, manifestPath, manifest, "plugin.json");
+  checkDisplayMetadata(name, manifestPath, manifest);
 
   // The two layers are read by different surfaces, so they must agree — otherwise a plugin is
   // attributed to one author while browsing the marketplace and to another once installed.
