@@ -66,7 +66,8 @@ python3 <skill-dir>/scripts/template_drift.py --repo . --workdir <scratchpad>/te
 It finds the template (from `--template`, else the `.template-sync.json`
 marker, else GitHub's `templateRepository`), clones it blob-less into the
 workdir, finds the **anchor** — the template commit the project last matched —
-and classifies every file the template changed since.
+and classifies every file the template changed since. Read
+`references/script-output.md` for the fields and states.
 
 The anchor decides everything downstream, so check how it was found:
 
@@ -180,10 +181,14 @@ move or turn into tickets.
   keep this repo's extra `vue/` rules (lines 14–22 of the old file)" is.
 - **Every changed file in drift.json is accounted for** — in an item, in
   *Already done*, or in *Not applicable / set aside*. Nothing silently dropped.
-- **The last item records the sync** in `.template-sync.json` in the repo root
-  (shape in `references/plan-template.md`) so the next run starts from here
-  instead of re-detecting. Changes the user decides not to take go into its
-  `skipped` list,
+- **The last item records the sync:** create or update `.template-sync.json`
+  in the repo root so the next run starts from here instead of re-detecting:
+
+  ```json
+  { "template": "<OWNER/NAME or URL>", "ref": "<branch>", "last_synced_sha": "<template head SHA>", "synced_at": "<date>" }
+  ```
+
+  Changes the user decides not to take go into a `skipped` list,
   `[{ "change": "...", "paths": ["..."], "reason": "..." }]`, so the next run
   reports them as previously skipped instead of as new. If only part of the
   plan is applied, `last_synced_sha` stays at the old anchor: the applied part
