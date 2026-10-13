@@ -1,6 +1,6 @@
 ---
 name: template-sync
-description: "Catch a repository created from a GitHub template ('Use this template') up with what the template changed since: dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding. Finds which changes the repo is missing, already made by hand, or deliberately does differently, and writes an ordered implementation plan. Use for 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'zsynchronizuj z szablonem', 'sync with the template', 'what did the template change that we don't have', 'backport template updates', 'template drift', or how far a project has drifted from its starter. Read-only apart from the plan file: it plans, it does not apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to latest (update-deps), or migrating one component to a new library (migration)."
+description: "Catch a repository created from a GitHub template ('Use this template') up with what the template changed since: dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding. Finds which changes the repo is missing, already made by hand, or deliberately does differently, and writes an ordered implementation plan. Use for 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'zsynchronizuj z szablonem', 'sync with the template', 'what did the template change that we don't have', 'backport template updates', 'template drift', or how far a project has drifted from its starter. Plans first, then on the user's go-ahead applies the plan on its own branch, commits it and opens a pull request (via the git-workflow skills). NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to latest (update-deps), or migrating one component to a new library (migration)."
 argument-hint: "[template OWNER/NAME | URL | local path — optional, discovered from GitHub when omitted] [--since SHA]"
 ---
 
@@ -15,15 +15,19 @@ project still has what was copied on day one, plus its own edits.
 
 This skill produces the plan for closing that gap: every technological change
 the template made since the project was cut, what state the project is in for
-each one, and the ordered steps to bring it in. It is read-only. It writes one
-plan file and changes nothing else in the repository.
+each one, and the ordered steps to bring it in. Steps 1–5 are read-only: they
+write one plan file and change nothing else. Once the user approves the plan,
+steps 6–9 apply it on a new branch, commit the result and open a pull request.
 
 Write the plan in the user's language unless they ask otherwise.
 
 ## Prerequisites
 
 The inventory script needs Python 3.8+ and `git`; `gh` (authenticated) is
-needed to discover the template from GitHub and to open its PRs. Check first:
+needed to discover the template from GitHub and to open its PRs. Steps 6–9 use
+the `create-branch`, `create-commit` and `create-pull-request` skills of the
+`git-workflow` plugin; if it is not installed, do the same with plain `git` and
+`gh` following the same conventions, and say so. Check first:
 
 ```bash
 python3 --version && git --version && gh auth status
@@ -51,7 +55,11 @@ reply that moves a step forward. A line without its output is not done.
 [ ] 2 changes     → template commits grouped into technological changes, noise set aside
 [ ] 3 assessment  → each change: status in this repo, with evidence from both sides; risky steps tried in a scratch copy
 [ ] 4 plan        → plan file in the repo root, ordered, every change accounted for
-[ ] 5 handover    → summary in chat, decisions the user has to make
+[ ] 5 handover    → summary in chat, decisions the user has to make, go-ahead to apply
+[ ] 6 branch      → work branch created from the current one (create-branch)
+[ ] 7 apply       → approved plan items applied and verified
+[ ] 8 commit      → changes committed (create-commit)
+[ ] 9 pull request → PR opened for review (create-pull-request)
 ```
 
 ## Step 1 — inventory
@@ -198,8 +206,37 @@ move or turn into tickets.
 
 In chat: the template and range (anchor → head, commit count), a table of the
 changes with status and effort (S/M/L), the link to the plan file, and the
-decisions only the user can make. Then stop. Applying the plan is a separate
-request; offer it once.
+decisions only the user can make. Then ask once whether to apply the plan now
+(all of it, or the items they name). Stop here until they answer. On "no",
+the plan file is the deliverable and the run ends.
+
+## Step 6 — branch
+
+Invoke the `create-branch` skill, with a hint such as "sync with template
+<OWNER/NAME>". Do it before touching any project file, so nothing is ever
+changed on the default branch. The plan file stays untracked and is never
+staged.
+
+## Step 7 — apply
+
+Work through the approved items in plan order, one at a time, running each
+item's *Verify* step before the next. Items marked **decision needed** are
+applied only with the user's answer; unanswered ones are skipped and go in the
+`skipped` list. Stop and report if a step fails in a way the plan did not
+foresee — do not improvise around it. Finish by recording the sync in
+`.template-sync.json` as the plan's last item describes.
+
+## Step 8 — commit
+
+Invoke the `create-commit` skill. The plan file is not committed. It splits
+the work by type when the changes clearly separate (for example `build` for
+dependencies, `ci` for workflows), otherwise one commit.
+
+## Step 9 — pull request
+
+Invoke the `create-pull-request` skill. Put into the PR body the template and
+range synced, the applied items, and what was skipped or left open (taken from
+the plan), so the reviewer needs no other document. Report the PR URL.
 
 ## References
 
