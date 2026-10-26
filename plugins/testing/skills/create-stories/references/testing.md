@@ -1,10 +1,10 @@
-# Testing with `.test()`
+# Testing with `.test()` and `play`
 
 `Story.test(name, fn)` attaches an independent test to a story. Each test renders the story fresh,
 runs in the browser through the Vitest addon, and reports on its own in the Storybook UI and the
-test run. It is the default for every assertion — `play` is the exception ([play.md](./play.md)).
+test run. It is the default for every assertion — `play` is the exception (last section).
 
-Requires `features.experimentalTestSyntax: true` ([setup.md](./setup.md)).
+Requires `features.experimentalTestSyntax: true` in `.storybook/main.ts`.
 
 ## The test function
 
@@ -16,16 +16,16 @@ LoginForm.test("Shows an error on empty submit", async ({ canvas, userEvent, arg
 });
 ```
 
-Context (same as `play`): `canvas` (queries scoped to the story root), `canvasElement`, `userEvent`,
-`args`, `step`. Always destructure — never import `userEvent`, `within` or `canvas`.
+Context (same as `play`): `canvas`, `canvasElement`, `userEvent`, `args`, `step`.
 
 ## Queries
 
 - **Semantic first**: `getByRole` (with `name`) → `getByLabelText` → `getByText` /
-  `getByPlaceholderText`. Never `getByTestId`, never `querySelector`.
+  `getByPlaceholderText`.
 - **`getBy*`** — element must be there now.
 - **`queryBy*`** — for asserting absence (`not.toBeInTheDocument()`); `getBy*` would throw first.
-- **`findBy*` / `waitFor()`** — anything that appears after an interaction, a request, or an animation.
+- **`findBy*` / `waitFor()`** — anything that appears after an interaction, a request, or an
+  animation (overlays and portals included).
 - Elements that may legitimately not exist (mobile-only, feature-flagged) → `queryBy*` first, then
   assert conditionally.
 
@@ -43,15 +43,11 @@ const dialog = await screen.findByRole("dialog");
 await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
 ```
 
-The role/portal table for common elements is in [api-reference.md](./api-reference.md#common-element-patterns).
-
 ## Assertions
 
 - Assert what the user sees or can do: `toBeVisible`, `toBeDisabled`, `toHaveTextContent`,
   `toHaveValue`, `toHaveFocus`, `toHaveAttribute("aria-…")`, `toHaveBeenCalledWith` on callback spies.
-- Never assert internal state, class-name implementation details that carry no meaning for the
-  user, or snapshot markup.
-- `await` every `expect` and every `userEvent` call.
+- Never assert internal state, class names that carry no meaning for the user, or snapshot markup.
 
 ## What to test, and how to group it
 
@@ -101,6 +97,59 @@ FormStory.test("Submits valid data", async ({ canvas, userEvent, args, step }) =
 ## Independence
 
 - Every test must pass alone and in any order — never rely on what an earlier test clicked.
-- Reset or reconfigure mocks in `beforeEach` ([mocking.md](./mocking.md#setup-with-beforeeach)).
+- Reset or reconfigure mocks in `beforeEach`.
 - Repeated setup (fill a form to a valid state) → a small helper function in the story file, not
   a shared mutable variable.
+
+## `play` — the exception
+
+`play` runs once after a story renders, in the Storybook UI and in the test run. With `.test()`
+available it has exactly two jobs:
+
+| Need                                                            | Use                       |
+| --------------------------------------------------------------- | ------------------------- |
+| An independent check of behaviour                               | `.test()` — always        |
+| Show the component **after** an interaction in the docs (demo)  | `play`, no assertions     |
+| ONE flow whose steps genuinely depend on each other             | `play` with `step()`      |
+
+Rough split: `.test()` ≈ 90 %, `play` ≈ 10 %. Never put independent assertions in `play` — one
+failing assertion hides every later one, and the story itself turns red in the docs.
+
+### (a) Demo — a state reached by interaction
+
+```tsx
+export const FilledForm = meta.story({
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByLabelText(/email/i), "ada@example.com");
+    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
+  },
+});
+
+// Tests still go through .test() — they run after play
+FilledForm.test("Enables submit once both fields are filled", async ({ canvas }) => {
+  await expect(canvas.getByRole("button", { name: /sign in/i })).toBeEnabled();
+});
+```
+
+### (b) One dependent narrative
+
+```tsx
+export const CompleteSignUpFlow = meta.story({
+  args: { onSubmit: fn() },
+  play: async ({ canvas, userEvent, args, step }) => {
+    await step("Fill the registration form", async () => {
+      await userEvent.type(canvas.getByLabelText(/email/i), "ada@example.com");
+      await userEvent.click(canvas.getByRole("checkbox", { name: /accept terms/i }));
+    });
+    await step("Submit", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: /sign up/i }));
+    });
+    await step("Verify submission", async () => {
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledOnce());
+    });
+  },
+});
+```
+
+`play` gets the same context as `.test()`, plus `globals`, `parameters` and `viewMode`. A story
+with `play` is still a state; name it after the state it ends in, not after the test.
