@@ -53,14 +53,14 @@ export default definePreview({
     nextjs: { appDirectory: true }, // App Router projects — needed for next/navigation
   },
   decorators: [
-    /* global providers — see mocking.md */
+    /* global providers, e.g. (Story) => <ThemeProvider><Story /></ThemeProvider> */
   ],
 });
 ```
 
 - `definePreview` lives **only** here, never in a story file.
 - Community addons are imported as a whole module (`import * as addonX from "..."`) and called.
-- Global module mocks (`sb.mock(...)`) are registered in this file — see [mocking.md](./mocking.md).
+- Global module mocks (`sb.mock(import(...), { spy: true })`) are registered in this file.
 
 ### Vitest project (`vitest.config.ts`)
 
@@ -150,7 +150,7 @@ Never a deep relative path (`../../../.storybook/preview`).
   as a subagent: report the failing checks, do not edit.
 - No Storybook at all → stop; the install (`npm create storybook@latest`) is the user's call.
 - CSF 3 config (`StorybookConfig` / `Preview` types, `export default config`) → upgrade via
-  [migration.md](./migration.md); `npx storybook automigrate csf-factories` converts config and
+  `migration.md`; `npx storybook automigrate csf-factories` converts config and
   stories together.
 - Missing Vitest addon → `npx storybook add @storybook/addon-vitest` (installs, registers, writes
   the Vitest project, offers to install Playwright).

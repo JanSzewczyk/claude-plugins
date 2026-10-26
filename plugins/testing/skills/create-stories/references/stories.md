@@ -27,12 +27,28 @@ Consider each; create a story only where the component actually has that state.
 
 Interaction, keyboard and accessibility are **tests** on these stories, not stories of their own.
 
+## Naming
+
+A story is named after the state it renders, never after what a test does with it.
+
+- **Only one story for the component** → `ComponentNameStory` with a `name:` field. The `Story`
+  suffix avoids colliding with the imported component binding.
+  `export const UserCardStory = meta.story({ name: "User Card" })`
+  This holds when the story only exists to carry interaction tests: `FormStory`, not
+  `FormSubmission` — the behaviour belongs in the `.test()` name.
+- **Several stories** → plain state names, no suffix: `EmptyForm` / `FilledForm`, `Loading` /
+  `Idle`, `Primary` / `Secondary` / `Destructive`.
+- **`State` suffix** only where the bare name would shadow a global: `ErrorState`, not `Error`;
+  but `Loading`, not `LoadingState`.
+- **Never generic**: `Default`, `Basic`, `Example`, `Test1`, `Story2`.
+- **Never behaviour names**: `ClickTest`, `ValidationStory`, `TabNavigation` — that is a
+  `.test()`, not a story.
+
 ## Args
 
 - Shared defaults (callbacks, required props) go in `meta.args`; a story sets only what makes it
   that state.
-- Callback props are always `fn()` in `meta.args` so every test shares one spy — see
-  [mocking.md](./mocking.md).
+- Callback props are always `fn()` in `meta.args` so every test shares one spy.
 - Values a test asserts against are deterministic: set them explicitly in args, never rely on
   random generator output.
 - Derive variants with `Story.extend({ args })` rather than copying the full config.
@@ -53,4 +69,3 @@ Typed object props (a `User`, a list of `Invoice`s, nested structures of 3+ fiel
 
 - One `.stories.tsx` per exported component, next to it.
 - No stories for private sub-components unless asked — they are covered through their parent.
-- Do not modify the component to make it storyable; mock its dependencies instead.

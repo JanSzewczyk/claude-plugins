@@ -21,20 +21,25 @@ that is the manual part below.
 
 ## Manual (one file)
 
-1. **Imports** — drop `import type { Meta, StoryObj }`; add `import preview from "<preview path>"`;
-   drop `userEvent` / `within` from the `storybook/test` import.
-2. **Meta** — `const meta = { ... } satisfies Meta<typeof C>` → `const meta = preview.meta({ ... })`;
-   delete `export default meta`.
-3. **Stories** — `export const S: Story = { ... }` → `export const S = meta.story({ ... })`; delete
-   `type Story = …`.
-4. **Collapse test stories** — stories whose args equal another story's and exist only to run a
+| CSF 3                                       | CSF Next                                 |
+| ------------------------------------------- | ---------------------------------------- |
+| `import type { Meta, StoryObj }`            | `import preview from "<preview path>"`   |
+| `const meta = { } satisfies Meta<typeof C>` | `const meta = preview.meta({ })`         |
+| `export default meta`                       | — (none)                                 |
+| `type Story = StoryObj<typeof meta>`        | — (inferred)                             |
+| `export const S: Story = { }`               | `export const S = meta.story({ })`       |
+| separate story per test + `play`            | `S.test("…", async (ctx) => { })`        |
+
+1. **Syntax** — apply the table row by row, and drop `userEvent` / `within` from the
+   `storybook/test` import.
+2. **Collapse test stories** — stories whose args equal another story's and exist only to run a
    `play` with assertions are folded into that story.
-5. **`play` → `.test()`** — each independent assertion group in a `play` becomes its own
+3. **`play` → `.test()`** — each independent assertion group in a `play` becomes its own
    `S.test("<behaviour>", async ({ canvas, userEvent, args }) => { ... })`. Replace
    `within(canvasElement)` with the destructured `canvas`.
-6. **Keep `play`** only for a demo or a genuinely dependent flow ([play.md](./play.md)); keep
+4. **Keep `play`** only for a demo (no assertions) or a genuinely dependent flow; keep
    `step()` only where it marks 3+ phases.
-7. **Run** — every converted test must pass on its own; one failing test must not block the rest.
+5. **Run** — every converted test must pass on its own; one failing test must not block the rest.
 
 ## Before / after
 
