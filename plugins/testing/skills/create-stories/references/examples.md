@@ -1,11 +1,11 @@
 # Storybook Testing — Examples & Templates
 
 Worked `.stories.tsx` files and copy-paste templates. These are **examples only** — the rules they
-follow live in [SKILL.md](../SKILL.md). Every story uses CSF Next + the `.test()` method.
+follow live in [csf-next.md](./csf-next.md), [testing.md](./testing.md) and [mocking.md](./mocking.md). Every story uses CSF Next + the `.test()` method.
 
 - [Worked examples](#worked-examples): Button · LoginForm · ConfirmDialog · Select (portal)
 - [Templates](#templates) for other component types: List/Table · Input · Card · Tabs
-- [Additional pattern snippets](#additional-pattern-snippets): prefilled, tooltip, error retention, double-submit, `play`
+- [Additional pattern snippets](#additional-pattern-snippets): prefilled, tooltip, error retention, double-submit
 
 ---
 
@@ -548,45 +548,4 @@ ButtonPanel.test("Prevents double submission", async ({ canvas, userEvent, args 
 });
 ```
 
-## `play` — the two valid uses
-
-`play` is for demos (no assertions) or ONE cohesive dependent flow. Never for independent assertions (use `.test()`).
-
-```tsx
-// (a) Demo — present a filled state in Storybook docs, no assertions
-export const FilledForm = meta.story({
-  name: "Form with data",
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "password123");
-  },
-});
-
-// (b) Dependent flow — one narrative whose steps build on each other
-export const CompleteSignUpFlow = meta.story({
-  name: "Complete Sign-up Journey",
-  args: { onSubmit: fn() },
-  play: async ({ canvas, userEvent, args, step }) => {
-    await step("User sees welcome message", async () => {
-      await expect(canvas.getByText("Welcome")).toBeInTheDocument();
-    });
-    await step("User fills registration form", async () => {
-      await userEvent.type(canvas.getByLabelText(/email/i), "user@example.com");
-      await userEvent.type(canvas.getByLabelText(/password/i), "securePass123");
-      await userEvent.click(canvas.getByRole("checkbox", { name: /accept terms/i }));
-    });
-    await step("User submits", async () => {
-      await userEvent.click(canvas.getByRole("button", { name: /sign up/i }));
-    });
-    await step("Verify submission", async () => {
-      await waitFor(async () => {
-        await expect(args.onSubmit).toHaveBeenCalledWith({
-          email: "user@example.com",
-          password: "securePass123",
-          acceptedTerms: true,
-        });
-      });
-    });
-  },
-});
-```
+For `play` (demo and dependent-flow uses) see [play.md](./play.md).

@@ -103,7 +103,7 @@ The `code-reviewer` agent references skills from other plugins for comprehensive
 | accessibility-audit      | testing      | Checking a11y compliance              |
 | server-actions           | nextjs       | Validating Server Action patterns     |
 | react-19-compiler        | react        | Checking React Compiler compatibility |
-| storybook-testing        | testing      | Reviewing component test quality      |
+| create-stories           | testing      | Reviewing component test quality      |
 | tailwind-css-4           | design       | Validating Tailwind patterns          |
 | performance-optimization | code-quality | Performance review                    |
 

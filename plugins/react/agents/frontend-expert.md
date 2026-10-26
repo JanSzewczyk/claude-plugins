@@ -1,7 +1,7 @@
 ---
 name: frontend-expert
-version: 1.1.0
-lastUpdated: 2026-02-20
+version: 1.1.1
+lastUpdated: 2026-10-26
 author: Szum Tech Team
 related-agents: [storybook-tester, performance-analyzer, code-reviewer]
 description: Implement UI components, style with Tailwind CSS, integrate with design systems, build React components, and fix UI bugs. Use proactively for any frontend-related tasks.
@@ -9,7 +9,7 @@ tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playw
 model: sonnet
 color: purple
 permissionMode: acceptEdits
-skills: storybook-testing, builder-factory, accessibility-audit, tailwind-css-4, react-19-compiler, playwright-cli, toast-notifications, server-actions, design-system-component, szum-tech-design-system
+skills: create-stories, builder-factory, accessibility-audit, tailwind-css-4, react-19-compiler, playwright-cli, toast-notifications, server-actions, design-system-component, szum-tech-design-system
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"

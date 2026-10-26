@@ -1,6 +1,6 @@
 ---
-name: routing-storybook-testing
-description: A natural request that storybook-testing should pick up, phrased the way a user would actually ask.
+name: routing-create-stories
+description: A natural request that create-stories should pick up, phrased the way a user would actually ask.
 tags: [routing, smoke]
 plugins: ["../.."]
 runs: 3

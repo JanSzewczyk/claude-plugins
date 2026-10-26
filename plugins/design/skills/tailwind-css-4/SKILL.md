@@ -224,5 +224,5 @@ import { Button, Card } from "@szum-tech/design-system";
 ## Related Skills
 
 - `react-19-compiler` - Component patterns for styling
-- `storybook-testing` - Testing styled components
+- `create-stories` - Testing styled components
 - `accessibility-audit` - Color contrast, focus states

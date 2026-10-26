@@ -16,7 +16,7 @@ Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E
 
 | Skill                   | Invoke with            | Description                                                                                                                     |
 | ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **storybook-testing**   | `/storybook-testing`   | Component testing with Storybook play functions — CSF Next format, `preview.meta()`, `.test()` method, API reference, templates |
+| **create-stories**      | `/create-stories`      | Create or update a component's `.stories.tsx` — setup check, CSF Next stories per state, `.test()` interaction tests, mocking   |
 | **builder-factory**     | `/builder-factory`     | Test data builders with `mimicry-js` — factory patterns, field mappings, mock data generation                                   |
 | **api-test**            | `/api-test`            | Testing Next.js Route Handlers with Playwright — real HTTP requests, response validation                                        |
 | **accessibility-audit** | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                           |
@@ -45,7 +45,7 @@ cp -r plugins/testing/skills/*  your-project/.claude/skills/
 
 ```bash
 ls your-project/.claude/agents/testing-strategist.md
-ls your-project/.claude/skills/storybook-testing/SKILL.md
+ls your-project/.claude/skills/create-stories/SKILL.md
 ls your-project/.claude/skills/playwright-cli/SKILL.md
 ```
 
@@ -59,10 +59,10 @@ ls your-project/.claude/skills/playwright-cli/SKILL.md
 
 > "Use storybook-tester to create stories and tests for components/Button.tsx"
 
-The `storybook-tester` writes CSF Next stories with play-function interaction
-tests — covering component variants, edge cases, and form/validation states —
-using the `.test()` method. It leans on the `storybook-testing` and
-`builder-factory` skills for patterns and mock data.
+The `storybook-tester` runs the `create-stories` procedure for the component:
+it checks the Storybook setup, writes (or updates) CSF Next stories per state with
+`.test()` interaction tests — variants, edge cases, form/validation states — runs
+them, and reports what it kept, fixed and added. It uses `builder-factory` for mock data.
 
 **Write unit tests** for non-UI logic:
 
@@ -76,7 +76,7 @@ test cases from the PRD acceptance criteria and reports coverage back to the
 
 **Invoke skills directly:**
 
-> `/storybook-testing` — CSF Next patterns and API reference
+> `/create-stories` — create or update the stories and interaction tests for a component
 > `/playwright-cli` — browser automation commands and patterns
 > `/accessibility-audit` — run a WCAG audit on a component
 

@@ -1,7 +1,7 @@
 ---
 name: testing-strategist
-version: 1.2.0
-lastUpdated: 2026-06-04
+version: 1.2.1
+lastUpdated: 2026-10-26
 author: Szum Tech Team
 related-agents: [unit-tester, storybook-tester, code-reviewer]
 description: Plan test strategies, analyze test coverage, and decide which types of tests to write. Use proactively after implementing features to ensure proper test coverage.
@@ -9,7 +9,7 @@ tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash
 model: sonnet
 color: green
 permissionMode: default
-skills: builder-factory, api-test, storybook-testing, accessibility-audit, playwright-cli, unit-testing
+skills: builder-factory, api-test, create-stories, accessibility-audit, playwright-cli, unit-testing
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
@@ -204,7 +204,7 @@ When analyzing code for testing, identify:
 Refer to skills for detailed code examples:
 
 - **`unit-testing` skill** — Vitest unit tests for utilities, schemas, hooks, and Server Actions (mocked)
-- **`storybook-testing` skill** — Component state testing, interaction tests, CSF Next format, `.test()` method
+- **`create-stories` skill** — Component state testing, interaction tests, CSF Next format, `.test()` method
 - **`api-test` skill** — Route handler testing with Playwright
 - **`builder-factory` skill** — Test data builders for mock data
 - **`server-actions` skill** — Server action validation testing patterns

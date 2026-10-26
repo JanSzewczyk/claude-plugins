@@ -1,6 +1,6 @@
 ---
 name: unit-testing
-description: Write unit tests with Vitest for TypeScript logic — `vi.mock` / `vi.fn` / `vi.spyOn`, `test.each` parameterized cases, async error assertions, Server Actions with mocked dependencies, and `vitest.config.ts` coverage setup. Trigger when the user says "unit test", "test this function", "test the server action", "test my schema", "test this hook", "add tests for this module", or is editing a `*.test.ts` file — even if they only say "this needs tests". NOT for React component rendering or interaction (use storybook-testing), API route handlers (use api-test), full-page E2E flows (use playwright-cli / true-dom-tester), or finding which code is untested (use coverage-gaps).
+description: Write unit tests with Vitest for TypeScript logic — `vi.mock` / `vi.fn` / `vi.spyOn`, `test.each` parameterized cases, async error assertions, Server Actions with mocked dependencies, and `vitest.config.ts` coverage setup. Trigger when the user says "unit test", "test this function", "test the server action", "test my schema", "test this hook", "add tests for this module", or is editing a `*.test.ts` file — even if they only say "this needs tests". NOT for React component rendering or interaction (use create-stories), API route handlers (use api-test), full-page E2E flows (use playwright-cli / true-dom-tester), or finding which code is untested (use coverage-gaps).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 argument-hint: "[file or module to test, e.g. src/features/billing/utils.ts]"
 ---
@@ -9,7 +9,7 @@ argument-hint: "[file or module to test, e.g. src/features/billing/utils.ts]"
 
 Write fast, isolated unit tests with **Vitest** for TypeScript logic — utilities, Zod schemas, hooks,
 and Server Actions (with dependencies mocked). Unit tests do NOT render components in a browser
-(use the `storybook-testing` skill for that).
+(use the `create-stories` skill for that).
 
 This file holds the rules. Code lives in the references — this block is the only index, so the body
 below names them without linking again:
