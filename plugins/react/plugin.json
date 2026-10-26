@@ -2,7 +2,7 @@
   "name": "react",
   "displayName": "React 19",
   "description": "React development — agents and skills for building modern React 19 UIs, including the React Compiler, new hooks, and component-driven architecture.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

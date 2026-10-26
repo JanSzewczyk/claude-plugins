@@ -167,4 +167,4 @@ npm run build
 ## Related Skills
 
 - `server-actions` - For implementing server actions with React 19 patterns
-- `storybook-testing` - For testing components with play functions
+- `create-stories` - For testing components with play functions

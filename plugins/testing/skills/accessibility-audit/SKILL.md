@@ -79,7 +79,7 @@ severity, each with WCAG criterion, location, impact, and a fix.
 
 ### 6. Lock it in with a Storybook test
 
-Add an a11y story/test (CSF Next, owned by the `storybook-testing` skill) so regressions are caught —
+Add an a11y story/test (CSF Next, owned by the `create-stories` skill) so regressions are caught —
 see the example in [references/examples.md](./references/examples.md#storybook-a11y-story).
 
 ```bash

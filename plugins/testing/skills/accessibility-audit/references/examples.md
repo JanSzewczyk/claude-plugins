@@ -507,7 +507,7 @@ export function Modal({
 
 ## Storybook a11y Story
 
-Stories use **CSF Next** (`preview.meta()` / `meta.story()` / `.test()`) — see the `storybook-testing`
+Stories use **CSF Next** (`preview.meta()` / `meta.story()` / `.test()`) — see the `create-stories`
 skill for the format rules. Attach the a11y addon config via story `parameters`, then assert with roles:
 
 ```tsx

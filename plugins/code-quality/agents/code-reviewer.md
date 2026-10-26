@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
-version: 2.0.0
-lastUpdated: 2026-02-20
+version: 2.0.1
+lastUpdated: 2026-10-26
 author: Szum Tech Team
 related-agents:
   [
@@ -15,7 +15,7 @@ tools: Glob, Grep, Read, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-c
 model: sonnet
 color: cyan
 permissionMode: default
-skills: accessibility-audit, server-actions, react-19-compiler, storybook-testing, tailwind-css-4, playwright-cli, performance-optimization, error-handling, structured-logging
+skills: accessibility-audit, server-actions, react-19-compiler, create-stories, tailwind-css-4, playwright-cli, performance-optimization, error-handling, structured-logging
 hooks:
   PostToolUse:
     - matcher: "Read"

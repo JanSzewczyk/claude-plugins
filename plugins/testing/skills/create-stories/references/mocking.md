@@ -1,6 +1,25 @@
 # Mocking in Storybook
 
-Comprehensive guide to mocking data, functions, modules, network requests, and dependencies in Storybook stories and tests.
+How to fake what a component depends on. Pick the mechanism by **what** is being faked, then copy
+the matching recipe below.
+
+## Rules
+
+- **Callback props → `fn()`** from `storybook/test`, declared in `meta.args` so every test shares one
+  spy. Assert with `toHaveBeenCalled` / `toHaveBeenCalledWith` / `toHaveBeenCalledTimes`.
+- **HTTP the component makes → MSW**, not `fn()`. (`fn()` fakes a prop the component calls; MSW fakes
+  a request it sends.) Handlers go per story in `parameters.msw.handlers`.
+- **Modules the component imports → `sb.mock(import(...))` in `.storybook/preview.ts`**, never in a
+  story file — module mocks must be registered before stories load. Prefer `{ spy: true }`, then set
+  per-story behaviour with `mocked()` in `beforeEach`.
+- **`next/navigation` → the framework's mock module** (`@storybook/nextjs-vite/navigation.mock`) plus
+  `parameters.nextjs`.
+- **React Context / providers → decorators**, globally in `.storybook/preview.tsx` or per story to
+  override. Not props.
+- **Data → builders** (`mimicry-js`), not inline literals, for typed objects.
+- **`beforeEach`** configures and resets mocks so no state leaks between tests; a story-level
+  `beforeEach` overrides the meta-level one.
+- Never mock the component under test.
 
 ## Table of Contents
 
@@ -11,7 +30,6 @@ Comprehensive guide to mocking data, functions, modules, network requests, and d
 5. [Mock React Context & Providers](#mock-react-context--providers)
 6. [Mock Data with Builders](#mock-data-with-builders)
 7. [Setup with `beforeEach`](#setup-with-beforeeach)
-8. [Best Practices](#best-practices)
 
 ---
 
@@ -123,18 +141,21 @@ const meta = preview.meta({
 import { definePreview } from "@storybook/nextjs-vite";
 import { sb } from "storybook/test";
 
-// Mock local modules
-sb.mock(import("~/lib/session"));
-sb.mock(import("~/lib/analytics"));
+// spy: true keeps the real implementation and records calls — the recommended default
+sb.mock(import("~/lib/session"), { spy: true });
+sb.mock(import("~/lib/analytics"), { spy: true });
 
-// Mock npm packages
+// Without spy the module is fully automocked (every export returns undefined)
 sb.mock(import("uuid"));
-sb.mock(import("@clerk/nextjs"));
 
 export default definePreview({
   // ... other preview config
 });
 ```
+
+A hand-written mock replaces automocking when the module needs a richer fake: put it in a
+`__mocks__` directory next to the module (`lib/__mocks__/session.ts`), or at the project root for
+packages from `node_modules`.
 
 ### Using Mocked Modules in Stories
 
@@ -421,7 +442,7 @@ export const SubmitForm = meta.story({
 
 ```typescript
 import { expect } from "storybook/test";
-import { redirect, getRouter } from "@storybook/nextjs/navigation.mock";
+import { redirect, getRouter } from "@storybook/nextjs-vite/navigation.mock";
 
 import preview from "~/.storybook/preview";
 
@@ -663,8 +684,7 @@ export const UserList = meta.story({
 export const AdminUser = meta.story({
   args: {
     user: userBuilder.one({
-      role: "admin",
-      permissions: ["read", "write", "delete"],
+      overrides: { role: "admin", permissions: ["read", "write", "delete"] },
     }),
   },
 });
@@ -672,14 +692,14 @@ export const AdminUser = meta.story({
 export const VerifiedUser = meta.story({
   args: {
     user: userBuilder.one({
-      verified: true,
-      verifiedAt: new Date("2024-01-15"),
+      overrides: { verified: true, verifiedAt: new Date("2024-01-15") },
     }),
   },
 });
 ```
 
-> **Note:** If builder doesn't exist, invoke `/builder-factory` skill to generate it from TypeScript types.
+> **Note:** If the builder doesn't exist, create it with the `builder-factory` skill. Named variants
+> can also be builder traits: `userBuilder.one({ traits: "admin" })`.
 
 ---
 
@@ -760,15 +780,6 @@ FormSubmission.test(
 
 ---
 
-## Mocking rules
-
-The rules these recipes follow — callbacks → `fn()`, network → MSW (not `fn()`), modules →
-`sb.mock()` in `.storybook/preview.ts`, Context → decorators, `beforeEach` for config and reset,
-builders over inline data, await everything — live in [SKILL.md → Mocking](../SKILL.md#mocking).
-This file is recipes only.
-
----
-
 ## Quick Reference
 
 | Mock Type            | Tool                                | Use Case                                 |
@@ -777,12 +788,11 @@ This file is recipes only.
 | **External modules** | `sb.mock()`                         | uuid, session, analytics                 |
 | **REST APIs**        | MSW `http.*`                        | fetch, axios, API calls                  |
 | **GraphQL**          | MSW `graphql.*`                     | Apollo, urql, GraphQL queries            |
-| **Next.js hooks**    | `@storybook/nextjs/navigation.mock` | useRouter, useParams, redirect           |
+| **Next.js hooks**    | `@storybook/nextjs-vite/navigation.mock` | useRouter, useParams, redirect           |
 | **React Context**    | Decorators                          | AuthContext, ThemeProvider               |
 | **Mock data**        | Builders                            | User objects, complex data structures    |
 | **Setup code**       | `beforeEach`                        | Mock configuration, state initialization |
 
 ---
 
-For full worked story files using these mocks, see [examples.md](./examples.md). For the rules, see
-[SKILL.md](../SKILL.md).
+For full worked story files using these mocks, see [examples.md](./examples.md).

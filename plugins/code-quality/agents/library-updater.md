@@ -1,7 +1,7 @@
 ---
 name: library-updater
-version: 1.1.0
-lastUpdated: 2026-02-20
+version: 1.1.1
+lastUpdated: 2026-10-26
 author: Szum Tech Team
 related-agents: [database-architect, code-reviewer]
 description: Update npm packages, investigate breaking changes, execute migrations, and verify code quality after dependency updates. Use when updating libraries or fixing post-update issues.
@@ -9,7 +9,7 @@ tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash
 model: sonnet
 color: yellow
 permissionMode: acceptEdits
-skills: t3-env-validation, storybook-testing, playwright-cli, unit-testing
+skills: t3-env-validation, create-stories, playwright-cli, unit-testing
 hooks:
   PostToolUse:
     - matcher: "Bash"

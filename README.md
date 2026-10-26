@@ -49,7 +49,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **🧱 [implement-design](./plugins/design/skills/implement-design/)** — Inventory-first protocol for porting an external design (native Claude Design handoff, `/design-sync`'d project, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them
 - **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
 - **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations
-- **📖 [storybook-testing](./plugins/testing/skills/storybook-testing/)** — Storybook stories with browser-rendered interaction tests in CSF Next format
+- **📖 [create-stories](./plugins/testing/skills/create-stories/)** — Create or update a component's Storybook stories with browser-rendered `.test()` interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
 - **🖥️ [true-dom-tester](./plugins/testing/skills/true-dom-tester/)** — Accessibility-tree-based automated tests using Playwright CLI
@@ -248,7 +248,7 @@ What are you doing?
 ├── Writing tests
 │   ├── Planning test strategy      → Agent: testing-strategist (testing)
 │   ├── Component / Storybook tests → Agent: storybook-tester (testing)
-│   │                                  Skills: storybook-testing, builder-factory
+│   │                                  Skills: create-stories, builder-factory
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
 │   ├── Unit tests (Vitest)        → Agent: unit-tester (testing)
 │   │                                  Skills: unit-testing, builder-factory
@@ -332,7 +332,7 @@ claude-plugins/
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
     │   ├── agents/                # testing-strategist, storybook-tester, unit-tester
-    │   └── skills/                # 8 skills (unit-testing, coverage-gaps, storybook-testing, playwright-cli, …)
+    │   └── skills/                # 8 skills (unit-testing, coverage-gaps, create-stories, playwright-cli, …)
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
