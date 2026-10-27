@@ -1,21 +1,14 @@
 ---
 name: nextjs-backend-engineer
-version: 1.1.0
-lastUpdated: 2026-02-20
+version: 1.1.1
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [database-architect, code-reviewer, performance-analyzer]
 description: Implement backend logic for Next.js applications including server actions, route handlers, API endpoints, database operations, and authentication flows. Use proactively after completing backend implementations.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call, mcp__next-devtools__nextjs_docs
 model: sonnet
 color: red
-permissionMode: acceptEdits
 skills: server-actions, api-test, t3-env-validation, structured-logging, playwright-cli, error-handling, toast-notifications, firebase-firestore
-hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "[[ \"$CLAUDE_FILE_PATH\" =~ (actions|route|db).*\\.ts$ ]] && echo '🔧 Backend file updated: $CLAUDE_FILE_PATH' >&2 || true"
 ---
 
 You are an elite Next.js Backend Engineer with deep expertise in building production-grade server-side applications

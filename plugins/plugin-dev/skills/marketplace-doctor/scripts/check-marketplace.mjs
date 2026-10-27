@@ -209,11 +209,14 @@ const AGENT_KEY_ORDER = [
   "tools",
   "model",
   "color",
-  "permissionMode",
   "skills",
-  "hooks",
 ];
-const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint"];
+// Agents shipped in a plugin ignore these keys (Claude Code drops them for security), so carrying
+// them only suggests behaviour that never happens.
+const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers"];
+// user-invocable: false is the documented "background knowledge" pattern: a skill agents preload
+// through skills:, hidden from the / menu. The generated knowledge skills rely on it.
+const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
 
 const inventory = new Map(); // plugin -> { skills, agents, version }
 
@@ -289,7 +292,16 @@ for (const name of onDisk) {
     if (fm.values.name && fm.values.name !== basename(file, ".md")) {
       warn(name, path, `frontmatter name "${fm.values.name}" differs from the filename`);
     }
-    const unknown = fm.keys.filter((k) => !AGENT_KEY_ORDER.includes(k));
+    const ignored = fm.keys.filter((k) => IGNORED_AGENT_KEYS.includes(k));
+    if (ignored.length) {
+      error(
+        name,
+        path,
+        `agent frontmatter carries keys that plugin agents ignore: ${ignored.join(", ")}`,
+        "remove them; a hook that must run belongs in the plugin's hooks/hooks.json"
+      );
+    }
+    const unknown = fm.keys.filter((k) => !AGENT_KEY_ORDER.includes(k) && !IGNORED_AGENT_KEYS.includes(k));
     if (unknown.length) {
       error(name, path, `unrecognized agent frontmatter keys: ${unknown.join(", ")}`, "the agent contract is a closed set");
     }
@@ -298,7 +310,7 @@ for (const name of onDisk) {
     if (known.join(",") !== expected.join(",")) {
       error(name, path, `agent frontmatter keys are out of order: ${known.join(", ")}`, `expected: ${expected.join(", ")}`);
     }
-    const missing = AGENT_KEY_ORDER.filter((k) => k !== "hooks" && !known.includes(k));
+    const missing = AGENT_KEY_ORDER.filter((k) => !known.includes(k));
     if (missing.length) {
       error(name, path, `agent frontmatter is missing required keys: ${missing.join(", ")}`);
     }
@@ -336,9 +348,12 @@ for (const name of onDisk) {
       error(
         name,
         skillPath,
-        `SKILL.md frontmatter carries keys outside the four-field contract: ${unknown.join(", ")}`,
-        "allowed: name, description, allowed-tools, argument-hint"
+        `SKILL.md frontmatter carries keys outside the skill contract: ${unknown.join(", ")}`,
+        "allowed: name, description, allowed-tools, argument-hint, user-invocable"
       );
+    }
+    if (fm.keys.includes("user-invocable") && !["true", "false"].includes(String(fm.values["user-invocable"]))) {
+      error(name, skillPath, `user-invocable is "${fm.values["user-invocable"]}"`, "it takes true or false");
     }
     const known = fm.keys.filter((k) => SKILL_KEY_ORDER.includes(k));
     const expected = SKILL_KEY_ORDER.filter((k) => known.includes(k));

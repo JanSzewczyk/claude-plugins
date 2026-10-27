@@ -1,7 +1,7 @@
 ---
 name: product-owner
-version: 1.0.0
-lastUpdated: 2026-03-11
+version: 1.0.1
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents:
   [
@@ -19,7 +19,6 @@ description: "MULTI-PHASE ORCHESTRATOR. Reads PRD/TDD documents and coordinates 
 tools: Glob, Grep, Read, TodoWrite, AskUserQuestion
 model: sonnet
 color: purple
-permissionMode: default
 skills: prd-spec
 ---
 

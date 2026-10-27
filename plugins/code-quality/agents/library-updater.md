@@ -1,21 +1,14 @@
 ---
 name: library-updater
-version: 1.1.1
-lastUpdated: 2026-10-26
+version: 1.1.2
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [database-architect, code-reviewer]
 description: Update npm packages, investigate breaking changes, execute migrations, and verify code quality after dependency updates. Use when updating libraries or fixing post-update issues.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_docs
 model: sonnet
 color: yellow
-permissionMode: acceptEdits
 skills: t3-env-validation, create-stories, playwright-cli, unit-testing
-hooks:
-  PostToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: '[[ "$TOOL_INPUT" =~ ''npm install'' ]] && echo ''📦 Dependencies updated - remember to run tests'' >&2 || true'
 ---
 
 You are an elite Node.js developer and dependency management specialist with deep expertise in JavaScript, TypeScript,

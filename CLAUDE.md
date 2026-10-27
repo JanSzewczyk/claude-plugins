@@ -48,8 +48,8 @@ Three manifest layers must stay in sync when adding capabilities:
 ## Conventions
 
 - Plugin names use kebab-case; skill folder names are kebab-case and become the `/slash-command`.
-- Agent definitions are Markdown (`.md`) with YAML frontmatter in this exact key order: `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`, `tools`, `model` (defaults to `sonnet`), `color`, `permissionMode`, `skills`, then optional `hooks`. Every agent carries this same set; only `hooks` may be omitted (when the agent defines none). Do not add other keys (e.g. `maxTurns`, `memory`).
-- Skill directories contain `SKILL.md` as the entry point. Its frontmatter is unified across all skills to exactly four fields, in this order: `name`, `description`, `allowed-tools`, and `argument-hint` (the last two optional — `allowed-tools` only when the skill restricts tools, `argument-hint` only when it takes arguments). Do **not** add other keys (no `version`, `tags`, `author`, `context`, `agent`, `user-invocable`, `examples`, `metadata`, etc.). Supporting files live alongside it: reference docs go in a `references/` subfolder, plus optional `templates/`, `scripts/`, `assets/`.
+- Agent definitions are Markdown (`.md`) with YAML frontmatter in this exact key order: `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`, `tools`, `model` (defaults to `sonnet`), `color`, `skills`. Every agent carries this same set. Do not add other keys (e.g. `maxTurns`, `memory`). `permissionMode`, `hooks` and `mcpServers` are forbidden: Claude Code ignores them on agents shipped in a plugin, so they only promise behaviour that never happens. A hook that must run belongs in the plugin's `hooks/hooks.json`.
+- Skill directories contain `SKILL.md` as the entry point. Its frontmatter is unified across all skills to at most five fields, in this order: `name`, `description`, `allowed-tools`, `argument-hint`, and `user-invocable` (the last three optional — `allowed-tools` only when the skill restricts tools, `argument-hint` only when it takes arguments, `user-invocable: false` only on a background-knowledge skill that agents preload and users never call). Do **not** add other keys (no `version`, `tags`, `author`, `context`, `agent`, `examples`, `metadata`, etc.). Supporting files live alongside it: reference docs go in a `references/` subfolder, plus optional `templates/`, `scripts/`, `assets/`.
 - All paths in manifests are relative to the plugin directory.
 - Skills target **Next.js 15+**, **React 19+**, **TypeScript 5.7+** unless the skill's `SKILL.md` says otherwise.
 
@@ -90,7 +90,7 @@ The block is identical in both places, and must be byte-for-byte the same for a 
 
 ## Versioning
 
-Versions live in two places: `plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to exactly the four fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.
+Versions live in two places: `plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to the fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.
 
 **IMPORTANT — this must happen automatically, without being asked:** whenever you edit an agent `.md` file or anything under a plugin's `skills/` directory (or the plugin otherwise changes), bump the version before ending the turn. Don't leave a version unchanged just because the user didn't mention versioning.
 

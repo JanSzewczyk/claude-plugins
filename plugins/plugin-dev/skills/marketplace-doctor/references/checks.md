@@ -43,15 +43,18 @@ Both contracts are **closed sets in a fixed order** — this is a repo conventio
 what the runtime tolerates, which is why `claude plugin validate` does not catch it.
 
 - **Agents:** `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`,
-  `tools`, `model`, `color`, `permissionMode`, `skills`, then optional `hooks`. Every key except
-  `hooks` is required.
-- **Skills:** exactly `name`, `description`, and optionally `allowed-tools` and `argument-hint`,
-  in that order. No `version`, `tags`, `author`, `examples`, `metadata`.
+  `tools`, `model`, `color`, `skills`. Every key is required. `permissionMode`, `hooks` and
+  `mcpServers` are rejected: Claude Code ignores them on agents shipped in a plugin.
+- **Skills:** exactly `name`, `description`, and optionally `allowed-tools`, `argument-hint` and
+  `user-invocable`, in that order. No `version`, `tags`, `author`, `examples`, `metadata`.
+  `user-invocable` takes `true` or `false`; `false` marks a background-knowledge skill that agents
+  preload through `skills:` (the generated `*-rules` skills).
 
 | Message | Repair |
 | --- | --- |
 | `frontmatter keys are out of order` | Reorder to the sequence above. The order is the contract; do not argue with it in the file. |
-| `unrecognized ... keys` / `carries keys outside the four-field contract` | Delete the key. If the information matters, it belongs in the body, not the frontmatter. |
+| `keys that plugin agents ignore` | Delete them. A hook that has to run goes in the plugin's `hooks/hooks.json`, where it is honoured. |
+| `unrecognized ... keys` / `carries keys outside the skill contract` | Delete the key. If the information matters, it belongs in the body, not the frontmatter. |
 | `missing required keys` | Fill them in. A missing `description` on an agent or skill means it will never route. |
 | `frontmatter name does not match the folder` | The folder name becomes the slash command; the frontmatter name must equal it. Rename the frontmatter, not the folder, unless the command name is wrong. |
 | `skill directory has no SKILL.md` | Either the entry point is missing (the skill never loads) or this is a stray directory. Both need a human decision. |

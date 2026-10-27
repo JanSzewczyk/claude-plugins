@@ -2,7 +2,7 @@
   "name": "code-quality",
   "displayName": "Code Quality",
   "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management agents and skills.",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
