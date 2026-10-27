@@ -26,7 +26,8 @@
       "intro": "Apply these rules to every story file you write or review. The first section is always in force; open a rule from the table when the task touches it.",
       "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**"],
       "where": { "languages": ["typescript"], "frameworks": ["react"] },
-      "inline": "high"
+      "inline": "high",
+      "profile": "lean"
     },
     {
       "kind": "knowledge-skill",
