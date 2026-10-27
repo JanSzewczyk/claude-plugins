@@ -18,7 +18,10 @@
         "url": "https://github.com/JanSzewczyk"
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT"
+      "license": "MIT",
+      "dependencies": [
+        { "name": "testing", "version": "^2.2.0" }
+      ]
     },
     {
       "name": "react",
@@ -30,7 +33,12 @@
         "url": "https://github.com/JanSzewczyk"
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT"
+      "license": "MIT",
+      "dependencies": [
+        { "name": "testing", "version": "^2.2.0" },
+        { "name": "nextjs", "version": "^1.1.4" },
+        { "name": "design", "version": "^1.0.4" }
+      ]
     },
     {
       "name": "design",
@@ -66,7 +74,13 @@
         "url": "https://github.com/JanSzewczyk"
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT"
+      "license": "MIT",
+      "dependencies": [
+        { "name": "testing", "version": "^2.2.0" },
+        { "name": "nextjs", "version": "^1.1.4" },
+        { "name": "react", "version": "^1.0.5" },
+        { "name": "design", "version": "^1.0.4" }
+      ]
     },
     {
       "name": "firebase",
@@ -78,7 +92,11 @@
         "url": "https://github.com/JanSzewczyk"
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT"
+      "license": "MIT",
+      "dependencies": [
+        { "name": "nextjs", "version": "^1.1.4" },
+        { "name": "testing", "version": "^2.2.0" }
+      ]
     },
     {
       "name": "product-management",
