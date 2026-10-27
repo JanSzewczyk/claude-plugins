@@ -106,8 +106,8 @@ export const LoadedUsers = meta.story({
 
 ## Next.js navigation
 
-Every story touching `next/navigation` needs `parameters.nextjs.appDirectory: true` (set it once in
-`preview.tsx` for App Router projects).
+Requires `parameters.nextjs.appDirectory: true` in the preview for App Router projects
+(`setup.md`).
 
 Router calls and `redirect` are spies exported by the mock module:
 

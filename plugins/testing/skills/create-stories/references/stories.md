@@ -43,15 +43,17 @@ A story is named after the state it renders, never after what a test does with i
 - **Never generic**: `Default`, `Basic`, `Example`, `Test1`, `Story2`.
 - **Never behaviour names**: `ClickTest`, `ValidationStory`, `TabNavigation` — that is a
   `.test()`, not a story.
+- **A story with `play`** is still a state — name it after the state it ends in (`FilledForm`,
+  `SubmittedForm`), not after the interaction.
 
 ## Args
 
 - Shared defaults (callbacks, required props) go in `meta.args`; a story sets only what makes it
-  that state.
-- Callback props are always `fn()` in `meta.args` so every test shares one spy.
+  that state. Callbacks are `fn()` spies — see `mocking.md`.
 - Values a test asserts against are deterministic: set them explicitly in args, never rely on
   random generator output.
-- Derive variants with `Story.extend({ args })` rather than copying the full config.
+- A variant of another story derives from it (`Story.extend`, `csf-next.md`) rather
+  than copying its config.
 
 ## Data — builders over inline objects
 
@@ -65,7 +67,7 @@ Typed object props (a `User`, a list of `Invoice`s, nested structures of 3+ fiel
   use traits for named variants: `userBuilder.one({ traits: "admin" })`.
 - Primitive props or fewer than 3 fields → inline values are fine.
 
-## Placement and scope
+## Scope
 
-- One `.stories.tsx` per exported component, next to it.
+- One story file per exported component (file name and location: `csf-next.md`).
 - No stories for private sub-components unless asked — they are covered through their parent.

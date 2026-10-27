@@ -21,10 +21,10 @@ procedure and the handful of rules that must never be skipped.
 | [csf-next.md](./references/csf-next.md)                       | step 5 — file shape, file name, `title`                                              |
 | [stories.md](./references/stories.md)                         | step 5 — which states become stories, story naming, args, builders for data          |
 | [mocking.md](./references/mocking.md)                         | step 5 — choosing a mock per dependency, then the one recipe you need                 |
-| [testing.md](./references/testing.md)                         | step 6 — `.test()` rules, queries, `canvas` vs `screen`, grouping, `step()`, `play`  |
+| [testing.md](./references/testing.md)                         | step 6 — `.test()` rules, queries, `canvas` vs `screen`, what to test per component kind, `step()`, `play` |
 | [quality-checklist.md](./references/quality-checklist.md)     | step 4 — auditing an existing file: keep, fix or rewrite                            |
 | [migration.md](./references/migration.md)                     | step 4 — the file is still CSF 3                                                     |
-| [examples.md](./references/examples.md)                       | step 6 — one worked file (LoginForm) and what to test per component kind             |
+| [examples.md](./references/examples.md)                       | step 6 — one worked story file (LoginForm), start to finish                          |
 | [api-reference.md](./references/api-reference.md)             | any time — test context, element/role table, imports                                 |
 
 ## Prerequisites
@@ -118,7 +118,7 @@ behaviour. These decide the stories (step 5) and the mocks.
 ### 5. Plan the stories — [csf-next.md](./references/csf-next.md), [stories.md](./references/stories.md), [mocking.md](./references/mocking.md)
 
 Map the states from step 3 onto stories: different args → different story, same args → one story
-with several tests. Name them per `csf-next.md`. For typed data, reuse an existing builder or create
+with several tests. Name them per `stories.md`. For typed data, reuse an existing builder or create
 one with the `builder-factory` skill — never hand-roll a factory inside the story file. Pick the mock
 per dependency from the table at the top of `mocking.md`, then read only that recipe. In update mode
 the plan is a delta: which states are missing.
@@ -127,10 +127,10 @@ the plan is a delta: which states are missing.
 
 Write or edit the `.stories.tsx` next to the component. For each story attach tests per
 `testing.md`: one grouped content test, one accessibility test, one test per distinct interaction,
-validation rule or callback. Use `play` only where `testing.md` allows it. Check
-[examples.md](./references/examples.md) for what to cover for this kind of component and for the
-worked file shape; look up the test context and element
-roles in [api-reference.md](./references/api-reference.md).
+validation rule or callback, plus what `testing.md` lists for this kind of component. Use `play`
+only where `testing.md` allows it. See [examples.md](./references/examples.md) for the worked file
+shape; look up the test context and element roles in
+[api-reference.md](./references/api-reference.md).
 
 ### 7. Run and fix
 
