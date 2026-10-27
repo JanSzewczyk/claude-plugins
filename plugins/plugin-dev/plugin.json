@@ -2,7 +2,7 @@
   "name": "plugin-dev",
   "displayName": "Plugin Dev",
   "description": "Author and maintain a Claude Code plugin marketplace — audit a repo for manifest and documentation drift, and cut versioned plugin releases.",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
