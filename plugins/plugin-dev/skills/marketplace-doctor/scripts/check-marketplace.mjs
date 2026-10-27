@@ -218,7 +218,8 @@ const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers"];
 // through skills:, hidden from the / menu. The generated knowledge skills rely on it.
 const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
 
-const inventory = new Map(); // plugin -> { skills, agents, version }
+const inventory = new Map(); // plugin -> { skills, agents, version, dependencies }
+const preloads = []; // { plugin, path, skills } for every agent with a skills: line
 
 for (const name of onDisk) {
   const pluginDir = join(pluginsDir, name);
@@ -289,6 +290,9 @@ for (const name of onDisk) {
       continue;
     }
     agentNames.push(fm.values.name ?? basename(file, ".md"));
+    if (fm.values.skills) {
+      preloads.push({ plugin: name, path, skills: String(fm.values.skills).split(",").map((s) => s.trim()).filter(Boolean) });
+    }
     if (fm.values.name && fm.values.name !== basename(file, ".md")) {
       warn(name, path, `frontmatter name "${fm.values.name}" differs from the filename`);
     }
@@ -362,7 +366,142 @@ for (const name of onDisk) {
     }
   }
 
-  inventory.set(name, { skills: skillNames, agents: agentNames, version: manifest.version });
+  // The marketplace entry is the copy Claude Code reads and enforces; `claude plugin validate`
+  // does not look at a plugin.json at the plugin root. Both carry the block, like attribution.
+  if (JSON.stringify(entry?.dependencies ?? []) !== JSON.stringify(manifest.dependencies ?? [])) {
+    error(
+      name,
+      manifestPath,
+      "`dependencies` differs between plugin.json and the marketplace.json entry",
+      "keep the two blocks identical; the marketplace entry is the one that is enforced"
+    );
+  }
+
+  inventory.set(name, {
+    skills: skillNames,
+    agents: agentNames,
+    version: manifest.version,
+    dependencies: entry?.dependencies ?? manifest.dependencies ?? [],
+  });
+}
+
+// ------------------------------------------------------------- dependencies contract
+// An agent that preloads a skill from another plugin only gets it when that plugin is installed,
+// so the dependency has to be declared. Claude Code installs dependencies automatically and
+// checks a version range at load time against the dependency's plugin.json (relative-path
+// sources) or against `<plugin>--v<version>` tags. `claude plugin validate` checks none of this
+// beyond the shape of an entry.
+
+// The range forms this repo uses: x.y.z, =x.y.z, ^x.y.z, ~x.y.z, >=x.y.z (missing parts are 0).
+function satisfies(version, range) {
+  const m = /^(\^|~|>=|=)?(\d+)(?:\.(\d+))?(?:\.(\d+))?$/.exec(range.trim());
+  if (!m) return null;
+  const [a, b, c] = version.split(".").map(Number);
+  const [x, y, z] = [m[2], m[3] ?? 0, m[4] ?? 0].map(Number);
+  const cmp = a - x || b - y || c - z;
+  switch (m[1]) {
+    case "^":
+      return cmp >= 0 && (x > 0 ? a === x : y > 0 ? a === 0 && b === y : a === 0 && b === 0 && c === z);
+    case "~":
+      return cmp >= 0 && a === x && b === y;
+    case ">=":
+      return cmp >= 0;
+    default:
+      return cmp === 0;
+  }
+}
+
+let tags = null;
+try {
+  tags = execFileSync("git", ["-C", root, "tag", "-l", "*--v*"], { encoding: "utf8", stdio: "pipe" }).split(/\r?\n/).filter(Boolean);
+} catch {
+  warn("repo", null, "not a git checkout — skipped the release-tag check for dependency ranges");
+}
+
+const skillOwner = new Map();
+for (const [name, inv] of inventory) for (const skill of inv.skills) skillOwner.set(skill, name);
+
+const edges = new Map(); // plugin -> Set of plugins it depends on in this marketplace
+for (const [name, inv] of inventory) {
+  const file = join(pluginsDir, name, "plugin.json");
+  edges.set(name, new Set());
+  for (const dep of Array.isArray(inv.dependencies) ? inv.dependencies : []) {
+    const spec = typeof dep === "string" ? { name: dep.split("@")[0], marketplace: dep.split("@")[1] } : dep ?? {};
+    if (spec.marketplace && spec.marketplace !== marketplace?.name) continue; // another marketplace: not ours to check
+    if (!inventory.has(spec.name)) {
+      error(name, file, `depends on "${spec.name}", which is not a plugin in this marketplace`);
+      continue;
+    }
+    if (spec.name === name) {
+      error(name, file, "depends on itself");
+      continue;
+    }
+    edges.get(name).add(spec.name);
+    if (!spec.version) continue;
+    const current = inventory.get(spec.name).version;
+    const ok = satisfies(current, spec.version);
+    if (ok === null) {
+      warn(name, file, `cannot evaluate the range "${spec.version}" for "${spec.name}"`, "use ^x.y.z, ~x.y.z, >=x.y.z or x.y.z");
+      continue;
+    }
+    if (!ok) {
+      error(
+        name,
+        file,
+        `requires ${spec.name} ${spec.version}, but ${spec.name} is at ${current}`,
+        "the plugin fails to load until the range and the dependency's version agree"
+      );
+    }
+    if (tags && !tags.some((t) => t.startsWith(`${spec.name}--v`) && satisfies(t.slice(spec.name.length + 3), spec.version))) {
+      warn(
+        name,
+        file,
+        `no release tag of ${spec.name} satisfies ${spec.version}`,
+        `tag the release with \`claude plugin tag plugins/${spec.name}\``
+      );
+    }
+  }
+}
+
+for (const { plugin, path, skills } of preloads) {
+  for (const skill of skills) {
+    const [prefix, bare] = skill.includes(":") ? skill.split(":") : [null, skill];
+    const owner = prefix ?? skillOwner.get(bare);
+    if (!owner) {
+      warn(plugin, path, `skills: preloads "${skill}", which no plugin in this marketplace provides`);
+      continue;
+    }
+    if (owner !== plugin && !edges.get(plugin)?.has(owner)) {
+      error(
+        plugin,
+        path,
+        `skills: preloads "${skill}" from ${owner}, but ${plugin} does not depend on ${owner}`,
+        `add { "name": "${owner}", "version": "^${inventory.get(owner)?.version}" } to dependencies in both manifests`
+      );
+    }
+  }
+}
+
+// Every dependency installs automatically, so a cycle installs both plugins whichever one is
+// picked, and the docs do not define how it resolves.
+const reported = new Set();
+function findCycle(start, node, trail) {
+  for (const next of edges.get(node) ?? []) {
+    if (next === start) return [...trail, start];
+    if (!trail.includes(next)) {
+      const cycle = findCycle(start, next, [...trail, next]);
+      if (cycle) return cycle;
+    }
+  }
+  return null;
+}
+for (const name of edges.keys()) {
+  const cycle = findCycle(name, name, [name]);
+  const key = cycle && [...new Set(cycle)].sort().join(",");
+  if (cycle && !reported.has(key)) {
+    reported.add(key);
+    error(name, join(pluginsDir, name, "plugin.json"), `dependency cycle: ${cycle.join(" → ")}`, "drop the preload that closes the cycle");
+  }
 }
 
 // ------------------------------------------------------------- layer 3: documentation

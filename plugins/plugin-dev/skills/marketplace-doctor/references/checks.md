@@ -118,6 +118,34 @@ which a self-hosted marketplace entry can't reproduce.
 
 ---
 
+## The dependencies contract (cuts across layers 1 and 2)
+
+An agent that preloads a skill through `skills:` only gets it when the plugin that owns the skill
+is installed. A plugin that preloads from another one therefore declares it in `dependencies`,
+which Claude Code installs automatically and checks at load time. `claude plugin validate` checks
+only the shape of an entry: it accepts a range that no version satisfies, a name that does not
+exist, and a cycle. It also does not read a `plugin.json` at the plugin root, so the marketplace
+entry is the copy that is enforced; both layers carry the same block, like attribution:
+
+```json
+"dependencies": [
+  { "name": "testing", "version": "^2.2.0" }
+]
+```
+
+| Message | What actually broke | Repair |
+| --- | --- | --- |
+| `` `dependencies` differs between plugin.json and the marketplace.json entry `` | One layer was edited alone. The installed plugin follows the marketplace entry. | Make the two blocks identical. |
+| `skills: preloads "<s>" from <p>, but <q> does not depend on <p>` | Installing `<q>` alone leaves the agent without the skill, silently. | Add the dependency the hint prints, in both manifests, or drop the preload. |
+| `depends on "<p>", which is not a plugin in this marketplace` | A typo, or a renamed or removed plugin. The install fails. | Fix the name. A plugin from another marketplace needs `"marketplace"` set (and the allowlist in `marketplace.json`). |
+| `requires <p> <range>, but <p> is at <version>` | The dependency's own `version` falls outside the range, so the dependent plugin fails to load. | Widen the range, or bump it to the dependency's new major on purpose. |
+| `no release tag of <p> satisfies <range>` (warning) | No `<p>--v<version>` tag matches. Relative-path plugins still load from the marketplace copy, but a pinned install has nothing to resolve to. | Release the dependency: `claude plugin tag plugins/<p>`. |
+| `cannot evaluate the range "<r>"` (warning) | The doctor reads `x.y.z`, `=`, `^`, `~` and `>=`. | Use one of those forms. |
+| `dependency cycle: a → b → a` / `depends on itself` | Installing either plugin installs both, and how a cycle resolves is undocumented. | Drop the preload that closes the cycle, as `nextjs-backend-engineer` did with `firebase-firestore`. |
+| `skills: preloads "<s>", which no plugin in this marketplace provides` (warning) | A misspelled or removed skill, or one from outside the marketplace. The agent starts without it. | Fix or drop the name. |
+
+---
+
 ## Layer 3 — documentation
 
 Nothing here affects runtime. All of it affects whether a user can find a capability, and whether

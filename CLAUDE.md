@@ -134,7 +134,8 @@ repo describe itself truthfully?* and *do the skills actually fire?*
 **1. Manifests and documentation — `/marketplace-doctor`.** The check that must pass before every
 commit that adds, renames or removes a skill or agent. It compares the plugins, agents and skills
 on disk against `marketplace.json`, every `plugin.json`, the Plugins table above, the root
-`README.md` counts, and each per-plugin README, and enforces the frontmatter contracts below.
+`README.md` counts, and each per-plugin README, and enforces the frontmatter contracts below and
+the `dependencies` that cross-plugin preloads require.
 
 ```bash
 node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .

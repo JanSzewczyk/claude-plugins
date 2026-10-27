@@ -37,6 +37,13 @@ only one of them means the plugin renders with no author in the other. A missing
 an error; missing `email`/`url`/`homepage`/`license` are warnings; a mismatch between the layers is
 an error. See [references/checks.md](./references/checks.md#the-attribution-contract-cuts-across-layers-1-and-2).
 
+## Cross-plugin preloads need a declared dependency
+
+An agent whose `skills:` names a skill from another plugin makes its plugin depend on that one.
+The doctor checks that the dependency is declared, identically in both layers, that each range is
+satisfied by the dependency's current version and by a release tag, and that no two plugins
+depend on each other. See [references/checks.md](./references/checks.md#the-dependencies-contract-cuts-across-layers-1-and-2).
+
 ## Display metadata controls how a plugin looks in the browser
 
 `displayName` and `keywords` in `plugin.json` are what make a plugin show a readable title and be
