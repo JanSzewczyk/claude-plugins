@@ -20,7 +20,7 @@ Code review, performance analysis, bundle optimization, and dependency managemen
 | **update-deps**              | `/update-deps`              | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group on its own branch, pause on majors, then open a PR with the full report |
 | **dead-code**                | `/dead-code`                | Find unused files, exports, types, and dependencies via Knip's reachability graph; rank by confidence, propose safe removal |
 | **repository-documentation** | `/repository-documentation` | Generate or update README.md plus a ready-to-paste GitHub description and topics list, per the Szum-Tech documentation standard |
-| **template-sync**            | `/template-sync`            | Find what the GitHub template a repo was created from has changed since, assess each change against the repo, and write an ordered catch-up plan, then (on approval) apply it on a new branch, commit and open a PR |
+| **template-sync**            | `/template-sync`            | Find what the GitHub template a repo was created from has changed since, assess each change against the repo, and write an ordered catch-up plan, then (on approval) apply it and record a `Template-Sync` sync commit the next run starts from |
 
 ## Installation
 
@@ -92,7 +92,7 @@ The dead-code workflow:
 
 > `/template-sync`
 
-Finds the template, locates the commit the project last matched, groups the template's later commits into changes, judges each against your repo, and writes `template-sync-plan-<date>.md` in the repo root. After you approve the plan, it creates a branch, applies the plan, commits and opens a pull request using the `git-workflow` skills. Needs `git`, `python3` (3.9+) and, to discover or clone a GitHub template, an authenticated `gh`.
+Finds the template, locates the commit the project last matched, groups the template's later commits into changes, judges each against your repo, and writes `template-sync-plan-<date>.md` in the repo root. After you approve the plan, it applies the approved steps on the current branch (one commit per step) and closes with a sync commit whose `Template-Sync` trailer marks the template commit the project now matches, so the next run reads only what the template changed since. Needs `git`, `python3` (3.9+) and, to discover or clone a GitHub template, an authenticated `gh`.
 
 ## Cross-Plugin Skills
 

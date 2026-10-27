@@ -198,4 +198,41 @@ import viteConfig from './vite.config'
 export default mergeConfig(viteConfig, defineConfig({ test: { environment: 'jsdom' } }))
 EOF
 commit "$T" "2025-09-01T10:00:00Z" "Vitest 2 with jsdom and Vue Test Utils (#20)"
-echo "template: $T"; echo "project:  $D"
+# Routine bot bumps: not technological changes, must not become plan items.
+python3 - "$T/package.json" <<'EOF'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p))
+d["devDependencies"]["typescript"] = "^5.6.0"; d["devDependencies"]["vue-tsc"] = "^2.1.0"
+open(p, "w").write(json.dumps(d, indent=2) + "\n")
+EOF
+GIT_AUTHOR_NAME="dependabot[bot]" GIT_AUTHOR_EMAIL="49699333+dependabot[bot]@users.noreply.github.com" \
+  commit "$T" "2025-09-15T10:00:00Z" "Bump typescript from 5.4.0 to 5.6.0 and vue-tsc from 2.0.0 to 2.1.0 (#21)"
+python3 - "$T/package.json" <<'EOF'
+import json, sys
+p = sys.argv[1]; d = json.load(open(p))
+d["dependencies"]["vue"] = "^3.5.0"
+open(p, "w").write(json.dumps(d, indent=2) + "\n")
+EOF
+commit "$T" "2025-10-01T10:00:00Z" "chore(deps): update dependency vue to v3.5 (#22)"
+
+# A second project state: the same project after a first sync that took the template
+# up to #15 (Node 22) and skipped the Prettier change. Only #16..#20 should show next time.
+S="$ROOT/payroll-portal-synced"
+cp -R "$D" "$S"
+SYNCED_SHA="$(git -C "$T" log --format=%H --grep='(#15)')"
+echo "22" > "$S/.nvmrc"
+git -C "$S" add -A
+GIT_AUTHOR_DATE="2025-06-15T09:00:00Z" GIT_COMMITTER_DATE="2025-06-15T09:00:00Z" \
+  git -C "$S" commit -q -F - <<EOF
+chore: sync with template $T @ ${SYNCED_SHA:0:7}
+
+Template $T (main): first sync.
+
+Template-Sync: $SYNCED_SHA
+Template-Source: $T
+Template-Ref: main
+Template-Skipped: .prettierrc -- Prettier replaced by Biome (team decision)
+EOF
+mkdir -p "$S/src/views"; printf '<template>\n  <ul />\n</template>\n' > "$S/src/views/PayslipList.vue"
+commit "$S" "2025-07-01T09:00:00Z" "Payslip list view"
+echo "template: $T"; echo "project:  $D"; echo "synced:   $S (Template-Sync -> ${SYNCED_SHA:0:10})"

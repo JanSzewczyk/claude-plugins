@@ -1,7 +1,7 @@
 ---
 name: template-sync
-description: "Catch a repository created from a GitHub template ('Use this template') up with what the template changed since: dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding. Finds which changes the repo is missing, already made by hand, or deliberately does differently, and writes an ordered implementation plan. Use for 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'zsynchronizuj z szablonem', 'sync with the template', 'what did the template change that we don't have', 'backport template updates', 'template drift', or how far a project has drifted from its starter. Plans first, then on the user's go-ahead applies the plan on its own branch, commits it and opens a pull request (via the git-workflow skills). NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to latest (update-deps), or migrating one component to a new library (migration)."
-argument-hint: "[template OWNER/NAME | URL | local path — optional, discovered from GitHub when omitted] [--since SHA]"
+description: "Run inside a repository that was created from a GitHub template repository ('Use this template') to find what the template has changed since the project last matched it — dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding — check which of those changes this repository is still missing, has already made by hand, or has deliberately done differently, write an ordered implementation plan, and, once the user approves, apply it and close with one sync commit whose Template-Sync trailer is the pointer the next run starts from, so repeat runs read only what the template did since instead of its whole history. Use whenever someone wants a derived project caught up with its template or starter: 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'przenieś zmiany z template'u', 'zsynchronizuj z szablonem', 'template się zmienił, co trzeba zrobić tutaj', 'plan aktualizacji z template'u', 'sync with the template', 'what did the template change that we don't have', 'catch this repo up with the starter', 'backport template updates', 'template drift'. Also when someone asks how far a project has drifted from the boilerplate it started from. Changes nothing until the user has read the plan and said what to apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to their latest registry versions (update-deps), or migrating one component to a new library (migration)."
+argument-hint: "[template OWNER/NAME | URL | local path — optional, discovered from the last sync commit or GitHub when omitted] [--since SHA]"
 ---
 
 # Template sync
@@ -13,21 +13,23 @@ do not work, and nothing tells the team when the template moves on. A year
 later the template is on Node 22, ESLint flat config and a new CI matrix; the
 project still has what was copied on day one, plus its own edits.
 
-This skill produces the plan for closing that gap: every technological change
-the template made since the project was cut, what state the project is in for
-each one, and the ordered steps to bring it in. Steps 1–5 are read-only: they
-write one plan file and change nothing else. Once the user approves the plan,
-steps 6–9 apply it on a new branch, commit the result and open a pull request.
+This skill closes that gap in two halves. First the **plan**: every
+technological change the template made since the project last matched it,
+the project's state for each, and the ordered steps to bring it in. Nothing
+in the repository changes until the user has read the plan and said what to
+apply. Then, on approval, the **apply**: the approved steps, each verified,
+closed by one **sync commit** whose `Template-Sync: <sha>` trailer points at
+the template commit the project now matches. The next run reads that trailer
+from `git log` and inventories only the template commits after it, instead of
+re-detecting the starting point and re-reading the template's whole history.
 
-Write the plan in the user's language unless they ask otherwise.
+Talk to the user in the language they use. Write the plan in that language
+too, unless they ask otherwise.
 
 ## Prerequisites
 
-The inventory script needs Python 3.8+ and `git`; `gh` (authenticated) is
-needed to discover the template from GitHub and to open its PRs. Steps 6–9 use
-the `create-branch`, `create-commit` and `create-pull-request` skills of the
-`git-workflow` plugin; if it is not installed, do the same with plain `git` and
-`gh` following the same conventions, and say so. Check first:
+The inventory script needs Python 3.9+ and `git`; `gh` (authenticated) is
+needed to discover the template from GitHub and to read its PRs. Check first:
 
 ```bash
 python3 --version && git --version && gh auth status
@@ -55,12 +57,14 @@ reply that moves a step forward. A line without its output is not done.
 [ ] 2 changes     → template commits grouped into technological changes, noise set aside
 [ ] 3 assessment  → each change: status in this repo, with evidence from both sides; risky steps tried in a scratch copy
 [ ] 4 plan        → plan file in the repo root, ordered, every change accounted for
-[ ] 5 handover    → summary in chat, decisions the user has to make, go-ahead to apply
-[ ] 6 branch      → work branch created from the current one (create-branch)
-[ ] 7 apply       → approved plan items applied and verified
-[ ] 8 commit      → changes committed (create-commit)
-[ ] 9 pull request → PR opened for review (create-pull-request)
+[ ] 5 handover    → summary in chat, decisions the user has to make, the apply question — then stop
+[ ] 6 apply       → only after the user's answer: approved steps applied in order, each verified
+[ ] 7 record      → the sync commit: predefined message, Template-Sync trailer, one Template-Skipped per skipped file
 ```
+
+Steps 6 and 7 run only when the user says so in step 5. If they stop after
+the plan, its last item carries the exact commit command for whoever applies
+it, so the pointer still lands in the repository.
 
 ## Step 1 — inventory
 
@@ -71,22 +75,39 @@ workdir so the template clone never lands inside the project:
 python3 <skill-dir>/scripts/template_drift.py --repo . --workdir <scratchpad>/template-sync
 ```
 
-It finds the template (from `--template`, else the `.template-sync.json`
-marker, else GitHub's `templateRepository`), clones it blob-less into the
-workdir, finds the **anchor** — the template commit the project last matched —
-and classifies every file the template changed since. Read
-`references/script-output.md` for the fields and states.
+It finds the template and the **anchor** — the template commit the project
+last matched — then classifies every file the template changed since. Each
+comes from the first source that has it:
+
+| | Template | Anchor |
+|---|---|---|
+| 1 | `--template` | `--since` |
+| 2 | the newest **sync commit** in the project's history: trailers `Template-Source` / `Template-Ref` | the same commit's `Template-Sync` trailer |
+| 3 | legacy `.template-sync.json` marker (from before sync commits) | the marker's `last_synced_sha` |
+| 4 | GitHub's `templateRepository` (network) | detection: shared history, then root-commit tree hash, then date fallback |
+
+A sync commit makes the run cost what the template did since: no network
+call, no walk of the template's history. Only row 4 walks it, and it happens
+once per project, because this run ends with the sync commit that the next
+run starts from. Read `references/script-output.md` for the fields and states.
 
 The anchor decides everything downstream, so check how it was found:
 
-- `marker`, `--since`, `shared history`, `root tree hash` → high confidence, go on.
+- `sync commit`, `--since`, `marker`, `shared history`, `root tree hash` →
+  high confidence, go on.
 - `date fallback` → low confidence. The project's first commit was edited, or
   the template's history was rewritten. Show the user the anchor commit and
   its date and ask them to confirm it or give the right one (`--since`);
   a wrong anchor silently drops or duplicates changes.
+- A `NOTE` line → the script found a pointer it could not use: the SHA is not
+  in the template's history (rewritten, or a renamed template) or not on the
+  compared branch. It fell back to detection. Tell the user which commit
+  carried the pointer and ask them to confirm the detected anchor.
+- `up to date` → the template has no commits after the anchor. Say so and
+  stop: no plan, no commit.
 - No template found → GitHub has no link (the repo was copied by hand or the
   template was renamed or made private). Ask for the template once, then re-run
-  with `--template`.
+  with `--template`; the sync commit records it for every later run.
 
 If the script reports uncommitted changes, say that states are computed
 against `HEAD` and those edits are not counted.
@@ -103,12 +124,37 @@ and often several commits (the PR, then a follow-up fix). Group by:
 2. the files commits touch together (`files[].touched_by`);
 3. the `package_json_delta` rows that belong to the same tool.
 
-Routine dependency bumps (Dependabot, Renovate) collapse into one change per
-ecosystem — "npm dependencies bumped (27 packages, 6 majors)" — with the
-majors called out by name, because a major is where the breaking change hides.
+**A routine dependency bump is not a change.** The template's periodic
+Dependabot or Renovate rounds, and hand-made "bump X to Y" commits that
+change nothing but versions, are the template keeping itself current, not
+something this project has to repeat: the project runs its own dependency
+updates on its own schedule. They go to the plan's *Template dependency
+levels* reference table, never to a step, majors included. The script marks
+such commits `kind: dependency-bump` and each `package_json_delta` row with
+the commits that moved it (`touched_by`) and `routine_only`; both are
+heuristics on authors and subjects, so when a row matters, read the commit.
+
+A dependency moves into a change only when that change needs it:
+
+- a **new tool or migration** declares or requires it (the ESLint 9 flat
+  config needs `@eslint/js` and `typescript-eslint`; Vitest 2 needs the new
+  `jsdom`): the step installs exactly what the template installed, at the
+  template's versions or newer, as part of that step;
+- a **runtime bump** forces it (a package whose new major drops the old
+  Node);
+- the template **adapted its code or config to the new version** in the same
+  or a follow-up commit (a config key renamed, an import changed): then the
+  bump plus the adaptation is one change, and the project needs both;
+- the bump answers an **end-of-life or a security advisory** the template's
+  commit or PR names: then it is a change with that deadline.
+
+A major that arrives only in a routine round still gets no step. Note it in
+the reference table as a major, so the project's own update round knows what
+is waiting.
 
 Set aside, but list at the end of the plan with a reason, what is not a
-technological change for this project: template README and branding, example
+technological change for this project: routine dependency bumps (above),
+template README and branding, example
 or placeholder code the project has replaced, generated output (`dist/`,
 `*.map` — regenerated by building, never copied), and lockfiles (regenerated by
 installing, never copied). A change to the example code that demonstrates a new
@@ -137,6 +183,11 @@ Two checks before calling anything **missing** or **already done**:
 - **Equivalent counts as done.** The project may have reached the same result
   another way (Biome instead of the template's new Prettier config). Say so,
   and mark it **decision needed** only if the two would really conflict.
+
+A file with `previously_skipped` was rejected in an earlier sync, with the
+reason quoted. That decision stands — **not applicable**, reason quoted —
+unless the template's new change makes the reason obsolete; then it is
+**decision needed**, with both the old reason and what changed.
 
 Do not guess about breaking changes in major bumps: check the dependency's
 official changelog or migration guide for the versions involved, and put the
@@ -189,54 +240,72 @@ move or turn into tickets.
   keep this repo's extra `vue/` rules (lines 14–22 of the old file)" is.
 - **Every changed file in drift.json is accounted for** — in an item, in
   *Already done*, or in *Not applicable / set aside*. Nothing silently dropped.
-- **The last item records the sync:** create or update `.template-sync.json`
-  in the repo root so the next run starts from here instead of re-detecting:
-
-  ```json
-  { "template": "<OWNER/NAME or URL>", "ref": "<branch>", "last_synced_sha": "<template head SHA>", "synced_at": "<date>" }
-  ```
-
-  Changes the user decides not to take go into a `skipped` list,
-  `[{ "change": "...", "paths": ["..."], "reason": "..." }]`, so the next run
-  reports them as previously skipped instead of as new. If only part of the
-  plan is applied, `last_synced_sha` stays at the old anchor: the applied part
-  then shows up as already done next time, the rest as still open.
+- **The last item is the sync commit**, with the full message from
+  `<workdir>/sync-commit-message.txt` pasted in and the `Template-Skipped`
+  trailers the plan already knows about, so the plan is self-contained once
+  the scratchpad is gone. Whoever applies the plan — this skill in step 7, or
+  the user later — makes that commit.
 
 ## Step 5 — hand over
 
-In chat: the template and range (anchor → head, commit count), a table of the
-changes with status and effort (S/M/L), the link to the plan file, and the
-decisions only the user can make. Then ask once whether to apply the plan now
-(all of it, or the items they name). Stop here until they answer. On "no",
-the plan file is the deliverable and the run ends.
+In chat: the template and range (anchor → head, commit count), what the last
+sync was (commit and date, or "first sync"), a table of the changes with
+status and effort (S/M/L), the link to the plan file, and the decisions only
+the user can make. Then ask one question: apply now, and if so, which items to
+skip and why. **Stop and wait.** The answer is the user's; without it the plan
+is the deliverable, and nothing in the repository has changed.
 
-## Step 6 — branch
+## Step 6 — apply
 
-Invoke the `create-branch` skill, with a hint such as "sync with template
-<OWNER/NAME>". Do it before touching any project file, so nothing is ever
-changed on the default branch. The plan file stays untracked and is never
-staged.
+Only after the user has answered. Work in the real repository on the branch
+it is on; the user chose it. Never rewrite history, never force anything,
+never push unless asked.
 
-## Step 7 — apply
+- Follow the plan's order. After each step, run its *Verify* commands. A step
+  that fails stops the apply: report what failed, leave the applied steps in
+  place, and do not make the sync commit.
+- Stage only the files a step names plus the lockfiles its install command
+  regenerated. Never the plan file.
+- One commit per plan step, so each can be reviewed and reverted on its own.
+  If the user asked for a single commit, that commit *is* the sync commit and
+  takes the predefined message.
+- Items the user skipped are not touched; they become `Template-Skipped`
+  trailers in step 7, with the user's reason.
 
-Work through the approved items in plan order, one at a time, running each
-item's *Verify* step before the next. Items marked **decision needed** are
-applied only with the user's answer; unanswered ones are skipped and go in the
-`skipped` list. Stop and report if a step fails in a way the plan did not
-foresee — do not improvise around it. Finish by recording the sync in
-`.template-sync.json` as the plan's last item describes.
+## Step 7 — record the sync
 
-## Step 8 — commit
+The sync commit is the pointer every later run starts from, so make it only
+when **every change in the plan is either applied or explicitly skipped by
+the user**. If the apply stopped part-way, say which items remain and make no
+sync commit: the next run starts from the old anchor, sees the applied part
+as already done, and plans the rest.
 
-Invoke the `create-commit` skill. The plan file is not committed. It splits
-the work by type when the changes clearly separate (for example `build` for
-dependencies, `ci` for workflows), otherwise one commit.
+```bash
+git commit --allow-empty -F <workdir>/sync-commit-message.txt \
+  --trailer "Template-Skipped: .prettierrc -- Prettier replaced by Biome (team decision)"
+```
 
-## Step 9 — pull request
+- The message file is the one the script wrote: predefined subject
+  `chore: sync with template <spec> @ <short sha>` and the trailers
+  `Template-Sync` (the template head the inventory compared against),
+  `Template-Source` and `Template-Ref`. Do not edit it.
+- One `--trailer "Template-Skipped: <path> -- <reason>"` per skipped file, in
+  the user's words. Every later run quotes it on that file as
+  `previously_skipped`.
+- `--allow-empty` because the step commits usually leave nothing to add. When
+  the legacy `.template-sync.json` exists, `git rm` it in this commit: the
+  trailers replace it.
+- Check the pointer before reporting done:
 
-Invoke the `create-pull-request` skill. Put into the PR body the template and
-range synced, the applied items, and what was skipped or left open (taken from
-the plan), so the reviewer needs no other document. Report the PR URL.
+  ```bash
+  git log -1 --format='%(trailers:key=Template-Sync,valueonly)'
+  ```
+
+  must print the template head SHA from drift.json.
+
+Close in chat with the commits made (step commits and the sync commit), what
+was skipped, and the one-liner for next time: run the skill again; it starts
+from this commit.
 
 ## References
 
