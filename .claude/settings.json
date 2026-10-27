@@ -9,6 +9,7 @@
     }
   },
   "enabledPlugins": {
-    "plugin-dev@szum-tech": true
+    "plugin-dev@szum-tech": true,
+    "knowledge-dev@szum-tech": true
   }
 }
