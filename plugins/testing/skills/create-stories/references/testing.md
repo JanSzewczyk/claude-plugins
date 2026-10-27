@@ -18,24 +18,11 @@ EmptyForm.test("Shows an error on empty submit", async ({ canvas, userEvent, arg
 
 The full context it receives is in `api-reference.md`.
 
-## Queries
+## Queries, `canvas` vs `screen`, assertions
 
-- **Semantic first**: `getByRole` (with `name`) → `getByLabelText` → `getByText` /
-  `getByPlaceholderText`.
-- **`getBy*`** — element must be there now.
-- **`queryBy*`** — for asserting absence (`not.toBeInTheDocument()`); `getBy*` would throw first.
-- **`findBy*` / `waitFor()`** — anything that appears after an interaction, a request, or an
-  animation (overlays and portals included).
-- Elements that may legitimately not exist (mobile-only, feature-flagged) → `queryBy*` first, then
-  assert conditionally.
-
-## `canvas` vs `screen`
-
-- **`canvas`** — everything rendered inside the story root. Default.
-- **`screen`** (imported from `storybook/test`) — portal content rendered to `document.body`:
-  dialogs, tooltips, popovers, menus, select/combobox option lists, most toasts.
-- **Pattern**: trigger inside `canvas`, then find the portal content with `screen.findBy*`.
-- `canvasElement` — raw DOM, rarely needed.
+Which query variant to use, querying like a user, portal content through `screen`, awaiting every
+interaction and asserting what the user perceives are rules in `rules.md`. The portal pattern in
+short: trigger inside `canvas`, then find the overlay with `screen.findBy*`.
 
 ```tsx
 await userEvent.click(canvas.getByRole("button", { name: /delete/i }));
@@ -43,11 +30,8 @@ const dialog = await screen.findByRole("dialog");
 await userEvent.click(screen.getByRole("button", { name: /confirm/i }));
 ```
 
-## Assertions
-
-- Assert what the user sees or can do: `toBeVisible`, `toBeDisabled`, `toHaveTextContent`,
-  `toHaveValue`, `toHaveFocus`, `toHaveAttribute("aria-…")`, `toHaveBeenCalledWith` on callback spies.
-- Never assert internal state, class names that carry no meaning for the user, or snapshot markup.
+Elements that may legitimately not exist (mobile-only, feature-flagged) → `queryBy*` first, then
+assert conditionally.
 
 ## What to test, and how to group it
 
@@ -89,10 +73,8 @@ Add these wherever the component has the behaviour, on the story whose state it 
 
 ## Test names
 
-A sentence describing one behaviour, present tense, from the user's point of view.
-
-- ✅ `"Shows validation error on empty submit"`, `"Disabled button prevents submission"`
-- ❌ `"Test 1"`, `"Works correctly"`, `"Validation"`, `"should work"`
+A sentence describing one behaviour, present tense, from the user's point of view — the naming rule
+is in `rules.md`.
 
 ## `step()`
 
@@ -118,10 +100,8 @@ FormStory.test("Submits valid data", async ({ canvas, userEvent, args, step }) =
 
 ## Independence
 
-- Every test must pass alone and in any order — never rely on what an earlier test clicked.
-- Mocks are configured and reset in `beforeEach` — see `mocking.md`.
-- Repeated setup (fill a form to a valid state) → a small helper function in the story file, not
-  a shared mutable variable.
+Every test passes alone and in any order (`rules.md`). Mocks are configured and reset in
+`beforeEach` — see `mocking.md`.
 
 ## `play` — the exception
 

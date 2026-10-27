@@ -26,7 +26,7 @@ plugins/
 | **nextjs**             | Next.js full-stack development             | nextjs-backend-engineer                              | server-actions, t3-env-validation, structured-logging, toast-notifications, error-handling, generate-feature-package, devlogs                                                                         |
 | **react**              | React 19 UI development                    | frontend-expert                                      | react-19-compiler                                                                                                                                                                                     |
 | **design**             | Design system & styling                    | —                                                    | szum-tech-design-system, tailwind-css-4, design-system-component, implement-design                                                                                                                    |
-| **testing**            | Testing strategies & QA                    | testing-strategist, storybook-tester, unit-tester    | unit-testing, create-stories, builder-factory, api-test, accessibility-audit, playwright-cli, true-dom-tester, coverage-gaps                                                                           |
+| **testing**            | Testing strategies & QA                    | testing-strategist, storybook-tester, unit-tester    | unit-testing, create-stories, builder-factory, api-test, accessibility-audit, playwright-cli, true-dom-tester, coverage-gaps, storybook-rules, builder-rules-ts, builder-rules-py                       |
 | **code-quality**       | Code review, performance & maintenance     | code-reviewer, performance-analyzer, library-updater | performance-optimization, repository-documentation, update-deps, dead-code, template-sync                                                                                                                             |
 | **firebase**           | Firebase & DB architecture                 | database-architect                                   | firebase-firestore, db-migration                                                                                                                                                                     |
 | **product-management** | PRD/TDD orchestration & agent coordination | product-owner                                        | prd-spec                                                                                                                                                                                              |
@@ -35,6 +35,7 @@ plugins/
 | **plugin-dev**         | Marketplace auditing & plugin releases     | —                                                    | marketplace-doctor, plugin-release                                                                                                                                                                                 |
 | **skill-dev**          | Skill authoring quality & A/B testing      | —                                                    | skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator                                                                                                                                                                                    |
 | **shared-rules**       | Source of truth for `.claude/rules/` files | —                                                    | sync-rules                                                                                                                                                                                            |
+| **knowledge-dev**      | Shared knowledge base authoring & build    | —                                                    | knowledge-author                                                                                                                                                                                      |
 | **git-workflow**       | Git workflow — branches, commits, pull requests | —                                                    | create-branch, create-commit, create-pull-request                                                                                                                                                      |
 
 ## How registration works (the big picture)
@@ -51,7 +52,22 @@ Three manifest layers must stay in sync when adding capabilities:
 - Agent definitions are Markdown (`.md`) with YAML frontmatter in this exact key order: `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`, `tools`, `model` (defaults to `sonnet`), `color`, `skills`. Every agent carries this same set. Do not add other keys (e.g. `maxTurns`, `memory`). `permissionMode`, `hooks` and `mcpServers` are forbidden: Claude Code ignores them on agents shipped in a plugin, so they only promise behaviour that never happens. A hook that must run belongs in the plugin's `hooks/hooks.json`.
 - Skill directories contain `SKILL.md` as the entry point. Its frontmatter is unified across all skills to at most five fields, in this order: `name`, `description`, `allowed-tools`, `argument-hint`, and `user-invocable` (the last three optional — `allowed-tools` only when the skill restricts tools, `argument-hint` only when it takes arguments, `user-invocable: false` only on a background-knowledge skill that agents preload and users never call). Do **not** add other keys (no `version`, `tags`, `author`, `context`, `agent`, `examples`, `metadata`, etc.). Supporting files live alongside it: reference docs go in a `references/` subfolder, plus optional `templates/`, `scripts/`, `assets/`.
 - All paths in manifests are relative to the plugin directory.
-- Skills target **Next.js 15+**, **React 19+**, **TypeScript 5.7+** unless the skill's `SKILL.md` says otherwise.
+- Each skill names the languages and stack it targets in its description (e.g. "Vitest for TypeScript", "React components in CSF Next"); knowledge notes carry theirs in `applies`. Where a skill says nothing, assume Next.js 15+, React 19+, TypeScript 5.7+.
+
+## Knowledge base
+
+Rules that skills and agents apply live once in `knowledge/`, one decision per file. Skills and
+agents receive generated renderings (`references/rules.md`, the `BEGIN:knowledge` block in a
+SKILL.md, the `*-rules` knowledge skills). Never edit those: edit the note and run
+`node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs build`. CI runs `check`.
+
+- How to write a note: `knowledge/README.md`.
+- Why it works this way: `plugins/knowledge-dev/skills/knowledge-author/references/decisions.md`.
+  Read the decision before changing the format, the rendering or the targets, and update it in the
+  same change.
+- Use `/knowledge-author` to extract rules from a skill, add or change a rule, or fix a failing check.
+- An agent preloads the procedure skill it executes plus the `*-rules` knowledge skills it applies,
+  not full skills it only consults (D22).
 
 ## Attribution
 
@@ -105,6 +121,8 @@ Semver rules for the bump size (apply the same rule to both plugin and agent ver
 - **minor** (`x.Y+1.0`) — new skill or agent added, new capability/section, meaningfully expanded guidance, non-breaking additions.
 - **major** (`X+1.0.0`) — breaking change: removed/renamed a skill or agent, changed a frontmatter contract, restructured in a way that invalidates prior usage.
 
+Editing a note in `knowledge/` changes the generated files of every skill that receives it: bump each plugin whose files `build` rewrote, as if you had edited that skill by hand.
+
 When several plugins/agents change in one turn, bump each one independently according to the scope of its own change — don't apply a single bump size across all of them.
 
 ## Validation & testing
@@ -124,6 +142,14 @@ node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs 
 Exit 0 clean, 1 on any error; `--strict` also fails on warnings, `--json` for machine output,
 `--no-native` to skip the wrapped `claude plugin validate --strict` pass. This runs in CI on every
 push and pull request — see `.github/workflows/validate.yml`.
+
+**Knowledge renderings — `knowledge.mjs check`.** Must pass whenever a note in `knowledge/`,
+`knowledge/targets.json` or a generated file changes. CI runs it with `validate` and the script's
+tests:
+
+```bash
+node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
+```
 
 **2. Skill routing — `claude plugin eval`.** Every plugin has an `evals/` suite: one routing case
 per skill, plus outcome cases where the artifact is worth grading. See [EVALS.md](./EVALS.md) for

@@ -1,0 +1,16 @@
+{
+  "name": "knowledge-dev",
+  "displayName": "Knowledge Base Tooling",
+  "description": "Authoring and build tooling for the marketplace's shared knowledge notes — one decision per file in knowledge/, rendered into the skills and agents that apply them, with a drift check for CI.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
+  },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
+  "keywords": ["knowledge", "rules", "build", "authoring"],
+  "agents": [],
+  "skills": "./skills/"
+}

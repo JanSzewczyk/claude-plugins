@@ -1,0 +1,11 @@
+{
+  "languages": ["typescript", "python"],
+  "frameworks": ["react", "vue", "nextjs", "react-router", "django"],
+  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest"],
+  "budgets": {
+    "title": 90,
+    "summary": 120,
+    "description": 1024,
+    "knowledgeSkillLines": 300
+  }
+}
