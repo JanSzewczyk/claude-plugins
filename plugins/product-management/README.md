@@ -94,8 +94,6 @@ The `product-owner` maps PRD/TDD signals to these specialist agents:
 
 ## Related Plugins
 
-- [**react**](../react/) — frontend-expert agent
-- [**nextjs**](../nextjs/) — nextjs-backend-engineer agent
+- [**react**](../react/) — frontend-expert and storybook-tester agents
+- [**nextjs**](../nextjs/) — nextjs-backend-engineer, testing-strategist, code-reviewer and performance-analyzer agents
 - [**firebase**](../firebase/) — database-architect agent
-- [**testing**](../testing/) — testing-strategist and storybook-tester agents
-- [**code-quality**](../code-quality/) — code-reviewer and performance-analyzer agents

@@ -1,8 +1,8 @@
 {
   "name": "testing",
-  "displayName": "Testing & QA",
-  "description": "Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.",
-  "version": "2.3.0",
+  "displayName": "Testing core",
+  "description": "Technology-agnostic testing core — Playwright browser automation, accessibility-tree DOM test generation, and test data builders that detect the stack (mimicry-js for TypeScript, factory_boy for Python).",
+  "version": "3.0.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -10,11 +10,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
-  "keywords": ["testing", "storybook", "playwright", "accessibility", "vitest"],
-  "agents": [
-    "./agents/testing-strategist.md",
-    "./agents/storybook-tester.md",
-    "./agents/unit-tester.md"
-  ],
+  "keywords": ["testing", "playwright", "e2e", "test-data", "builders"],
+  "agents": [],
   "skills": "./skills/"
 }

@@ -1,0 +1,22 @@
+{
+  "name": "typescript",
+  "displayName": "TypeScript",
+  "description": "TypeScript and JavaScript tooling — Vitest unit tests, mimicry-js builder rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm dependency updates.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
+  },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
+  "dependencies": [
+    { "name": "testing", "version": "^3.0.0" }
+  ],
+  "keywords": ["typescript", "javascript", "vitest", "npm", "knip"],
+  "agents": [
+    "./agents/unit-tester.md",
+    "./agents/library-updater.md"
+  ],
+  "skills": "./skills/"
+}

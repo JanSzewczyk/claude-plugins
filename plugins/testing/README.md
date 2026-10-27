@@ -1,118 +1,46 @@
 # testing
 
-Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.
+Technology-agnostic testing core — Playwright browser automation, accessibility-tree DOM test generation, and test data builders that detect the stack. Everything here works whatever language or framework the project uses; technology-specific testing lives in the technology's plugin (Vitest in **typescript**, Storybook and accessibility audits in **react**, API route tests and test strategy in **nextjs**).
 
 ## Contents
 
-### Agents
-
-| Agent                        | Description                                                                                                                                                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **testing-strategist**       | Plan test strategies, analyze coverage gaps, select appropriate test types (unit/integration/E2E). Follows the Testing Trophy model.                                     |
-| **storybook-tester**         | Writes Storybook stories and interaction tests for React components in CSF Next format — play functions, component variants, edge cases, and the `.test()` method. |
-| **unit-tester**              | Writes Vitest unit tests for utilities, Zod schemas, hooks, and Server Actions (with mocked dependencies). Phased, autonomous, SDD-aware — derives cases from acceptance criteria. |
-
 ### Skills
 
-| Skill                   | Invoke with            | Description                                                                                                                     |
-| ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **create-stories**      | `/create-stories`      | Create or update a component's `.stories.tsx` — setup check, CSF Next stories per state, `.test()` interaction tests, mocking   |
-| **builder-factory**     | `/builder-factory`     | Test data builders with `mimicry-js` — factory patterns, field mappings, mock data generation                                   |
-| **api-test**            | `/api-test`            | Testing Next.js Route Handlers with Playwright — real HTTP requests, response validation                                        |
-| **accessibility-audit** | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                           |
-| **playwright-cli**      | `/playwright-cli`      | Browser automation — web testing, screenshots, form filling, request mocking, tracing, video recording                          |
-| **true-dom-tester**     | `/true-dom-tester`     | Accessibility-tree-based Playwright test generation — semantic locators, faster/cheaper than screenshots, optional Firecrawl     |
-| **unit-testing**        | `/unit-testing`        | Vitest unit tests for TypeScript — mocking, async testing, parameterized tests, server action testing, coverage                 |
-| **coverage-gaps**       | `/coverage-gaps`       | Finds and ranks the coverage gaps that matter — weights uncovered branches, critical paths, and git churn over line percentages |
-| **storybook-rules**     | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `testing-strategist` |
-| **builder-rules-ts**    | — (preloaded)          | Generated background knowledge: test data builder rules for TypeScript and `mimicry-js`, preloaded by the testing agents          |
-| **builder-rules-py**    | — (preloaded)          | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents                  |
+| Skill               | Invoke with        | Description                                                                                                                          |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **playwright-cli**  | `/playwright-cli`  | Browser automation — web testing, screenshots, form filling, request mocking, tracing, video recording                               |
+| **true-dom-tester** | `/true-dom-tester` | Accessibility-tree-based Playwright test generation — semantic locators, faster/cheaper than screenshots, optional Firecrawl          |
+| **builder-factory** | `/builder-factory` | Test data builders — reads `package.json` or `pyproject.toml`, then writes `mimicry-js` builders for TypeScript or `factory_boy` factories for Python |
 
-The three `*-rules` skills, the `references/rules.md` files and the `BEGIN:knowledge` blocks in
-`create-stories`, `builder-factory` and `unit-testing` are generated from `knowledge/` at the repo
-root. Edit the notes there and run the `knowledge-dev` build; never edit the generated files.
+The `references/rules.md` file and the `BEGIN:knowledge` block in `builder-factory` are generated
+from `knowledge/` at the repo root. Edit the notes there and run the `knowledge-dev` build; never
+edit the generated files.
 
 ## Installation
 
-### 1. Copy agents
-
 ```bash
-cp plugins/testing/agents/testing-strategist.md  your-project/.claude/agents/
-cp plugins/testing/agents/storybook-tester.md     your-project/.claude/agents/
-cp plugins/testing/agents/unit-tester.md          your-project/.claude/agents/
+/plugin install testing@szum-tech
 ```
 
-### 2. Copy skills
-
-```bash
-cp -r plugins/testing/skills/*  your-project/.claude/skills/
-```
-
-### 3. Verify
-
-```bash
-ls your-project/.claude/agents/testing-strategist.md
-ls your-project/.claude/skills/create-stories/SKILL.md
-ls your-project/.claude/skills/playwright-cli/SKILL.md
-```
+The **typescript**, **react** and **nextjs** plugins depend on this one and install it automatically.
 
 ## Usage
 
-**Plan a test strategy** for a feature:
-
-> "Use testing-strategist to plan tests for the checkout flow"
-
-**Create Storybook tests** for a component:
-
-> "Use storybook-tester to create stories and tests for components/Button.tsx"
-
-The `storybook-tester` runs the `create-stories` procedure for the component:
-it checks the Storybook setup, writes (or updates) CSF Next stories per state with
-`.test()` interaction tests — variants, edge cases, form/validation states — runs
-them, and reports what it kept, fixed and added. It uses `builder-factory` for mock data.
-
-**Write unit tests** for non-UI logic:
-
-> "Use unit-tester to write tests for src/utils/format-currency.ts"
-
-The `unit-tester` works in four phases (analyze → implement → run → optimize),
-mocks only at module boundaries, runs `npm run test:unit` and self-corrects, and
-leans on the `unit-testing` and `builder-factory` skills. In an SDD flow it derives
-test cases from the PRD acceptance criteria and reports coverage back to the
-`product-owner`.
-
-**Invoke skills directly:**
-
-> `/create-stories` — create or update the stories and interaction tests for a component
 > `/playwright-cli` — browser automation commands and patterns
-> `/accessibility-audit` — run a WCAG audit on a component
-
-## Testing Infrastructure
-
-This plugin assumes the following test setup (adapt commands to your project):
-
-| Type      | Tool               | Command                  |
-| --------- | ------------------ | ------------------------ |
-| Unit      | Vitest             | `npm run test:unit`      |
-| Component | Storybook + Vitest | `npm run test:storybook` |
-| E2E       | Playwright         | `npm run test:e2e`       |
+> `/true-dom-tester` — generate and run DOM-snapshot-based browser tests for a page
+> `/builder-factory` — create a typed builder for a type or model
 
 ## Troubleshooting
 
-| Problem                               | Solution                                                                                                              |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:storybook` fails        | Verify Storybook 10+ is installed and `experimentalTestSyntax: true` is set in `.storybook/main.ts`                   |
-| `userEvent` interactions don't work   | **Never import `userEvent`** — destructure it from the test function parameter: `async ({ canvas, userEvent }) => {}` |
-| `.test()` method not recognized       | Ensure you're on Storybook 10+ with CSF Next format (`preview.meta()` pattern)                                        |
-| Builder factories produce wrong data  | Check that your builder uses functions `() => ...` for values that must be unique per instance                        |
-| Playwright tests timeout              | Increase timeout in config or check that the dev server is running before tests                                       |
-| Accessibility audit misses issues     | Automated checks (axe-core) catch ~30-50% of issues. Always supplement with manual checklist from the skill           |
-| storybook-tester misses component props | Point it at the component file directly and ensure prop types are exported so it can enumerate variants               |
+| Problem                              | Solution                                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Builder factories produce wrong data | Check that your builder uses functions `() => ...` for values that must be unique per instance |
+| Playwright tests timeout             | Increase timeout in config or check that the dev server is running before tests                |
+| builder-factory picks the wrong language | Run it from the project root so it finds `package.json` or `pyproject.toml`                 |
 
 ## Related Plugins
 
-- [**react**](../react/) — React UI skills referenced by test agents
-- [**nextjs**](../nextjs/) — Next.js skills referenced by test agents
-- [**design**](../design/) — Design-system skills referenced by test agents
-- [**code-quality**](../code-quality/) — Code review agent can verify test quality
-- [**product-management**](../product-management/) — `product-owner` orchestrates these agents in the SDD (PRD/TDD) flow
+- [**typescript**](../typescript/) — Vitest unit tests, coverage gaps, `unit-tester` agent
+- [**react**](../react/) — Storybook interaction tests, accessibility audits, `storybook-tester` agent
+- [**nextjs**](../nextjs/) — API route tests, `testing-strategist` agent
+- [**python**](../python/) — `factory_boy` rules for Python tests

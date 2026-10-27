@@ -63,6 +63,5 @@ ls your-project/.claude/skills/szum-tech-design-system/SKILL.md
 
 ## Related Plugins
 
-- [**react**](../react/) — React 19 Compiler, hooks, component-driven UI
+- [**react**](../react/) — React 19 Compiler, Storybook tests, accessibility audits, `frontend-expert` agent
 - [**nextjs**](../nextjs/) — App Router, Server Actions, error handling
-- [**testing**](../testing/) — Storybook tests, Playwright E2E, accessibility audits

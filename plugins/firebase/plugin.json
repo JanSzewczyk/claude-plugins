@@ -2,7 +2,7 @@
   "name": "firebase",
   "displayName": "Firebase",
   "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -11,8 +11,8 @@
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
   "dependencies": [
-    { "name": "nextjs", "version": "^1.1.4" },
-    { "name": "testing", "version": "^2.2.0" }
+    { "name": "nextjs", "version": "^1.3.0" },
+    { "name": "testing", "version": "^3.0.0" }
   ],
   "keywords": ["firebase", "firestore", "database", "migrations"],
   "agents": [

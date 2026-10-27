@@ -1,8 +1,8 @@
 {
   "name": "code-quality",
   "displayName": "Code Quality",
-  "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management agents and skills.",
-  "version": "2.6.2",
+  "description": "Technology-agnostic repository maintenance — README and GitHub description generation, and catching a project up with the template repository it was created from.",
+  "version": "3.0.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -10,17 +10,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
-  "dependencies": [
-    { "name": "testing", "version": "^2.2.0" },
-    { "name": "nextjs", "version": "^1.1.4" },
-    { "name": "react", "version": "^1.0.5" },
-    { "name": "design", "version": "^1.0.4" }
-  ],
-  "keywords": ["code-review", "performance", "dead-code", "dependencies", "documentation"],
-  "agents": [
-    "./agents/code-reviewer.md",
-    "./agents/performance-analyzer.md",
-    "./agents/library-updater.md"
-  ],
+  "keywords": ["documentation", "readme", "template", "maintenance"],
+  "agents": [],
   "skills": "./skills/"
 }

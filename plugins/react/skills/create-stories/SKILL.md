@@ -1,0 +1,174 @@
+---
+name: create-stories
+description: Creates or updates the Storybook file for a React component — a CSF Next `.stories.tsx` with one story per visual state and browser-run `.test()` interaction tests; on an existing file it fills missing states and fixes convention violations instead of starting over. Works with no arguments — picks the components changed in this session or the diff. Use for any test of a React component (`.tsx`) — "test this component", "add tests for Button.tsx", "write stories", "add interaction tests", "update the stories", "fix the stories" — and, unasked, right after a component is created or changed without a `.stories.tsx`, or when a story test fails. For a batch of many components, delegate to the storybook-tester agent. NOT for pure functions, hooks or schemas (unit-testing), API endpoints (api-test), full-page E2E (playwright-cli / true-dom-tester), a WCAG audit (accessibility-audit), or mock data alone (builder-factory).
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git diff:*), Bash(git merge-base:*), Bash(npx vitest:*), Bash(npm run:*), Bash(npx storybook:*)
+argument-hint: "[component path(s) or name(s), optional] — which components to cover; without it, components changed in this session or the git diff"
+---
+
+# Create Stories
+
+A story file documents a component's states and proves its behaviour. This skill produces that file
+in one shape: CSF Next, one story per visual state, independent `.test()` checks attached to those
+stories, and mocks chosen by what is being faked. It works the same way whether the file is new or
+already there — on an existing file it converges it onto the convention instead of starting over.
+
+Each step loads only the reference it needs. The rules every story file follows are in
+[rules.md](./references/rules.md), indexed below; this file holds the procedure.
+
+| Reference                                                     | Read it when                                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [setup.md](./references/setup.md)                             | step 2 — what `main.ts`, `preview.tsx`, the Vitest addon and the test script must contain |
+| [csf-next.md](./references/csf-next.md)                       | step 5 — file shape, file name, `title`                                              |
+| [stories.md](./references/stories.md)                         | step 5 — which states become stories, story naming, args, builders for data          |
+| [mocking.md](./references/mocking.md)                         | step 5 — choosing a mock per dependency, then the one recipe you need                 |
+| [testing.md](./references/testing.md)                         | step 6 — `.test()` rules, queries, `canvas` vs `screen`, what to test per component kind, `step()`, `play` |
+| [quality-checklist.md](./references/quality-checklist.md)     | step 4 — auditing an existing file: keep, fix or rewrite                            |
+| [migration.md](./references/migration.md)                     | step 4 — the file is still CSF 3                                                     |
+| [examples.md](./references/examples.md)                       | step 6 — one worked story file (LoginForm), start to finish                          |
+| [api-reference.md](./references/api-reference.md)             | any time — test context, element/role table, imports                                 |
+
+## Prerequisites
+
+| Tool                                    | Check                     | If missing                                                       |
+| --------------------------------------- | ------------------------- | ---------------------------------------------------------------- |
+| git (target discovery)                  | `git --version`           | pass the component as an argument instead                        |
+| Storybook ≥ 10 with a Vite framework    | `npx storybook --version` | `npm create storybook@latest` — the user's call, never run unasked |
+| Vitest ≥ 3 + `@storybook/addon-vitest`  | `npx vitest --version`    | `npx storybook add @storybook/addon-vitest` (after acceptance)   |
+| Playwright Chromium (browser mode)      | `npx playwright --version`| `npx playwright install chromium`                                |
+| `msw` + `msw-storybook-addon` — only if the component makes HTTP requests | `npm ls msw` | `npm i -D msw msw-storybook-addon` (after acceptance) |
+| `mimicry-js` — only if builders are used | `npm ls mimicry-js`      | via the `builder-factory` skill                                  |
+
+## Rules
+
+The rules below are generated from the shared knowledge notes. `critical` and `high` rules apply
+in every step that writes code; open a rule in [rules.md](./references/rules.md) when the step you
+are on touches it.
+
+<!-- BEGIN:knowledge -->
+<!-- generated by knowledge.mjs from 24 note(s) (sha256 8b52b5fd0c55); edit the notes in knowledge/, then run build -->
+
+| Impact | Rule | Applies to |
+| --- | --- | --- |
+| critical | [Make every test able to fail when the behaviour it names breaks](references/rules.md#make-every-test-able-to-fail-when-the-behaviour-it-names-breaks) — A test with no assertion, or one that holds whatever the code does, passes forever and proves nothing. | any |
+| critical | [Wait for a condition the user would see, never for a fixed time](references/rules.md#wait-for-a-condition-the-user-would-see-never-for-a-fixed-time) — Await the element, value or call you expect with a retrying query; never sleep for a guessed number of milliseconds. | any |
+| critical | [Await every userEvent call and every expect in a story test](references/rules.md#await-every-userevent-call-and-every-expect-in-a-story-test) — A missing await lets the test finish before the interaction or assertion runs, so it passes proving nothing. | typescript, storybook@>=10 |
+| critical | [Take userEvent from the test function's parameters, never from an import](references/rules.md#take-userevent-from-the-test-functions-parameters-never-from-an-import) — An imported userEvent bypasses Storybook's instrumentation and breaks interaction timing. | typescript, storybook@>=10 |
+| high | [Set every value the test asserts on explicitly when you build test data](references/rules.md#set-every-value-the-test-asserts-on-explicitly-when-you-build-test-data) — Let the builder randomise what the test ignores; pass an override for every value the test checks. | any |
+| high | [Keep the unit under test real, and change the test rather than the code](references/rules.md#keep-the-unit-under-test-real-and-change-the-test-rather-than-the-code) — Never mock the thing being tested or edit it to make a new test pass; report a failure that shows a real bug. | any |
+| high | [Find elements the way a user or a screen reader does](references/rules.md#find-elements-the-way-a-user-or-a-screen-reader-does) — Query by role and accessible name, then label, then visible text; never by test id, CSS selector or internals. | any |
+| high | [Make every test pass alone and in any order](references/rules.md#make-every-test-pass-alone-and-in-any-order) — No test relies on what an earlier one clicked or mocked; reset mocks per test, share setup through helpers. | any |
+| high | [Choose the mock by what is faked](references/rules.md#choose-the-mock-by-what-is-faked) — Callback props get fn(), HTTP gets MSW, imported modules get sb.mock() in the preview, context gets decorators. | typescript, storybook@>=10 |
+| high | [Query portal content through screen, not canvas](references/rules.md#query-portal-content-through-screen-not-canvas) — Dialogs, popovers, tooltips and option lists render into document.body, outside the story root that canvas sees. | typescript, storybook@>=10 |
+| high | [Attach independent checks to one story with .test(), not separate play stories](references/rules.md#attach-independent-checks-to-one-story-with-test-not-separate-play-stories) — One .test() per independent behaviour; play only for a demo or one flow whose steps depend on each other. | typescript, storybook@>=10 |
+| high | [Write stories with CSF Next factories, not CSF 3 objects](references/rules.md#write-stories-with-csf-next-factories-not-csf-3-objects) — preview.meta() and meta.story() give inferred types and the .test() method; CSF 3 objects give neither. | storybook@>=10 |
+| high | [Put a React story next to its component and import the typed preview](references/rules.md#put-a-react-story-next-to-its-component-and-import-the-typed-preview) — component.stories.tsx beside the component, preview imported through the project's alias, no default export. | typescript, react, storybook@>=10 |
+| high | [Pick getBy, queryBy or findBy by what the assertion expects](references/rules.md#pick-getby-queryby-or-findby-by-what-the-assertion-expects) — getBy* for elements that must be there, queryBy* to assert absence, findBy* for anything that appears later. | typescript, testing-library |
+| medium | [Reset builder counters and random state between tests that depend on them](references/rules.md#reset-builder-counters-and-random-state-between-tests-that-depend-on-them) — Sequences and seeded randomness carry over between tests; reset them where a test depends on their values. | any |
+| medium | [Build structured test data with a builder, not inline object literals](references/rules.md#build-structured-test-data-with-a-builder-not-inline-object-literals) — Typed objects with three or more fields come from a shared builder; reuse an existing one before writing one. | any |
+| medium | [Assert what the user sees or can do, never internal state or markup](references/rules.md#assert-what-the-user-sees-or-can-do-never-internal-state-or-markup) — Check visibility, text, values, focus, ARIA state and callback calls; never state, class names or snapshots. | any |
+| medium | [Derive the expected value from the test's own input, not a repeated literal](references/rules.md#derive-the-expected-value-from-the-tests-own-input-not-a-repeated-literal) — Assert against the data the test passed in (items.length, the prefilled value), never a hard-coded copy of it. | any |
+| medium | [Group assertions by category, not one test per element](references/rules.md#group-assertions-by-category-not-one-test-per-element) — One content test per state, one accessibility test, one test per distinct interaction, rule or callback. | typescript, storybook@>=10 |
+| medium | [Make a separate story only for a different state, not for a different test](references/rules.md#make-a-separate-story-only-for-a-different-state-not-for-a-different-test) — Different args or mocks make a new story; the same args with several checks make one story with several tests. | typescript, storybook@>=10 |
+| medium | [Give a purely presentational component stories, not invented tests](references/rules.md#give-a-purely-presentational-component-stories-not-invented-tests) — A card or badge with no behaviour is documented by one story per visual variant; add a test only for real behaviour. | typescript, storybook@>=10 |
+| low | [Derive a story variant with Story.extend instead of copying its config](references/rules.md#derive-a-story-variant-with-storyextend-instead-of-copying-its-config) — A variant of an existing story extends it and sets only what differs. | typescript, storybook@>=10 |
+| low | [Label the phases of a long story test with step(), and only of a long one](references/rules.md#label-the-phases-of-a-long-story-test-with-step-and-only-of-a-long-one) — Wrap each phase in step() when a test has three or more (fill, submit, verify); leave short tests flat. | typescript, storybook@>=10 |
+| low | [Name stories after component states and tests after behaviours](references/rules.md#name-stories-after-component-states-and-tests-after-behaviours) — Stories are states (EmptyForm, Loading), tests are sentences; never Default, Basic or Test 1. | typescript, storybook@>=10 |
+
+<!-- END:knowledge -->
+
+## Steps
+
+Step 2 runs once per project. Steps 3–7 run per component, finishing one before starting the next.
+Step 8 reports all of them together.
+
+### 1. Pick the target
+
+- **Argument given** → resolve each name or path to a component file (`Glob` by name if it is not a
+  path).
+- **No argument** → collect `.tsx` components touched in this session, else
+  `git diff --name-only $(git merge-base HEAD origin/HEAD)` — committed on this branch plus
+  uncommitted work; use `main` in place of `origin/HEAD` when it is unset. Keep the files that render
+  UI. Prefer those with no `.stories.tsx` next to them, then those whose story file breaks the
+  convention.
+- Several candidates and no clear signal → list them and ask which ones. When you cannot ask
+  (running as a subagent), cover every candidate that has no story file, in diff order, and list the
+  rest in the report as skipped.
+- Skip internal sub-components that are not exported, unless asked.
+
+### 2. Check the Storybook setup — [setup.md](./references/setup.md)
+
+Read `setup.md` and inspect each file its checklist names — do not run its fix commands yet:
+framework package, CSF Next `defineMain` / `definePreview`, `features.experimentalTestSyntax`, the
+Vitest addon project, the test script, and the import path existing stories use for the preview.
+
+- **All present** → note the test command and preview import path, continue.
+- **Something missing or still CSF 3** → show the exact diff `setup.md` prescribes and apply it only
+  after the user accepts. Large gaps (no Storybook at all) → stop and say what is missing.
+- **Running as a subagent or anywhere you cannot ask** → do not edit config files. Write stories in
+  the convention anyway — CSF Next is the target even when the project is not there yet — and skip
+  step 7 if tests cannot run. When the gap is CSF Next itself (no `definePreview`), open the report
+  with a line saying the story files will not load until the setup diff is applied, and include that
+  diff.
+
+### 3. Read the component
+
+Read the source, not just the props type. Record: props and their types, callback props, internal
+state and conditional branches (loading, error, empty, disabled, …), what renders in a portal,
+external dependencies (fetch, server actions, `next/navigation`, context, modules), keyboard
+behaviour. These decide the stories (step 5) and the mocks.
+
+### 4. Create or update
+
+- **No `.stories.tsx` next to the component** → create mode, go to step 5.
+- **File exists** → update mode. Read it and audit it against
+  [quality-checklist.md](./references/quality-checklist.md). Classify every existing story and test:
+  - **keep** — sound, matches the convention;
+  - **fix** — sound intent, convention violation (CSF 3 syntax, imported `userEvent`, missing
+    `await`, generic name, `getByTestId`) → correct it in place, keep the intent;
+  - **rewrite** — crosses the rewrite threshold in the checklist → replace the test with one that
+    covers the same behaviour properly.
+  - A CSF 3 file is migrated as a whole first, by hand per [migration.md](./references/migration.md);
+    use the codemod only when it can be scoped to this one file. Then classify the migrated file
+    again before adding anything.
+  - Never delete a story or test without carrying its behaviour over; nothing disappears silently.
+
+### 5. Plan the stories — [csf-next.md](./references/csf-next.md), [stories.md](./references/stories.md), [mocking.md](./references/mocking.md)
+
+Map the states from step 3 onto stories: different args → different story, same args → one story
+with several tests. Name them per `stories.md`. For typed data, reuse an existing builder or create
+one with the `builder-factory` skill — never hand-roll a factory inside the story file. Pick the mock
+per dependency from the table at the top of `mocking.md`, then read only that recipe. In update mode
+the plan is a delta: which states are missing.
+
+### 6. Write the file and its tests — [testing.md](./references/testing.md)
+
+Write or edit the `.stories.tsx` next to the component. For each story attach tests per
+`testing.md`: one grouped content test, one accessibility test, one test per distinct interaction,
+validation rule or callback, plus what `testing.md` lists for this kind of component. Use `play`
+only where `testing.md` allows it. See [examples.md](./references/examples.md) for the worked file
+shape; look up the test context and element roles in
+[api-reference.md](./references/api-reference.md).
+
+### 7. Run and fix
+
+Run the project's Storybook test command from step 2, scoped to the file (e.g.
+`npx vitest --run --project=storybook <path>.stories.tsx` — `--run` avoids watch mode). Read each
+failure, fix the story or test — never the component — and re-run. At most 3 attempts per failing
+test, then leave a `// TODO:` with the failure reason and move on: past three attempts a fix is
+usually guessing at the component or the environment, and a clear TODO costs the user less. Stop at
+once when the failure is environmental (missing browser, config error) rather than in the test. A
+failure that points at a real component bug is reported, not papered over.
+
+### 8. Report
+
+Per component: file path, mode (created / updated), stories added, tests kept / fixed / rewritten /
+added, mocks or builders introduced, the test run result, and any setup gaps or TODOs left behind.
+
+## Guardrails
+
+- Never modify the component under test; never mock the component itself.
+- Never edit `.storybook/` or Vitest config without the user's acceptance (step 2).
+- In update mode, the user's existing intent wins over your preferred structure — converge on the
+  convention, do not replace working coverage with different coverage.
+- Out of scope, hand off: pure logic, hooks, schemas → `unit-testing`; route handlers → `api-test`;
+  whole-page flows → `playwright-cli` / `true-dom-tester`; a WCAG audit → `accessibility-audit`.

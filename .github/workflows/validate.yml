@@ -70,13 +70,13 @@ jobs:
           - git-workflow
           - knowledge-dev
           - nextjs
-          - performance
           - plugin-dev
           - product-management
           - react
           - shared-rules
           - skill-dev
           - testing
+          - typescript
     steps:
       - uses: actions/checkout@v4
 
