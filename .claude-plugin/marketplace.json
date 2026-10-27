@@ -58,7 +58,7 @@
     {
       "name": "testing",
       "source": "./plugins/testing",
-      "description": "Technology-agnostic testing core — Playwright browser automation, DOM-based test generation, and stack-detecting test data builders",
+      "description": "Technology-agnostic testing core — Playwright browser automation and DOM-based test generation",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -70,7 +70,7 @@
     {
       "name": "typescript",
       "source": "./plugins/typescript",
-      "description": "TypeScript & JavaScript — Vitest unit tests, coverage gaps, dead-code sweeps, and npm dependency updates",
+      "description": "TypeScript & JavaScript — Vitest unit tests, mimicry-js test data builders, coverage gaps, dead-code sweeps, and npm dependency updates",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -119,7 +119,7 @@
       "license": "MIT",
       "dependencies": [
         { "name": "nextjs", "version": "^1.3.0" },
-        { "name": "testing", "version": "^3.0.0" }
+        { "name": "typescript", "version": "^1.0.0" }
       ]
     },
     {

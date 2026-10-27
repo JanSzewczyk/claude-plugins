@@ -19,16 +19,16 @@ the `knowledge-dev` build; never edit the generated files.
 /plugin install python@szum-tech
 ```
 
-For the stack-detecting `/builder-factory` skill, which writes `factory_boy` factories in a Python
-project, install the **testing** core as well.
+There is no skill yet that writes `factory_boy` factories; `/builder-factory` (in **typescript**)
+covers TypeScript only. A Python counterpart belongs in this plugin.
 
 ## Troubleshooting
 
 | Problem                                 | Solution                                                                                                       |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `builder-rules-py` never shows up as `/` | It is background knowledge (`user-invocable: false`) — agents preload it; use `/builder-factory` to write factories |
+| `builder-rules-py` never shows up as `/` | It is background knowledge (`user-invocable: false`) — agents preload it |
 
 ## Related Plugins
 
-- [**testing**](../testing/) — technology-agnostic testing core (`builder-factory`, Playwright)
+- [**testing**](../testing/) — technology-agnostic testing core (Playwright)
 - [**typescript**](../typescript/) — the equivalent language layer for TypeScript and JavaScript

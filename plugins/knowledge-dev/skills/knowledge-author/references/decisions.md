@@ -339,6 +339,7 @@ silently picking one side of a conflict.
 **Decision.**
 - A concept whose workflow is the same in every language stays one skill that detects the stack
   (`builder-factory` reads `package.json` or `pyproject.toml`, then only that language's rules).
+  Not built yet: as of 2026-10-27 `builder-factory` covers TypeScript and `mimicry-js` only.
 - A different workflow gets its own skill, named after the tool (`vitest-unit-testing`,
   `pytest-testing`), so routing never has two candidates for "unit test".
 - Agents preload one knowledge skill per language (`builder-rules-ts`, `builder-rules-py`),
@@ -346,8 +347,9 @@ silently picking one side of a conflict.
 - ~~The `testing` plugin stays one plugin for both languages until routing evals start confusing
   them or skill descriptions from the other language cost too much (about 100 tokens each per
   session).~~ Superseded 2026-10-27 by D23: language-specific skills live in the language's plugin
-  (`builder-rules-ts` in `typescript`, `builder-rules-py` in `python`); a stack-detecting skill such
-  as `builder-factory` stays in the technology-agnostic `testing` core.
+  (`builder-rules-ts` in `typescript`, `builder-rules-py` in `python`); a skill moves to the
+  technology-agnostic `testing` core only once it really serves every stack (`builder-factory` is
+  TypeScript-only today, so it lives in `typescript`).
 
 **Why.** Copying a skill per language would copy the drift problem; a filter is free.
 
@@ -390,7 +392,9 @@ named from the `knowledge.config.json` vocabulary and form layers that depend on
 `testing` (technology-agnostic core) ← `typescript` ← `react` ← `nextjs` ← `firebase`, with `design`
 (no agents, so no dependencies) under `react` and `nextjs`, and `python` standalone.
 - A skill lives in the most general plugin whose stack it needs: Vitest in `typescript`, Storybook in
-  `react`, route handler tests in `nextjs`, Playwright and `builder-factory` in `testing`.
+  `react`, route handler tests in `nextjs`, Playwright in `testing`. A skill counts as
+  agnostic only for what it does today, not what a decision plans for it: `builder-factory` is in
+  `typescript` because it covers only TypeScript.
 - An agent lives in the lowest plugin from which every preload points into its own plugin or down.
   A preload that would point up is dropped (D22) or the agent moves up a layer: `frontend-expert`
   and `library-updater` dropped theirs; `code-reviewer`, `performance-analyzer` and
@@ -404,8 +408,8 @@ technology is a new plugin, and installing one pulls in exactly the layers under
 mutual plugin dependencies already forces a direction; tying it to the technology stack makes the
 direction predictable.
 
-**Rejected.** Dissolving `testing` completely: Playwright and `builder-factory` would land in
-`typescript`, which a Python project would then have to install. Keeping `testing` whole (the old
+**Rejected.** Dissolving `testing` completely: Playwright would land in `typescript`, which a
+Python project would then have to install. Keeping `testing` whole (the old
 D20 bullet): it is the plugin a second language breaks first.
 
 **Cost.** Namespaces changed (`testing:unit-tester` is now `typescript:unit-tester`), a breaking

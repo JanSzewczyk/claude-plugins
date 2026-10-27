@@ -50,7 +50,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
 - **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations
 - **📖 [create-stories](./plugins/react/skills/create-stories/)** — Create or update a component's Storybook stories with browser-rendered `.test()` interaction tests in CSF Next format
-- **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
+- **🏗️ [builder-factory](./plugins/typescript/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
 - **🖥️ [true-dom-tester](./plugins/testing/skills/true-dom-tester/)** — Accessibility-tree-based automated tests using Playwright CLI
 - **🧪 [unit-testing](./plugins/typescript/skills/unit-testing/)** — Vitest unit test patterns, mocking strategies, and examples
@@ -100,8 +100,8 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation, stack-detecting test data builders | — | 3 | [README](./plugins/testing/README.md) |
-| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, coverage gaps, dead-code sweeps, npm dependency updates | 2 | 5 | [README](./plugins/typescript/README.md) |
+| [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
+| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm dependency updates | 2 | 6 | [README](./plugins/typescript/README.md) |
 | [**python**](./plugins/python/) | Python — factory_boy test data rules, the home for pytest and Python tooling | — | 1 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 4 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
@@ -134,7 +134,7 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 
 | Was | Now |
 | --- | --- |
-| `testing:unit-tester`, `unit-testing`, `coverage-gaps`, `builder-rules-ts` | `typescript:…` |
+| `testing:unit-tester`, `unit-testing`, `builder-factory`, `coverage-gaps`, `builder-rules-ts` | `typescript:…` |
 | `testing:storybook-tester`, `create-stories`, `storybook-rules`, `accessibility-audit` | `react:…` |
 | `testing:testing-strategist`, `api-test` | `nextjs:…` |
 | `testing:builder-rules-py` | `python:builder-rules-py` |
@@ -277,10 +277,10 @@ What are you doing?
 ├── Writing tests
 │   ├── Planning test strategy      → Agent: testing-strategist (nextjs)
 │   ├── Component / Storybook tests → Agent: storybook-tester (react)
-│   │                                  Skills: create-stories (react), builder-factory (testing)
+│   │                                  Skills: create-stories (react), builder-factory (typescript)
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
 │   ├── Unit tests (Vitest)        → Agent: unit-tester (typescript)
-│   │                                  Skills: unit-testing (typescript), builder-factory (testing)
+│   │                                  Skills: unit-testing, builder-factory (typescript)
 │   ├── API tests                  → Skill: api-test (nextjs)
 │   ├── E2E / browser automation   → Skill: playwright-cli (testing)
 │   ├── What's untested / gaps?    → Skill: coverage-gaps (typescript)
@@ -352,11 +352,11 @@ claude-plugins/
 └── plugins/
     ├── testing/                   # Technology-agnostic testing core
     │   ├── plugin.json
-    │   └── skills/                # 3 skills (playwright-cli, true-dom-tester, builder-factory)
+    │   └── skills/                # 2 skills (playwright-cli, true-dom-tester)
     ├── typescript/                # TypeScript & JavaScript language layer
     │   ├── plugin.json
     │   ├── agents/                # unit-tester, library-updater
-    │   └── skills/                # 5 skills (unit-testing, coverage-gaps, dead-code, update-deps, generated builder-rules-ts)
+    │   └── skills/                # 6 skills (unit-testing, builder-factory, coverage-gaps, dead-code, update-deps, generated builder-rules-ts)
     ├── python/                    # Python language layer
     │   ├── plugin.json
     │   └── skills/                # 1 skill (generated builder-rules-py)
