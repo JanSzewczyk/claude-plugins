@@ -1,7 +1,7 @@
 {
   "name": "typescript",
   "displayName": "TypeScript",
-  "description": "TypeScript and JavaScript tooling — Vitest unit tests, mimicry-js builder rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm dependency updates.",
+  "description": "TypeScript and JavaScript tooling — Vitest unit tests, mimicry-js test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm dependency updates.",
   "version": "1.0.0",
   "author": {
     "name": "Szum Tech Team",

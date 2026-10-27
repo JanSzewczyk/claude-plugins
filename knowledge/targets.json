@@ -8,7 +8,7 @@
     },
     {
       "kind": "skill-index",
-      "skill": "plugins/testing/skills/builder-factory",
+      "skill": "plugins/typescript/skills/builder-factory",
       "include": ["testing/builders/**"],
       "where": { "languages": ["typescript"] }
     },

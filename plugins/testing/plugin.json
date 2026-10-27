@@ -1,7 +1,7 @@
 {
   "name": "testing",
   "displayName": "Testing core",
-  "description": "Technology-agnostic testing core — Playwright browser automation, accessibility-tree DOM test generation, and test data builders that detect the stack (mimicry-js for TypeScript, factory_boy for Python).",
+  "description": "Technology-agnostic testing core — Playwright browser automation and accessibility-tree DOM test generation, usable whatever the project's language or framework.",
   "version": "3.0.0",
   "author": {
     "name": "Szum Tech Team",
@@ -10,7 +10,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
-  "keywords": ["testing", "playwright", "e2e", "test-data", "builders"],
+  "keywords": ["testing", "playwright", "e2e", "browser-automation"],
   "agents": [],
   "skills": "./skills/"
 }
