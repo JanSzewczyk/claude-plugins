@@ -387,6 +387,9 @@ Verified neither in the PoC nor in the docs. Settle before relying on them:
   `plugin:skill`? (plan, spike 0a)
 - Does `skills:` really load a generated knowledge skill in a live session? The A/B simulated the
   preload with an appended system prompt.
+- Can an agent that preloads a knowledge skill open the `references/rules.md` its injected SKILL.md
+  links to? D11 and D15 assume the medium and low rules are one file away; if the relative link does
+  not resolve for a preloaded skill, those rules never reach the agent.
 - Is CSF Next (`preview.meta`, `.test()`) supported by the Vue renderer? Decides how much of the
   Storybook knowledge Vue shares. (plan, spike 0d)
 - The `rules-file` target (notes rendered into `.claude/rules/*.md` for `sync-rules`) is designed
