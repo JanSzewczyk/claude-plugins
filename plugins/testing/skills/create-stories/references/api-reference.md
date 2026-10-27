@@ -7,7 +7,7 @@ unchanged and are not repeated here.
 ## Contents
 
 - [Test / play context](#test--play-context) — what the test function receives
-- [Common element patterns](#common-element-patterns) — role, query and portal per element; dialog, toast and loading-button facts
+- [Common element patterns](#common-element-patterns) — role, query and portal per element
 - [Imports summary](#imports-summary) — what comes from `storybook/test`, the preview, and the Next.js mocks
 
 ## Test / play context
@@ -43,31 +43,8 @@ in **portals** to `document.body` — query those with `screen`, everything else
 | Tooltip        | `tooltip`           | `screen.getByRole("tooltip")`    | Yes                          |
 | Alert / Toast  | `status` / `alert`  | `canvas` or `screen`             | Depends on the library       |
 
-Element-specific facts worth asserting:
-
-- **Dialog ARIA** — assert `aria-modal="true"`, `aria-labelledby`, and (when there's body copy)
-  `aria-describedby`.
-- **Dialog focus** — focus is trapped inside the open dialog and returns to the trigger on close;
-  assert with `toHaveFocus()` after closing.
-- **Auto-dismissing elements (toasts)** — they disappear on a timer; assert their removal with an
-  extended timeout, e.g. `waitFor(..., { timeout: 6000 })`.
-- **Loading buttons** — assert `aria-busy="true"` plus a visible `progressbar` (and `toBeDisabled()`).
-
-```typescript
-// Toast that auto-dismisses
-await waitFor(
-  async () => {
-    await expect(canvas.queryByRole("status")).not.toBeInTheDocument();
-  },
-  { timeout: 6000 },
-);
-
-// Dialog focus returns to the trigger after Escape
-await userEvent.keyboard("{Escape}");
-await waitFor(async () => {
-  await expect(trigger).toHaveFocus();
-});
-```
+What to assert on each kind of element is in
+`testing.md`.
 
 ## Imports Summary
 

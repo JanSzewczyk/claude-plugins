@@ -1,7 +1,8 @@
-# Examples — One Worked File and Patterns by Component Kind
+# Examples — One Worked Story File
 
-The worked file shows the whole shape once. The pattern table says what to cover for other kinds of
-component — apply it with the same shape rather than copying a second file.
+The worked file shows the whole shape once. What to cover for other kinds of component is in
+`testing.md` — apply it with this shape rather than
+copying a second file.
 
 ## Worked file — LoginForm
 
@@ -77,26 +78,3 @@ Loading.test("Disables submit while loading", async ({ canvas }) => {
   await expect(canvas.getByRole("button", { name: /log in/i })).toBeDisabled();
 });
 ```
-
-## Patterns by component kind
-
-| Kind | Stories | Tests | Watch for |
-| --- | --- | --- | --- |
-| Button | one per variant, `Disabled`, `Loading` | click calls the `fn()` once; Enter (and Space) activates it from focus; disabled and loading ignore clicks | loading sets `aria-busy` and disables |
-| Dialog / modal | `Open`, `Closed`, one per visual variant | title and message render; `aria-modal="true"` and `aria-labelledby`; confirm / cancel call the right callback and not the other; Tab order reaches the actions; Escape calls `onCancel` | closed case asserts with `queryByRole("dialog")` + `not.toBeInTheDocument()` |
-| Select / combobox (portal) | one | open the trigger in `canvas`, pick the option with `screen.findByRole("option")`, assert `onChange` value | native `<select>` has no portal: `userEvent.selectOptions` + `toHaveValue` |
-| List / table | `EmptyList`, `PopulatedList` (`builder.many(n)`), `LoadingList` | empty message; row count is `items.length` (+1 when there is a header row); clicking a row calls back with that item | count from `args.items`, never a hard-coded number |
-| Input / text field | `EmptyInput`, `ErrorInput`, `DisabledInput` | label and placeholder render; typing updates the value and calls `onChange`; error text shows and `aria-invalid="true"` | — |
-| Tabs | one | first tab has `aria-selected="true"`; clicking another selects it and shows its panel | — |
-| Tooltip / popover (portal) | one | hover the trigger → `screen.findByRole("tooltip")` has the text; unhover → `waitFor` it is gone | query through `screen`, not `canvas` |
-| Purely presentational (card, badge) | one per visual variant | none — the stories are the documentation | do not invent tests to justify a story |
-
-## Cross-cutting behaviours
-
-Add these wherever the component has the behaviour, on the story whose state it belongs to:
-
-- **Prefilled values** — fields show the values from `args` (`toHaveValue(args.defaultValues.email)`),
-  and a prefilled value can be cleared and retyped.
-- **Server / submit error** — a story whose `onSubmit` resolves to an error; after submitting, the
-  message appears (`waitFor` or `findBy*`) **and** the entered data is still in the fields.
-- **Double submission** — three rapid clicks on submit still call `onSubmit` exactly once.
