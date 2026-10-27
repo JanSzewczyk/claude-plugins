@@ -51,7 +51,7 @@ Two kinds of case:
   report names all four. `plugins/skill-dev/evals/skill-audit-reports-authoring-defects/` is the second: a deliberately
   badly-authored skill with six planted defects, graded on whether the report names all six **and**
   on whether the audited skill is still untouched afterwards — the audit proposes edits, it does
-  not make them, and that is asserted rather than assumed. `plugins/testing/evals/create-stories-portal-dialog/`
+  not make them, and that is asserted rather than assumed. `plugins/react/evals/create-stories-portal-dialog/`
   grades a story file for a component whose dialog renders through a portal against the rules
   `create-stories` receives from `knowledge/`; run it before and after changing those rules.
 

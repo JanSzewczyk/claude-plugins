@@ -34,6 +34,7 @@ Storybook skill; it has since become `create-stories`.
 - [D20 Languages: one skill per workflow, one knowledge skill per language](#d20-languages-one-skill-per-workflow-one-knowledge-skill-per-language)
 - [D21 The tooling is a skill in knowledge-dev, zero dependencies](#d21-the-tooling-is-a-skill-in-knowledge-dev-zero-dependencies)
 - [D22 An agent preloads the procedure it runs and the knowledge it applies](#d22-an-agent-preloads-the-procedure-it-runs-and-the-knowledge-it-applies)
+- [D23 Plugins by technology, layered, with an agnostic testing core](#d23-plugins-by-technology-layered-with-an-agnostic-testing-core)
 - [Open questions](#open-questions)
 
 ## D1 Plain files, not RAG
@@ -342,9 +343,11 @@ silently picking one side of a conflict.
   `pytest-testing`), so routing never has two candidates for "unit test".
 - Agents preload one knowledge skill per language (`builder-rules-ts`, `builder-rules-py`),
   generated from the same notes with different filters; principles reach both.
-- The `testing` plugin stays one plugin for both languages until routing evals start confusing
+- ~~The `testing` plugin stays one plugin for both languages until routing evals start confusing
   them or skill descriptions from the other language cost too much (about 100 tokens each per
-  session).
+  session).~~ Superseded 2026-10-27 by D23: language-specific skills live in the language's plugin
+  (`builder-rules-ts` in `typescript`, `builder-rules-py` in `python`); a stack-detecting skill such
+  as `builder-factory` stays in the technology-agnostic `testing` core.
 
 **Why.** Copying a skill per language would copy the drift problem; a filter is free.
 
@@ -379,6 +382,35 @@ whole workflow in context.
 for `storybook-tester`, about 18 index rows on top of the inlined critical and high rules. Revisit
 if a preload budget binds; the fix would be a target option that renders the index without the
 rules a preloaded knowledge skill already carries.
+
+## D23 Plugins by technology, layered, with an agnostic testing core
+
+**Decision.** Plugins group skills and agents by technology, not by domain. Technology plugins are
+named from the `knowledge.config.json` vocabulary and form layers that depend only downward:
+`testing` (technology-agnostic core) ← `typescript` ← `react` ← `nextjs` ← `firebase`, with `design`
+(no agents, so no dependencies) under `react` and `nextjs`, and `python` standalone.
+- A skill lives in the most general plugin whose stack it needs: Vitest in `typescript`, Storybook in
+  `react`, route handler tests in `nextjs`, Playwright and `builder-factory` in `testing`.
+- An agent lives in the lowest plugin from which every preload points into its own plugin or down.
+  A preload that would point up is dropped (D22) or the agent moves up a layer: `frontend-expert`
+  and `library-updater` dropped theirs; `code-reviewer`, `performance-analyzer` and
+  `testing-strategist` moved to `nextjs`.
+- Plugins that serve any stack (`code-quality`, `git-workflow`, `plugin-dev`, `skill-dev`,
+  `knowledge-dev`, `shared-rules`, `product-management`, `ai-tools`) stay grouped by purpose.
+
+**Why.** Grouping by domain assumed one stack: `testing` mixed Vitest, Storybook, a Next.js route
+tester and a Python knowledge skill, and a Python user had to install all of it. With layers, a new
+technology is a new plugin, and installing one pulls in exactly the layers under it. The ban on
+mutual plugin dependencies already forces a direction; tying it to the technology stack makes the
+direction predictable.
+
+**Rejected.** Dissolving `testing` completely: Playwright and `builder-factory` would land in
+`typescript`, which a Python project would then have to install. Keeping `testing` whole (the old
+D20 bullet): it is the plugin a second language breaks first.
+
+**Cost.** Namespaces changed (`testing:unit-tester` is now `typescript:unit-tester`), a breaking
+change for anything that names agents with their plugin prefix. The root README carries the
+old-to-new table.
 
 ## Open questions
 

@@ -11,7 +11,7 @@
     {
       "name": "nextjs",
       "source": "./plugins/nextjs",
-      "description": "Next.js full-stack development — App Router, Server Actions, error handling, structured logging, env validation",
+      "description": "Next.js full-stack development — App Router, Server Actions, API tests, code review, performance and Lighthouse audits, test strategy",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -20,13 +20,16 @@
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT",
       "dependencies": [
-        { "name": "testing", "version": "^2.2.0" }
+        { "name": "react", "version": "^1.1.0" },
+        { "name": "typescript", "version": "^1.0.0" },
+        { "name": "testing", "version": "^3.0.0" },
+        { "name": "design", "version": "^1.0.4" }
       ]
     },
     {
       "name": "react",
       "source": "./plugins/react",
-      "description": "React development — React 19 Compiler, new hooks, and component-driven UI architecture",
+      "description": "React development — React 19 Compiler, Storybook interaction tests, accessibility audits, and component-driven UI architecture",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -35,8 +38,8 @@
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT",
       "dependencies": [
-        { "name": "testing", "version": "^2.2.0" },
-        { "name": "nextjs", "version": "^1.1.4" },
+        { "name": "typescript", "version": "^1.0.0" },
+        { "name": "testing", "version": "^3.0.0" },
         { "name": "design", "version": "^1.0.4" }
       ]
     },
@@ -55,7 +58,34 @@
     {
       "name": "testing",
       "source": "./plugins/testing",
-      "description": "Testing strategies, Storybook interaction tests, Playwright E2E, accessibility audits",
+      "description": "Technology-agnostic testing core — Playwright browser automation, DOM-based test generation, and stack-detecting test data builders",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
+    },
+    {
+      "name": "typescript",
+      "source": "./plugins/typescript",
+      "description": "TypeScript & JavaScript — Vitest unit tests, coverage gaps, dead-code sweeps, and npm dependency updates",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT",
+      "dependencies": [
+        { "name": "testing", "version": "^3.0.0" }
+      ]
+    },
+    {
+      "name": "python",
+      "source": "./plugins/python",
+      "description": "Python development — factory_boy test data rules, the home for pytest and Python tooling",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -67,20 +97,14 @@
     {
       "name": "code-quality",
       "source": "./plugins/code-quality",
-      "description": "Code review, performance analysis, bundle optimization, dead-code sweeps, and dependency management",
+      "description": "Repository maintenance — README generation and template-repository sync",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
         "url": "https://github.com/JanSzewczyk"
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT",
-      "dependencies": [
-        { "name": "testing", "version": "^2.2.0" },
-        { "name": "nextjs", "version": "^1.1.4" },
-        { "name": "react", "version": "^1.0.5" },
-        { "name": "design", "version": "^1.0.4" }
-      ]
+      "license": "MIT"
     },
     {
       "name": "firebase",
@@ -94,8 +118,8 @@
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT",
       "dependencies": [
-        { "name": "nextjs", "version": "^1.1.4" },
-        { "name": "testing", "version": "^2.2.0" }
+        { "name": "nextjs", "version": "^1.3.0" },
+        { "name": "testing", "version": "^3.0.0" }
       ]
     },
     {
@@ -114,18 +138,6 @@
       "name": "ai-tools",
       "source": "./plugins/ai-tools",
       "description": "AI tool integrations — NotebookLM automation, content generation, and research workflows",
-      "author": {
-        "name": "Szum Tech Team",
-        "email": "szum.tech@gmail.com",
-        "url": "https://github.com/JanSzewczyk"
-      },
-      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
-      "license": "MIT"
-    },
-    {
-      "name": "performance",
-      "source": "./plugins/performance",
-      "description": "Web performance auditing — automated Lighthouse analysis, Core Web Vitals scoring, and prioritized fix planning for Next.js applications",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",

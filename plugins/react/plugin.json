@@ -1,8 +1,8 @@
 {
   "name": "react",
   "displayName": "React 19",
-  "description": "React development — agents and skills for building modern React 19 UIs, including the React Compiler, new hooks, and component-driven architecture.",
-  "version": "1.0.6",
+  "description": "React development — agents and skills for building modern React 19 UIs: the React Compiler and new hooks, Storybook stories and interaction tests in CSF Next, and WCAG accessibility audits.",
+  "version": "1.1.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -11,13 +11,14 @@
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
   "dependencies": [
-    { "name": "testing", "version": "^2.2.0" },
-    { "name": "nextjs", "version": "^1.1.4" },
+    { "name": "typescript", "version": "^1.0.0" },
+    { "name": "testing", "version": "^3.0.0" },
     { "name": "design", "version": "^1.0.4" }
   ],
-  "keywords": ["react", "react-19-compiler", "hooks", "ui"],
+  "keywords": ["react", "react-19-compiler", "storybook", "accessibility", "ui"],
   "agents": [
-    "./agents/frontend-expert.md"
+    "./agents/frontend-expert.md",
+    "./agents/storybook-tester.md"
   ],
   "skills": "./skills/"
 }

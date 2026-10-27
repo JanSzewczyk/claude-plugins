@@ -6,7 +6,7 @@
 
 **Initial run:**
 ```
-/skill-ab-optimizer optimize plugins/testing/skills/unit-testing
+/skill-ab-optimizer optimize plugins/typescript/skills/unit-testing
 ```
 
 **Round 0 — Baseline:**
@@ -41,8 +41,8 @@
 
 ```
 /skill-ab-optimizer compare \
-  plugins/code-quality/skills/performance-optimization \
-  plugins/code-quality/skills/performance-optimization-v2
+  plugins/nextjs/skills/performance-optimization \
+  plugins/nextjs/skills/performance-optimization-v2
 ```
 
 **Output:**

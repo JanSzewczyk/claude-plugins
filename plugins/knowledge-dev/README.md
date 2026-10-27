@@ -24,7 +24,7 @@ The skill works on a checkout of this repository, not on an installed copy: it r
 ## Usage
 
 ```bash
-/knowledge-author extract plugins/testing/skills/create-stories
+/knowledge-author extract plugins/react/skills/create-stories
 /knowledge-author new testing/storybook/<slug>
 /knowledge-author build
 /knowledge-author check
@@ -56,7 +56,7 @@ Why each of these choices was made, with the evidence and the rejected alternati
 ## Checking preloads in a live session
 
 Three behaviours the design relies on are not verified yet (open questions in `decisions.md`).
-Check them once, with this marketplace added from the local checkout and the `testing` plugin
+Check them once, with this marketplace added from the local checkout and the `react` plugin
 installed, in a project that has a React component with a dialog:
 
 1. **The knowledge skill is injected.** Ask Claude to delegate stories for that component to the
@@ -67,12 +67,12 @@ installed, in a project that has a React component with a dialog:
    section of "Derive a story variant with Story.extend…", a `low` rule that lives only in
    `storybook-rules/references/rules.md`. If it cannot open the file, the medium and low rules never
    reach preloading agents.
-3. **Cross-plugin names.** Temporarily give an agent in another plugin (for example
-   `react:frontend-expert`) `skills: storybook-rules` and repeat check 1; if nothing is injected,
-   repeat with `skills: testing:storybook-rules`. The working form decides how agents outside
-   `testing` preload knowledge skills.
+3. **Cross-plugin names.** `nextjs:testing-strategist` preloads `storybook-rules` from the `react`
+   plugin by bare name. Install `nextjs` and repeat check 1 with that agent; if nothing is injected,
+   try `skills: react:storybook-rules`. The working form decides how agents outside `react` preload
+   knowledge skills.
 
-Record each result in `decisions.md` (D15, Open questions) and revert the temporary change.
+Record each result in `decisions.md` (D15, Open questions) and revert any temporary change.
 
 ## Testing
 

@@ -2,7 +2,7 @@
   "targets": [
     {
       "kind": "skill-index",
-      "skill": "plugins/testing/skills/create-stories",
+      "skill": "plugins/react/skills/create-stories",
       "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**", "testing/builders/principles/**"],
       "where": { "languages": ["typescript"], "frameworks": ["react"] }
     },
@@ -14,13 +14,13 @@
     },
     {
       "kind": "skill-index",
-      "skill": "plugins/testing/skills/unit-testing",
+      "skill": "plugins/typescript/skills/unit-testing",
       "include": ["testing/principles/**", "testing/builders/**"],
       "where": { "languages": ["typescript"] }
     },
     {
       "kind": "knowledge-skill",
-      "skill": "plugins/testing/skills/storybook-rules",
+      "skill": "plugins/react/skills/storybook-rules",
       "title": "Storybook rules",
       "description": "Rules for writing Storybook stories and interaction tests for React components in CSF Next: how to query, awaiting interactions, when to use .test() or play, portals, mocks, naming and file setup. Use when writing, fixing or reviewing a .stories.tsx file. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules to every story file you write or review. The first section is always in force; open a rule from the table when the task touches it.",
@@ -31,7 +31,7 @@
     },
     {
       "kind": "knowledge-skill",
-      "skill": "plugins/testing/skills/builder-rules-ts",
+      "skill": "plugins/typescript/skills/builder-rules-ts",
       "title": "Test data builder rules (TypeScript, mimicry-js)",
       "description": "Rules for building test data in TypeScript with mimicry-js builders: explicit values for everything a test asserts on, .one() and .many() with overrides and traits, generator placement, fixed() for functions, resetting state. Use when creating or using a builder in a test or story. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules whenever you create or use a builder in a TypeScript test or story.",
@@ -41,7 +41,7 @@
     },
     {
       "kind": "knowledge-skill",
-      "skill": "plugins/testing/skills/builder-rules-py",
+      "skill": "plugins/python/skills/builder-rules-py",
       "title": "Test data factory rules (Python, factory_boy)",
       "description": "Rules for building test data in Python with factory_boy: explicit values for everything a test asserts on, keyword overrides and Traits, build() versus create(), resetting sequences. Use when creating or using a factory in a Python test. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules whenever you create or use a factory in a Python test.",

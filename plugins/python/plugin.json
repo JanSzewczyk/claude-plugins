@@ -1,0 +1,16 @@
+{
+  "name": "python",
+  "displayName": "Python",
+  "description": "Python development — rules for factory_boy test data factories; the home for future pytest and Python tooling skills.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Szum Tech Team",
+    "email": "szum.tech@gmail.com",
+    "url": "https://github.com/JanSzewczyk"
+  },
+  "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+  "license": "MIT",
+  "keywords": ["python", "factory-boy", "testing"],
+  "agents": [],
+  "skills": "./skills/"
+}

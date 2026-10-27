@@ -6,7 +6,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/JanSzewczyk/claude-plugins?style=social)](https://github.com/JanSzewczyk/claude-plugins/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Shared skills and agents for Claude Code — covering Next.js, testing, Firebase, and more.**
+**Shared skills and agents for Claude Code — organized by technology: TypeScript, React, Next.js, Python, Firebase, and more.**
 
 [Plugins](#-plugins) • [Installation](#-installation) • [Usage](#-usage) • [Repository Structure](#-repository-structure)
 
@@ -18,7 +18,7 @@
 
 This repository is a [Claude Code](https://claude.com/claude-code) marketplace — a curated collection of **skills** and **agents** that extend Claude Code with domain-specific knowledge for modern full-stack development. Install a plugin once and every project you open gets access to specialist assistants that know your stack's conventions, patterns, and pitfalls.
 
-The collection covers ten domains: Next.js development, React UI development, design systems & styling, testing strategy, code quality, Firebase architecture, product management orchestration, AI tool integrations, Git workflow on GitHub, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
+Technology plugins are layered — a technology-agnostic **testing** core, the **typescript** and **python** language layers, then **react**, **nextjs** and **firebase** on top, with **design** for Tailwind CSS and the design system — so you install only the stack you work in, and a new technology is a new plugin. Alongside them sit technology-agnostic plugins: repository maintenance, product management orchestration, AI tool integrations, Git workflow on GitHub, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
 
 ## ✨ Features
 
@@ -26,12 +26,12 @@ The collection covers ten domains: Next.js development, React UI development, de
 
 - **✨ [frontend-expert](./plugins/react/)** — React 19 specialist for UI components, Tailwind CSS v4, and design-system integration
 - **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
-- **🧪 [testing-strategist](./plugins/testing/)** — Plans test coverage across unit, integration, and E2E layers
-- **🧪 [storybook-tester](./plugins/testing/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
-- **🧪 [unit-tester](./plugins/testing/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
-- **🧹 [code-reviewer](./plugins/code-quality/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
-- **⚡ [performance-analyzer](./plugins/code-quality/)** — Bundle size, React rendering efficiency, and slow query analysis
-- **📦 [library-updater](./plugins/code-quality/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
+- **🧪 [testing-strategist](./plugins/nextjs/)** — Plans test coverage across unit, integration, and E2E layers
+- **🧪 [storybook-tester](./plugins/react/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
+- **🧪 [unit-tester](./plugins/typescript/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
+- **🧹 [code-reviewer](./plugins/nextjs/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
+- **⚡ [performance-analyzer](./plugins/nextjs/)** — Bundle size, React rendering efficiency, and slow query analysis
+- **📦 [library-updater](./plugins/typescript/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
 - **🔥 [database-architect](./plugins/firebase/)** — Firebase Firestore schema design, data modeling, and architecture guidance
 - **📋 [product-owner](./plugins/product-management/)** — Multi-phase PRD/TDD orchestrator that coordinates specialist agents across implementation phases
 
@@ -49,17 +49,17 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **🧱 [implement-design](./plugins/design/skills/implement-design/)** — Inventory-first protocol for porting an external design (native Claude Design handoff, `/design-sync`'d project, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them
 - **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
 - **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations
-- **📖 [create-stories](./plugins/testing/skills/create-stories/)** — Create or update a component's Storybook stories with browser-rendered `.test()` interaction tests in CSF Next format
+- **📖 [create-stories](./plugins/react/skills/create-stories/)** — Create or update a component's Storybook stories with browser-rendered `.test()` interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/testing/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
 - **🖥️ [true-dom-tester](./plugins/testing/skills/true-dom-tester/)** — Accessibility-tree-based automated tests using Playwright CLI
-- **🧪 [unit-testing](./plugins/testing/skills/unit-testing/)** — Vitest unit test patterns, mocking strategies, and examples
-- **🎯 [coverage-gaps](./plugins/testing/skills/coverage-gaps/)** — Ranks the coverage gaps worth closing, weighting uncovered branches, critical paths, and git churn over line percentages
-- **🔌 [api-test](./plugins/testing/skills/api-test/)** — API endpoint testing patterns and examples
-- **♿ [accessibility-audit](./plugins/testing/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
-- **⚡ [performance-optimization](./plugins/code-quality/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
-- **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, committed on its own branch and shipped as a pull request with the final report
-- **🧹 [dead-code](./plugins/code-quality/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
+- **🧪 [unit-testing](./plugins/typescript/skills/unit-testing/)** — Vitest unit test patterns, mocking strategies, and examples
+- **🎯 [coverage-gaps](./plugins/typescript/skills/coverage-gaps/)** — Ranks the coverage gaps worth closing, weighting uncovered branches, critical paths, and git churn over line percentages
+- **🔌 [api-test](./plugins/nextjs/skills/api-test/)** — API endpoint testing patterns and examples
+- **♿ [accessibility-audit](./plugins/react/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
+- **⚡ [performance-optimization](./plugins/nextjs/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
+- **📦 [update-deps](./plugins/typescript/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, committed on its own branch and shipped as a pull request with the final report
+- **🧹 [dead-code](./plugins/typescript/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
 - **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
 - **🧬 [template-sync](./plugins/code-quality/skills/template-sync/)** — Finds what a GitHub template repository changed since your project was created from it and writes an ordered catch-up plan
 - **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
@@ -73,7 +73,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
-- **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
+- **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
@@ -100,15 +100,16 @@ The collection covers ten domains: Next.js development, React UI development, de
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 7 | [README](./plugins/nextjs/README.md) |
-| [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
+| [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation, stack-detecting test data builders | — | 3 | [README](./plugins/testing/README.md) |
+| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, coverage gaps, dead-code sweeps, npm dependency updates | 2 | 5 | [README](./plugins/typescript/README.md) |
+| [**python**](./plugins/python/) | Python — factory_boy test data rules, the home for pytest and Python tooling | — | 1 | [README](./plugins/python/README.md) |
+| [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 4 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
-| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 11 | [README](./plugins/testing/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dead-code sweeps, dependency management | 3 | 5 | [README](./plugins/code-quality/README.md) |
+| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync | — | 2 | [README](./plugins/code-quality/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
-| [**performance**](./plugins/performance/) | Web performance auditing — Lighthouse, Core Web Vitals, fix planning | — | 1 | [README](./plugins/performance/README.md) |
 | [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging | — | 2 | [README](./plugins/plugin-dev/README.md) |
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
@@ -116,6 +117,30 @@ The collection covers ten domains: Next.js development, React UI development, de
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
 
 **Total: 10 agents · 46 skills**
+
+Technology plugins depend only downward, and installing one installs what it depends on:
+
+```
+testing  ←  typescript  ←  react  ←  nextjs  ←  firebase
+                              ↑         ↑
+                            design ─────┘
+python (standalone)
+```
+
+### Migrating from the domain layout
+
+Earlier versions grouped plugins by domain. Agents and skills keep their names; only the plugin
+(the namespace prefix) changed. The `performance` plugin is gone — `lighthouse-audit` is in `nextjs`.
+
+| Was | Now |
+| --- | --- |
+| `testing:unit-tester`, `unit-testing`, `coverage-gaps`, `builder-rules-ts` | `typescript:…` |
+| `testing:storybook-tester`, `create-stories`, `storybook-rules`, `accessibility-audit` | `react:…` |
+| `testing:testing-strategist`, `api-test` | `nextjs:…` |
+| `testing:builder-rules-py` | `python:builder-rules-py` |
+| `code-quality:code-reviewer`, `performance-analyzer`, `performance-optimization` | `nextjs:…` |
+| `code-quality:library-updater`, `update-deps`, `dead-code` | `typescript:…` |
+| `performance:lighthouse-audit` | `nextjs:lighthouse-audit` |
 
 ---
 
@@ -132,15 +157,16 @@ The collection covers ten domains: Next.js development, React UI development, de
 #### 2. Install a plugin
 
 ```bash
-/plugin install nextjs@szum-tech
+/plugin install testing@szum-tech
+/plugin install typescript@szum-tech
+/plugin install python@szum-tech
 /plugin install react@szum-tech
 /plugin install design@szum-tech
-/plugin install testing@szum-tech
-/plugin install code-quality@szum-tech
+/plugin install nextjs@szum-tech
 /plugin install firebase@szum-tech
+/plugin install code-quality@szum-tech
 /plugin install product-management@szum-tech
 /plugin install ai-tools@szum-tech
-/plugin install performance@szum-tech
 /plugin install plugin-dev@szum-tech
 /plugin install shared-rules@szum-tech
 /plugin install git-workflow@szum-tech
@@ -249,25 +275,27 @@ What are you doing?
 │       Skills: firebase-firestore, db-migration
 │
 ├── Writing tests
-│   ├── Planning test strategy      → Agent: testing-strategist (testing)
-│   ├── Component / Storybook tests → Agent: storybook-tester (testing)
-│   │                                  Skills: create-stories, builder-factory
+│   ├── Planning test strategy      → Agent: testing-strategist (nextjs)
+│   ├── Component / Storybook tests → Agent: storybook-tester (react)
+│   │                                  Skills: create-stories (react), builder-factory (testing)
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
-│   ├── Unit tests (Vitest)        → Agent: unit-tester (testing)
-│   │                                  Skills: unit-testing, builder-factory
-│   ├── API / E2E tests            → Skill: api-test, playwright-cli (testing)
-│   ├── What's untested / gaps?    → Skill: coverage-gaps (testing)
-│   └── Accessibility audit        → Skill: accessibility-audit (testing)
+│   ├── Unit tests (Vitest)        → Agent: unit-tester (typescript)
+│   │                                  Skills: unit-testing (typescript), builder-factory (testing)
+│   ├── API tests                  → Skill: api-test (nextjs)
+│   ├── E2E / browser automation   → Skill: playwright-cli (testing)
+│   ├── What's untested / gaps?    → Skill: coverage-gaps (typescript)
+│   └── Accessibility audit        → Skill: accessibility-audit (react)
 │
 ├── Code review / quality check
-│   └── Agent: code-reviewer (code-quality)
+│   └── Agent: code-reviewer (nextjs)
 │
 ├── Performance analysis / bundle optimization
-│   └── Agent: performance-analyzer (code-quality)
-│       Skill: performance-optimization
+│   └── Agent: performance-analyzer (nextjs)
+│       Skills: performance-optimization, lighthouse-audit
 │
-├── Updating dependencies
-│   └── Agent: library-updater (code-quality)
+├── Updating dependencies / removing dead code
+│   └── Agent: library-updater (typescript)
+│       Skills: update-deps, dead-code
 │
 ├── Coordinating a full feature from PRD/TDD
 │   └── Agent: product-owner (product-management)
@@ -322,29 +350,34 @@ claude-plugins/
 │   └── marketplace.json          # Marketplace manifest listing all plugins
 ├── knowledge/                    # Shared rule notes, one decision per file, built into skills
 └── plugins/
-    ├── nextjs/                    # Next.js full-stack development
+    ├── testing/                   # Technology-agnostic testing core
     │   ├── plugin.json
-    │   ├── agents/                # nextjs-backend-engineer
-    │   └── skills/                # 7 skills (server-actions, error-handling, …)
+    │   └── skills/                # 3 skills (playwright-cli, true-dom-tester, builder-factory)
+    ├── typescript/                # TypeScript & JavaScript language layer
+    │   ├── plugin.json
+    │   ├── agents/                # unit-tester, library-updater
+    │   └── skills/                # 5 skills (unit-testing, coverage-gaps, dead-code, update-deps, generated builder-rules-ts)
+    ├── python/                    # Python language layer
+    │   ├── plugin.json
+    │   └── skills/                # 1 skill (generated builder-rules-py)
     ├── react/                     # React 19 UI development
     │   ├── plugin.json
-    │   ├── agents/                # frontend-expert
-    │   └── skills/                # 1 skill (react-19-compiler)
+    │   ├── agents/                # frontend-expert, storybook-tester
+    │   └── skills/                # 4 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules)
     ├── design/                    # Design system & styling
     │   ├── plugin.json
     │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
-    ├── testing/                   # Testing strategies & QA
+    ├── nextjs/                    # Next.js full-stack development
     │   ├── plugin.json
-    │   ├── agents/                # testing-strategist, storybook-tester, unit-tester
-    │   └── skills/                # 11 skills (unit-testing, coverage-gaps, create-stories, playwright-cli, …, plus generated storybook-rules, builder-rules-ts, builder-rules-py)
-    ├── code-quality/              # Code review, performance & maintenance
-    │   ├── plugin.json
-    │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
-    │   └── skills/                # 5 skills (performance-optimization, update-deps, …)
+    │   ├── agents/                # nextjs-backend-engineer, code-reviewer, performance-analyzer, testing-strategist
+    │   └── skills/                # 10 skills (server-actions, error-handling, api-test, lighthouse-audit, …)
     ├── firebase/                  # Firebase & database architecture
     │   ├── plugin.json
     │   ├── agents/                # database-architect
     │   └── skills/                # 2 skills (firebase-firestore, db-migration)
+    ├── code-quality/              # Repository maintenance
+    │   ├── plugin.json
+    │   └── skills/                # 2 skills (repository-documentation, template-sync)
     ├── product-management/        # PRD/TDD orchestration & coordination
     │   ├── plugin.json
     │   ├── agents/                # product-owner
@@ -352,9 +385,6 @@ claude-plugins/
     ├── ai-tools/                  # AI tool integrations & automation
     │   ├── plugin.json
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
-    ├── performance/                # Web performance auditing
-    │   ├── plugin.json
-    │   └── skills/                # 1 skill (lighthouse-audit)
     ├── plugin-dev/                 # Marketplace auditing & plugin releases
     │   ├── plugin.json
     │   └── skills/                # 2 skills (marketplace-doctor, plugin-release)
@@ -386,6 +416,7 @@ claude-plugins/
 ## 🛠️ Conventions
 
 - Plugin names use **kebab-case**
+- Technology plugins are named after the technology (`typescript`, `python`, `react`, `nextjs`); a skill lives in the most general one whose stack it needs, and agents preload only from their own plugin or a lower layer
 - Agent files are Markdown with YAML frontmatter (`name`, `version`, `model`, `tools`, `skills`)
 - Skill directories contain `SKILL.md` as the entry point plus optional `examples.md`, `patterns.md`, `references/`, `templates/`
 - Each `plugin.json` lists its agents as paths and its skills as a directory glob (`"./skills/"`)

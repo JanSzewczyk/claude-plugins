@@ -32,19 +32,19 @@ Manual experimentation is slow, biased, and non-reproducible. This skill closes 
 ### 1. Target a skill to optimize
 
 ```
-/skill-ab-optimizer optimize plugins/testing/skills/unit-testing
+/skill-ab-optimizer optimize plugins/typescript/skills/unit-testing
 ```
 
 ### 2. Run a head-to-head comparison
 
 ```
-/skill-ab-optimizer compare plugins/testing/skills/unit-testing plugins/testing/skills/unit-testing-v2
+/skill-ab-optimizer compare plugins/typescript/skills/unit-testing plugins/typescript/skills/unit-testing-v2
 ```
 
 ### 3. Full auto-optimize loop
 
 ```
-/skill-ab-optimizer auto plugins/code-quality/skills/performance-optimization --iterations 5
+/skill-ab-optimizer auto plugins/nextjs/skills/performance-optimization --iterations 5
 ```
 
 ---

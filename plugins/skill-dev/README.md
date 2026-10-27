@@ -33,7 +33,7 @@ Or install the plugin from the marketplace:
 ### Audit one skill
 
 ```bash
-/skill-audit plugins/testing/skills/unit-testing
+/skill-audit plugins/typescript/skills/unit-testing
 /skill-audit ~/.claude/skills/my-skill
 ```
 
@@ -42,7 +42,7 @@ A deterministic sweep for the facts — the frontmatter contract, the context bu
 The sweep is runnable on its own when you only want the mechanical half:
 
 ```bash
-node plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs plugins/testing/skills/unit-testing
+node plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs plugins/typescript/skills/unit-testing
 ```
 
 Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` emits the full inventory plus the `metrics` block the probes are given.
@@ -50,7 +50,7 @@ Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` emits 
 ### Improve a skill against evidence
 
 ```bash
-/skill-ab-optimizer auto plugins/code-quality/skills/performance-optimization --iterations 5
+/skill-ab-optimizer auto plugins/nextjs/skills/performance-optimization --iterations 5
 ```
 
 ## How the pieces fit
