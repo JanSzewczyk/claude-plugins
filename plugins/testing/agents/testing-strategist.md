@@ -1,21 +1,14 @@
 ---
 name: testing-strategist
-version: 1.2.1
-lastUpdated: 2026-10-26
+version: 1.2.2
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [unit-tester, storybook-tester, code-reviewer]
 description: Plan test strategies, analyze test coverage, and decide which types of tests to write. Use proactively after implementing features to ensure proper test coverage.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: green
-permissionMode: default
 skills: builder-factory, api-test, create-stories, accessibility-audit, playwright-cli, unit-testing
-hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: '[[ "$CLAUDE_FILE_PATH" =~ \.(test|spec)\.(ts|tsx)$ ]] && echo ''🧪 Test file updated: $CLAUDE_FILE_PATH'' >&2 || true'
 ---
 
 You are an elite Testing Strategist with deep expertise in modern JavaScript/TypeScript testing practices. You

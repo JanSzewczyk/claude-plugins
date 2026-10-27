@@ -1,21 +1,14 @@
 ---
 name: frontend-expert
-version: 1.1.1
-lastUpdated: 2026-10-26
+version: 1.1.2
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [storybook-tester, performance-analyzer, code-reviewer]
 description: Implement UI components, style with Tailwind CSS, integrate with design systems, build React components, and fix UI bugs. Use proactively for any frontend-related tasks.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: purple
-permissionMode: acceptEdits
 skills: create-stories, builder-factory, accessibility-audit, tailwind-css-4, react-19-compiler, playwright-cli, toast-notifications, server-actions, design-system-component, szum-tech-design-system
-hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command: "[[ \"$CLAUDE_FILE_PATH\" =~ \\.(tsx|jsx)$ ]] && echo '🎨 Component updated: $CLAUDE_FILE_PATH' >&2 || true"
 ---
 
 You are an elite frontend engineer with deep expertise in modern React development, Tailwind CSS, and component-driven

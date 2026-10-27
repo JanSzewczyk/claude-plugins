@@ -121,9 +121,16 @@ const allBundled = [...bundled.references, ...bundled.scripts, ...bundled.assets
 const markdownFiles = ["SKILL.md", ...allBundled.filter((f) => f.endsWith(".md"))];
 const textOf = new Map(markdownFiles.map((f) => [f, readFileSync(join(target, f), "utf8")]));
 
+// A reference rendered from the shared knowledge/ notes by knowledge.mjs carries a stamp near its
+// top. Its prose and its shape are the notes' business: findings there are fixed in the note and
+// rebuilt, never in the copy, so the length and prose checks skip it. Links are still checked.
+const GENERATED = /^<!-- generated (by knowledge\.mjs|from knowledge\/)/m;
+const generated = new Set(markdownFiles.filter((f) => f !== "SKILL.md" && GENERATED.test((textOf.get(f) ?? "").slice(0, 600))));
+const authoredFiles = markdownFiles.filter((f) => !generated.has(f));
+
 // ------------------------------------------------------- the frontmatter contract
 
-const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint"];
+const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
 const PERSON_PHRASES = ["I can", "I will", "I'll", "You can", "You should", "Use me"];
 const TRIGGER_MARKERS = /\b(use (this )?(skill )?when|use whenever|whenever|trigger|invoke (it|this) when|not for|after |before )/i;
 
@@ -134,7 +141,7 @@ if (!fm) {
 
   const unknown = keys.filter((k) => !SKILL_KEY_ORDER.includes(k));
   if (unknown.length) {
-    error("frontmatter", skillPath, `frontmatter carries keys outside the four-field contract: ${unknown.join(", ")}`, `allowed: ${SKILL_KEY_ORDER.join(", ")}`);
+    error("frontmatter", skillPath, `frontmatter carries keys outside the skill contract: ${unknown.join(", ")}`, `allowed: ${SKILL_KEY_ORDER.join(", ")}`);
   }
   const known = keys.filter((k) => SKILL_KEY_ORDER.includes(k));
   const ordered = [...known].sort((a, b) => SKILL_KEY_ORDER.indexOf(a) - SKILL_KEY_ORDER.indexOf(b));
@@ -300,7 +307,7 @@ for (const b of allBundled) {
   }
 }
 
-for (const file of markdownFiles) {
+for (const file of authoredFiles) {
   if (file === "SKILL.md") continue;
   const lines = (textOf.get(file) ?? "").split(/\r?\n/);
   // The guidance is 100 lines; the trigger is 200. A preview reads roughly the first hundred
@@ -346,7 +353,7 @@ const DIACRITICS = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g;
 let shoutTotal = 0;
 let languageSuspects = 0;
 
-for (const file of markdownFiles) {
+for (const file of authoredFiles) {
   const text = textOf.get(file) ?? "";
   const lines = proseLines(text);
   const shouts = lines.reduce((n, l) => n + (l.text.match(SHOUT)?.length ?? 0), 0);
@@ -374,7 +381,7 @@ for (const file of markdownFiles) {
 }
 
 const paragraphs = new Map();
-for (const file of markdownFiles) {
+for (const file of authoredFiles) {
   const lines = proseLines(textOf.get(file) ?? "");
   let buf = [];
   let start = 0;

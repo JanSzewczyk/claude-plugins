@@ -1,21 +1,14 @@
 ---
 name: performance-analyzer
-version: 1.1.0
-lastUpdated: 2026-02-20
+version: 1.1.1
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [frontend-expert, nextjs-backend-engineer, code-reviewer]
 description: Analyze application performance, optimize bundle size, improve React rendering efficiency, and debug slow queries. Use proactively when performance issues are suspected or before deploying major features.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call
 model: sonnet
 color: blue
-permissionMode: default
 skills: performance-optimization, playwright-cli, react-19-compiler
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: '[[ "$TOOL_INPUT" =~ ''npm run analyze'' ]] && echo ''📊 Starting bundle analysis...'' >&2 || true'
 ---
 
 You are an elite Performance Engineer specializing in Next.js and React optimization. You have deep expertise in

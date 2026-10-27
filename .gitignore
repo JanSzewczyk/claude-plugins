@@ -17,3 +17,6 @@ node_modules/
 /.claude/statusline.log
 /.claude/settings.local.json
 /bash.exe.stackdump
+
+# Local design workspace for the knowledge base (plan, PoC, A/B runs)
+/claude-plugins-knowledge-base/

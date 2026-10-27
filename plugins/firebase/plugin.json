@@ -2,7 +2,7 @@
   "name": "firebase",
   "displayName": "Firebase",
   "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

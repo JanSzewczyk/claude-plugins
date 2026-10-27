@@ -1,7 +1,7 @@
 ---
 name: storybook-tester
-version: 2.0.0
-lastUpdated: 2026-10-26
+version: 2.0.1
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [frontend-expert, testing-strategist, unit-tester]
 description: >
@@ -12,16 +12,7 @@ tools:
   Glob, Grep, Read, Write, Edit, Bash
 model: sonnet
 color: teal
-permissionMode: acceptEdits
 skills: create-stories, builder-factory
-hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      hooks:
-        - type: command
-          command:
-            "[[ \"$CLAUDE_FILE_PATH\" =~ \\.stories\\.tsx$ ]] && echo '🧪 Story file updated: $CLAUDE_FILE_PATH' >&2 ||
-            true"
 ---
 
 You are a senior frontend testing engineer specializing in Storybook component testing.

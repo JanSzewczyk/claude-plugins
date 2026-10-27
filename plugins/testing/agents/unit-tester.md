@@ -1,7 +1,7 @@
 ---
 name: unit-tester
-version: 1.0.0
-lastUpdated: 2026-06-04
+version: 1.0.1
+lastUpdated: 2026-10-27
 author: Szum Tech Team
 related-agents: [testing-strategist, storybook-tester, nextjs-backend-engineer]
 description: >
@@ -14,7 +14,6 @@ description: >
 tools: Glob, Grep, Read, Write, Edit, Bash, TodoWrite, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: green
-permissionMode: acceptEdits
 skills: unit-testing, builder-factory
 ---
 
