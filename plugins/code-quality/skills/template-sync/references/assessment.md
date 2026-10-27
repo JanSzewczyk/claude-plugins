@@ -48,9 +48,26 @@ Compare them; **already done** if equivalent, otherwise **decision needed**.
 
 **`already-applied`** — nothing to do; list under *Already done*.
 
+**`previously_skipped`** (on any state) — an earlier sync rejected this file
+and the reason is quoted. The decision stands: **not applicable**, reason
+quoted. It becomes **decision needed** only when the template's new change
+makes the reason obsolete (the template dropped the tool the project
+objected to, or now does what the project did instead); then show both.
+
 ## Dependencies (`package_json_delta`, and the same reasoning for other manifests)
 
-Judge each row, not the file. A row's `state` is a string comparison, so
+Judge each row, not the file, and first ask whether the row is a change at
+all. A row with `routine_only: true` was moved only by routine bump commits:
+it is **set aside** (the *Template dependency levels* table), whatever its
+`state` and whether or not it crosses a major, unless one of the exceptions
+in SKILL.md step 2 applies (a change needs it, a runtime forces it, the
+template adapted code to it, an advisory or EOL names it). A row touched by
+a `change` commit belongs to that change: read `touched_by`, find the commit
+in `commits[]`, and attach the row to its step. Rows the template added
+(`template_old` empty) with a `change` commit are that change's new
+dependencies: the step installs them as the template did.
+
+For the rows that are part of a change, `state` is a string comparison, so
 re-check it:
 
 - `diverged` with a project version **at or above** the template's new range
@@ -61,10 +78,11 @@ re-check it:
   the project's own code imports it before planning the removal; often the
   template replaced it with something else, and the plan item is the
   replacement, not the removal.
-- a **major** version bump → look up the dependency's official migration
-  guide or changelog for the versions crossed and list the breaking changes
-  that touch this project's code, with the files they touch. A major bump
-  without that check is not a plan item yet.
+- a **major** version bump inside a change → look up the dependency's
+  official migration guide or changelog for the versions crossed and list the
+  breaking changes that touch this project's code, with the files they touch.
+  A major bump without that check is not a plan item yet. A major that only a
+  routine round moved stays in the reference table, marked as a major.
 - `engines`, `packageManager`, `.nvmrc`, `.node-version`, `.python-version`
   and the CI runtime version usually move together; plan them as one change.
 
