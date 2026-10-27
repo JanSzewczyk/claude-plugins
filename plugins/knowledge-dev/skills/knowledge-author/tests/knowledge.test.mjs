@@ -1,5 +1,6 @@
 // Runs the knowledge build against a throwaway copy of tests/fixture/, a frozen slice of notes,
-// targets and testing skills, so every test can break them without touching the real ones and the
+// targets and the hand-written SKILL.md files they fill. The fixture holds inputs only: a test that
+// needs generated files builds them in its copy first. Every test can break them without touching the real ones and the
 // assertions do not move when the repository's own notes change. The last test checks the
 // repository itself.
 //
@@ -7,7 +8,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { appendFileSync, cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
@@ -253,11 +254,6 @@ describe("coverage", () => {
       "testing/storybook/principles/use-csf-next-factories [vue]",
     ]);
   });
-});
-
-test("the fixture is built and current", () => {
-  assert.ok(existsSync(join(FIXTURE, "plugins/testing/skills/storybook-testing/references/rules.md")));
-  assert.deepEqual(check(FIXTURE).problems, []);
 });
 
 test("the repository is built and current", () => {

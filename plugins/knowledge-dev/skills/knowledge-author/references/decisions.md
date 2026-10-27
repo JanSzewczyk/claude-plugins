@@ -356,10 +356,11 @@ takes the repo root as `--root`, and uses only Node built-ins (Node 22+, the ver
 **Why.** It mirrors how `marketplace-doctor` ships its script, so moving the PoC into the repo is a
 copy, and the repo needs no `package.json`.
 
-**Consequences.** The tests run against `tests/fixture/`, a frozen copy of the PoC notes and
-skills, not against the repository's own notes: assertions about specific notes (the coverage gaps,
-which files a build writes) would otherwise break every time a rule is added. One test checks that
-the repository's own renderings are current.
+**Consequences.** The tests run against `tests/fixture/`, a frozen copy of the PoC notes, targets
+and the two hand-written skills they fill, not against the repository's own notes: assertions about
+specific notes (the coverage gaps, which files a build writes) would otherwise break every time a
+rule is added. The fixture holds inputs only; a test that needs generated files builds them first.
+One test checks that the repository's own renderings are current.
 
 ## D22 An agent preloads the procedure it runs and the knowledge it applies
 
