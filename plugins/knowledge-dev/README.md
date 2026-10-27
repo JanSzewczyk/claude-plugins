@@ -53,6 +53,27 @@ node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
 Why each of these choices was made, with the evidence and the rejected alternatives, is in
 [decisions.md](./skills/knowledge-author/references/decisions.md).
 
+## Checking preloads in a live session
+
+Three behaviours the design relies on are not verified yet (open questions in `decisions.md`).
+Check them once, with this marketplace added from the local checkout and the `testing` plugin
+installed, in a project that has a React component with a dialog:
+
+1. **The knowledge skill is injected.** Ask Claude to delegate stories for that component to the
+   `storybook-tester` agent and to have the agent quote, before writing anything, the title of the
+   first rule under "Always apply" in its context. The answer should be a title from
+   `storybook-rules` (for example "Await every userEvent call and every expect in a story test").
+2. **The rules file one link away is readable.** In the same run, have the agent quote the Rule
+   section of "Derive a story variant with Story.extend…", a `low` rule that lives only in
+   `storybook-rules/references/rules.md`. If it cannot open the file, the medium and low rules never
+   reach preloading agents.
+3. **Cross-plugin names.** Temporarily give an agent in another plugin (for example
+   `react:frontend-expert`) `skills: storybook-rules` and repeat check 1; if nothing is injected,
+   repeat with `skills: testing:storybook-rules`. The working form decides how agents outside
+   `testing` preload knowledge skills.
+
+Record each result in `decisions.md` (D15, Open questions) and revert the temporary change.
+
 ## Testing
 
 ```bash

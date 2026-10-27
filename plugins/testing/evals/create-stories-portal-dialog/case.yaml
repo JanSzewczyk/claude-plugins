@@ -1,0 +1,97 @@
+schema_version: "1.1"
+name: create-stories-portal-dialog
+description: >
+  The outcome case for create-stories after its rules moved into the shared knowledge base: given a
+  component whose confirmation dialog renders through a portal, does the story file follow the
+  generated rules? The weighted check is the one defect the knowledge A/B caught trimmed rule sets
+  making — asserting on the dialog through `canvas`, which never sees the portal and so always passes.
+  Run it before and after a change to the create-stories rules to see that the change did not cost
+  quality.
+tags: [outcome, create-stories]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./demo-app/ (React 19, Storybook 10 CSF Next, a mimicry-js user builder). Requires the
+  # operator's --scaffold. Nothing is installed, so the run step of the skill cannot pass.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Write the Storybook stories and interaction tests for src/components/delete-user-button.tsx in
+    ./demo-app. Dependencies are not installed, so do not try to run the tests; write the file and
+    stop.
+  max_turns: 30
+  timeout_seconds: 900
+  # Write still needs the operator's --allow-tools; see EVALS.md.
+  allowed_tools: [Read, Glob, Grep, Skill, Write, Edit]
+
+graders:
+  - type: tool_used
+    name: routes-to-create-stories
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?create-stories"'
+    min: 1
+
+  - type: file_exists
+    name: wrote-the-story-file
+    path: "**/delete-user-button.stories.tsx"
+
+  - type: regex
+    name: dialog-never-queried-through-canvas
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'canvas\.(find|get|query)(All)?ByRole\(\s*["''`]dialog'
+    match: not_contains
+    weight: 3
+
+  - type: regex
+    name: portal-content-through-screen
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'screen\.(find|get|query)(All)?By\w*\('
+    weight: 2
+
+  - type: regex
+    name: userEvent-not-imported
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'import\s*\{[^}]*\buserEvent\b[^}]*\}\s*from\s*["''](storybook/test|@storybook/test|@testing-library/user-event)["'']'
+    match: not_contains
+    weight: 2
+
+  - type: regex
+    name: csf-next-factories
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'preview\.meta\('
+
+  - type: regex
+    name: no-csf3-default-export
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'export default'
+    match: not_contains
+
+  - type: regex
+    name: independent-checks-use-test
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: '\.test\(\s*["''`]'
+
+  - type: regex
+    name: absence-not-asserted-with-getBy
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'getBy\w*\([^)]*\)\)?\s*\.not\.toBeInTheDocument'
+    match: not_contains
+
+  - type: regex
+    name: data-from-the-builder
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'userBuilder\.one\('
+
+  - type: regex
+    name: no-generic-story-names
+    target: { source: file, path: demo-app/src/components/delete-user-button.stories.tsx }
+    pattern: 'export const (Default|Basic|Example|Test\d*)\b'
+    match: not_contains
+
+expected_outcome: >
+  demo-app/src/components/delete-user-button.stories.tsx exists in CSF Next, with a story per state
+  (a member who can be deleted, the owner who cannot), `.test()` checks that open the dialog and find
+  it through `screen`, never through `canvas`, an injected `userEvent`, and user data from
+  `userBuilder`.

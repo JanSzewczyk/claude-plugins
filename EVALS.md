@@ -39,7 +39,9 @@ plugins/<plugin>/evals/
 
 Two kinds of case:
 
-- **Routing cases** — one per skill, in every plugin. The prompt never names the skill, never
+- **Routing cases** — one per skill, in every plugin, except `user-invocable: false` knowledge
+  skills (`storybook-rules`, `builder-rules-ts`, `builder-rules-py`): agents preload them and no user
+  request should route to them, so there is nothing to route. The prompt never names the skill, never
   quotes its description, and never says "use the X skill": it is the request a user would type
   before knowing the skill exists. The single grader is deterministic and free (`tool_used` on
   `Skill`), so a full routing sweep costs agent runs and no judge calls.
@@ -49,7 +51,9 @@ Two kinds of case:
   report names all four. `plugins/skill-dev/evals/skill-audit-reports-authoring-defects/` is the second: a deliberately
   badly-authored skill with six planted defects, graded on whether the report names all six **and**
   on whether the audited skill is still untouched afterwards — the audit proposes edits, it does
-  not make them, and that is asserted rather than assumed.
+  not make them, and that is asserted rather than assumed. `plugins/testing/evals/create-stories-portal-dialog/`
+  grades a story file for a component whose dialog renders through a portal against the rules
+  `create-stories` receives from `knowledge/`; run it before and after changing those rules.
 
 Every case is tagged `routing` or `outcome`; roughly a third are additionally tagged `smoke` — the
 cheap subset CI runs.
