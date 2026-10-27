@@ -1,0 +1,45 @@
+{
+  "targets": [
+    {
+      "kind": "skill-index",
+      "skill": "plugins/testing/skills/storybook-testing",
+      "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**", "testing/builders/principles/**"],
+      "where": { "languages": ["typescript"], "frameworks": ["react"] }
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/testing/skills/builder-factory",
+      "include": ["testing/builders/**"]
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/testing/skills/storybook-rules",
+      "title": "Storybook rules",
+      "description": "Rules for writing Storybook stories and interaction tests for React components in CSF Next: how to query, when to use .test() or play, portals, naming and file setup. Background knowledge for agents that write or review stories; not a command.",
+      "intro": "Apply these rules to every story file you write or review. The first section is always in force; open a file from the table when the task touches it.",
+      "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**"],
+      "where": { "languages": ["typescript"], "frameworks": ["react"] },
+      "inline": "high"
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/testing/skills/builder-rules-ts",
+      "title": "Test data builder rules (TypeScript, mimicry-js)",
+      "description": "Rules for building test data in TypeScript with mimicry-js builders: explicit values for everything a test asserts on, .one() and .many() with overrides and traits, generator placement, resetting state. Background knowledge for agents that write tests or stories; not a command.",
+      "intro": "Apply these rules whenever you create or use a builder in a TypeScript test or story.",
+      "include": ["testing/builders/**"],
+      "where": { "languages": ["typescript"] },
+      "inline": "high"
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/testing/skills/builder-rules-py",
+      "title": "Test data factory rules (Python, factory_boy)",
+      "description": "Rules for building test data in Python with factory_boy: explicit values for everything a test asserts on, keyword overrides and Traits, build() versus create(), resetting state. Background knowledge for agents that write Python tests; not a command.",
+      "intro": "Apply these rules whenever you create or use a factory in a Python test.",
+      "include": ["testing/builders/**"],
+      "where": { "languages": ["python"] },
+      "inline": "high"
+    }
+  ]
+}

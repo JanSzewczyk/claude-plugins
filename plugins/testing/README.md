@@ -24,6 +24,13 @@ Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E
 | **true-dom-tester**     | `/true-dom-tester`     | Accessibility-tree-based Playwright test generation — semantic locators, faster/cheaper than screenshots, optional Firecrawl     |
 | **unit-testing**        | `/unit-testing`        | Vitest unit tests for TypeScript — mocking, async testing, parameterized tests, server action testing, coverage                 |
 | **coverage-gaps**       | `/coverage-gaps`       | Finds and ranks the coverage gaps that matter — weights uncovered branches, critical paths, and git churn over line percentages |
+| **storybook-rules**     | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `testing-strategist` |
+| **builder-rules-ts**    | — (preloaded)          | Generated background knowledge: test data builder rules for TypeScript and `mimicry-js`, preloaded by the testing agents          |
+| **builder-rules-py**    | — (preloaded)          | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents                  |
+
+The three `*-rules` skills, the `references/rules.md` files and the `BEGIN:knowledge` blocks in
+`create-stories`, `builder-factory` and `unit-testing` are generated from `knowledge/` at the repo
+root. Edit the notes there and run the `knowledge-dev` build; never edit the generated files.
 
 ## Installation
 

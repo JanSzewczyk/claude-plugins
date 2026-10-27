@@ -163,6 +163,18 @@
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT"
+    },
+    {
+      "name": "knowledge-dev",
+      "source": "./plugins/knowledge-dev",
+      "description": "Authoring and build tooling for the shared knowledge notes that skills and agents receive as generated renderings, with a drift check for CI",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     }
   ]
 }

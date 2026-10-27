@@ -74,6 +74,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
 - **🔦 [lighthouse-audit](./plugins/performance/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
+- **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
@@ -102,7 +103,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, logging, env validation, error handling | 1 | 7 | [README](./plugins/nextjs/README.md) |
 | [**react**](./plugins/react/) | React 19 UI development — Compiler, hooks, components | 1 | 1 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
-| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 8 | [README](./plugins/testing/README.md) |
+| [**testing**](./plugins/testing/) | Storybook, Playwright E2E, accessibility, test strategy | 3 | 11 | [README](./plugins/testing/README.md) |
 | [**code-quality**](./plugins/code-quality/) | Code review, performance analysis, dead-code sweeps, dependency management | 3 | 5 | [README](./plugins/code-quality/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
@@ -112,8 +113,9 @@ The collection covers ten domains: Next.js development, React UI development, de
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests | — | 3 | [README](./plugins/git-workflow/README.md) |
+| [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 10 agents · 42 skills**
+**Total: 10 agents · 46 skills**
 
 ---
 
@@ -142,6 +144,7 @@ The collection covers ten domains: Next.js development, React UI development, de
 /plugin install plugin-dev@szum-tech
 /plugin install shared-rules@szum-tech
 /plugin install git-workflow@szum-tech
+/plugin install knowledge-dev@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -317,6 +320,7 @@ What are you doing?
 claude-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace manifest listing all plugins
+├── knowledge/                    # Shared rule notes, one decision per file, built into skills
 └── plugins/
     ├── nextjs/                    # Next.js full-stack development
     │   ├── plugin.json
@@ -332,7 +336,7 @@ claude-plugins/
     ├── testing/                   # Testing strategies & QA
     │   ├── plugin.json
     │   ├── agents/                # testing-strategist, storybook-tester, unit-tester
-    │   └── skills/                # 8 skills (unit-testing, coverage-gaps, create-stories, playwright-cli, …)
+    │   └── skills/                # 11 skills (unit-testing, coverage-gaps, create-stories, playwright-cli, …, plus generated storybook-rules, builder-rules-ts, builder-rules-py)
     ├── code-quality/              # Code review, performance & maintenance
     │   ├── plugin.json
     │   ├── agents/                # code-reviewer, performance-analyzer, library-updater
@@ -360,10 +364,13 @@ claude-plugins/
     ├── shared-rules/               # Source of truth for .claude/rules/ files
     │   ├── plugin.json
     │   └── skills/                # 1 skill (sync-rules)
-    └── git-workflow/               # Branches, commits, pull requests
+    ├── git-workflow/               # Branches, commits, pull requests
+    │   ├── plugin.json
+    │   ├── references/            # Shared conventions for all three skills
+    │   └── skills/                # 3 skills (create-branch, create-commit, create-pull-request)
+    └── knowledge-dev/              # Knowledge base authoring and build
         ├── plugin.json
-        ├── references/            # Shared conventions for all three skills
-        └── skills/                # 3 skills (create-branch, create-commit, create-pull-request)
+        └── skills/                # 1 skill (knowledge-author)
 ```
 
 ### 🗂️ Key Files
@@ -372,6 +379,7 @@ claude-plugins/
 - **`plugins/<name>/plugin.json`** — Plugin metadata: name, version, agent paths, skills directory
 - **`plugins/<name>/agents/<agent>.md`** — Agent definition with YAML frontmatter (`name`, `model`, `tools`, `skills`)
 - **`plugins/<name>/skills/<skill>/SKILL.md`** — Skill entry point; supporting docs live alongside it
+- **`knowledge/`** — Shared rule notes; `references/rules.md`, the `BEGIN:knowledge` blocks and the `*-rules` skills are generated from them
 
 ---
 
@@ -382,7 +390,7 @@ claude-plugins/
 - Skill directories contain `SKILL.md` as the entry point plus optional `examples.md`, `patterns.md`, `references/`, `templates/`
 - Each `plugin.json` lists its agents as paths and its skills as a directory glob (`"./skills/"`)
 - All paths in manifests are relative to the plugin directory
-- Skills target **Next.js 15+**, **React 19+**, **TypeScript 5.7+** unless otherwise noted in the skill's `SKILL.md`
+- Each skill names the languages and stack it targets in its description; shared rules carry theirs in `applies`
 - Agents default to `model: sonnet`; the frontmatter can override this per-agent
 
 ---

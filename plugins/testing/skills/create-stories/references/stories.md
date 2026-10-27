@@ -29,22 +29,9 @@ Interaction, keyboard and accessibility are **tests** on these stories, not stor
 
 ## Naming
 
-A story is named after the state it renders, never after what a test does with it.
-
-- **Only one story for the component** → `ComponentNameStory` with a `name:` field. The `Story`
-  suffix avoids colliding with the imported component binding.
-  `export const UserCardStory = meta.story({ name: "User Card" })`
-  This holds when the story only exists to carry interaction tests: `FormStory`, not
-  `FormSubmission` — the behaviour belongs in the `.test()` name.
-- **Several stories** → plain state names, no suffix: `EmptyForm` / `FilledForm`, `Loading` /
-  `Idle`, `Primary` / `Secondary` / `Destructive`.
-- **`State` suffix** only where the bare name would shadow a global: `ErrorState`, not `Error`;
-  but `Loading`, not `LoadingState`.
-- **Never generic**: `Default`, `Basic`, `Example`, `Test1`, `Story2`.
-- **Never behaviour names**: `ClickTest`, `ValidationStory`, `TabNavigation` — that is a
-  `.test()`, not a story.
-- **A story with `play`** is still a state — name it after the state it ends in (`FilledForm`,
-  `SubmittedForm`), not after the interaction.
+Stories are named after the state they render, tests after the behaviour they check — the rule, with
+the `<Component>Story` and `State`-suffix cases, is in `rules.md`. A story with `play` is still a
+state: name it after the state it ends in (`FilledForm`, `SubmittedForm`).
 
 ## Args
 

@@ -30,6 +30,28 @@ jobs:
       - name: Check manifests and documentation
         run: node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
 
+  knowledge:
+    name: knowledge base renderings
+    runs-on: ubuntu-latest
+    # Skills and agents get generated copies of the notes in knowledge/. A note edited without a
+    # rebuild, or a generated file edited by hand, is drift: check rebuilds in memory and fails on
+    # any byte that differs, naming the file and whether it is stale or hand-edited.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate the notes
+        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs validate
+
+      - name: Check the generated files are current
+        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
+
+      - name: Test the build script
+        run: node --test plugins/knowledge-dev/skills/knowledge-author/tests/knowledge.test.mjs
+
   evals:
     name: skill routing evals (smoke)
     runs-on: ubuntu-latest
@@ -46,6 +68,7 @@ jobs:
           - design
           - firebase
           - git-workflow
+          - knowledge-dev
           - nextjs
           - performance
           - plugin-dev
