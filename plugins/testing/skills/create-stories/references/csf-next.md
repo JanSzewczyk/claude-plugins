@@ -46,6 +46,4 @@ File name: the component's file name + `.stories.tsx`, in the same directory.
 
 ## `title`
 
-Human-readable, space-separated words matching the component's display name, grouped by area:
-`"Components/Country Select"`, `"Features/Invoices/Invoice Table"` — not `"Components/CountrySelect"`.
-If the project's existing stories follow a different grouping, follow theirs.
+How to write and group it is a rule in `rules.md`, with the story names.

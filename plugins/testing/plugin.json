@@ -2,7 +2,7 @@
   "name": "testing",
   "displayName": "Testing & QA",
   "description": "Testing strategies, Vitest unit tests, Storybook interaction tests, Playwright E2E, API testing, accessibility audits, test data builders, and DOM-based automated test generation.",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

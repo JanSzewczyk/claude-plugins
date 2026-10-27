@@ -12,7 +12,8 @@ Name each story after the state it shows, as a bare state name (`EmptyForm`, `Fi
 `Loading`); add a `State` suffix only where the bare name would shadow a global (`ErrorState`). A
 component with a single story gets `<Component>Story` plus a `name:` field, so it does not collide
 with the imported component. Never name a story after a behaviour (`ClickTest`): that is a test. Name each test as a sentence describing one behaviour. Write titles
-as space-separated words: `"Components/Country Select"`.
+as space-separated words grouped by area (`"Components/Country Select"`,
+`"Features/Invoices/Invoice Table"`), following the grouping the project's stories already use.
 
 ## Why
 

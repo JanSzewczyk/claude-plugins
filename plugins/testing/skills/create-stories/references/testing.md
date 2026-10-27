@@ -61,7 +61,7 @@ Group by **category**, not by element. One `.test()` per element is an anti-patt
 | Tabs | one | first tab has `aria-selected="true"`; clicking another selects it and shows its panel | — |
 | Tooltip / popover (portal) | one | hover the trigger → `screen.findByRole("tooltip")` has the text; unhover → `waitFor` it is gone | query through `screen`, not `canvas` |
 | Toast / alert | one per outcome | `status` / `alert` role has the message | auto-dismisses on a timer: assert removal with `waitFor(…, { timeout: 6000 })`; portal depends on the library |
-| Purely presentational (card, badge) | one per visual variant | none — the stories are the documentation | do not invent tests to justify a story |
+| Purely presentational (card, badge) | one per visual variant | none — the stories are the documentation (`rules.md`) | — |
 
 Add these wherever the component has the behaviour, on the story whose state it belongs to:
 
@@ -78,29 +78,12 @@ is in `rules.md`.
 
 ## `step()`
 
-Labels phases inside a test; the labels show in the test output (comments do not).
-
-- Use for **3+ phases** (fill → submit → verify).
-- Skip for 1–2 line tests.
-
-```tsx
-FormStory.test("Submits valid data", async ({ canvas, userEvent, args, step }) => {
-  await step("Fill the form", async () => {
-    await userEvent.type(canvas.getByLabelText(/email/i), "ada@example.com");
-    await userEvent.type(canvas.getByLabelText(/password/i), "secret123");
-  });
-  await step("Submit", async () => {
-    await userEvent.click(canvas.getByRole("button", { name: /sign in/i }));
-  });
-  await step("Verify", async () => {
-    await expect(args.onSubmit).toHaveBeenCalledOnce();
-  });
-});
-```
+When to label phases with `step()` is a rule in `rules.md`; the worked file in `examples.md` shows it.
 
 ## Independence
 
-Every test passes alone and in any order (`rules.md`). Mocks are configured and reset in
+Every test passes alone and in any order, and waits for a condition rather than a fixed time
+(`rules.md`). Mocks are configured and reset in
 `beforeEach` — see `mocking.md`.
 
 ## `play` — the exception
