@@ -1,38 +1,35 @@
 # Mocking in Storybook
 
-How to fake what a component depends on. Pick the mechanism by **what** is being faked. Code is
-shown only for the Storybook-specific APIs; the rest is plain Vitest / Storybook usage.
+How to fake what a component depends on. Which mechanism fits which dependency is the rule
+"Choose the mock by what is faked" in `rules.md`; this file holds the recipes. Code is shown only for
+the Storybook-specific APIs; the rest is plain Vitest / Storybook usage.
 
-| What is faked                        | Mechanism                                           | Details                                     |
-| ------------------------------------ | --------------------------------------------------- | ------------------------------------------- |
-| Callback props (onClick, onSubmit)   | `fn()` in `meta.args`                               | [Rules](#rules)                             |
-| Modules the component imports        | `sb.mock()` in `.storybook/preview.ts` + `mocked()` | [sb.mock()](#modules--sbmock)               |
-| HTTP requests (fetch, REST, GraphQL) | MSW handlers in `parameters.msw`                    | [MSW](#network--msw)                        |
-| `next/navigation` hooks, `redirect`  | `parameters.nextjs` + `navigation.mock`             | [Next.js](#nextjs-navigation)               |
-| React Context, providers             | decorators                                          | [Rules](#rules)                             |
-| Typed data objects                   | `mimicry-js` builders                               | `stories.md`, "Data — builders over inline objects" |
+| What is faked                        | Recipe                                              |
+| ------------------------------------ | --------------------------------------------------- |
+| Callback props (onClick, onSubmit)   | [Callbacks](#callbacks--fn)                         |
+| Modules the component imports        | [sb.mock()](#modules--sbmock)                       |
+| HTTP requests (fetch, REST, GraphQL) | [MSW](#network--msw)                                |
+| `next/navigation` hooks, `redirect`  | [Next.js](#nextjs-navigation)                       |
+| React Context, providers             | [Providers](#providers--decorators)                 |
+| Typed data objects                   | `stories.md`, "Data — builders over inline objects" |
 
-## Rules
+## Callbacks — `fn()`
 
-- **Callback props → `fn()`** from `storybook/test`, declared in `meta.args` so every test shares
-  one spy. Assert with `toHaveBeenCalled` / `toHaveBeenCalledWith` / `toHaveBeenCalledTimes`.
-- **A callback whose result the component uses** (an async loader, a server action passed as a
-  prop) → give the spy a result: `fn().mockResolvedValue(data)` in `meta.args`, or
+- Import `fn` from `storybook/test` and declare it in `meta.args`, so every test shares one spy.
+  Assert with `toHaveBeenCalled` / `toHaveBeenCalledWith` / `toHaveBeenCalledTimes`.
+- A callback whose result the component uses (an async loader, a server action passed as a prop)
+  needs a result: `fn().mockResolvedValue(data)` in `meta.args`, or
   `fn(async () => ({ success: false, error: "…" }))` for a story's error state. Cast typed
   server-action props: `fn(() => ({ success: true }) as unknown as RedirectAction)`.
-- **HTTP the component makes → MSW**, not `fn()`. `fn()` fakes a prop the component calls; MSW fakes
-  a request it sends. Handlers go per story in `parameters.msw.handlers`.
-- **Modules the component imports → `sb.mock(import(...))` in `.storybook/preview.ts`**, never in a
-  story file — module mocks must be registered before stories load. Prefer `{ spy: true }`, then set
-  per-story behaviour with `mocked()` in `beforeEach`.
-- **`next/navigation` → the framework's mock module** (`@storybook/nextjs-vite/navigation.mock`)
-  plus `parameters.nextjs`.
-- **React Context / providers → decorators**, never props. App-wide providers (theme, query client,
-  auth) go in `decorators` of `.storybook/preview.tsx`; a story that needs a different value wraps
-  `<Story />` in its own `<XContext.Provider value={...}>` decorator — one story per provider value.
-- **`beforeEach`** configures and resets mocks so no state leaks between tests. Meta-level runs
-  before every story in the file; a story-level one overrides it. It receives the context, so
+- `beforeEach` configures and resets mocks so no state leaks between tests. Meta-level runs before
+  every story in the file; a story-level one overrides it. It receives the context, so
   `beforeEach: async ({ args }) => { args.onSubmit.mockResolvedValue(...) }` works too.
+
+## Providers — decorators
+
+App-wide providers (theme, query client, auth) go in `decorators` of `.storybook/preview.tsx`. A
+story that needs a different value wraps `<Story />` in its own `<XContext.Provider value={...}>`
+decorator, one story per provider value.
 
 ## Modules — `sb.mock()`
 
