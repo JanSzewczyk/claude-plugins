@@ -2,17 +2,23 @@
 
 Print this after the last group is processed. It exists to answer the user's three explicit questions: **what got
 updated**, **which updates forced code changes (and what those changes were)**, and **what didn't get updated and why**.
-Fill in only the sections that apply — drop empty ones rather than showing "none, none, none".
+Fill in only the sections that apply: drop empty ones rather than showing "none, none, none".
 
-Keep it scannable. Use the exact section order below.
+Keep it scannable. Use the exact section order below. When a run covers several ecosystems, repeat the sections from
+`✅ Updated cleanly` through `🔒 Security audit` under one `## <Ecosystem>` heading per ecosystem, and keep one header and
+one Summary.
 
 ---
 
 ```markdown
 # Dependency Update Report
 
-**Package manager:** <npm | pnpm | yarn | bun> · **Verification:** <type-check, lint, build, tests — list what ran; note any "not available">
+**Ecosystems:** <Node (npm) | Python (uv) | Java/JVM (Maven) …> · **Verification:** <type-check, lint, build, tests — list what ran; note any "not available">
 **Groups processed:** <N> · ✅ <updated> · ⚠️ <updated with code changes> · ⏸️ <deferred> · ❌ <failed/rolled back>
+**Not updated, no profile:** <ecosystems detected but unsupported, e.g. Go (`go.mod`)>
+
+> **Beta:** the <Python | Java/JVM> profile is in beta and still to be tested. Its commands have not been verified
+> end-to-end, so review this part more closely. <Any command that failed or behaved differently than the profile says.>
 
 ## ✅ Updated cleanly
 
@@ -46,7 +52,7 @@ so you can decide.
 
 ## ❌ Failed / rolled back
 
-Attempted but reverted because verification couldn't be made to pass. The tree is clean for these — nothing committed.
+Attempted but reverted because verification couldn't be made to pass. The tree is clean for these: nothing committed.
 
 ### <package> <old> → <new> (<bump>)
 - **Failed at:** <type-check | lint | build | tests>
@@ -56,11 +62,12 @@ Attempted but reverted because verification couldn't be made to pass. The tree i
 
 ## 🔒 Security audit
 
-Run after all groups were processed, against the final dependency tree.
+Run after all groups were processed, against the final dependency tree. **Tool:** <npm audit | pip-audit | osv-scanner | dependency-check | audit unavailable, and why>
 
 **Vulnerabilities before → after:** critical <N→N> · high <N→N> · moderate <N→N> · low <N→N>
+(Or the total advisory count, when the tool doesn't report severity.)
 
-- **Auto-fixed:** <packages fixed within existing semver ranges, commit reference>
+- **Auto-fixed:** <packages fixed within existing constraints, commit reference>
 - **Fixed via breaking bump (confirmed):** <package old → new, commit reference>
 - **Deferred (breaking bump declined):** <package, advisory summary, why held>
 - **Unresolved (no fix available):** <package, advisory summary>
@@ -74,7 +81,8 @@ Run after all groups were processed, against the final dependency tree.
 
 ## Guidance
 
-- **The ⚠️ section is the one the user cares about most** — be specific about the code changes. "Updated imports" is too
+- **The ⚠️ section is the one the user cares about most**: be specific about the code changes. "Updated imports" is too
   vague; "changed `import { NextRequest } from 'next/server'` usage in 3 route handlers to await `params`" is right.
 - If everything updated cleanly, the report can be just the ✅ table and a one-line summary.
 - Commit hashes are nice-to-have; the commit **message** is what makes the report readable, so always include it.
+- Drop the **Beta** note only when the run touched nothing but verified profiles. It's not optional otherwise.
