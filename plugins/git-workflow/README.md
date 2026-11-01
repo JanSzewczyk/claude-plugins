@@ -20,7 +20,7 @@ reviewing the code itself see [code-quality](../code-quality/).
 |-------|-------------|-------------|
 | **create-branch** | `/create-branch` | Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint |
 | **create-commit** | `/create-commit` | Splits uncommitted work into logical commits and writes each message in Conventional Commits format |
-| **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR with a unified four-section description, shown for approval first |
+| **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR with a unified five-section description (with a per-file-type diff size table), shown for approval first |
 
 [`references/conventions.md`](./references/conventions.md) holds only what more than one skill needs:
 the English-only rule, the Conventional Commits type table (read as a commit type, a branch prefix and
@@ -77,7 +77,7 @@ Reads the diff, groups it into logical commits, stages each group by path, and c
 
 Pushes the branch when it has no upstream, titles the PR `Type: Sentence describing the change`
 (e.g. `Feature: Add status and date range filters to the invoice list`) from the branch's commits and
-diff, fills the four standard sections, and shows you the full draft before calling `gh pr create`.
+diff, fills the five standard sections, including added/removed lines by file type, and shows you the full draft before calling `gh pr create`.
 If a PR already exists for the branch, it refreshes it with `gh pr edit` instead of failing.
 
 ## How the pieces fit
@@ -85,7 +85,7 @@ If a PR already exists for the branch, it refreshes it with `gh pr edit` instead
 1. **create-branch** answers *where does this work live?* — off a current default branch, named for
    the outcome.
 2. **create-commit** answers *what did I actually change?* — one readable commit per idea.
-3. **create-pull-request** answers *what does a reviewer need to know?* — the same four sections
+3. **create-pull-request** answers *what does a reviewer need to know?* — the same five sections
    every time, so reviews do not start by decoding the format.
 
 ## Requirements

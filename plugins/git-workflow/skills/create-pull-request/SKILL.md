@@ -1,13 +1,13 @@
 ---
 name: create-pull-request
-description: Opens a GitHub pull request for the current branch with a unified four-section description — Summary, Changes, How to test, Related issues — used whether or not the repository ships a PULL_REQUEST_TEMPLATE. Works with no arguments: title and body are derived from the branch's commits and diff, in English, with a `Type: Sentence` title such as `Feature: Add status and date range filters to the invoice list`, so a squash-merge produces a clean, readable subject. Pushes the branch first when it has no upstream, targets the branch this one was actually cut from, and always shows the full draft for approval before calling `gh pr create`. Refreshes an existing PR with `gh pr edit` instead of failing. Use when a branch is ready for review. Trigger on "open a PR", "create a pull request", "raise a PR for this branch", "put this up for review", "otwórz PR", "stwórz pull requesta", "wystaw to do review", "zrób PR z tego brancha".
+description: Opens a GitHub pull request for the current branch with a unified five-section description — Summary, Changes, Diff stats, How to test, Related issues — used whether or not the repository ships a PULL_REQUEST_TEMPLATE. Works with no arguments: title and body are derived from the branch's commits and diff, in English, with a `Type: Sentence` title such as `Feature: Add status and date range filters to the invoice list`, so a squash-merge produces a clean, readable subject. Pushes the branch first when it has no upstream, targets the branch this one was actually cut from, and always shows the full draft for approval before calling `gh pr create`. Refreshes an existing PR with `gh pr edit` instead of failing. Use when a branch is ready for review. Trigger on "open a PR", "create a pull request", "raise a PR for this branch", "put this up for review", "otwórz PR", "stwórz pull requesta", "wystaw to do review", "zrób PR z tego brancha".
 allowed-tools: Bash(git:*), Bash(gh:*), Read, Write, Glob, Grep, AskUserQuestion
 argument-hint: "[hint: optional emphasis for the summary]"
 ---
 
 # Create Pull Request
 
-Reviews stall when every pull request is shaped differently. This skill writes the same four sections
+Reviews stall when every pull request is shaped differently. This skill writes the same five sections
 every time, from the branch's own commits and diff, and shows you the whole thing before anything
 reaches GitHub.
 
@@ -15,7 +15,7 @@ The type vocabulary, the English-only rule and the attribution ban are shared wi
 skills and live in [`../../references/conventions.md`](../../references/conventions.md). The title and
 body formats below are this skill's own — no other skill needs them. The one-line version: **title
 `Type: Sentence describing the change` — e.g. `Feature: Add status and date range filters to the
-invoice list` — English, body = `## Summary`, `## Changes`, `## How to test`, `## Related issues`.**
+invoice list` — English, body = `## Summary`, `## Changes`, `## Diff stats`, `## How to test`, `## Related issues`.**
 
 ## Prerequisites
 
@@ -83,6 +83,7 @@ Only push when the upstream is missing or the local branch is ahead. Never `--fo
 git log --oneline <base>..HEAD
 git log --format="%B" <base>..HEAD
 git diff --stat <base>...HEAD
+git diff --numstat <base>...HEAD
 git diff <base>...HEAD
 ```
 
@@ -109,7 +110,7 @@ This is deliberately **not** the commit format: commits stay `type(scope): imper
 lowercase, while a PR title is read by humans scanning a list. A squash-merge turns this title into
 the default branch's commit subject, so it has to stand on its own.
 
-**Body** — always these four sections, in this order, even when the repository has a
+**Body** — always these five sections, in this order, even when the repository has a
 `.github/PULL_REQUEST_TEMPLATE.md`. The unified format wins; the template is not consulted.
 
 ```markdown
@@ -120,6 +121,17 @@ One paragraph: what changed and why it was needed.
 ## Changes
 
 - One bullet per meaningful change, grouped by area.
+
+## Diff stats
+
+**+312 / −48** across 14 files
+
+| Type          | Files | Added | Removed |
+| ------------- | ----: | ----: | ------: |
+| Code          |     5 |  +180 |     −30 |
+| Tests         |     4 |   +96 |     −10 |
+| Documentation |     3 |   +30 |      −8 |
+| Config        |     2 |    +6 |      −0 |
 
 ## How to test
 
@@ -136,6 +148,35 @@ is**. Do not infer a number from the branch name, from commit text, or from anyt
 
 Everything is written in English. An argument, if given, steers emphasis — what to foreground in the
 summary, which risk to call out — and is not pasted in as text.
+
+#### The `## Diff stats` section
+
+Keep it short: one bold totals line plus one table, no commentary. Take the numbers from
+`git diff --numstat <base>...HEAD` (columns: added, removed, path), never from reading the diff by
+eye, and sum them per type.
+
+Classify each path into one row — first match wins. The rules are conventions shared across
+ecosystems, not a list for one language; judge by the role the file plays, and use the patterns only
+as evidence:
+
+| Type          | A file belongs here when…                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| Tests         | it lives in a test directory (`test/`, `tests/`, `__tests__/`, `spec/`, `e2e/`, `evals/`, `src/test/`, `testdata/`, `fixtures/`) or is named like a test (`*.test.*`, `*.spec.*`, `test_*.py`, `*_test.py`, `conftest.py`, `*Test.java`, `*Tests.java`, `*IT.java`, `*Test.kt`, `*Tests.cs`, `*_test.go`, `*_spec.rb`, `*.stories.*`) |
+| Documentation | it is prose for readers: `*.md`, `*.mdx`, `*.rst`, `*.adoc`, `*.txt` docs, `docs/`, `README*`, `CHANGELOG*`, `LICENSE*` |
+| Config        | it describes build, dependencies, tooling, CI or deployment rather than behaviour: manifests (`package.json`, `pyproject.toml`, `requirements*.txt`, `setup.cfg`, `pom.xml`, `build.gradle*`, `Cargo.toml`, `go.mod`, `*.csproj`), lockfiles, `*.yml`/`*.yaml`/`*.toml`/`*.ini`/`*.properties`, `Dockerfile*`, `Makefile`, dotfiles, `.github/` |
+| Code          | it is source that runs in the product, in any language (`.py`, `.java`, `.kt`, `.go`, `.rs`, `.cs`, `.rb`, `.php`, `.ts`, `.js`, `.swift`, `.sql`, `.css`, shell scripts, …) |
+
+- Test directories beat the extension: `src/test/java/OrderService.java` and
+  `tests/helpers.py` are **Tests**, not Code.
+- An unfamiliar language or layout is no reason for **Other**: a source file is **Code**, whatever the
+  extension. Check the repository's own layout (build file, existing test folders) when unsure.
+- In a repository made of prompts (skills, agents), a skill or agent `.md` is the product, so count it
+  as **Code**; leave **Documentation** for READMEs and `docs/`.
+- Omit rows with zero files; add an **Other** row for anything that fits nowhere (images, binaries).
+  Binary files report `-` in `--numstat` — count the file, add no lines.
+- Generated files (lockfiles, snapshots, build output) go in **Config** or **Other**, and the
+  bullet list in `## Changes` should not describe them.
+- Renames show as `old => new` paths in `--numstat`; classify by the new path.
 
 ### 6. Get approval before publishing
 
@@ -174,6 +215,7 @@ warning from step 1 if it applied.
 - **Never mark the PR ready-for-review, request reviewers, or set labels** unless asked.
 - **Never title a PR with the commit format.** `Feature: Add invoice list filters`, not
   `feat(invoices): add list filters` — the scope-in-parentheses form belongs to commits only.
+- **Never estimate the `## Diff stats` numbers** — they come from `git diff --numstat`, summed.
 - **English only**, whatever language the conversation is in.
 
 ## Examples
