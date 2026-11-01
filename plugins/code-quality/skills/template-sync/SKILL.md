@@ -1,6 +1,6 @@
 ---
 name: template-sync
-description: "Run inside a repository that was created from a GitHub template repository ('Use this template') to find what the template has changed since the project last matched it — dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding — check which of those changes this repository is still missing, has already made by hand, or has deliberately done differently, write an ordered implementation plan, and, once the user approves, apply it and close with one sync commit whose Template-Sync trailer is the pointer the next run starts from, so repeat runs read only what the template did since instead of its whole history. Use whenever someone wants a derived project caught up with its template or starter: 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'przenieś zmiany z template'u', 'zsynchronizuj z szablonem', 'template się zmienił, co trzeba zrobić tutaj', 'plan aktualizacji z template'u', 'sync with the template', 'what did the template change that we don't have', 'catch this repo up with the starter', 'backport template updates', 'template drift'. Also when someone asks how far a project has drifted from the boilerplate it started from. Changes nothing until the user has read the plan and said what to apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to their latest registry versions (update-deps), or migrating one component to a new library (migration)."
+description: "Run inside a repository that was created from a GitHub template repository ('Use this template') to find what the template has changed since the project last matched it — dependency and runtime bumps, CI workflows, linters and build config, tooling, containers, AI-agent config, scaffolding — check which of those changes this repository is still missing, has already made by hand, or has deliberately done differently, write an ordered implementation plan, and, once the user approves, apply it on its own branch, one commit per step, close with one sync commit whose Template-Sync trailer is the pointer the next run starts from, and open a pull request, using the git-workflow plugin's create-branch, create-commit and create-pull-request skills, so repeat runs read only what the template did since instead of its whole history. Use whenever someone wants a derived project caught up with its template or starter: 'zaktualizuj repo do template'u', 'czego brakuje względem template'a', 'przenieś zmiany z template'u', 'zsynchronizuj z szablonem', 'template się zmienił, co trzeba zrobić tutaj', 'plan aktualizacji z template'u', 'sync with the template', 'what did the template change that we don't have', 'catch this repo up with the starter', 'backport template updates', 'template drift'. Also when someone asks how far a project has drifted from the boilerplate it started from. Changes nothing until the user has read the plan and said what to apply. NOT for pulling shared .claude/rules files (sync-rules), merging an upstream fork remote, bumping npm packages to their latest registry versions (update-deps), or migrating one component to a new library (migration)."
 argument-hint: "[template OWNER/NAME | URL | local path — optional, discovered from the last sync commit or GitHub when omitted] [--since SHA]"
 ---
 
@@ -17,11 +17,18 @@ This skill closes that gap in two halves. First the **plan**: every
 technological change the template made since the project last matched it,
 the project's state for each, and the ordered steps to bring it in. Nothing
 in the repository changes until the user has read the plan and said what to
-apply. Then, on approval, the **apply**: the approved steps, each verified,
-closed by one **sync commit** whose `Template-Sync: <sha>` trailer points at
+apply. Then, on approval, the **apply**: on a branch of its own, the approved steps,
+each verified and committed, closed by one **sync commit** whose `Template-Sync: <sha>` trailer points at
 the template commit the project now matches. The next run reads that trailer
 from `git log` and inventories only the template commits after it, instead of
 re-detecting the starting point and re-reading the template's whole history.
+The work then goes up for review as a pull request.
+
+The branch, the step commits and the pull request are made with the `git-workflow`
+plugin's skills — `create-branch`, `create-commit`, `create-pull-request` — so a sync
+looks like every other change in the repository: same branch names, same commit and
+title format, same PR sections. Invoke them with the Skill tool. If `git-workflow` is not
+installed, say so and follow the same conventions by hand.
 
 Talk to the user in the language they use. Write the plan in that language
 too, unless they ask otherwise.
@@ -60,9 +67,10 @@ reply that moves a step forward. A line without its output is not done.
 [ ] 5 handover    → summary in chat, decisions the user has to make, the apply question — then stop
 [ ] 6 apply       → only after the user's answer: approved steps applied in order, each verified
 [ ] 7 record      → the sync commit: predefined message, Template-Sync trailer, one Template-Skipped per skipped file
+[ ] 8 pull request → branch pushed, PR opened from the draft the user approved
 ```
 
-Steps 6 and 7 run only when the user says so in step 5. If they stop after
+Steps 6 and 7 run only when the user says so in step 5. Step 8 runs only after step 7. If they stop after
 the plan, its last item carries the exact commit command for whoever applies
 it, so the pointer still lands in the repository.
 
@@ -251,26 +259,39 @@ move or turn into tickets.
 In chat: the template and range (anchor → head, commit count), what the last
 sync was (commit and date, or "first sync"), a table of the changes with
 status and effort (S/M/L), the link to the plan file, and the decisions only
-the user can make. Then ask one question: apply now, and if so, which items to
-skip and why. **Stop and wait.** The answer is the user's; without it the plan
+the user can make. Then ask one question: apply now — on a new branch, ending in a pull request
+— and if so, which items to skip and why. **Stop and wait.** The answer is the user's; without it the plan
 is the deliverable, and nothing in the repository has changed.
 
 ## Step 6 — apply
 
-Only after the user has answered. Work in the real repository on the branch
-it is on; the user chose it. Never rewrite history, never force anything,
-never push unless asked.
+Only after the user has answered. Never rewrite history, never force anything.
 
-- Follow the plan's order. After each step, run its *Verify* commands. A step
-  that fails stops the apply: report what failed, leave the applied steps in
-  place, and do not make the sync commit.
-- Stage only the files a step names plus the lockfiles its install command
-  regenerated. Never the plan file.
-- One commit per plan step, so each can be reviewed and reverted on its own.
-  If the user asked for a single commit, that commit *is* the sync commit and
-  takes the predefined message.
-- Items the user skipped are not touched; they become `Template-Skipped`
-  trailers in step 7, with the user's reason.
+**Branch first.** Do not apply on the default branch or on someone's feature branch:
+
+- On the default branch, or on any branch not made for this sync, invoke `git-workflow:create-branch`
+  with the hint `sync with template` (it names the branch, e.g. `chore/sync-with-template`, and
+  branches from the fresh remote default). Uncommitted changes travel with the checkout; they are
+  not part of the sync, so name them to the user and keep them out of every commit below.
+- On a branch a previous, interrupted sync created, stay on it.
+
+**Apply the plan in its order.** After each step, run its *Verify* commands. A step that fails
+stops the apply: report what failed, leave the applied steps in place, and do not make the sync
+commit or open a pull request.
+
+**One commit per plan step**, made with `git-workflow:create-commit`, so each can be reviewed and
+reverted on its own:
+
+- Pass the step's files as the argument (`only <files of this step>`), so the commit takes exactly
+  them plus the lockfiles its install command regenerated — never the plan file, never unrelated
+  edits.
+- The skill derives the type, scope and English summary from the diff; do not dictate them. A step
+  that moves CI is typically `ci`, a tooling or config step `chore` or `build`.
+- If the user asked for a single commit, that commit *is* the sync commit and takes the predefined
+  message from step 7.
+
+Items the user skipped are not touched; they become `Template-Skipped` trailers in step 7, with
+the user's reason.
 
 ## Step 7 — record the sync
 
@@ -303,9 +324,30 @@ git commit --allow-empty -F <workdir>/sync-commit-message.txt \
 
   must print the template head SHA from drift.json.
 
-Close in chat with the commits made (step commits and the sync commit), what
-was skipped, and the one-liner for next time: run the skill again; it starts
-from this commit.
+The sync commit is the one commit this skill writes itself, not through
+`create-commit`: its subject and trailers are the contract the next run reads.
+
+## Step 8 — pull request
+
+Only after the sync commit exists. Invoke `git-workflow:create-pull-request`; it pushes the
+branch, finds the base, and shows the full draft for approval before anything reaches GitHub.
+Give it what it cannot derive from the diff:
+
+- **Title**: `Chore: Sync with <template> up to <short sha>` — the skill's `Type: Sentence` format.
+- **Summary**: the template, the range (anchor → head, commit count), and why the project was
+  behind; mention the skipped items and their reasons.
+- **Changes**: one bullet per technological change from the plan with its status (applied, already
+  done, skipped), not one per commit. The plan file stays out of the repository, so the PR must
+  carry what a reviewer needs.
+- **How to test**: the plan's *Verify* commands.
+- **Related issues**: `None.` unless the user named an issue.
+
+Do not add reviewers, labels or auto-merge, and do not merge. If `gh` is unavailable or the user
+declines the PR, stop after the sync commit and say the branch is local.
+
+Close in chat with the branch, the commits made (step commits and the sync commit), the pull
+request link, what was skipped, and the one-liner for next time: run the skill again; it starts
+from the sync commit, once the PR is merged.
 
 ## References
 

@@ -9,7 +9,7 @@ Technology-agnostic repository maintenance — README and GitHub description gen
 | Skill                        | Invoke with                 | Description                                                                                                                                                                                                                                     |
 | ---------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **repository-documentation** | `/repository-documentation` | Generate or update README.md plus a ready-to-paste GitHub description and topics list, per the Szum-Tech documentation standard                                                                                                                 |
-| **template-sync**            | `/template-sync`            | Find what the GitHub template a repo was created from has changed since, assess each change against the repo, and write an ordered catch-up plan, then (on approval) apply it and record a `Template-Sync` sync commit the next run starts from |
+| **template-sync**            | `/template-sync`            | Find what the GitHub template a repo was created from has changed since, assess each change against the repo, and write an ordered catch-up plan, then (on approval) apply it on its own branch, commit each step, record a `Template-Sync` sync commit the next run starts from, and open a pull request |
 
 ## Installation
 
@@ -27,7 +27,7 @@ Technology-agnostic repository maintenance — README and GitHub description gen
 
 > `/template-sync`
 
-Finds the template, locates the commit the project last matched, groups the template's later commits into changes, judges each against your repo, and writes `template-sync-plan-<date>.md` in the repo root. After you approve the plan, it applies the approved steps on the current branch (one commit per step) and closes with a sync commit whose `Template-Sync` trailer marks the template commit the project now matches, so the next run reads only what the template changed since. Needs `git`, `python3` (3.9+) and, to discover or clone a GitHub template, an authenticated `gh`.
+Finds the template, locates the commit the project last matched, groups the template's later commits into changes, judges each against your repo, and writes `template-sync-plan-<date>.md` in the repo root. After you approve the plan, it creates a branch, applies the approved steps (one commit per step) and closes with a sync commit whose `Template-Sync` trailer marks the template commit the project now matches, so the next run reads only what the template changed since. It then opens a pull request. Branch, commits and PR are made with the `git-workflow` plugin's skills, so install that plugin too. Needs `git`, `python3` (3.9+) and, to discover or clone a GitHub template, an authenticated `gh`.
 
 ## Troubleshooting
 
