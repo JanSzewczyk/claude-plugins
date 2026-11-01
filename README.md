@@ -58,7 +58,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🔌 [api-test](./plugins/nextjs/skills/api-test/)** — API endpoint testing patterns and examples
 - **♿ [accessibility-audit](./plugins/react/skills/accessibility-audit/)** — WCAG accessibility audits, screen-reader testing, and motion/animation checks
 - **⚡ [performance-optimization](./plugins/nextjs/skills/performance-optimization/)** — Bundle analysis, React rendering optimization, and database query tuning
-- **📦 [update-deps](./plugins/typescript/skills/update-deps/)** — Sequential, theme-grouped npm dependency updates with per-group verification, committed on its own branch and shipped as a pull request with the final report
+- **📦 [update-deps](./plugins/code-quality/skills/update-deps/)** — Sequential, theme-grouped dependency updates for Node, and in beta for Python and Java/JVM: detects the ecosystem, loads only its profile, verifies per group, commits on its own branch and ships a pull request with the final report
 - **🧹 [dead-code](./plugins/typescript/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
 - **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
 - **🧬 [template-sync](./plugins/code-quality/skills/template-sync/)** — Finds what a GitHub template repository changed since your project was created from it and writes an ordered catch-up plan
@@ -101,13 +101,13 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
-| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm dependency updates | 2 | 6 | [README](./plugins/typescript/README.md) |
+| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
 | [**python**](./plugins/python/) | Python — factory_boy test data rules, the home for pytest and Python tooling | — | 1 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 4 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
-| [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync | — | 2 | [README](./plugins/code-quality/README.md) |
+| [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync, dependency updates across ecosystems | — | 3 | [README](./plugins/code-quality/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
 | [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging | — | 2 | [README](./plugins/plugin-dev/README.md) |
@@ -139,7 +139,8 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 | `testing:testing-strategist`, `api-test` | `nextjs:…` |
 | `testing:builder-rules-py` | `python:builder-rules-py` |
 | `code-quality:code-reviewer`, `performance-analyzer`, `performance-optimization` | `nextjs:…` |
-| `code-quality:library-updater`, `update-deps`, `dead-code` | `typescript:…` |
+| `code-quality:library-updater`, `dead-code` | `typescript:…` |
+| `typescript:update-deps` | `code-quality:update-deps` |
 | `performance:lighthouse-audit` | `nextjs:lighthouse-audit` |
 
 ---
@@ -294,8 +295,9 @@ What are you doing?
 │       Skills: performance-optimization, lighthouse-audit
 │
 ├── Updating dependencies / removing dead code
-│   └── Agent: library-updater (typescript)
-│       Skills: update-deps, dead-code
+│   ├── Several packages, any ecosystem → Skill: update-deps (code-quality)
+│   ├── One npm package            → Agent: library-updater (typescript)
+│   └── Unused code                → Skill: dead-code (typescript)
 │
 ├── Coordinating a full feature from PRD/TDD
 │   └── Agent: product-owner (product-management)
@@ -356,7 +358,7 @@ claude-plugins/
     ├── typescript/                # TypeScript & JavaScript language layer
     │   ├── plugin.json
     │   ├── agents/                # unit-tester, library-updater
-    │   └── skills/                # 6 skills (unit-testing, builder-factory, coverage-gaps, dead-code, update-deps, generated builder-rules-ts)
+    │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
     ├── python/                    # Python language layer
     │   ├── plugin.json
     │   └── skills/                # 1 skill (generated builder-rules-py)
@@ -377,7 +379,7 @@ claude-plugins/
     │   └── skills/                # 2 skills (firebase-firestore, db-migration)
     ├── code-quality/              # Repository maintenance
     │   ├── plugin.json
-    │   └── skills/                # 2 skills (repository-documentation, template-sync)
+    │   └── skills/                # 3 skills (repository-documentation, template-sync, update-deps)
     ├── product-management/        # PRD/TDD orchestration & coordination
     │   ├── plugin.json
     │   ├── agents/                # product-owner

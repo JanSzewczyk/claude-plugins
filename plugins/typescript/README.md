@@ -1,6 +1,6 @@
 # typescript
 
-TypeScript and JavaScript tooling — Vitest unit tests, `mimicry-js` test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm dependency updates. The language layer that the `react` and `nextjs` plugins build on.
+TypeScript and JavaScript tooling — Vitest unit tests, `mimicry-js` test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm package updates. The language layer that the `react` and `nextjs` plugins build on.
 
 ## Contents
 
@@ -19,7 +19,6 @@ TypeScript and JavaScript tooling — Vitest unit tests, `mimicry-js` test data 
 | **builder-factory**  | `/builder-factory` | Test data builders with `mimicry-js` and Faker for any TypeScript interface or type — traits, overrides, field mappings |
 | **coverage-gaps**    | `/coverage-gaps`  | Finds and ranks the coverage gaps that matter — weights uncovered branches, critical paths, and git churn over line percentages                                 |
 | **dead-code**        | `/dead-code`      | Find unused files, exports, types, and dependencies via Knip's reachability graph; rank by confidence, propose safe removal                                     |
-| **update-deps**      | `/update-deps`    | Update npm dependencies in sequential, theme-grouped batches; verify + commit each group on its own branch, pause on majors, then open a PR with the full report |
 | **builder-rules-ts** | — (preloaded)     | Generated background knowledge: test data builder rules for TypeScript and `mimicry-js`, preloaded by the testing agents                                        |
 
 `builder-rules-ts`, the `references/rules.md` files and the `BEGIN:knowledge` blocks in
@@ -53,7 +52,6 @@ from the PRD acceptance criteria and reports coverage back to the `product-owner
 > `/builder-factory` — create a typed builder for a type
 > `/coverage-gaps` — rank what is untested and worth testing first
 > `/dead-code` — find unused files, exports and dependencies
-> `/update-deps` — update all outdated packages in verified batches
 
 ## Tech Stack Compatibility
 
@@ -71,8 +69,13 @@ from the PRD acceptance criteria and reports coverage back to the `product-owner
 | Builder factories produce wrong data                            | Check that your builder uses functions `() => ...` for values that must be unique per instance                                                           |
 | coverage-gaps finds no report                                   | Generate one with `npm run test:unit -- --coverage --coverage.reporter=json`                                                                              |
 
+## Moved in 1.0.1
+
+`typescript:update-deps` is now `code-quality:update-deps`, since it also covers Python and Java/JVM. `library-updater` stays here for a single npm package.
+
 ## Related Plugins
 
+- [**code-quality**](../code-quality/) — `update-deps`, for updating several dependencies at once
 - [**testing**](../testing/) — technology-agnostic testing core this plugin depends on
 - [**react**](../react/) — React layer built on top of this one
 - [**nextjs**](../nextjs/) — Next.js layer built on top of `react`

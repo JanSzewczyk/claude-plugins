@@ -70,7 +70,7 @@
     {
       "name": "typescript",
       "source": "./plugins/typescript",
-      "description": "TypeScript & JavaScript — Vitest unit tests, mimicry-js test data builders, coverage gaps, dead-code sweeps, and npm dependency updates",
+      "description": "TypeScript & JavaScript — Vitest unit tests, mimicry-js test data builders, coverage gaps, dead-code sweeps, and npm package updates",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
@@ -97,7 +97,7 @@
     {
       "name": "code-quality",
       "source": "./plugins/code-quality",
-      "description": "Repository maintenance — README generation and template-repository sync",
+      "description": "Repository maintenance — README generation, template-repository sync, and dependency updates across ecosystems",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",

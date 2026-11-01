@@ -176,7 +176,7 @@ Vercel and most Next.js hosts enable HTTP/2 by default. Check your custom server
 
 ### `no-vulnerable-libraries` — Outdated dependencies with CVEs
 
-Run `/update-deps` to update all packages. Check `npm audit` for specific CVEs.
+Run `/update-deps` (from the `code-quality` plugin) to update all packages. Check `npm audit` for specific CVEs.
 
 ---
 
