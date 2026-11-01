@@ -18,9 +18,9 @@ reviewing the code itself see [code-quality](../code-quality/).
 
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
-| **create-branch** | `/create-branch` | Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint |
+| **create-branch** | `/create-branch` | Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint; renames an unpublished branch whose name breaks the convention and remembers the parent of stacked branches |
 | **create-commit** | `/create-commit` | Splits uncommitted work into logical commits and writes each message in Conventional Commits format |
-| **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR with a unified five-section description (with a per-file-type diff size table), shown for approval first |
+| **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR (stacked on its parent when it has one) with a unified five-section description (with a per-file-type diff size table), shown for approval first |
 
 [`references/conventions.md`](./references/conventions.md) holds only what more than one skill needs:
 the English-only rule, the Conventional Commits type table (read as a commit type, a branch prefix and
