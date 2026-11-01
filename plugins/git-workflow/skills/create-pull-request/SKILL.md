@@ -48,6 +48,21 @@ is committed. The report must make clear that those changes are not part of it.
 ### 2. Find the real base
 
 The branch may have been cut from another branch rather than from the default one, so do not assume.
+Start with the parent `create-branch` recorded, if any:
+
+```bash
+git config --get branch.<current-branch>.stack-parent   # empty → not recorded
+git ls-remote --heads origin <parent>                   # empty → parent is not on the remote
+```
+
+- **Recorded and on the remote** → that is the base. Say the PR is stacked.
+- **Recorded but not on the remote** → stop and say the parent has to be pushed (or its own PR
+  opened) first. Never push another branch to make the base exist.
+- **Recorded but already merged** (`gh pr list --head <parent> --state merged` finds it) → the base
+  is the default branch; say the parent was merged and suggest `git rebase --onto` by hand, since
+  this skill never rebases.
+- **Not recorded** → fall back to the heuristic below.
+
 Determine the default branch, then look for the closest ancestor branch:
 
 ```bash
@@ -146,6 +161,10 @@ None.
 is**. Do not infer a number from the branch name, from commit text, or from anything else — write
 `None.` instead. A wrong `Closes` closes the wrong issue.
 
+When the PR is stacked on another branch, the first line of `## Summary` is `Stacked on #N` (the
+parent's open PR, found with `gh pr list --head <parent> --state open`) or `Stacked on <parent>` when
+the parent has no PR yet. The five sections stay five.
+
 Everything is written in English. An argument, if given, steers emphasis — what to foreground in the
 summary, which risk to call out — and is not pasted in as text.
 
@@ -192,7 +211,8 @@ gh pr view --json number,url,state    # does a PR already exist for this branch?
 
 - No PR → `gh pr create --base <base> --title "<title>" --body-file <file>`
 - Open PR exists → `gh pr edit --title "<title>" --body-file <file>` and say it was updated, not
-  created.
+  created. If the base it targets is no longer right (the parent was merged), also pass
+  `--base <default>` after saying so.
 
 Write the body to a temporary file **with the `Write` tool**, not with a shell redirect or heredoc —
 multi-line Markdown through `--body` is where shell quoting breaks, and `cat > file` falls outside the

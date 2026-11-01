@@ -1,6 +1,6 @@
 ---
 name: create-branch
-description: Creates a Git branch for the work at hand, named `<type>/<english-kebab-case-description>` using Conventional Commits types as prefixes. Works with no arguments — it derives the name from the current session and the uncommitted changes; an argument is a hint that shapes the name, never literal text. On `main`/`master` it fetches and branches from the remote's real default branch; on an existing working branch it branches from HEAD so stacked work keeps its base. Never pushes, never leaves you committing on the default branch. Use when starting a new piece of work, or when you notice changes are being made directly on the default branch. Trigger on "create a branch", "start a new branch", "branch for this", "new feature branch", "I should be on a branch for this", "stwórz brancha", "zrób nowego brancha", "nowa gałąź", "przełącz na brancha dla tej zmiany".
+description: Creates a Git branch for the work at hand, named `<type>/<english-kebab-case-description>` using Conventional Commits types as prefixes. Works with no arguments — it derives the name from the current session and the uncommitted changes; an argument is a hint that shapes the name, never literal text. On `main`/`master` it fetches and branches from the remote's real default branch; on an existing working branch it branches from HEAD so stacked work keeps its base and remembers its parent; a branch that has not been published and whose name breaks the convention is renamed in place. Never pushes, never leaves you committing on the default branch. Use when starting a new piece of work, or when you notice changes are being made directly on the default branch. Trigger on "create a branch", "start a new branch", "branch for this", "new feature branch", "I should be on a branch for this", "stwórz brancha", "zrób nowego brancha", "nowa gałąź", "przełącz na brancha dla tej zmiany".
 allowed-tools: Bash(git:*), Read, Glob, Grep
 argument-hint: "[change description hint, optional]"
 ---
@@ -57,25 +57,28 @@ pipe into `sed` or `awk` would fall outside it and prompt for permission.
 
 Then branch according to where you are:
 
-- **On a placeholder branch of a linked worktree** — a worktree started by Claude Code (or `git worktree
-  add`) begins on an auto-named branch such as `worktree-<name>`. That branch is a stand-in, not
-  work in progress, so **rename it** instead of creating a second one next to it. It qualifies only
-  when all three hold:
+- **On a branch whose name breaks the convention** — a tool or a person may have started the work
+  on `worktree-quiet-river`, `claude/xyz` or `my-wip`. A name that does not match the standard is
+  renamed in place instead of getting a second branch next to it, whatever created it and whether
+  or not it already has commits. It qualifies only when all three hold:
 
   ```bash
-  git rev-parse --git-dir --git-common-dir        # the two paths differ → linked worktree
-  git branch --show-current                       # name has no <type>/ prefix from the conventions
-  git rev-list --count origin/<default-branch>..HEAD   # 0 → no commits of its own
+  git branch --show-current          # not the default branch, and not <type>/<kebab-case> with a
+                                     # type from the conventions (feature, fix, chore, docs, refactor, test, perf)
+  git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}"   # fails → no upstream
+  git branch -r --list "origin/<current-branch>"                  # empty → never published
   ```
 
-  Then, after step 3 gives the name and step 4 clears the collision check:
+  Then, after step 4 gives the name and step 5 clears the collision check:
 
   ```bash
   git branch -m <name>
+  git branch --show-current          # must print <name>; if not, say so — never leave it silent
   ```
 
-  If any of the three fails (a prefixed branch, commits of its own, the main checkout), it is real
-  work — fall through to the two cases below. Do not fetch for a rename; the branch keeps its base.
+  Do not fetch for a rename; the branch keeps its base. If the branch is already published, a
+  rename would cut it off from its remote: leave it alone and create a conforming branch from `HEAD`
+  as in the last case below, saying why. A branch that already follows the convention is never renamed.
 
 - **On the default branch** (`main`, `master`, or whatever the command above returned) — fetch and
   branch from the fresh remote tip, so the new branch does not inherit a stale local base:
@@ -95,7 +98,22 @@ Then branch according to where you are:
 Uncommitted changes travel with you in both cases. Do not stash, do not reset, do not block on a
 dirty tree.
 
-### 3. Derive the name
+### 3. Record the parent of a stacked branch
+
+When the new (or renamed) branch sits on a branch other than the default one, remember which one, so
+`create-pull-request` does not have to guess the base later — merge-base heuristics fail once the
+parent has been squash-merged:
+
+```bash
+git config branch.<name>.stack-parent <parent-branch>
+```
+
+The parent is the branch you branched from. For a renamed branch cut from another one, read it from
+the first reflog entry (`git reflog show --format=%gs <name>`, the `branch: Created from <ref>`
+line); a `<ref>` of `HEAD` or the default branch means no stack — set nothing. The setting is local
+and is never pushed.
+
+### 4. Derive the name
 
 Sources, in order of authority:
 
@@ -121,7 +139,7 @@ The shape is fixed:
 
 Do not ask the user what to call it. Deriving the name from context is the whole job.
 
-### 4. Guard against a collision
+### 5. Guard against a collision
 
 ```bash
 git rev-parse --verify --quiet refs/heads/<name>
@@ -130,9 +148,9 @@ git rev-parse --verify --quiet refs/heads/<name>
 If the branch already exists, **stop**. Report the collision, name the existing branch, and let the
 user decide — do not switch to it, do not append `-2`.
 
-### 5. Report
+### 6. Report
 
-Say which branch was created, from which base, and why that base. One or two lines.
+Say which branch was created or renamed (old name → new name), from which base, and why that base; name the stack parent if one was recorded. One or two lines.
 
 ## Guardrails
 
@@ -143,9 +161,9 @@ Say which branch was created, from which base, and why that base. One or two lin
   and mimic whatever is there.
 - **Never ask the user for the branch name.** Missing argument is the normal case, not a blocker.
 - **English only.** The conversation may be Polish; the branch name is not.
-- Do not delete, reset or force anything. The only rename allowed is the empty placeholder branch of
-  a linked worktree (step 2); never rename a branch that has commits of its own or follows the
-  naming convention. Otherwise this skill only creates a branch.
+- Do not delete, reset or force anything. The only rename allowed is an unpublished branch whose
+  name breaks the convention (step 2); never rename a published branch or one that already follows
+  the convention. Otherwise this skill only creates a branch.
 
 ## Examples
 
@@ -164,12 +182,19 @@ Input: `/create-branch` while on `feature/invoice-list-filters`
 Action: branch from `HEAD`, no fetch: `git checkout -b test/invoice-filter-cases`. Report that the
 base was the current branch, not `main`.
 
-**Example 4 — fresh Claude worktree**
-Input: `/create-branch` while on `worktree-quiet-river`, a linked worktree with no commits of its own
-Action: the branch is a placeholder → `git branch -m chore/update-dependencies`. No second branch is
-created and no fetch is needed. Report that the placeholder was renamed.
+**Example 4 — branch named by a tool**
+Input: `/create-branch` while on `worktree-quiet-river` (or `claude/xyz`, or `my-wip`), never pushed
+Action: the name breaks the convention → `git branch -m chore/update-dependencies`, then confirm with
+`git branch --show-current`. No second branch is created and no fetch is needed. Report the old and
+new name. A published branch is not renamed; a conforming one is branched from `HEAD`.
 
 **Example 5 — collision**
 Input: `/create-branch add invoice filters`, but `feature/invoice-filters` already exists
 Action: stop. "Branch `feature/invoice-filters` already exists — tell me whether to work on it or
 pick a different name." Nothing is created.
+
+**Example 6 — stacked branch**
+Input: `/create-branch` while on `feature/invoice-list-filters`
+Action: `git checkout -b test/invoice-filter-cases`, then
+`git config branch.test/invoice-filter-cases.stack-parent feature/invoice-list-filters`. Report the
+stack parent.
