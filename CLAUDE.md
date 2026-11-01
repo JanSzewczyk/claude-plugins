@@ -179,6 +179,20 @@ node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mj
 **4. End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`)
 and invoke the skill/agent in a real Claude Code session.
 
+**Installing from this checkout.** Add the folder as a marketplace and install by name; plugins
+then load in place, so edits take effect on `/reload-plugins`:
+
+```bash
+claude plugin marketplace add /absolute/path/to/claude-plugins
+claude plugin install <plugin>@szum-tech
+```
+
+Cross-plugin `dependencies` are resolved against git tags (`<plugin>--v<version>`), not against
+`plugin.json`. A plugin whose dependency has no tag in range fails with "installed at an unknown
+version"; `/marketplace-doctor` reports the same as a warning. Fix it with
+`claude plugin update <dependency>@szum-tech` (re-records the version from the checkout) or by
+tagging the dependency; to try one plugin without installing, `claude --plugin-dir ./plugins/<name>`.
+
 **Releasing.** `/plugin-release` works out which plugins changed since the last tag, proposes the
 semver bump each change implies against the rules in the Versioning section, and drives
 `claude plugin tag` to create `<plugin>--v<version>`. Run `/marketplace-doctor` first — a release
