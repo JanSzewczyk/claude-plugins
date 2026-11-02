@@ -1,6 +1,6 @@
 ---
 title: Assert what the user sees or can do, never internal state or markup
-summary: Check visibility, text, values, focus, ARIA state and callback calls; never state, class names or snapshots.
+summary: Check visibility, text, values, focus, ARIA state and callback calls; never state, class names or markup snapshots.
 impact: medium
 ---
 

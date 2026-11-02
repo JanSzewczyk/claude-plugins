@@ -7,7 +7,7 @@
 3. [When to Use vi.mock vs vi.fn vs vi.spyOn](#when-to-use-vimock-vs-vifn-vs-vispyon) — the decision table
 4. [Testing Error Paths](#testing-error-paths) — thrown, rejected, and returned-as-value failures
 5. [Avoid Testing Implementation Details](#avoid-testing-implementation-details) — assert on behavior instead
-6. [Coverage Targets and What to Skip](#coverage-targets-and-what-to-skip) — the numbers, and the files not worth them
+6. [What to Cover and What to Skip](#what-to-cover-and-what-to-skip) — the cases worth a test, and the files not worth one
 7. [Anti-Patterns](#anti-patterns) — five ways a passing suite still fails you
 
 ---
@@ -198,17 +198,10 @@ test("throws validation error for invalid input", () => {
 
 ---
 
-## Coverage Targets and What to Skip
+## What to Cover and What to Skip
 
-### Reasonable Coverage Targets
-
-| Code Type                       | Target  |
-| ------------------------------- | ------- |
-| Utility functions / pure logic  | 90-100% |
-| Server actions / business logic | 80-90%  |
-| Schema validations              | 90-100% |
-| Hooks                           | 80-90%  |
-| Type definitions, constants     | Skip    |
+Set no percentage target: use the coverage report to find code without tests, and judge a suite by the
+use cases it covers.
 
 ### What to Cover
 

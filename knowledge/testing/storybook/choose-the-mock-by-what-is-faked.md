@@ -3,6 +3,7 @@ title: Choose the mock by what is faked
 summary: Callback props get fn(), HTTP gets MSW, imported modules get sb.mock() in the preview, context gets decorators.
 impact: high
 applies: [typescript, storybook@>=10]
+implements: testing/strategy/principles/mock-only-what-you-cannot-run
 sources: [https://storybook.js.org/docs/writing-stories/mocking-data-and-modules]
 ---
 

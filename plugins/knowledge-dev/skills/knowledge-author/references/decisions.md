@@ -35,6 +35,7 @@ Storybook skill; it has since become `create-stories`.
 - [D21 The tooling is a skill in knowledge-dev, zero dependencies](#d21-the-tooling-is-a-skill-in-knowledge-dev-zero-dependencies)
 - [D22 An agent preloads the procedure it runs and the knowledge it applies](#d22-an-agent-preloads-the-procedure-it-runs-and-the-knowledge-it-applies)
 - [D23 Plugins by technology, layered, with an agnostic testing core](#d23-plugins-by-technology-layered-with-an-agnostic-testing-core)
+- [D24 React Testing Library rules stay apart from Storybook rules](#d24-react-testing-library-rules-stay-apart-from-storybook-rules)
 - [Open questions](#open-questions)
 
 ## D1 Plain files, not RAG
@@ -415,6 +416,33 @@ D20 bullet): it is the plugin a second language breaks first.
 **Cost.** Namespaces changed (`testing:unit-tester` is now `typescript:unit-tester`), a breaking
 change for anything that names agents with their plugin prefix. The root README carries the
 old-to-new table.
+
+## D24 React Testing Library rules stay apart from Storybook rules
+
+**Decision.** Rules for React Testing Library live in `testing/testing-library/react/`, and the
+Storybook targets exclude that folder. They reach agents through a separate knowledge skill,
+`component-test-rules`, together with `testing/strategy/`, `testing/msw/` and `testing/vitest/`.
+The same holds for three other choices taken from the Kent C. Dodds guideline (2026-10-07):
+
+- One long test per user flow, flat files without nested `describe`, and hooks tested through a
+  component apply to component tests only. `unit-testing` keeps nested `describe` and `renderHook`,
+  and Storybook keeps one `.test()` per behaviour.
+- `testing/vitest/` does not reach `unit-testing`, whose `beforeEach` reset stays its convention.
+- Percentage coverage targets are gone everywhere: `cover-use-cases-not-lines` replaces them.
+
+Strategy principles sit in `testing/strategy/principles/` rather than `testing/principles/`, because
+`storybook-rules` preloads whole and had 32 lines left of its budget.
+
+`component-test-rules` uses profile `compact`. At `lean` it came to 309 lines. `inline: critical` would
+have fitted, but it moves the high-impact rules out to a file agents may not be able to open
+(see Open questions), so the shorter Why is the smaller loss.
+
+**Why.** `screen` and `userEvent.setup()` are correct in React Testing Library and wrong in a story, where
+`canvas` and the `userEvent` parameter are the rule. Delivered together, the notes contradict each other.
+
+**Rejected.** Dropping the React Testing Library rules because the repo routes component tests to
+Storybook: projects that use it would get no guidance, and the strategy and mocking rules apply to them
+as well.
 
 ## Open questions
 

@@ -13,14 +13,15 @@ React development — agents and skills for building modern React 19 user interf
 
 ### Skills
 
-| Skill                   | Invoke with            | Description                                                                                                                              |
-| ----------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **react-19-compiler**   | `/react-19-compiler`   | React 19 hooks, React Compiler optimization, memoization decisions                                                                       |
-| **create-stories**      | `/create-stories`      | Create or update a component's `.stories.tsx` — setup check, CSF Next stories per state, `.test()` interaction tests, mocking            |
-| **accessibility-audit** | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                                    |
-| **storybook-rules**     | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `testing-strategist` |
+| Skill                    | Invoke with            | Description                                                                                                                              |
+| ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **react-19-compiler**    | `/react-19-compiler`   | React 19 hooks, React Compiler optimization, memoization decisions                                                                       |
+| **create-stories**       | `/create-stories`      | Create or update a component's `.stories.tsx` — setup check, CSF Next stories per state, `.test()` interaction tests, mocking            |
+| **accessibility-audit**  | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                                    |
+| **storybook-rules**      | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `testing-strategist` |
+| **component-test-rules** | — (preloaded)          | Generated background knowledge: test strategy and React Testing Library, Vitest and MSW rules, preloaded by `testing-strategist`         |
 
-`storybook-rules`, the `references/rules.md` file and the `BEGIN:knowledge` block in
+`storybook-rules`, `component-test-rules`, the `references/rules.md` file and the `BEGIN:knowledge` block in
 `create-stories` are generated from `knowledge/` at the repo root. Edit the notes there and run the
 `knowledge-dev` build; never edit the generated files.
 
