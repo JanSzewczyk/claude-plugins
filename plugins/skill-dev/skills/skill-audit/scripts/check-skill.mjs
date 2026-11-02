@@ -478,6 +478,12 @@ const metrics = {
   languageSuspects,
   synonymGroups,
   magicNumbers,
+  workflow: {
+    stepHeadings: headings.filter((h) => /^((step|phase)\s+\d+|\d+[.)]\s)/i.test(h.title)).length,
+    numberedItems: proseLines(body).filter((l) => /^\s*\d+\.\s/.test(l.text)).length,
+    taskListMentioned: /TaskCreate|TodoWrite|update_plan|\b(task|todo|progress) list\b/i.test(body),
+    backgroundOnly: fm?.values?.["user-invocable"] === "false",
+  },
   referenceFiles: bundled.references.map((f) => {
     const lines = (textOf.get(f) ?? readFileSync(join(target, f), "utf8")).split(/\r?\n/).length;
     return { file: f, lines, linkedFromSkill: firstHop.has(f), linksOut: markdownFiles.includes(f) ? linksIn(f).map((l) => l.resolved) : [] };

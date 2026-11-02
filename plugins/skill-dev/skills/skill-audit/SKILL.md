@@ -4,13 +4,14 @@ description: >-
   Audits one Claude Code skill for authoring quality — the frontmatter contract, whether the
   description will actually trigger, the progressive-disclosure budget, dead links and orphan
   reference files, prose economy, language consistency, and whether bundled scripts and
-  references earn their cost. Use whenever the user asks to review, audit, tighten, trim, or
-  clean up a skill, says a SKILL.md has grown bloated or rambling, wonders whether its reference
-  files are still linked or whether anyone reads them, asks why a skill never fires, or wants to
-  know what to cut before shipping it. Not for auditing a whole marketplace repo's manifests and
+  references earn their cost, and whether a multi-step flow shows its progress in a task list.
+  Use whenever the user asks to review, audit, tighten, trim, or clean up a skill, says a SKILL.md
+  has grown bloated or rambling, wonders whether its reference files are still linked or whether
+  anyone reads them, asks why a skill never fires, or wants to know what to cut before shipping
+  it. Not for auditing a whole marketplace repo's manifests and
   READMEs — that is marketplace-doctor — and not for measuring whether a wording change improved
   triggering, which is skill-ab-optimizer. This one reads the skill and proposes edits.
-allowed-tools: Read, Glob, Grep, Bash, Task
+allowed-tools: Read, Glob, Grep, Bash, Task, TaskCreate, TaskUpdate, TodoWrite, mcp__ccd_turn__update_plan
 argument-hint: "[path to the skill directory to audit]"
 ---
 
@@ -30,6 +31,32 @@ This skill audits one skill and says what to change. It proposes edits; it does 
 >   and the right repair. Read it for any issue class you do not recognise before proposing a fix.
 > - [references/rubric.md](./references/rubric.md) — the judgement rules, with the ids the probes
 >   cite. The probes read it; you need it only to resolve a disagreement.
+
+## Progress list
+
+**Your first tool call in this skill creates the task list, before any command below.** Probes can
+run for a while, and the list shows the user where the audit is. Keep it current to the last step. A
+one-line announcement in chat does not replace it.
+
+Use the task-list tool the session has: `mcp__ccd_turn__update_plan` in the Claude desktop app,
+otherwise `TaskCreate` and `TaskUpdate`, or `TodoWrite`. Load it with `ToolSearch` first if it is only
+listed as deferred. If the session has none of them, print the items as a Markdown checklist and
+reprint it each time a step finishes.
+
+Create it with these items, in the user's language:
+
+```text
+Run the script
+Read the metrics
+Run the four probes
+Verify the evidence
+Merge the findings
+Write the report
+```
+
+- **One item in progress at a time.** Finish it when its step ends, and start the next in the same update.
+- **Show the outcome when it isn't a plain success:** `Run the four probes: ran sequentially`.
+- **Probes add no list of their own.**
 
 ## What this is not
 
@@ -97,7 +124,7 @@ probe is told what it may not look at.
 | Probe | Owns | Does not look at | Reads |
 | --- | --- | --- | --- |
 | **P1 routing-surface** | `R1.*` — the description as a routing artifact: specificity, pushiness, exclusion clauses, overlap with sibling skills, `argument-hint` accuracy, tool scope | the body below the first H2, reference files, scripts, anything about length | the frontmatter; the `name` and `description` of sibling skills in the same plugin |
-| **P2 standing-instructions** | `R2.*` — the body as instructions that persist all session: standing framing, degrees of freedom against task fragility, one default with an escape hatch, the missing workflow shape, contradictions | the frontmatter, wording economy, reference-file content, script code | the `SKILL.md` body |
+| **P2 standing-instructions** | `R2.*` — the body as instructions that persist all session: standing framing, degrees of freedom against task fragility, one default with an escape hatch, the missing workflow shape, a flow that shows no progress (`R2.progress-list`, whose block the proposed edit inserts), contradictions | the frontmatter, wording economy, reference-file content, script code | the `SKILL.md` body |
 | **P3 prose-and-language** | `R3.*` — words across every Markdown file: what the model already knows, verbosity, near-duplicate passages, empty sections, link blurbs that say nothing, terminology drift, language intrusions. Adjudicates the script's Polish and shouting warnings | the frontmatter, file structure, the link graph, orphans, contents lists | the body and every `references/*.md` |
 | **P4 bundle** | `R4.*` — whether each bundled file earns a read and works cold: granularity, contents-list quality, script error handling, voodoo constants against the `magicNumbers` metric, assumed dependencies, `## Prerequisites` section (`R4.prerequisites`), execute-or-read clarity, MCP tool naming | wording inside any file, the frontmatter, instruction design in the body | `references/`, `scripts/`, `assets/`, and only the body lines that link or invoke them |
 
@@ -106,7 +133,7 @@ P3 and P4 both open the reference files. State the boundary in both prompts in t
 
 Every probe gets the same preamble: the absolute path of the skill; the script's `--json` output
 verbatim, with *do not report anything already in `issues[]` — the deterministic layer has it*;
-its own section of the rubric; *you have Read, Glob and Grep, do not edit anything*; and a cap of
+its own section of the rubric (for P2, also *The progress-list block*); *you have Read, Glob and Grep, do not edit anything*; and a cap of
 twelve findings, ranked, keeping the ones that cost the reader most. When a skill has more than
 three reference files, tell P3 which two are largest and to read those in full and skim the rest
 — decide that for it rather than leaving it to guess.

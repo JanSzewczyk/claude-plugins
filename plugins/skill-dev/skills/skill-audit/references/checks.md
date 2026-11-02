@@ -139,14 +139,16 @@ checks here are about whether it can actually be run.
 
 `--json` carries a `metrics` block that never appears in the text report and never affects the
 exit code: description length and sentence count, heading and link counts, shouting density,
-language suspects, synonym-group frequencies, undocumented numeric literals in scripts, and a
-per-reference-file summary.
+language suspects, synonym-group frequencies, undocumented numeric literals in scripts, workflow
+signals (step headings, numbered items, whether a task list is mentioned, whether the skill is
+background-only), and a per-reference-file summary.
 
 These are the rules that look checkable and are not. A synonym-group count tells you the file
 says `endpoint` seven times and `route` four times; whether that is inconsistent terminology or
 two different things needs a reader. An undocumented numeric literal is sometimes a voodoo
-constant and sometimes an HTTP status. Emitting them as warnings would produce a report nobody
-finishes, so they are emitted as evidence for the probe layer instead.
+constant and sometimes an HTTP status. Numbered items are sometimes a workflow and sometimes a list
+of rules. Emitting them as warnings would produce a report nobody finishes, so they are emitted as
+evidence for the probe layer instead.
 
 The rule that governs the whole script: **it reports an issue only when the defect is a fact
 about bytes.** One noisy check discredits the other twenty-nine.

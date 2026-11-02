@@ -10,7 +10,7 @@ This plugin is about **craft**: whether a single skill is well built, and whethe
 
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
-| **skill-audit** | `/skill-audit` | Audit one skill for authoring quality — triggering, context budget, dead links and orphan references, prose economy — and get back a report with proposed edits |
+| **skill-audit** | `/skill-audit` | Audit one skill for authoring quality — triggering, context budget, dead links and orphan references, prose economy, whether a multi-step flow shows its progress in a task list — and get back a report with proposed edits |
 | **skill-ab-optimizer** | `/skill-ab-optimizer` | A/B test and improve Claude Code skills — quantitative metrics on triggering and outcomes, changes accepted only when they measurably help |
 | **workflow-creator** | `/workflow-creator` | Create, audit or optimize a Claude Code dynamic workflow script — `agent()` / `pipeline()` / `parallel()` orchestration, with a static checker and an audit rubric |
 | **workflow-skill-creator** | `/workflow-skill-creator` | Create, rework or audit a multi-step workflow skill — picks the lowest enforcement tier that holds the process, with a structural audit script and an optional phase gate |
@@ -55,7 +55,7 @@ Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` emits 
 
 ## How the pieces fit
 
-1. **skill-audit** answers *is this skill well built?* — it reads the skill and proposes the edits. A script proves the facts about bytes (dead links, budget, contract), and four parallel probes judge what needs a reader (prose economy, degrees of freedom, whether a reference file earns a read).
+1. **skill-audit** answers *is this skill well built?* — it reads the skill and proposes the edits. A script proves the facts about bytes (dead links, budget, contract), and four parallel probes judge what needs a reader (prose economy, degrees of freedom, whether a reference file earns a read, whether a flow needs a task list). When a skill needs a list and has none, the proposed edits include the section to insert, filled in with that skill's own steps.
 2. **skill-ab-optimizer** answers *did the edit actually help?* — it runs A/B experiments over a skill's wording and accepts a change only when the measured outcome improves.
 
 The pairing to remember: **the audit finds what to change; the optimizer proves the change helped.** The audit reads and never writes; the optimizer measures and promotes.
