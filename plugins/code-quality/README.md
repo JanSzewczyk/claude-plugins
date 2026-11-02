@@ -34,7 +34,7 @@ Finds the template, locates the commit the project last matched, groups the temp
 
 > `/update-deps`, or narrow it: `/update-deps python`, `/update-deps storybook`, `/update-deps skip-majors`
 
-Detects the ecosystems from the repo's manifest files and reads only the matching profile, so a Python project never loads the npm rules. Each ecosystem gets its own pass on one branch, with one PR and one report. Hands the branch, commits and PR to the `git-workflow` plugin's `ship-task` skill when it is installed, and needs an authenticated `gh` for the PR.
+Detects the ecosystems from the repo's manifest files and reads only the matching profile, so a Python project never loads the npm rules. Each ecosystem gets its own pass on one branch, with one PR and one report. A task list shows each step and dependency group as the run moves through them, including what was deferred or rolled back. Hands the branch, commits and PR to the `git-workflow` plugin's `ship-task` skill when it is installed, and needs an authenticated `gh` for the PR.
 
 | Ecosystem | Tools                                      | Status                 |
 | --------- | ------------------------------------------ | ---------------------- |

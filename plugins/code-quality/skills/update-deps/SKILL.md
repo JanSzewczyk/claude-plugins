@@ -9,7 +9,7 @@ description: >
   bulk — "update my deps", "upgrade everything to latest", "update Storybook / Next / Vitest", "bump the pom.xml /
   Gradle dependencies", "update the pyproject / requirements.txt", "update Spring Boot / Django" — even if they don't
   say "update-deps". Prefer the library-updater agent for a single one-off npm package change.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, Skill, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, TaskCreate, TaskUpdate, mcp__ccd_turn__update_plan, Skill, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 argument-hint: "[optional filter, e.g. 'python', 'java', 'storybook', 'minor-only', or 'skip-majors']"
 ---
 
@@ -22,6 +22,36 @@ can't tell which one broke the build: every commit in the history is a known-goo
 
 This file holds the workflow, which is the same for every ecosystem. The commands live in a profile per ecosystem, read
 only when that ecosystem is present.
+
+## Progress list
+
+A run can take a long time and pause for decisions, so keep the session's task list current from the first action to the
+last. That list is what the user watches. Use the task-list tool you have: `mcp__ccd_turn__update_plan` in the Claude
+desktop app, otherwise `TaskCreate` and `TaskUpdate`, or `TodoWrite`. With none of them, announce each step in one line.
+
+Create it before Step 0's first command, with these items in the user's language:
+
+```text
+Detect the ecosystem
+Check preconditions
+Find outdated packages
+Group and order the updates
+Create the branch
+Process the dependency groups
+Run the security audit
+Write the final report
+Open the pull request
+```
+
+- **After Step 2,** replace `Process the dependency groups` with one item per group, in processing order, named by theme
+  and risk: `Update storybook (major)`. With several ecosystems, start each with its name: `Node: update storybook (major)`.
+- **One item in progress at a time.** Finish it when its step ends, and start the next in the same update.
+- **While paused on a major,** say so in the item: `Update next (major): waiting for your decision`.
+- **Show the outcome when it isn't a plain success:** `Update next (major): deferred`, `Update vitest: rolled back`. A
+  finished item must not read as if that group landed.
+- **A step that won't run** stays on the list with the reason: `Open the pull request: skipped, nothing committed`.
+- **Skills invoked along the way** (`ship-task`, `create-commit` and the rest) use this same list and add no list of
+  their own.
 
 ## Step 0 — Detect the ecosystem
 
@@ -87,7 +117,7 @@ for the families themselves.
 
 ## Workflow
 
-Use TodoWrite to track one item per group so progress is visible. Then:
+Work through these steps, keeping the [progress list](#progress-list) current:
 
 ### Step 1 — Discover what's outdated
 
