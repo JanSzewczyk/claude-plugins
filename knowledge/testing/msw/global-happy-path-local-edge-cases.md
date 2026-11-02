@@ -3,7 +3,7 @@ title: Keep the happy path in global handlers, and put edge cases in the test th
 summary: Errors and edge cases go in the test through server.use(); resetHandlers after each test removes them.
 impact: medium
 applies: [typescript, msw]
-sources: [https://kentcdodds.com/blog/stop-mocking-fetch, https://mswjs.io/docs/api/setup-server/use/]
+sources: [https://kentcdodds.com/blog/stop-mocking-fetch, https://github.com/mswjs/msw/blob/main/src/node/setup-server-common.ts]
 ---
 
 ## Rule
