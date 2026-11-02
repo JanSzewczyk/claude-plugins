@@ -25,11 +25,15 @@ only when that ecosystem is present.
 
 ## Progress list
 
-A run can take a long time and pause for decisions, so keep the session's task list current from the first action to the
-last. That list is what the user watches. Use the task-list tool you have: `mcp__ccd_turn__update_plan` in the Claude
-desktop app, otherwise `TaskCreate` and `TaskUpdate`, or `TodoWrite`. With none of them, announce each step in one line.
+**Your first tool call in this skill creates the task list, before any command in Step 0.** A run can take a long time and
+pause for decisions, and the list is what the user watches, so keep it current to the last step. A one-line announcement
+in chat does not replace it.
 
-Create it before Step 0's first command, with these items in the user's language:
+Use the task-list tool the session has: `mcp__ccd_turn__update_plan` in the Claude desktop app, otherwise `TaskCreate` and
+`TaskUpdate`, or `TodoWrite`. Load it with `ToolSearch` first if it is only listed as deferred. If the session has none of
+them, print the items as a Markdown checklist and reprint it each time a step finishes.
+
+Create it with these items, in the user's language:
 
 ```text
 Detect the ecosystem
@@ -49,7 +53,8 @@ Open the pull request
 - **While paused on a major,** say so in the item: `Update next (major): waiting for your decision`.
 - **Show the outcome when it isn't a plain success:** `Update next (major): deferred`, `Update vitest: rolled back`. A
   finished item must not read as if that group landed.
-- **A step that won't run** stays on the list with the reason: `Open the pull request: skipped, nothing committed`.
+- **A step that won't run** stays on the list with the reason, rather than being deleted:
+  `Open the pull request: skipped, nothing committed`.
 - **Skills invoked along the way** (`ship-task`, `create-commit` and the rest) use this same list and add no list of
   their own.
 
