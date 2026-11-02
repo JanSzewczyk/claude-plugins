@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
 
       # The native schema pass needs the CLI; without it the script warns and skips that part
       # rather than failing, so this step is allowed to fail on a fork without the install.
@@ -47,7 +47,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Validate the notes
         run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs validate
@@ -88,7 +88,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
