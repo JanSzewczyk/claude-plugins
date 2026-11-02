@@ -49,6 +49,7 @@ Folders go from the general to the specific, and only as deep as the note needs.
 | --- | --- |
 | Principle for all testing | `testing/principles/query-like-a-user.md` |
 | Principle about one library | `testing/storybook/principles/use-csf-next-factories.md` |
+| Principle only some targets receive | `testing/strategy/principles/cover-use-cases-not-lines.md` |
 | Rule for one library | `testing/storybook/portal-content-via-screen.md` |
 | Rule for one library in one framework | `testing/storybook/react/story-file-setup.md` |
 | Rule for one library in one language | `testing/builders/python/factory-boy/overrides-and-traits.md` |

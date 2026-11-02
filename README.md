@@ -105,7 +105,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
 | [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
 | [**python**](./plugins/python/) | Python — factory_boy test data rules, the home for pytest and Python tooling | — | 1 | [README](./plugins/python/README.md) |
-| [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 4 | [README](./plugins/react/README.md) |
+| [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
@@ -118,7 +118,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 10 agents · 48 skills**
+**Total: 10 agents · 49 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -368,7 +368,7 @@ claude-plugins/
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester
-    │   └── skills/                # 4 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules)
+    │   └── skills/                # 5 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules, component-test-rules)
     ├── design/                    # Design system & styling
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
