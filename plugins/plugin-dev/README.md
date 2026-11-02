@@ -2,7 +2,7 @@
 
 Author and maintain a Claude Code plugin marketplace — audit a repo for drift between its manifest layers and the documentation that enumerates them by hand, then cut versioned plugin releases.
 
-This plugin is about **distribution**: whether the repo describes itself truthfully, and what version a change deserves. Both skills need a marketplace repo to work on. If what you want is to make one *skill* better, that is [**skill-dev**](../skill-dev/) — the two were split so neither audience carries the other's tooling.
+This plugin is about **distribution**: whether the repo describes itself truthfully, and what version a change deserves. Both skills need a marketplace repo to work on, and read any layout: plugins are found through each entry's `source`, with the manifest in `.claude-plugin/plugin.json` or beside `skills/`. If what you want is to make one *skill* better, that is [**skill-dev**](../skill-dev/) — the two were split so neither audience carries the other's tooling.
 
 ## Contents
 
@@ -42,12 +42,14 @@ node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs 
 ```
 
 Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` for machine output,
-`--no-native` skips the wrapped `claude plugin validate --strict` pass.
+`--no-native` skips the wrapped `claude plugin validate` pass.
+
+House rules that Claude Code does not require (closed frontmatter key sets, attribution in both manifests, a bold README row per skill) apply only to a repo that commits `.marketplace-doctor.json` with `{ "conventions": true }`.
 
 ### Cut a release
 
 ```bash
-/plugin-release                # every plugin changed since the last tag
+/plugin-release                # every plugin changed since its own last tag
 /plugin-release code-quality   # just one plugin
 ```
 
@@ -65,16 +67,26 @@ that edit help — belongs to [**skill-dev**](../skill-dev/).
 
 - Node.js 18+ (the bundled scripts are plain ESM, no dependencies)
 - `claude` CLI on PATH for the native validation pass and for `claude plugin tag`
-- A git repository — `plugin-release` diffs against tags to decide what changed
+- A git repository — `plugin-release` diffs against each plugin's tags to decide what changed
+
+## Tests
+
+```bash
+node --test plugins/plugin-dev/skills/marketplace-doctor/tests/check-marketplace.test.mjs
+node --test plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
+```
 
 ## Troubleshooting
 
 | Problem | Solution |
 | ------- | -------- |
 | `marketplace-doctor` reports drift you intend to keep | The tables in `CLAUDE.md` and the READMEs are the hand-typed layer — fix them rather than silencing the check; there is no ignore file by design |
+| `marketplace-doctor` flags house rules your repo never adopted | Remove `.marketplace-doctor.json`, or set `conventions` to `false` |
+| A plugin is missing from the report | It has a remote `source`, which the `Not checked` lines name, or no entry in `marketplace.json` |
 | `claude plugin validate` fails but the script passes | Run with `--no-native` to isolate which layer complains, then read the native error — it checks schema details the script does not |
 | `plugin-release` proposes no bump | Nothing changed since the last tag for that plugin, or the tag is missing; check `git tag --list '<plugin>--v*'` |
-| `plugin-release` proposes the wrong bump size | The semver rules live in the repo's `CLAUDE.md` Versioning section — the skill implements them rather than replacing them, so correct the rules there |
+| `plugin-release` proposes the wrong bump size | The script proposes a floor from which files moved; a repo's `CLAUDE.md` Versioning section overrides the skill's defaults, so correct the rules there |
+| `plugin-release` calls a plugin a first release | The repo tags per plugin and this one has no `<plugin>--v*` tag yet; tag its current version |
 
 ## Related Plugins
 

@@ -10,7 +10,8 @@ argument-hint: "[path to the marketplace repo root, defaults to the current dire
 A marketplace repo describes the same capabilities in five places: `marketplace.json`, each
 `plugin.json`, the skill and agent files themselves, the root `README.md`, and every per-plugin
 `README.md` — plus the Plugins table in `CLAUDE.md`. Only one of those is the truth; the rest are
-typed by hand and silently rot. This skill finds the disagreements and fixes them.
+typed by hand and silently rot. This skill finds the disagreements and fixes them. It works on any
+marketplace: plugins are found through each entry's `source`, wherever they live.
 
 > - [scripts/check-marketplace.mjs](./scripts/check-marketplace.mjs) — the deterministic sweep.
 >   Walks the repo, builds the real inventory, and reports every disagreement with a file path.
@@ -28,21 +29,27 @@ itself truthfully?"** A `plugin.json` that lists two agents when three exist on 
 valid JSON — and the third agent will never load. A README claiming 6 skills when there are 7 is
 valid Markdown — and the seventh is invisible to anyone reading the docs.
 
-## Attribution is checked in both layers
+## House conventions are opt-in
 
-The one contract that spans two files: `author` (`{ name, email, url }`), `homepage` and `license`
-must be present in the marketplace entry **and** in the plugin's own `plugin.json`, with matching
-values. The browse view reads the first, the installed view reads the second — a block written into
-only one of them means the plugin renders with no author in the other. A missing `author` object is
-an error; missing `email`/`url`/`homepage`/`license` are warnings; a mismatch between the layers is
-an error. See [references/checks.md](./references/checks.md#the-attribution-contract-cuts-across-layers-1-and-2).
+Drift is checked everywhere. Rules that go beyond what Claude Code requires apply only to a repo
+that commits `.marketplace-doctor.json` with `{ "conventions": true }`: the closed frontmatter key
+sets, an explicit `agents` array, attribution and `dependencies` in both manifests, a bold README
+row per skill. Without that file they stay quiet or drop to warnings, so do not tell the user their
+repo breaks a rule it never adopted. See [references/checks.md](./references/checks.md#house-conventions).
+
+## Attribution is checked across both layers
+
+The browse view reads the marketplace entry, the installed view reads `plugin.json`. A value set in
+both must match, or it is an error. A plugin with no `author` anywhere gets a warning, and with
+conventions on each layer must carry `author`, `homepage` and `license` itself. See
+[references/checks.md](./references/checks.md#the-attribution-contract-cuts-across-layers-1-and-2).
 
 ## Cross-plugin preloads need a declared dependency
 
 An agent whose `skills:` names a skill from another plugin makes its plugin depend on that one.
-The doctor checks that the dependency is declared, identically in both layers, that each range is
-satisfied by the dependency's current version and by a release tag, and that no two plugins
-depend on each other. See [references/checks.md](./references/checks.md#the-dependencies-contract-cuts-across-layers-1-and-2).
+The doctor checks that the dependency is declared, that two layers declaring it agree, that each
+range is satisfied by the dependency's current version and by a release tag (in a repo that tags
+releases), and that no two plugins depend on each other. See [references/checks.md](./references/checks.md#the-dependencies-contract-cuts-across-layers-1-and-2).
 
 ## Display metadata controls how a plugin looks in the browser
 
@@ -53,12 +60,11 @@ loads without them. See [references/checks.md](./references/checks.md#display-me
 
 ## Run it
 
-The script sits next to this SKILL.md at `scripts/check-marketplace.mjs` — invoke it by its
-absolute path, built from this skill's own directory, not from the repo you are auditing (they
-are usually different repos). The argument is the marketplace repo root:
+The script ships with this skill, not with the repo you are auditing (they are usually different
+repos). The argument is the marketplace repo root:
 
 ```bash
-node "<skill-dir>/scripts/check-marketplace.mjs" .
+node "${CLAUDE_SKILL_DIR}/scripts/check-marketplace.mjs" .
 ```
 
 | Flag | Effect |
@@ -82,15 +88,15 @@ Exit code is 0 when clean, 1 when anything failed. The script never writes to th
    capability was deliberately deleted rather than accidentally moved.
 4. **Group the fixes by file, not by issue.** One edit per README beats seven.
 5. **Re-run the script.** A fix that does not move the count is not a fix.
-6. **Bump the versions the repo's own rules require.** Editing anything under a plugin's
-   `skills/` or `agents/` means bumping that plugin's `version` in `plugin.json` — see the
-   repository's `CLAUDE.md`. `marketplace-doctor` does not bump versions for you, and it does not
-   check them beyond "is this semver".
+6. **Bump the versions the repo's own rules require**, if it has any (look in its `CLAUDE.md`).
+   `marketplace-doctor` does not bump versions for you, and it does not check them beyond "is this
+   semver" and "do the two layers agree".
 
 ## Reporting back
 
 State the counts (plugins, agents, skills) and then the issues that remain, grouped by plugin.
-Never claim the repo is clean unless the script exited 0 — quote the summary line as evidence.
+Never claim the repo is clean unless the script exited 0 — quote the summary line as evidence, and
+pass on its `Not checked` lines: remote plugins and missing doc tables were not audited.
 If you fixed things, say what the count went from and to.
 
 When the run is clean, say so in one line. Do not pad a clean report with a restatement of
