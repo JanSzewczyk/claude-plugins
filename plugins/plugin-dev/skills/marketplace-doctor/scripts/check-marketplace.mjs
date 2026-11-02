@@ -7,11 +7,15 @@
 // "does the repo still describe itself truthfully?" — the failure mode of a marketplace
 // where every skill count, skills table and agents array is typed by hand.
 //
+// Plugins come from the `source` of each marketplace entry, wherever they live. House rules that
+// go beyond what Claude Code requires apply only when the repo opts in through
+// .marketplace-doctor.json: { "conventions": true }.
+//
 // Usage: node check-marketplace.mjs [repo-root] [--json] [--strict] [--no-native]
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { basename, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 
 const argv = process.argv.slice(2);
 const asJson = argv.includes("--json");
@@ -20,6 +24,7 @@ const skipNative = argv.includes("--no-native");
 const root = resolve(argv.find((a) => !a.startsWith("--")) ?? process.cwd());
 
 const issues = [];
+const skipped = []; // what could not be audited, so a clean result does not overclaim
 const note = (severity, scope, file, message, hint) =>
   issues.push({ severity, scope, file: file ? relative(root, file).replace(/\\/g, "/") : null, message, hint });
 const error = (...a) => note("error", ...a);
@@ -42,11 +47,13 @@ function readJson(path) {
 function dirs(path) {
   if (!existsSync(path)) return [];
   return readdirSync(path)
-    .filter((n) => statSync(join(path, n)).isDirectory())
+    .filter((n) => statSync(join(path, n), { throwIfNoEntry: false })?.isDirectory())
     .sort();
 }
 
-// Minimal top-level YAML frontmatter reader: returns ordered keys plus scalar values.
+const unquote = (s) => s.replace(/^(["'])(.*)\1$/, "$2");
+
+// Minimal top-level YAML frontmatter reader: returns ordered keys, scalar values and block lists.
 // Enough for the contracts this repo enforces (flat keys, no nested maps at the top level).
 function frontmatter(path) {
   const text = readFileSync(path, "utf8").replace(/^﻿/, "");
@@ -54,20 +61,48 @@ function frontmatter(path) {
   if (!m) return null;
   const keys = [];
   const values = {};
+  const items = {};
   let current = null;
   for (const line of m[1].split(/\r?\n/)) {
     const km = line.match(/^([A-Za-z][\w-]*):(.*)$/);
     if (km) {
       current = km[1];
       keys.push(current);
-      values[current] = km[2].trim();
+      values[current] = unquote(km[2].trim());
+      items[current] = [];
       continue;
     }
-    // Indented continuation of the previous key — a folded scalar or a block list.
+    const item = line.match(/^\s*-\s+(.+)$/);
+    if (current && item) {
+      items[current].push(unquote(item[1].trim()));
+      continue;
+    }
+    // Indented continuation of the previous key — a folded scalar.
     if (current && /^\s+\S/.test(line)) values[current] = `${values[current]} ${line.trim()}`.trim();
   }
-  return { keys, values, raw: m[1] };
+  return { keys, values, items, raw: m[1] };
 }
+
+// A list key in any of its YAML spellings: a block list, [a, b], or the comma-separated a, b.
+function listValue(fm, key) {
+  if (fm.items[key]?.length) return fm.items[key];
+  return String(fm.values[key] ?? "")
+    .replace(/^\[|\]$/g, "")
+    .split(",")
+    .map((s) => unquote(s.trim()))
+    .filter(Boolean);
+}
+
+// ------------------------------------------------------------------ house conventions
+// Claude Code requires far less than a well-kept marketplace may want: a closed frontmatter key
+// set, attribution in both manifests, a named README row per skill. A repo opts in by committing
+// this file; without it those checks stay quiet or drop to warnings, because in someone else's
+// repo they would report the reader's taste as defects.
+
+const configPath = join(root, ".marketplace-doctor.json");
+const config = existsSync(configPath) ? (readJson(configPath) ?? {}) : {};
+const conventions = config.conventions === true;
+const convention = (...a) => (conventions ? error : warn)(...a);
 
 // ---------------------------------------------------------------- layer 1: marketplace
 
@@ -75,22 +110,25 @@ const marketplacePath = join(root, ".claude-plugin", "marketplace.json");
 if (!existsSync(marketplacePath)) fail(`No .claude-plugin/marketplace.json under ${root} — is this a marketplace repo?`);
 
 const marketplace = readJson(marketplacePath);
-const pluginsDir = join(root, "plugins");
-const onDisk = dirs(pluginsDir);
 const entries = Array.isArray(marketplace?.plugins) ? marketplace.plugins : [];
+
+if (marketplace && entries.length === 0) {
+  error("marketplace", marketplacePath, "marketplace.json lists no plugins");
+}
 
 // ------------------------------------------------------------- attribution contract
 // Every surface that lists a plugin (`/plugin`, the marketplace browser, a published listing)
 // renders the author, homepage and license from the manifest it is reading — the marketplace
 // entry for the browse view, plugin.json for the installed view. A manifest that omits them
-// shows a plugin attributed to nobody, so both layers must carry the block, and agree.
+// shows a plugin attributed to nobody. Without conventions, either layer carrying the field is
+// enough; with them, both must.
 
 const AUTHOR_KEYS = ["name", "email", "url"];
 
 function checkAttribution(scope, file, subject, label) {
   const author = subject?.author;
   if (!author || typeof author !== "object" || Array.isArray(author)) {
-    error(
+    convention(
       scope,
       file,
       `${label} has no \`author\` object`,
@@ -99,15 +137,17 @@ function checkAttribution(scope, file, subject, label) {
     return;
   }
   if (!author.name) {
-    error(scope, file, `${label} author has no \`name\``);
+    convention(scope, file, `${label} author has no \`name\``);
   }
-  const soft = AUTHOR_KEYS.filter((k) => k !== "name" && !author[k]);
-  if (soft.length) {
-    warn(scope, file, `${label} author is missing: ${soft.join(", ")}`, "the contract is author: { name, email, url }");
-  }
-  const unknown = Object.keys(author).filter((k) => !AUTHOR_KEYS.includes(k));
-  if (unknown.length) {
-    warn(scope, file, `${label} author carries unrecognized keys: ${unknown.join(", ")}`, "allowed: name, email, url");
+  if (conventions) {
+    const soft = AUTHOR_KEYS.filter((k) => k !== "name" && !author[k]);
+    if (soft.length) {
+      warn(scope, file, `${label} author is missing: ${soft.join(", ")}`, "the contract is author: { name, email, url }");
+    }
+    const unknown = Object.keys(author).filter((k) => !AUTHOR_KEYS.includes(k));
+    if (unknown.length) {
+      warn(scope, file, `${label} author carries unrecognized keys: ${unknown.join(", ")}`, "allowed: name, email, url");
+    }
   }
   if (!subject.homepage) {
     warn(scope, file, `${label} has no \`homepage\``, "the listing links a plugin back to its repository from here");
@@ -148,7 +188,7 @@ function checkDisplayMetadata(scope, file, manifest) {
 if (marketplace) {
   if (!marketplace.owner?.name) {
     error("marketplace", marketplacePath, "marketplace has no `owner.name`");
-  } else {
+  } else if (conventions) {
     const soft = AUTHOR_KEYS.filter((k) => k !== "name" && !marketplace.owner[k]);
     if (soft.length) {
       warn(
@@ -161,22 +201,37 @@ if (marketplace) {
   }
 }
 
+// A relative source resolves from the marketplace root; metadata.pluginRoot is prepended to the
+// short form ("formatter" rather than "./plugins/formatter").
+function localSourceDir(source) {
+  const base = marketplace?.metadata?.pluginRoot;
+  return resolve(root, base && !source.startsWith(".") ? join(base, source) : source);
+}
+
 const declared = new Set();
+const local = []; // { name, dir, entry } for every plugin that lives in this repo
+const remote = []; // entries with a github, url, git-subdir, npm... source: nothing on disk to read
 for (const entry of entries) {
   if (!entry?.name) {
     error("marketplace", marketplacePath, "a marketplace entry has no `name`");
     continue;
   }
   declared.add(entry.name);
-  checkAttribution("marketplace", marketplacePath, entry, `entry "${entry.name}"`);
+  if (conventions) checkAttribution("marketplace", marketplacePath, entry, `entry "${entry.name}"`);
   if (!entry.source) {
     error("marketplace", marketplacePath, `entry "${entry.name}" has no \`source\``);
     continue;
   }
-  const sourceDir = resolve(root, entry.source);
+  if (typeof entry.source !== "string") {
+    remote.push(entry.name);
+    continue;
+  }
+  const sourceDir = localSourceDir(entry.source);
   if (!existsSync(sourceDir)) {
     error("marketplace", marketplacePath, `entry "${entry.name}" points at a missing directory: ${entry.source}`);
-  } else if (basename(sourceDir) !== entry.name) {
+    continue;
+  }
+  if (conventions && sourceDir !== root && basename(sourceDir) !== entry.name) {
     warn(
       "marketplace",
       marketplacePath,
@@ -184,14 +239,27 @@ for (const entry of entries) {
       "the folder name becomes the plugin id in some surfaces — keep them identical"
     );
   }
+  local.push({ name: entry.name, dir: sourceDir, entry });
 }
 
-for (const name of onDisk) {
-  if (!declared.has(name)) {
+if (remote.length) {
+  skipped.push(`marketplace entries with a remote source (${remote.length}): ${remote.slice(0, 5).join(", ")}${remote.length > 5 ? ", …" : ""}`);
+}
+
+// A plugin nobody registered sits next to the ones that are, or under the conventional plugins/.
+const looksLikePlugin = (dir) =>
+  ["plugin.json", ".claude-plugin/plugin.json", "skills", "agents", "commands"].some((p) => existsSync(join(dir, p)));
+const localDirs = new Set(local.map((p) => p.dir));
+const parents = new Set([join(root, "plugins"), ...[...localDirs].filter((d) => d !== root).map((d) => dirname(d))]);
+
+for (const parent of parents) {
+  for (const name of dirs(parent)) {
+    const dir = join(parent, name);
+    if (name.startsWith(".") || localDirs.has(dir) || !looksLikePlugin(dir)) continue;
     error(
       "marketplace",
       marketplacePath,
-      `plugins/${name}/ exists but is not listed in marketplace.json`,
+      `${relative(root, dir)}/ exists but is not listed in marketplace.json`,
       "a new plugin must be added here — new skills/agents inside an existing plugin must not"
     );
   }
@@ -218,93 +286,150 @@ const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers"];
 // through skills:, hidden from the / menu. The generated knowledge skills rely on it.
 const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
 
-const inventory = new Map(); // plugin -> { skills, agents, version, dependencies }
+const depSpec = (dep) =>
+  typeof dep === "string" ? { name: dep.split("@")[0], marketplace: dep.split("@")[1] } : (dep ?? {});
+const depKey = (deps) =>
+  JSON.stringify(
+    (Array.isArray(deps) ? deps : [])
+      .map(depSpec)
+      .map((d) => [d.name, d.version ?? null, d.marketplace ?? null])
+      .sort()
+  );
+
+// Claude Code reads the manifest from .claude-plugin/; a plugin.json beside skills/ is the older
+// layout some marketplaces, this one included, still use with `claude plugin tag`.
+function findManifest(dir) {
+  return [join(dir, ".claude-plugin", "plugin.json"), join(dir, "plugin.json")].find((p) => existsSync(p)) ?? null;
+}
+
+// The default skills/ scan, plus whatever `skills` in the manifest adds to it. A listed folder is
+// either one skill or a parent of skills.
+function skillDirs(pluginDir, manifest, file, name) {
+  const found = new Map();
+  const add = (parent) => {
+    if (existsSync(join(parent, "SKILL.md"))) found.set(parent, basename(parent));
+    else for (const skill of dirs(parent)) found.set(join(parent, skill), skill);
+  };
+  add(join(pluginDir, "skills"));
+  const extra = typeof manifest.skills === "string" ? [manifest.skills] : Array.isArray(manifest.skills) ? manifest.skills : [];
+  for (const rel of extra) {
+    const path = resolve(pluginDir, rel);
+    if (!existsSync(path)) error(name, file, `skills references a missing path: ${rel}`);
+    else add(path);
+  }
+  return [...found].map(([path, skill]) => ({ path, skill })).sort((a, b) => a.skill.localeCompare(b.skill));
+}
+
+const inventory = new Map(); // plugin -> { dir, skills, agents, version, dependencies }
 const preloads = []; // { plugin, path, skills } for every agent with a skills: line
 
-for (const name of onDisk) {
-  const pluginDir = join(pluginsDir, name);
-  const manifestPath = join(pluginDir, "plugin.json");
-  if (!existsSync(manifestPath)) {
-    error(name, pluginDir, "no plugin.json");
-    continue;
+for (const { name, dir: pluginDir, entry } of local) {
+  const manifestPath = findManifest(pluginDir);
+  if (!manifestPath) {
+    convention(name, pluginDir, "no plugin.json", "looked in .claude-plugin/ and the plugin root; without it the plugin runs on the marketplace entry alone");
+    if (conventions) continue;
   }
-  const manifest = readJson(manifestPath);
+  const manifest = manifestPath ? readJson(manifestPath) : {};
   if (!manifest) continue;
+  const file = manifestPath ?? pluginDir;
 
-  if (manifest.name !== name) {
-    error(name, manifestPath, `plugin.json name is "${manifest.name}" but the directory is "${name}"`);
+  if (manifest.name && manifest.name !== name) {
+    error(name, file, `plugin.json name is "${manifest.name}" but marketplace.json lists it as "${name}"`);
   }
-  if (!/^\d+\.\d+\.\d+$/.test(manifest.version ?? "")) {
-    error(name, manifestPath, `version "${manifest.version}" is not semver (x.y.z)`);
+  const version = manifest.version ?? entry.version;
+  if (version === undefined) {
+    convention(name, file, "no `version` in plugin.json or the marketplace entry", "without one, installs follow the git commit and `claude plugin tag` has nothing to tag");
+  } else if (!/^\d+\.\d+\.\d+(?:[-+][\w.+-]+)?$/.test(version)) {
+    error(name, file, `version "${version}" is not semver (x.y.z)`);
+  }
+  if (manifest.version && entry.version && manifest.version !== entry.version) {
+    error(name, file, `version "${manifest.version}" disagrees with marketplace.json ("${entry.version}")`, "plugin.json wins at install time and `claude plugin tag` refuses the mismatch");
   }
 
-  checkAttribution(name, manifestPath, manifest, "plugin.json");
-  checkDisplayMetadata(name, manifestPath, manifest);
+  if (conventions) {
+    checkAttribution(name, file, manifest, "plugin.json");
+  } else {
+    const pick = (k) => manifest[k] ?? entry[k];
+    checkAttribution(name, file, { author: pick("author"), homepage: pick("homepage"), license: pick("license") }, name);
+  }
+  checkDisplayMetadata(name, file, manifest);
 
   // The two layers are read by different surfaces, so they must agree — otherwise a plugin is
   // attributed to one author while browsing the marketplace and to another once installed.
-  const entry = entries.find((e) => e?.name === name);
-  if (entry?.author?.name && manifest.author?.name && entry.author.name !== manifest.author.name) {
+  if (entry.author?.name && manifest.author?.name && entry.author.name !== manifest.author.name) {
     error(
       name,
-      manifestPath,
+      file,
       `author.name is "${manifest.author.name}" but marketplace.json says "${entry.author.name}"`,
       "the browse view reads the marketplace entry, the installed view reads plugin.json"
     );
   }
-  if (entry?.license && manifest.license && entry.license !== manifest.license) {
-    error(name, manifestPath, `license "${manifest.license}" disagrees with marketplace.json ("${entry.license}")`);
+  if (entry.license && manifest.license && entry.license !== manifest.license) {
+    error(name, file, `license "${manifest.license}" disagrees with marketplace.json ("${entry.license}")`);
   }
 
-  // agents: an explicit array, so both directions can drift
+  // agents: an `agents` value replaces the default agents/ scan, so once it exists both directions
+  // can drift. Without one the folder is scanned, and only conventions ask for the explicit list.
   const agentDir = join(pluginDir, "agents");
   const agentFiles = existsSync(agentDir)
     ? readdirSync(agentDir)
         .filter((f) => f.endsWith(".md"))
         .sort()
     : [];
-  const listed = Array.isArray(manifest.agents) ? manifest.agents : [];
+  const listed = typeof manifest.agents === "string" ? [manifest.agents] : Array.isArray(manifest.agents) ? manifest.agents : null;
 
-  for (const rel of listed) {
+  for (const rel of listed ?? []) {
     if (!existsSync(resolve(pluginDir, rel))) {
-      error(name, manifestPath, `agents[] references a missing file: ${rel}`);
+      error(name, file, `agents[] references a missing file: ${rel}`);
     }
   }
-  for (const file of agentFiles) {
-    if (!listed.some((rel) => basename(rel) === file)) {
-      error(
-        name,
-        join(agentDir, file),
-        `agents/${file} exists but is not listed in plugin.json`,
-        "`agents` is an explicit array — unlisted agent files are never loaded"
-      );
+  if (listed || conventions) {
+    for (const agentFile of agentFiles) {
+      if (!(listed ?? []).some((rel) => basename(rel) === agentFile)) {
+        error(
+          name,
+          join(agentDir, agentFile),
+          `agents/${agentFile} exists but is not listed in plugin.json`,
+          listed
+            ? "`agents` replaces the default agents/ scan — unlisted agent files are never loaded"
+            : "this repo's convention is an explicit `agents` array"
+        );
+      }
     }
+  }
+
+  const agentPaths = new Set(agentFiles.map((f) => join(agentDir, f)));
+  for (const rel of listed ?? []) {
+    const path = resolve(pluginDir, rel);
+    if (existsSync(path) && path.endsWith(".md")) agentPaths.add(path);
   }
 
   const agentNames = [];
-  for (const file of agentFiles) {
-    const path = join(agentDir, file);
+  for (const path of [...agentPaths].sort()) {
     const fm = frontmatter(path);
     if (!fm) {
       error(name, path, "agent has no YAML frontmatter");
       continue;
     }
-    agentNames.push(fm.values.name ?? basename(file, ".md"));
-    if (fm.values.skills) {
-      preloads.push({ plugin: name, path, skills: String(fm.values.skills).split(",").map((s) => s.trim()).filter(Boolean) });
-    }
-    if (fm.values.name && fm.values.name !== basename(file, ".md")) {
+    agentNames.push(fm.values.name ?? basename(path, ".md"));
+    const skills = listValue(fm, "skills");
+    if (skills.length) preloads.push({ plugin: name, path, skills });
+    if (fm.values.name && fm.values.name !== basename(path, ".md")) {
       warn(name, path, `frontmatter name "${fm.values.name}" differs from the filename`);
+    }
+    for (const key of ["name", "description"]) {
+      if (!fm.values[key]) error(name, path, `agent frontmatter has no \`${key}\``);
     }
     const ignored = fm.keys.filter((k) => IGNORED_AGENT_KEYS.includes(k));
     if (ignored.length) {
-      error(
+      convention(
         name,
         path,
         `agent frontmatter carries keys that plugin agents ignore: ${ignored.join(", ")}`,
         "remove them; a hook that must run belongs in the plugin's hooks/hooks.json"
       );
     }
+    if (!conventions) continue;
     const unknown = fm.keys.filter((k) => !AGENT_KEY_ORDER.includes(k) && !IGNORED_AGENT_KEYS.includes(k));
     if (unknown.length) {
       error(name, path, `unrecognized agent frontmatter keys: ${unknown.join(", ")}`, "the agent contract is a closed set");
@@ -320,33 +445,36 @@ for (const name of onDisk) {
     }
   }
 
-  // skills: a directory glob, so the manifest cannot drift — but the SKILL.md contract can
-  const skillsDir = join(pluginDir, "skills");
-  const skillNames = dirs(skillsDir);
-  if (skillNames.length && manifest.skills !== "./skills/") {
-    warn(name, manifestPath, `skills is "${manifest.skills}" — this repo's convention is the "./skills/" glob`);
+  // skills: a directory scan, so the manifest cannot drift — but the SKILL.md contract can
+  const skills = skillDirs(pluginDir, manifest, file, name);
+  if (conventions && skills.length && manifest.skills !== "./skills/") {
+    warn(name, file, `skills is "${manifest.skills}" — this repo's convention is the "./skills/" glob`);
   }
 
-  for (const skill of skillNames) {
-    const skillPath = join(skillsDir, skill, "SKILL.md");
+  for (const { path: skillDir, skill } of skills) {
+    const skillPath = join(skillDir, "SKILL.md");
     if (!existsSync(skillPath)) {
-      error(name, join(skillsDir, skill), "skill directory has no SKILL.md — it will never load");
+      convention(name, skillDir, "skill directory has no SKILL.md — it will never load");
       continue;
     }
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(skill)) {
-      error(name, skillPath, `skill folder "${skill}" is not kebab-case — the folder name becomes the slash command`);
+      convention(name, skillPath, `skill folder "${skill}" is not kebab-case — the folder name becomes the slash command`);
     }
     const fm = frontmatter(skillPath);
     if (!fm) {
-      error(name, skillPath, "SKILL.md has no YAML frontmatter");
+      convention(name, skillPath, "SKILL.md has no YAML frontmatter");
       continue;
     }
-    if (fm.values.name !== skill) {
-      error(name, skillPath, `frontmatter name "${fm.values.name}" does not match the folder "${skill}"`);
+    if (conventions ? fm.values.name !== skill : fm.values.name && fm.values.name !== skill) {
+      convention(name, skillPath, `frontmatter name "${fm.values.name}" does not match the folder "${skill}"`);
     }
     if (!fm.values.description) {
-      error(name, skillPath, "SKILL.md has no description — the description is what routes the skill");
+      convention(name, skillPath, "SKILL.md has no description — the description is what routes the skill");
     }
+    if (fm.keys.includes("user-invocable") && !["true", "false"].includes(String(fm.values["user-invocable"]))) {
+      error(name, skillPath, `user-invocable is "${fm.values["user-invocable"]}"`, "it takes true or false");
+    }
+    if (!conventions) continue;
     const unknown = fm.keys.filter((k) => !SKILL_KEY_ORDER.includes(k));
     if (unknown.length) {
       error(
@@ -356,9 +484,6 @@ for (const name of onDisk) {
         "allowed: name, description, allowed-tools, argument-hint, user-invocable"
       );
     }
-    if (fm.keys.includes("user-invocable") && !["true", "false"].includes(String(fm.values["user-invocable"]))) {
-      error(name, skillPath, `user-invocable is "${fm.values["user-invocable"]}"`, "it takes true or false");
-    }
     const known = fm.keys.filter((k) => SKILL_KEY_ORDER.includes(k));
     const expected = SKILL_KEY_ORDER.filter((k) => known.includes(k));
     if (known.join(",") !== expected.join(",")) {
@@ -366,22 +491,25 @@ for (const name of onDisk) {
     }
   }
 
-  // The marketplace entry is the copy Claude Code reads and enforces; `claude plugin validate`
-  // does not look at a plugin.json at the plugin root. Both carry the block, like attribution.
-  if (JSON.stringify(entry?.dependencies ?? []) !== JSON.stringify(manifest.dependencies ?? [])) {
+  // The marketplace entry is the copy Claude Code enforces. Conventions keep the block in both
+  // layers, like attribution; otherwise one layer is fine, and only a real disagreement counts.
+  const inBoth = entry.dependencies && manifest.dependencies;
+  if ((conventions || inBoth) && depKey(entry.dependencies) !== depKey(manifest.dependencies)) {
     error(
       name,
-      manifestPath,
+      file,
       "`dependencies` differs between plugin.json and the marketplace.json entry",
       "keep the two blocks identical; the marketplace entry is the one that is enforced"
     );
   }
 
   inventory.set(name, {
-    skills: skillNames,
+    dir: pluginDir,
+    file,
+    skills: skills.map((s) => s.skill),
     agents: agentNames,
-    version: manifest.version,
-    dependencies: entry?.dependencies ?? manifest.dependencies ?? [],
+    version,
+    dependencies: entry.dependencies ?? manifest.dependencies ?? [],
   });
 }
 
@@ -396,7 +524,7 @@ for (const name of onDisk) {
 function satisfies(version, range) {
   const m = /^(\^|~|>=|=)?(\d+)(?:\.(\d+))?(?:\.(\d+))?$/.exec(range.trim());
   if (!m) return null;
-  const [a, b, c] = version.split(".").map(Number);
+  const [a, b, c] = version.split(/[-+]/)[0].split(".").map(Number);
   const [x, y, z] = [m[2], m[3] ?? 0, m[4] ?? 0].map(Number);
   const cmp = a - x || b - y || c - z;
   switch (m[1]) {
@@ -415,20 +543,23 @@ let tags = null;
 try {
   tags = execFileSync("git", ["-C", root, "tag", "-l", "*--v*"], { encoding: "utf8", stdio: "pipe" }).split(/\r?\n/).filter(Boolean);
 } catch {
-  warn("repo", null, "not a git checkout — skipped the release-tag check for dependency ranges");
+  skipped.push("release tags for dependency ranges: not a git checkout");
 }
 
 const skillOwner = new Map();
 for (const [name, inv] of inventory) for (const skill of inv.skills) skillOwner.set(skill, name);
 
-const edges = new Map(); // plugin -> Set of plugins it depends on in this marketplace
+const edges = new Map(); // plugin -> Set of plugins it depends on
 for (const [name, inv] of inventory) {
-  const file = join(pluginsDir, name, "plugin.json");
+  const file = inv.file;
   edges.set(name, new Set());
   for (const dep of Array.isArray(inv.dependencies) ? inv.dependencies : []) {
-    const spec = typeof dep === "string" ? { name: dep.split("@")[0], marketplace: dep.split("@")[1] } : dep ?? {};
-    if (spec.marketplace && spec.marketplace !== marketplace?.name) continue; // another marketplace: not ours to check
-    if (!inventory.has(spec.name)) {
+    const spec = depSpec(dep);
+    if (spec.marketplace && spec.marketplace !== marketplace?.name) {
+      edges.get(name).add(spec.name); // another marketplace: declared, but not ours to check
+      continue;
+    }
+    if (!declared.has(spec.name)) {
       error(name, file, `depends on "${spec.name}", which is not a plugin in this marketplace`);
       continue;
     }
@@ -437,8 +568,9 @@ for (const [name, inv] of inventory) {
       continue;
     }
     edges.get(name).add(spec.name);
-    if (!spec.version) continue;
-    const current = inventory.get(spec.name).version;
+    const target = inventory.get(spec.name);
+    if (!spec.version || !target?.version) continue; // a remote plugin's version is not on disk
+    const current = target.version;
     const ok = satisfies(current, spec.version);
     if (ok === null) {
       warn(name, file, `cannot evaluate the range "${spec.version}" for "${spec.name}"`, "use ^x.y.z, ~x.y.z, >=x.y.z or x.y.z");
@@ -452,12 +584,13 @@ for (const [name, inv] of inventory) {
         "the plugin fails to load until the range and the dependency's version agree"
       );
     }
-    if (tags && !tags.some((t) => t.startsWith(`${spec.name}--v`) && satisfies(t.slice(spec.name.length + 3), spec.version))) {
+    // Only a repo that releases through <plugin>--v<version> tags can be missing one.
+    if (tags?.length && !tags.some((t) => t.startsWith(`${spec.name}--v`) && satisfies(t.slice(spec.name.length + 3), spec.version))) {
       warn(
         name,
         file,
         `no release tag of ${spec.name} satisfies ${spec.version}`,
-        `tag the release with \`claude plugin tag plugins/${spec.name}\``
+        `tag the release with \`claude plugin tag ${relative(root, target.dir)}\``
       );
     }
   }
@@ -476,7 +609,7 @@ for (const { plugin, path, skills } of preloads) {
         plugin,
         path,
         `skills: preloads "${skill}" from ${owner}, but ${plugin} does not depend on ${owner}`,
-        `add { "name": "${owner}", "version": "^${inventory.get(owner)?.version}" } to dependencies in both manifests`
+        `add { "name": "${owner}", "version": "^${inventory.get(owner)?.version ?? "x.y.z"}" } to dependencies in both manifests`
       );
     }
   }
@@ -500,11 +633,13 @@ for (const name of edges.keys()) {
   const key = cycle && [...new Set(cycle)].sort().join(",");
   if (cycle && !reported.has(key)) {
     reported.add(key);
-    error(name, join(pluginsDir, name, "plugin.json"), `dependency cycle: ${cycle.join(" → ")}`, "drop the preload that closes the cycle");
+    error(name, inventory.get(name).file, `dependency cycle: ${cycle.join(" → ")}`, "drop the preload that closes the cycle");
   }
 }
 
 // ------------------------------------------------------------- layer 3: documentation
+// The tables are only comparable when the repo keeps them: a row for any plugin means the file
+// maintains the table, and from then on a missing row is drift. Columns are found by their header.
 
 function tableRowCells(line) {
   return line
@@ -514,16 +649,31 @@ function tableRowCells(line) {
     .map((c) => c.trim());
 }
 
+function columnsAbove(lines, rowIndex) {
+  let top = rowIndex;
+  while (top > 0 && lines[top - 1].trim().startsWith("|")) top -= 1;
+  const header = tableRowCells(lines[top]).map((c) => c.toLowerCase());
+  return { agents: header.findIndex((c) => /^agents?$/.test(c)), skills: header.findIndex((c) => /^skills?$/.test(c)) };
+}
+
+function pluginRows(lines, prefixes) {
+  const rowOf = (name) => lines.findIndex((l) => prefixes(name).some((p) => l.trim().startsWith(p)));
+  return { rowOf, maintained: conventions || [...inventory.keys()].some((name) => rowOf(name) !== -1) };
+}
+
 const claudeMdPath = join(root, "CLAUDE.md");
 if (existsSync(claudeMdPath)) {
   const lines = readFileSync(claudeMdPath, "utf8").split(/\r?\n/);
-  for (const [name, inv] of inventory) {
-    const row = lines.find((l) => l.trim().startsWith(`| **${name}**`));
-    if (!row) {
+  const { rowOf, maintained } = pluginRows(lines, (name) => [`| **${name}**`]);
+  if (!maintained) skipped.push("CLAUDE.md has no Plugins table");
+  for (const [name, inv] of maintained ? inventory : []) {
+    const rowIndex = rowOf(name);
+    if (rowIndex === -1) {
       error("docs", claudeMdPath, `the Plugins table has no row for "${name}"`);
       continue;
     }
-    const cells = tableRowCells(row);
+    const cells = tableRowCells(lines[rowIndex]);
+    const columns = columnsAbove(lines, rowIndex);
     const listCell = (cell) =>
       !cell || cell === "—" || cell === "-"
         ? []
@@ -531,74 +681,88 @@ if (existsSync(claudeMdPath)) {
             .split(",")
             .map((s) => s.trim().replace(/[`*]/g, ""))
             .filter(Boolean);
-    const documentedAgents = listCell(cells[2]);
-    const documentedSkills = listCell(cells[3]);
 
-    for (const skill of inv.skills) {
-      if (!documentedSkills.includes(skill)) {
-        error("docs", claudeMdPath, `Plugins table row "${name}" does not list the skill "${skill}"`);
+    if (columns.skills !== -1) {
+      const documentedSkills = listCell(cells[columns.skills]);
+      for (const skill of inv.skills) {
+        if (!documentedSkills.includes(skill)) {
+          error("docs", claudeMdPath, `Plugins table row "${name}" does not list the skill "${skill}"`);
+        }
+      }
+      for (const skill of documentedSkills) {
+        if (!inv.skills.includes(skill)) {
+          error("docs", claudeMdPath, `Plugins table row "${name}" lists "${skill}", which no longer exists`);
+        }
       }
     }
-    for (const skill of documentedSkills) {
-      if (!inv.skills.includes(skill)) {
-        error("docs", claudeMdPath, `Plugins table row "${name}" lists "${skill}", which no longer exists`);
+    if (columns.agents !== -1) {
+      const documentedAgents = listCell(cells[columns.agents]);
+      for (const agent of inv.agents) {
+        if (!documentedAgents.includes(agent)) {
+          error("docs", claudeMdPath, `Plugins table row "${name}" does not list the agent "${agent}"`);
+        }
       }
-    }
-    for (const agent of inv.agents) {
-      if (!documentedAgents.includes(agent)) {
-        error("docs", claudeMdPath, `Plugins table row "${name}" does not list the agent "${agent}"`);
-      }
-    }
-    for (const agent of documentedAgents) {
-      if (!inv.agents.includes(agent)) {
-        error("docs", claudeMdPath, `Plugins table row "${name}" lists agent "${agent}", which no longer exists`);
+      for (const agent of documentedAgents) {
+        if (!inv.agents.includes(agent)) {
+          error("docs", claudeMdPath, `Plugins table row "${name}" lists agent "${agent}", which no longer exists`);
+        }
       }
     }
   }
 } else {
-  warn("docs", null, "no CLAUDE.md at the repo root — skipped the Plugins table check");
+  skipped.push("no CLAUDE.md at the repo root");
 }
 
 const rootReadmePath = join(root, "README.md");
 if (existsSync(rootReadmePath)) {
   const lines = readFileSync(rootReadmePath, "utf8").split(/\r?\n/);
-  for (const [name, inv] of inventory) {
-    const row = lines.find((l) => l.trim().startsWith(`| [**${name}**]`));
-    if (!row) {
+  const { rowOf, maintained } = pluginRows(lines, (name) => [`| [**${name}**]`, `| **${name}**`]);
+  if (!maintained) skipped.push("the root README has no plugin table");
+  for (const [name, inv] of maintained ? inventory : []) {
+    const rowIndex = rowOf(name);
+    if (rowIndex === -1) {
       error("docs", rootReadmePath, `the plugin table has no row for "${name}"`);
       continue;
     }
-    const cells = tableRowCells(row);
+    const cells = tableRowCells(lines[rowIndex]);
+    const columns = columnsAbove(lines, rowIndex);
     const count = (cell) => (cell === "—" || cell === "-" ? 0 : Number(cell));
-    const agents = count(cells[2]);
-    const skills = count(cells[3]);
-    if (Number.isNaN(agents) || agents !== inv.agents.length) {
-      error("docs", rootReadmePath, `row "${name}" claims ${cells[2]} agent(s) but the plugin has ${inv.agents.length}`);
+    // A cell that is not a number is a list of names or a note, not a count that can go stale.
+    const stale = (column, actual) => {
+      if (column === -1) return false;
+      const claimed = count(cells[column]);
+      return Number.isNaN(claimed) ? conventions : claimed !== actual;
+    };
+    if (stale(columns.agents, inv.agents.length)) {
+      error("docs", rootReadmePath, `row "${name}" claims ${cells[columns.agents]} agent(s) but the plugin has ${inv.agents.length}`);
     }
-    if (Number.isNaN(skills) || skills !== inv.skills.length) {
-      error("docs", rootReadmePath, `row "${name}" claims ${cells[3]} skill(s) but the plugin has ${inv.skills.length}`);
+    if (stale(columns.skills, inv.skills.length)) {
+      error("docs", rootReadmePath, `row "${name}" claims ${cells[columns.skills]} skill(s) but the plugin has ${inv.skills.length}`);
     }
   }
 } else {
-  warn("docs", null, "no README.md at the repo root — skipped the plugin count check");
+  skipped.push("no README.md at the repo root");
 }
 
 for (const [name, inv] of inventory) {
-  const readmePath = join(pluginsDir, name, "README.md");
+  const readmePath = join(inv.dir, "README.md");
   if (!existsSync(readmePath)) {
-    warn(name, join(pluginsDir, name), "plugin has no README.md");
+    warn(name, inv.dir, "plugin has no README.md");
     continue;
   }
   const text = readFileSync(readmePath, "utf8");
   const bolded = new Set([...text.matchAll(/\*\*([a-z0-9][\w-]*)\*\*/g)].map((m) => m[1]));
+  // With conventions the name sits in bold in a table; otherwise any mention documents it.
+  const documented = (unit) =>
+    conventions ? bolded.has(unit) : new RegExp(`(^|[^\\w-])${unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^\\w-])`).test(text);
   for (const skill of inv.skills) {
-    if (!bolded.has(skill)) {
-      error(name, readmePath, `README does not document the skill "${skill}"`, "every skill needs a row in the plugin's skills table");
+    if (!documented(skill)) {
+      convention(name, readmePath, `README does not document the skill "${skill}"`, "every skill needs a row in the plugin's skills table");
     }
   }
   for (const agent of inv.agents) {
-    if (!bolded.has(agent)) {
-      error(name, readmePath, `README does not document the agent "${agent}"`);
+    if (!documented(agent)) {
+      convention(name, readmePath, `README does not document the agent "${agent}"`);
     }
   }
 }
@@ -606,20 +770,24 @@ for (const [name, inv] of inventory) {
 // ------------------------------------------------------ native manifest schema check
 
 if (!skipNative) {
-  const targets = [root, ...onDisk.map((n) => join(pluginsDir, n))];
+  // --strict turns the validator's own style warnings into failures, which is a choice a repo
+  // makes for itself, through conventions or this script's --strict.
+  const nativeArgs = conventions || strict ? ["--strict"] : [];
+  const targets = [...new Set([root, ...[...inventory.values()].map((inv) => inv.dir)])];
+  const pluginAt = new Map([...inventory].map(([name, inv]) => [inv.dir, name]));
   let ran = false;
   for (const target of targets) {
     try {
-      execFileSync("claude", ["plugin", "validate", target, "--strict"], { stdio: "pipe", encoding: "utf8" });
+      execFileSync("claude", ["plugin", "validate", target, ...nativeArgs], { stdio: "pipe", encoding: "utf8" });
       ran = true;
     } catch (err) {
       if (err.code === "ENOENT") break; // no claude CLI on PATH — nothing to add
       ran = true;
       const out = `${err.stdout ?? ""}${err.stderr ?? ""}`.trim();
       error(
-        target === root ? "marketplace" : basename(target),
+        target === root ? "marketplace" : pluginAt.get(target),
         target,
-        `claude plugin validate --strict failed:\n    ${out.split(/\r?\n/).join("\n    ")}`
+        `claude plugin validate ${nativeArgs.join(" ")} failed:\n    ${out.split(/\r?\n/).join("\n    ")}`
       );
     }
   }
@@ -639,8 +807,12 @@ if (asJson) {
     JSON.stringify(
       {
         root,
-        plugins: Object.fromEntries([...inventory].map(([n, i]) => [n, { version: i.version, skills: i.skills, agents: i.agents }])),
+        conventions,
+        plugins: Object.fromEntries(
+          [...inventory].map(([n, i]) => [n, { dir: relative(root, i.dir) || ".", version: i.version, skills: i.skills, agents: i.agents }])
+        ),
         issues,
+        skipped,
         summary: { errors: errors.length, warnings: warnings.length, ok: !failing },
       },
       null,
@@ -663,10 +835,16 @@ const skillCount = [...inventory.values()].reduce((n, i) => n + i.skills.length,
 const agentCount = [...inventory.values()].reduce((n, i) => n + i.agents.length, 0);
 
 console.log(`\n${inventory.size} plugins · ${agentCount} agents · ${skillCount} skills`);
+if (skipped.length) {
+  console.log("Not checked:");
+  for (const reason of skipped) console.log(`  - ${reason}`);
+}
 console.log(
   errors.length || warnings.length
     ? `${errors.length} error(s), ${warnings.length} warning(s)`
-    : "✓ manifests and documentation agree"
+    : inventory.size
+      ? "✓ manifests and documentation agree"
+      : "Nothing local to audit"
 );
 
 process.exit(failing ? 1 : 0);

@@ -5,42 +5,76 @@ about whether a skill is *good*, only whether the repo's own statements about it
 
 ---
 
+## House conventions
+
+Some of what follows is a house rule rather than something Claude Code needs. A repo adopts those
+rules by committing `.marketplace-doctor.json` at its root:
+
+```json
+{ "conventions": true }
+```
+
+| Check | Without the file | With it |
+| --- | --- | --- |
+| Manifest or `version` missing | warning: both are optional | error |
+| Attribution | warning when neither layer has `author`; a mismatch is always an error | each layer carries the block; unknown `author` keys and missing `email`/`url` warn |
+| Agent frontmatter | `name` and `description` required; ignored keys warn | closed key set in a fixed order, every key required; ignored keys are errors |
+| `agents` array | if present, unlisted files are errors; if absent, `agents/` is scanned | always required |
+| Skill frontmatter | missing `description`, a differing `name` and non-kebab folders warn | closed key set in a fixed order; those three are errors |
+| `dependencies` | a mismatch only when both layers declare it | both layers carry the same block |
+| Doc tables | checked only if the file has a row for some plugin | every plugin needs a row |
+| Per-plugin README | warning if a skill or agent is never mentioned | error unless the name appears in bold |
+| Native pass | `claude plugin validate` | `claude plugin validate --strict` |
+
+What the script could not audit is printed under `Not checked` (and in `skipped` with `--json`):
+entries with a remote `source`, a missing doc table, a missing git checkout.
+
+---
+
 ## Layer 1 — `marketplace.json`
 
 The marketplace manifest is the only file where a **new plugin** must be registered by hand. New
-skills and agents inside an existing plugin must *not* touch it.
+skills and agents inside an existing plugin must *not* touch it. Local plugins are read from each
+entry's `source` (`metadata.pluginRoot` included); `github`, `url`, `git-subdir` and other object
+sources have nothing on disk, so they are listed under `Not checked`.
 
 | Message | What actually broke | Repair |
 | --- | --- | --- |
-| `plugins/<name>/ exists but is not listed in marketplace.json` | A plugin directory was created but never registered. Nobody installing the marketplace can see it. | Add an entry with `name` and `source: "./plugins/<name>"`. |
+| `<path>/ exists but is not listed in marketplace.json` | A directory with a manifest, `skills/`, `agents/` or `commands/` sits under `plugins/` or next to a listed plugin, but was never registered. Nobody installing the marketplace can see it. | Add an entry with `name` and `source: "./<path>"`. |
 | `entry "<name>" points at a missing directory` | The plugin was renamed, moved, or deleted and the entry was left behind. Installing the marketplace fails here. | Fix `source`, or remove the entry if the plugin is genuinely gone. |
-| `entry "<name>" lives in directory "<other>"` (warning) | The entry name and the folder name disagree. Both are used as the plugin id depending on the surface, so this is a latent id collision. | Rename the folder to match the entry, and update `source`. |
+| `entry "<name>" lives in directory "<other>"` (warning, conventions only) | The entry name and the folder name disagree. Both are used as the plugin id depending on the surface, so this is a latent id collision. | Rename the folder to match the entry, and update `source`. |
 | `entry has no name` / `no source` | Hand-edited JSON. | Restore the missing field. |
 
 ---
 
 ## Layer 2 — `plugin.json`
 
+The manifest is read from `.claude-plugin/plugin.json`, then from `plugin.json` beside `skills/`.
+
 The important asymmetry, and the source of most silent breakage:
 
-- **`agents` is an explicit array of paths.** An agent file that is not listed is never loaded.
-  The repo looks correct, the agent simply does not exist at runtime.
-- **`skills` is a directory glob (`"./skills/"`).** A new skill folder is discovered
+- **`agents` in the manifest replaces the default scan of `agents/`.** Once it exists, an agent
+  file that is not listed is never loaded. The repo looks correct, the agent simply does not exist
+  at runtime. Without it, the folder is scanned.
+- **`skills` adds to the default scan of `skills/`.** A new skill folder is discovered
   automatically. There is nothing to register — which is why skill drift shows up in the
   *documentation* rather than in the manifest.
 
 | Message | What actually broke | Repair |
 | --- | --- | --- |
-| `agents/<file>.md exists but is not listed in plugin.json` | The agent will not load. This is the check most worth having. | Append `"./agents/<file>.md"` to the `agents` array. |
+| `agents/<file>.md exists but is not listed in plugin.json` | The manifest has an `agents` value and the agent will not load. This is the check most worth having. With conventions on, the array is required even if the folder would be scanned. | Append `"./agents/<file>.md"` to the `agents` array. |
 | `agents[] references a missing file` | The agent was renamed or deleted; the manifest still points at it. | Fix the path, or drop the entry. |
-| `plugin.json name is "x" but the directory is "y"` | Ambiguous plugin id. | Make them identical — prefer changing the manifest if the folder name is already published. |
+| `plugin.json name is "x" but marketplace.json lists it as "y"` | Ambiguous plugin id. | Make them identical — prefer changing the manifest if the marketplace name is already published. |
+| `version "x" disagrees with marketplace.json` | Both layers set a version. `plugin.json` wins at install time and `claude plugin tag` refuses the mismatch. | Make them identical, or keep it in one layer. |
+| `` no `version` in plugin.json or the marketplace entry `` (warning; error with conventions) | Installs follow the git commit, and there is nothing to tag. | Add `version`, unless following the commit is deliberate. |
 | `version "..." is not semver` | A hand-typed version. Release tagging (`claude plugin tag`) will refuse it. | Restore `x.y.z`. |
-| `skills is "..." — this repo's convention is the "./skills/" glob` (warning) | Someone enumerated skills explicitly. It works, but every new skill now needs a manifest edit. | Replace with `"./skills/"` unless the deviation is deliberate. |
+| `skills is "..." — this repo's convention is the "./skills/" glob` (warning, conventions only) | Someone enumerated skills explicitly. It works, but every new skill now needs a manifest edit. | Replace with `"./skills/"` unless the deviation is deliberate. |
 
 ### Frontmatter contracts
 
-Both contracts are **closed sets in a fixed order** — this is a repo convention, stricter than
-what the runtime tolerates, which is why `claude plugin validate` does not catch it.
+With conventions on, both contracts are **closed sets in a fixed order** — a house rule, stricter
+than what the runtime tolerates, which is why `claude plugin validate` does not catch it. Without
+them, an agent needs `name` and `description`, and every official skill key is accepted.
 
 - **Agents:** `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`,
   `tools`, `model`, `color`, `skills`. Every key is required. `permissionMode`, `hooks` and
@@ -67,9 +101,9 @@ script reads it correctly. A `description:` that is genuinely empty is an error.
 ## The attribution contract (cuts across layers 1 and 2)
 
 Two surfaces read two different files. The marketplace browser renders the **entry in
-`marketplace.json`**; an installed plugin renders its **own `plugin.json`**. Attribution written
-into only one of them is invisible in the other view — the plugin shows up with no author at all.
-So both layers carry the same block, and it must agree:
+`marketplace.json`**; an installed plugin renders its **own `plugin.json`**. Values set in both must
+agree. With conventions on, both layers carry this block, because attribution written into only one
+of them is invisible in the other view:
 
 ```json
 {
@@ -81,12 +115,12 @@ So both layers carry the same block, and it must agree:
 
 | Message | What actually broke | Repair |
 | --- | --- | --- |
-| ``entry "<name>" has no `author` object`` / ``plugin.json has no `author` object`` | The plugin is displayed attributed to nobody in that surface. Usually a new plugin created by copying a manifest before the standard existed. | Add the block above. Copy it verbatim from a sibling plugin — it is the same for every plugin in this repo. |
+| ``entry "<name>" has no `author` object`` / ``plugin.json has no `author` object`` | The plugin is displayed attributed to nobody in that surface. Usually a new plugin created by copying a manifest before the standard existed. | Add the block above. Copy it verbatim from a sibling plugin if the repo uses one author. |
 | ``author has no `name` `` | `author` exists but is empty or a bare string. `name` is the field every surface actually renders. | Make `author` an object with at least `name`. |
-| `author is missing: email, url` (warning) | Partial attribution. Renders, but there is no way to reach the author. | Fill both in. |
-| `author carries unrecognized keys` (warning) | Someone added `github`, `twitter`, `nick`, … The contract is a closed set of three. | Drop the extra keys. |
+| `author is missing: email, url` (warning, conventions only) | Partial attribution. Renders, but there is no way to reach the author. | Fill both in. |
+| `author carries unrecognized keys` (warning, conventions only) | Someone added `github`, `twitter`, `nick`, … The contract is a closed set of three. | Drop the extra keys. |
 | ``has no `homepage` `` (warning) | Nothing links the listing back to the source repository. | Point it at the repo root. |
-| ``has no `license` `` (warning) | Legally the plugin cannot be used by whoever installs it. | Add the SPDX id (`MIT` in this repo), and make sure a `LICENSE` file actually exists. |
+| ``has no `license` `` (warning) | Legally the plugin cannot be used by whoever installs it. | Add the SPDX id, and make sure a `LICENSE` file actually exists. |
 | `author.name is "X" but marketplace.json says "Y"` | The two layers drifted — the plugin is attributed to one author while browsing and another once installed. | Make them identical. The marketplace entry is the one users see first, but neither is more authoritative: pick the correct value and write it into both. |
 | `license "X" disagrees with marketplace.json` | Same drift, on the license. | Same repair. |
 | ``marketplace has no `owner.name` `` | The marketplace itself is unattributed; every plugin without its own author falls back to nothing. | Add `owner: { name, email, url }` at the top of `marketplace.json`. |
@@ -125,7 +159,8 @@ is installed. A plugin that preloads from another one therefore declares it in `
 which Claude Code installs automatically and checks at load time. `claude plugin validate` checks
 only the shape of an entry: it accepts a range that no version satisfies, a name that does not
 exist, and a cycle. It also does not read a `plugin.json` at the plugin root, so the marketplace
-entry is the copy that is enforced; both layers carry the same block, like attribution:
+entry is the copy that is enforced. With conventions on, both layers carry the same block, like
+attribution; otherwise they only have to agree when both declare it:
 
 ```json
 "dependencies": [
@@ -139,7 +174,7 @@ entry is the copy that is enforced; both layers carry the same block, like attri
 | `skills: preloads "<s>" from <p>, but <q> does not depend on <p>` | Installing `<q>` alone leaves the agent without the skill, silently. | Add the dependency the hint prints, in both manifests, or drop the preload. |
 | `depends on "<p>", which is not a plugin in this marketplace` | A typo, or a renamed or removed plugin. The install fails. | Fix the name. A plugin from another marketplace needs `"marketplace"` set (and the allowlist in `marketplace.json`). |
 | `requires <p> <range>, but <p> is at <version>` | The dependency's own `version` falls outside the range, so the dependent plugin fails to load. | Widen the range, or bump it to the dependency's new major on purpose. |
-| `no release tag of <p> satisfies <range>` (warning) | No `<p>--v<version>` tag matches. Relative-path plugins still load from the marketplace copy, but a pinned install has nothing to resolve to. | Release the dependency: `claude plugin tag plugins/<p>`. |
+| `no release tag of <p> satisfies <range>` (warning, only in a repo with `*--v*` tags) | No `<p>--v<version>` tag matches. Relative-path plugins still load from the marketplace copy, but a pinned install has nothing to resolve to. | Release the dependency with the `claude plugin tag` command the hint prints. |
 | `cannot evaluate the range "<r>"` (warning) | The doctor reads `x.y.z`, `=`, `^`, `~` and `>=`. | Use one of those forms. |
 | `dependency cycle: a → b → a` / `depends on itself` | Installing either plugin installs both, and how a cycle resolves is undocumented. | Drop the preload that closes the cycle, as `nextjs-backend-engineer` did with `firebase-firestore`. |
 | `skills: preloads "<s>", which no plugin in this marketplace provides` (warning) | A misspelled or removed skill, or one from outside the marketplace. The agent starts without it. | Fix or drop the name. |
@@ -151,6 +186,11 @@ entry is the copy that is enforced; both layers carry the same block, like attri
 Nothing here affects runtime. All of it affects whether a user can find a capability, and whether
 the next Claude session working in the repo has an accurate map.
 
+A table counts as maintained once it has a row for any plugin (`| **name**` in `CLAUDE.md`,
+`| [**name**]` or `| **name**` in the root README); without one it goes under `Not checked`, unless
+conventions are on. Agents and Skills columns are found by their header, and a table without them
+is not compared. A non-numeric cell in a root README counts as a note rather than a stale count.
+
 | Message | Repair |
 | --- | --- |
 | `Plugins table row "<p>" does not list the skill "<s>"` (CLAUDE.md) | Add the skill to the row's Skills cell. **Never** resolve this by deleting the skill. |
@@ -159,18 +199,20 @@ the next Claude session working in the repo has an accurate map.
 | `README does not document the skill "<s>"` (per-plugin README) | Add a row to that README's skills table: name in bold, the `/slash-command`, and one line on what it does. Match the surrounding rows' style. |
 | `plugin has no README.md` (warning) | Every plugin should have one. `/repository-documentation` generates it. |
 
-The per-plugin check looks for the skill or agent name in **bold** (`**name**`) anywhere in the
-README, which is how the tables in this repo are written. A skill mentioned only in prose will
-still be flagged — that is intentional: it belongs in the table.
+With conventions on, the per-plugin check looks for the skill or agent name in **bold** (`**name**`)
+anywhere in the README, so a skill mentioned only in prose is flagged: it belongs in the table.
+Without them, any mention of the name counts, and a miss is a warning.
 
 ---
 
 ## The native pass
 
-Unless `--no-native` is given, the script runs `claude plugin validate <target> --strict` against
-the repo root and each plugin, and reports the output verbatim under the matching scope. If the
+Unless `--no-native` is given, the script runs `claude plugin validate <target>` against the repo
+root and each local plugin, and reports the output verbatim under the matching scope. It adds
+`--strict`, which fails on the validator's own warnings, when conventions are on or the script
+itself was given `--strict`. If the
 `claude` CLI is not on `PATH`, the pass is skipped with a warning rather than failing the run.
 
 Anything reported by that pass is a **schema** problem — fix it against the message it prints, not
-against this file. If it disagrees with something here, the native validator wins: this repo's
+against this file. If it disagrees with something here, the native validator wins: house
 conventions can only be stricter than the runtime's, never looser.

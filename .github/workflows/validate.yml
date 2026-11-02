@@ -1,6 +1,6 @@
 name: validate
 
-# The repo ships Markdown and JSON, so there is nothing to build or unit-test. What can break is
+# The repo ships Markdown, JSON and a few scripts, so there is little to build. What can break is
 # agreement: a plugin nobody registered, an agent missing from plugin.json, a README claiming a
 # skill count that stopped being true. This workflow is the guard for that.
 
@@ -29,6 +29,12 @@ jobs:
 
       - name: Check manifests and documentation
         run: node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
+
+      - name: Test the doctor and the release planner
+        run: >
+          node --test
+          plugins/plugin-dev/skills/marketplace-doctor/tests/check-marketplace.test.mjs
+          plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 
   knowledge:
     name: knowledge base renderings

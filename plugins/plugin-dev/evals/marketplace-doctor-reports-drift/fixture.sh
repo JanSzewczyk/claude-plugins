@@ -102,6 +102,11 @@ description: The third fixture skill. Use when the user asks for the third thing
 # Third
 SKILL
 
+# D4 is a house rule, so the fixture adopts the house conventions.
+cat > .marketplace-doctor.json <<'JSON'
+{ "conventions": true }
+JSON
+
 cat > CLAUDE.md <<'MD'
 # CLAUDE.md
 

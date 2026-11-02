@@ -149,8 +149,10 @@ node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs 
 ```
 
 Exit 0 clean, 1 on any error; `--strict` also fails on warnings, `--json` for machine output,
-`--no-native` to skip the wrapped `claude plugin validate --strict` pass. This runs in CI on every
-push and pull request — see `.github/workflows/validate.yml`.
+`--no-native` to skip the wrapped `claude plugin validate` pass. This runs in CI on every push and
+pull request — see `.github/workflows/validate.yml`. The conventions in this file are enforced
+because `.marketplace-doctor.json` turns them on; the skill itself runs on any marketplace, where
+they apply only if that repo opts in the same way.
 
 **Knowledge renderings — `knowledge.mjs check`.** Must pass whenever a note in `knowledge/`,
 `knowledge/targets.json` or a generated file changes. CI runs it with `validate` and the script's
@@ -174,6 +176,12 @@ claude plugin eval plugins/<name> --tag smoke --runs 1 --ablation none
 
 ```bash
 node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mjs" <feature-name> --dry-run
+```
+
+The `plugin-dev` scripts have tests, which CI runs against marketplaces laid out unlike this one:
+
+```bash
+node --test plugins/plugin-dev/skills/marketplace-doctor/tests/check-marketplace.test.mjs plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 ```
 
 **4. End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`)
