@@ -356,7 +356,7 @@ silently picking one side of a conflict.
 ## D21 The tooling is a skill in knowledge-dev, zero dependencies
 
 **Decision.** `knowledge.mjs` lives in `plugins/knowledge-dev/skills/knowledge-author/scripts/`,
-takes the repo root as `--root`, and uses only Node built-ins (Node 22+, the version CI uses).
+takes the repo root as `--root`, and uses only Node built-ins (Node 22+; CI runs Node 26).
 
 **Why.** It mirrors how `marketplace-doctor` ships its script, so moving the PoC into the repo is a
 copy, and the repo needs no `package.json`.
