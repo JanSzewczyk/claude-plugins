@@ -18,6 +18,7 @@ it — if the script already reports a defect, it is not in this file.
 - `R2.*` — standing instructions (probe P2)
 - `R3.*` — prose and language (probe P3)
 - `R4.*` — the bundle (probe P4)
+- The progress-list block: the repair for `R2.progress-list`, when a list is needed, and what makes one fail
 - What not to report
 
 ---
@@ -66,7 +67,8 @@ frame, not as a script executed top to bottom.
 | `R2.freedom` | Does the specificity match the fragility? Open tasks with many valid routes want prose and a direction. Fragile or destructive ones want an exact command and a refusal to improvise. The failure runs both ways: a rigid procedure imposed on an open task makes the skill stupid, and a vague instruction over a destructive one makes it dangerous. |
 | `R2.why` | Are rules explained or asserted? A rule with its reason attached survives the situation its author did not foresee; a bare imperative does not. This is the judgement half of the script's shouting-density warning — name the instances that were never justified. |
 | `R2.default` | One recommended path with an escape hatch, or a menu of options? A list of five libraries with no default hands the choice back to the reader, which is the decision the skill existed to make. |
-| `R2.shape` | Does the task have the structure it needs? Multi-step work wants a checklist the model can copy and tick. Quality-critical work wants a validate → fix → repeat loop that ends only when validation passes. Destructive or batch work wants a verifiable intermediate artifact produced *before* any side effect. Note the shape that is missing, not the shape that is merely absent from a task that does not need it. |
+| `R2.shape` | Does the task have the structure it needs? Quality-critical work wants a validate → fix → repeat loop that ends only when validation passes. Destructive or batch work wants a verifiable intermediate artifact produced *before* any side effect. Note the shape that is missing, not the shape that is merely absent from a task that does not need it. Visible progress on multi-step work is `R2.progress-list`. |
+| `R2.progress-list` | Does an ordered flow show its progress in a task list? Decide from the conditions in *The progress-list block* below; the script's `workflow` metric points at candidates and proves nothing. A skill that needs a list and has none is a `warn`, and the repair is that block filled in with the skill's own steps, ready to apply. A list that exists but fails one of the listed defects is a `warn` too, with the repair for that defect. |
 | `R2.self-contained` | Can the workflow be followed without opening the reference files? If the body defers a decision to a file it never says to read at that moment, the reader has to guess. |
 | `R2.contradiction` | Two instructions that cannot both be followed. Rare, expensive, worth a full read to find. |
 
@@ -106,6 +108,73 @@ not *does it cost anything*.
 | `R4.prerequisites` | A skill that bundles scripts, or whose text calls external tools (CLI commands, MCP servers, env vars), needs a `## Prerequisites` section in `SKILL.md` listing each one, a check command and how to install it. Missing section or an unlisted dependency is a `warn`. |
 | `R4.execute-or-read` | At the call site, is it clear whether to run the file or read it? Running costs the output; reading costs every line. |
 | `R4.mcp-names` | MCP tools referenced in prose need the fully qualified `ServerName:tool_name` form. Without the prefix the lookup fails when several servers are connected. |
+
+---
+
+## The progress-list block
+
+A list lets the user follow a long run and see where it stopped. It costs a few calls, so it has to
+be earned.
+
+**A skill needs one** when a single run has three or more ordered steps and at least one of these
+holds: a step has side effects (writes files, commits, pushes, deploys); the run is long; it pauses
+for a user decision; it loops over items found at runtime; it invokes other skills.
+
+**A skill does not need one** when it is background knowledge (`user-invocable: false`), when its
+numbered items are alternatives, rules or examples rather than a sequence, or when it answers a
+read-only question in a few calls. Do not report these.
+
+**The repair** goes directly after the skill's introduction, before its first step. Fill in the
+angle brackets and delete the bullets that do not apply:
+
+````markdown
+## Progress list
+
+**Your first tool call in this skill creates the task list, before any command below.** <Why the user
+needs it here, in one clause.> Keep it current to the last step. A one-line announcement in chat does
+not replace it.
+
+Use the task-list tool the session has: `mcp__ccd_turn__update_plan` in the Claude desktop app,
+otherwise `TaskCreate` and `TaskUpdate`, or `TodoWrite`. Load it with `ToolSearch` first if it is only
+listed as deferred. If the session has none of them, print the items as a Markdown checklist and
+reprint it each time a step finishes.
+
+Create it with these items, in the user's language:
+
+```text
+<one short imperative line per step>
+```
+
+- **One item in progress at a time.** Finish it when its step ends, and start the next in the same update.
+- **After <step>,** replace `<placeholder item>` with one item per <unit found at runtime>.
+- **While waiting for the user,** say so in the item: `<item>: waiting for your decision`.
+- **Show the outcome when it isn't a plain success:** `<item>: rolled back`. A finished item must not
+  read as if the step succeeded.
+- **A step that won't run** stays on the list with the reason, rather than being deleted.
+- **Skills invoked along the way** use this same list and add no list of their own.
+````
+
+**Defects in a list that already exists**, each with its repair:
+
+| Defect | Why it fails | Repair |
+| --- | --- | --- |
+| The instruction sits inside a step or after the first command, or only says to track progress | The model starts working and never comes back to it. In a test of `update-deps`, `Create it before Step 0's first command` was loaded and skipped in the one run tried; `Your first tool call in this skill creates the task list` produced the list in both runs tried. A small sample, but cheap to follow. | Move it before the first step and use the block's opening sentence. |
+| It names one tool only | Which tools exist depends on the model and the surface, so the instruction can fail silently. | Use the block's tool sentence, fallback included. |
+| It tracks only part of the flow, such as one item per group | Nothing shows before the first group or after the last. | List every step. |
+| Items are finer than the skill's steps, or are vague (`Do the work`) | The list stops being readable at a glance. | One short imperative line per step, and about twelve at most. |
+| Items found at runtime never replace their placeholder | The longest stretch of the run shows as one item. | Add the `After <step>` bullet. |
+| Failed, skipped or deferred steps end up looking done | A finished list then claims success the run did not have. | Add the outcome bullets. |
+
+A Markdown checklist the skill tells the model to copy and reprint is the fallback, so on its own it
+counts as naming one tool. A task-list tool missing from `allowed-tools` is not a finding here: that
+list only pre-approves tools, and the question belongs to `R1.tools`.
+
+Sources. [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices):
+copyable checklists for complex workflows. [Todo tracking](https://code.claude.com/docs/en/agent-sdk/todo-tracking.md):
+lists for three or more distinct actions, and completion meaning the task finished successfully.
+[Tool reference](https://code.claude.com/docs/en/tools-reference.md#task-tool-availability): tool
+availability by model. One item in progress at a time, and the item wording, are this repo's
+conventions and do not come from the public documentation.
 
 ---
 

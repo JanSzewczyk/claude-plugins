@@ -1,0 +1,58 @@
+schema_version: "1.1"
+name: skill-audit-flags-missing-progress-list
+description: >
+  Given a skill with five ordered, side-effecting steps and no task list, does the audit report the
+  missing list and propose the section to insert, without editing the skill?
+tags: [outcome, skill-audit]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./publish-notes/. Requires the operator's --scaffold.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Audit the skill in ./publish-notes and write what you find to findings.md in the current
+    directory, including any edits you propose.
+  max_turns: 25
+  timeout_seconds: 900
+  # Bash and Write still need the operator's --allow-tools; see the suite README.
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Task, TaskCreate, TaskUpdate]
+
+graders:
+  - type: tool_used
+    name: routes-to-skill-audit
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?skill-audit"'
+    min: 1
+
+  - type: regex
+    name: reports-the-missing-list
+    target: { source: file, path: findings.md }
+    pattern: '(progress|task) list'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: leaves-the-audited-skill-untouched
+    target: { source: file, path: publish-notes/SKILL.md }
+    pattern: '(progress|task) list'
+    flags: i
+    match: not_contains
+    weight: 2
+
+  - type: llm
+    name: proposes-a-usable-section
+    focus: { source: file, path: findings.md }
+    criteria: |
+      The proposed edit must insert a section before the skill's steps that:
+      1. Says the skill's first tool call creates the task list.
+      2. Names more than one task-list tool and gives a fallback for a session that has none.
+      3. Lists this skill's own five steps as items, not generic placeholders.
+      4. Says how to show the wait for the user's approval, or a step that did not succeed.
+      PASS if all four hold. FAIL if any is missing.
+
+expected_outcome: >
+  findings.md reports the missing task list and proposes the filled-in section, and
+  publish-notes/SKILL.md is unchanged.
