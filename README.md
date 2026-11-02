@@ -78,7 +78,8 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
-- **🔀 [create-pull-request](./plugins/git-workflow/skills/create-pull-request/)** — Pushes the branch if needed and opens a GitHub PR with a unified four-section description, shown for approval first
+- **🔀 [create-pull-request](./plugins/git-workflow/skills/create-pull-request/)** — Pushes the branch if needed and opens a GitHub PR with a unified five-section description, shown for approval first
+- **🚢 [ship-task](./plugins/git-workflow/skills/ship-task/)** — Carries one task through branch, change, verification, commits and a pull request, using the three skills above; other skills can hand it the same flow
 
 ---
 
@@ -113,7 +114,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging | — | 2 | [README](./plugins/plugin-dev/README.md) |
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
-| [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests | — | 3 | [README](./plugins/git-workflow/README.md) |
+| [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
 
 **Total: 10 agents · 46 skills**
@@ -306,8 +307,8 @@ What are you doing?
 ├── Keeping shared .claude/rules/ files in sync across repos
 │   └── Skill: sync-rules (shared-rules)
 │
-└── Branching, committing, opening a pull request
-    └── Skills: create-branch, create-commit, create-pull-request (git-workflow)
+└── Branching, committing, opening a pull request, or doing a whole task through to one
+    └── Skills: create-branch, create-commit, create-pull-request, ship-task (git-workflow)
 ```
 
 ### ⚡ Quick Reference
@@ -341,6 +342,7 @@ What are you doing?
 | Start a new branch for the work at hand | `/create-branch` skill |
 | Commit what I just changed | `/create-commit` skill |
 | Open a pull request for this branch | `/create-pull-request` skill |
+| Do a task on its own branch and open a PR | `/ship-task` skill |
 
 ---
 
@@ -398,8 +400,8 @@ claude-plugins/
     │   └── skills/                # 1 skill (sync-rules)
     ├── git-workflow/               # Branches, commits, pull requests
     │   ├── plugin.json
-    │   ├── references/            # Shared conventions for all three skills
-    │   └── skills/                # 3 skills (create-branch, create-commit, create-pull-request)
+    │   ├── references/            # Shared conventions for all its skills
+    │   └── skills/                # 4 skills (create-branch, create-commit, create-pull-request, ship-task)
     └── knowledge-dev/              # Knowledge base authoring and build
         ├── plugin.json
         └── skills/                # 1 skill (knowledge-author)

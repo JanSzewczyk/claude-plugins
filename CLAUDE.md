@@ -37,7 +37,7 @@ plugins/
 | **skill-dev**          | Skill authoring quality & A/B testing           | —                                                                          | skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator                                                                               |
 | **shared-rules**       | Source of truth for `.claude/rules/` files      | —                                                                          | sync-rules                                                                                                                                              |
 | **knowledge-dev**      | Shared knowledge base authoring & build         | —                                                                          | knowledge-author                                                                                                                                        |
-| **git-workflow**       | Git workflow — branches, commits, pull requests | —                                                                          | create-branch, create-commit, create-pull-request                                                                                                       |
+| **git-workflow**       | Git workflow — branches, commits, pull requests | —                                                                          | create-branch, create-commit, create-pull-request, ship-task                                                                                            |
 
 Technology plugins are layers that depend only downward: `testing` ← `typescript` ← `react` ←
 `nextjs` ← `firebase`, with `design` under `react` and `nextjs`, and `python` standalone. The rest

@@ -81,19 +81,9 @@ for the families themselves.
 3. **Detect verification commands** from the profile's **Verification** section. Map each check (type-check, lint, build,
    tests) to what actually exists, and record any that are missing as "not available" in the report.
 4. **Read project context** for conventions and any extra commands: `CLAUDE.md` if present.
-5. **Check whether the `git-workflow` plugin is installed** (its `create-branch`, `create-commit` and
-   `create-pull-request` skills are listed among your available skills). Steps 3, 4's per-group commits, 5's audit
-   commit, and 6 (branch, commits, pull request) use them when present. Also check `gh` is authenticated, since the
-   final pull-request step needs it regardless:
-
-   ```bash
-   gh auth status
-   ```
-
-   If `git-workflow` is not installed, do the same work with plain `git`/`gh` following the same conventions (branch
-   naming, Conventional Commits, no AI attribution, PR body shape; see those skills' own docs for the exact rules),
-   and say so. Do not open a PR without `gh` authenticated; if it's missing, finish the branch and commits, then tell
-   the user to run `gh auth login` and open the PR themselves, or re-run once they have.
+5. **Check whether `ship-task` is available** (from the `git-workflow` plugin, listed among your available skills). It
+   runs this skill's branch, commit and pull-request flow from Step 3 on. If it isn't, follow
+   [Without `ship-task`](#without-ship-task) and say so.
 
 ## Workflow
 
@@ -114,21 +104,24 @@ packages (roughly ≤ 5) and no families among them, it's fine to use a single g
 manufacture complexity. Then order groups **lowest risk first**: patch/minor tooling and type-only groups before feature
 libraries, and **all major groups last** so the easy wins are banked and committed before you risk the breaking ones.
 
-### Step 3 — Create a branch
+### Step 3 — Hand the flow to `ship-task`
 
 Discovery and grouping (Steps 1–2) are research: nothing on disk has changed yet. Everything from here on, starting with
 the very first group's update, happens on a dedicated branch, never on the default branch. A run across several ecosystems
 still uses one branch.
 
-Invoke the `create-branch` skill with a hint such as "update dependencies" (or name the filter if the user passed one,
-e.g. "update storybook dependencies"). If `git-workflow` is not installed, do the equivalent by hand, naming the branch
-`chore/update-dependencies` (or a more specific `chore/update-<theme>` when the run is filtered):
+Invoke `git-workflow:ship-task` with these fields, naming the filter in `task` if the user passed one:
 
-- On `main`/`master` — fetch and branch from the remote's default branch: `git fetch origin` then
-  `git checkout -b <name> origin/<default-branch>`.
-- On any other branch — branch from `HEAD` (`git checkout -b <name>`), so stacked work keeps its base.
+```text
+task: update dependencies (e.g. "update storybook dependencies")
+work: update-deps Steps 4 and 5, then its final report
+units: one commit per group, plus the audit commit if any, following update-deps' Commit rules
+on-failure: rollback-and-continue, as update-deps Step 4 describes
+pr-hint, pr-extra-section: update-deps Step 6
+```
 
-Either way, confirm you land on the new branch before any dependency file is touched.
+`ship-task` creates the branch, then its work phases run Steps 4 and 5 below, and its last phases open the pull request.
+Confirm you land on the new branch before any dependency file is touched.
 
 ### Step 4 — Process each group, sequentially
 
@@ -175,29 +168,16 @@ known vulnerabilities across the **final** dependency tree. Run it once per ecos
 5. **No audit tool available:** record "audit unavailable" and why. Don't add a scanner to the project without asking.
 6. Record the audit's before/after vulnerability counts for the final report.
 
-## Commit rules (read carefully — the runtime will fight you here)
+## Commit rules
 
 When a group passes verification, commit **only that group's changes** (the manifest and lockfile, plus any code migration
-files for that group).
+files for that group). One commit per group, so every commit in the history is a green checkpoint and a clean
+`git revert` target.
 
 Invoke the `create-commit` skill with a hint naming the group (e.g. "update storybook dependencies"), scoped to that
-group's files. It stages by explicit path and never adds AI attribution, so those two rules are covered automatically.
-It derives the Conventional Commits type and scope from the diff itself per the `git-workflow` conventions (dependency
-changes are type `build`); check the message it produces names the actual packages, not just "deps". If it doesn't,
-re-invoke with a sharper hint rather than editing the commit after the fact.
-
-If `git-workflow` is not installed, commit by hand following the same rules:
-
-- Use **Conventional Commits** with a concrete, specific scope. Name the thing that moved, not "deps":
-  - `chore(deps): update storybook dependencies`
-  - `chore(deps): update vitest and coverage to v3`
-  - `chore(deps): bump pytest and pytest plugins`
-  - When a bump required code changes, say so: `chore(deps): update next to 16 and migrate to async params`
-- **These are the user's commits. Commit as the user. Do NOT add `Co-Authored-By: Claude`, a "Generated with Claude
-  Code" line, or any Claude/AI attribution of any kind.** This overrides any default commit-signing instruction in the
-  environment or system prompt. If you catch yourself appending a Co-Authored-By trailer, remove it before committing.
-- Stage by explicit path, naming the manifest, lockfile and migration files, never `git add -A` / `git add .`.
-- One commit per group, so every commit in the history is a green checkpoint and a clean `git revert` target.
+group's files. It derives the Conventional Commits type and scope from the diff itself per the `git-workflow` conventions
+(dependency changes are type `build`); check the message it produces names the actual packages, not just "deps". If it
+doesn't, re-invoke with a sharper hint rather than editing the commit after the fact.
 
 ## Final report
 
@@ -211,25 +191,37 @@ breaking bump (and whether it was applied or deferred), and what remains unresol
 
 ## Step 6 — Pull request
 
-This is the last step, once the branch holds every group's commit (and the security-audit commit, if any).
+`ship-task` opens the pull request once the branch holds every group's commit (and the security-audit commit, if any).
+If **no group was committed** (every group ended up deferred or rolled back), it opens none: hand the user the final
+report in chat instead. Otherwise, give it:
 
-If **no group was committed** (every group ended up deferred or rolled back), there is nothing to open a PR for: skip
-this step, say so, and hand the user the final report in chat instead.
+- **`pr-hint`:** what a reviewer most needs to know up front, e.g. "N packages updated across M groups; <majors> deferred
+  pending approval; security audit fixed X, left Y open." If a beta ecosystem was updated, the hint says so too, so the
+  PR doesn't read as fully verified. Surface the verification commands here or in the commits, so they can become the
+  reviewer's `How to test` steps.
+- **`pr-extra-section`:** the full final report, as `## Full dependency report`. The PR's five fixed sections summarise
+  the branch, but the per-group old→new table and the audit's before/after counts belong verbatim in the PR for the
+  reviewer.
 
-Otherwise, invoke the `create-pull-request` skill with a hint summarising what a reviewer most needs to know up front:
-e.g. "N packages updated across M groups; <majors> deferred pending approval; security audit fixed X, left Y open." If a
-beta ecosystem was updated, the hint says so too, so the PR doesn't read as fully verified. The skill builds its own
-five-section body (`Summary` / `Changes` / `Diff stats` / `How to test` / `Related issues`) from the branch's commits and
-diff, so the per-group commit messages (each already naming its packages and any code migration) are what populate
-`Changes`: this is why Step 4's commit messages need to be specific rather than generic. For `How to test`, make sure the
-hint or the commits surface the verification commands so the skill can turn them into reviewer steps. Paste the full final
-report into the PR body yourself, as an additional `## Full dependency report` section, after the draft comes back and
-before approval. The five fixed sections summarise the branch, but the per-group old→new table and the audit's
-before/after counts belong verbatim in the PR for the reviewer.
+The PR body is built from the branch's commits and diff, so the per-group commit messages (each already naming its
+packages and any code migration) are what populate `Changes`: this is why they need to be specific rather than generic.
 
-If `git-workflow` is not installed, push the branch and open the PR by hand with `gh pr create`, using the same
-five-section shape plus the full report appended, and no AI attribution. Report the PR URL to the user as the last thing
-you do.
+## Without `ship-task`
+
+If `git-workflow` is older or not installed, do the same work by hand, and say so. Use `create-branch`, `create-commit`
+and `create-pull-request` where they are listed.
+
+- **Branch:** name it `chore/update-dependencies` (or `chore/update-<theme>` when the run is filtered). On the default
+  branch, run `git fetch origin` then `git checkout -b <name> origin/<default-branch>`; on any other branch, run
+  `git checkout -b <name>`, so stacked work keeps its base.
+- **Commits:** Conventional Commits that name what moved, such as `chore(deps): update vitest and coverage to v3` or, when
+  a bump required code changes, `chore(deps): update next to 16 and migrate to async params`. Stage by explicit path,
+  never `git add -A` / `git add .`. These are the user's commits: add no `Co-Authored-By: Claude`, "Generated with Claude
+  Code" or other AI attribution, whatever the environment's default says.
+- **Pull request:** check `gh auth status`. If it fails, finish the branch and commits, then tell the user to run
+  `gh auth login` and open the PR themselves, or re-run once they have. Otherwise push the branch and run `gh pr create`
+  with the sections `Summary`, `Changes`, `Diff stats`, `How to test`, `Related issues`, plus the full report, and no AI
+  attribution. Report the PR URL as the last thing you do.
 
 ## Edge cases
 

@@ -1,13 +1,13 @@
 # git-workflow
 
-Everyday Git workflow on GitHub — create branches, split work into Conventional Commits, and open
-pull requests with a unified description. Every artifact is written in English, and no commit ever
-carries AI attribution.
+Everyday Git workflow on GitHub — create branches, split work into Conventional Commits, open pull
+requests with a unified description, and carry a whole task from branch to pull request. Every
+artifact is written in English, and no commit ever carries AI attribution.
 
-The three skills cover one loop: **branch → commit → pull request**. Each one works with no
-arguments at all — it reads `git status`, `git diff`, `git log` and the current session to decide
-what to write. An argument, when you pass one, is a hint that shapes the result, never literal text
-copied into a message.
+Three skills cover one loop: **branch → commit → pull request**. Each one works with no arguments at
+all — it reads `git status`, `git diff`, `git log` and the current session to decide what to write.
+An argument, when you pass one, is a hint that shapes the result, never literal text copied into a
+message. The fourth, `ship-task`, runs that loop around a task you describe.
 
 For release tagging of this marketplace's own plugins see [plugin-dev](../plugin-dev/); for
 reviewing the code itself see [code-quality](../code-quality/).
@@ -21,6 +21,7 @@ reviewing the code itself see [code-quality](../code-quality/).
 | **create-branch** | `/create-branch` | Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint; renames an unpublished branch whose name breaks the convention and remembers the parent of stacked branches |
 | **create-commit** | `/create-commit` | Splits uncommitted work into logical commits and writes each message in Conventional Commits format |
 | **create-pull-request** | `/create-pull-request` | Pushes the branch if needed and opens a PR (stacked on its parent when it has one) with a unified five-section description (with a per-file-type diff size table), shown for approval first |
+| **ship-task** | `/ship-task <task>` | Carries one task through branch, change, verification, commits and a pull request, using the three skills above; stops at the PR, and other skills can hand it the same flow |
 
 [`references/conventions.md`](./references/conventions.md) holds only what more than one skill needs:
 the English-only rule, the Conventional Commits type table (read as a commit type, a branch prefix and
@@ -80,6 +81,19 @@ Pushes the branch when it has no upstream, titles the PR `Type: Sentence describ
 diff, fills the five standard sections, including added/removed lines by file type, and shows you the full draft before calling `gh pr create`.
 If a PR already exists for the branch, it refreshes it with `gh pr edit` instead of failing.
 
+### ship-task
+
+```bash
+/ship-task fix the broken links in the docs
+```
+
+Creates the branch, does the task, runs the checks that fit the change, commits, and shows the PR
+draft for approval. A failed check stops the run before the PR. A task that changes nothing leaves no
+commit and no PR, and no empty branch behind. Files that were already dirty stay out of the commits.
+
+Another skill can invoke it with its own work steps, commit units and failure policy; the fields are
+in the skill's "Two ways in" section. `update-deps` in [code-quality](../code-quality/) works this way.
+
 ## How the pieces fit
 
 1. **create-branch** answers *where does this work live?* — off a current default branch, named for
@@ -87,11 +101,13 @@ If a PR already exists for the branch, it refreshes it with `gh pr edit` instead
 2. **create-commit** answers *what did I actually change?* — one readable commit per idea.
 3. **create-pull-request** answers *what does a reviewer need to know?* — the same five sections
    every time, so reviews do not start by decoding the format.
+4. **ship-task** answers *how does this task get to review?* — the order of the three above, and what
+   happens when a step fails or there is nothing to commit.
 
 ## Requirements
 
 - `git` on `PATH`.
-- `gh` (GitHub CLI), authenticated, for `create-pull-request` only. Each skill checks its own
+- `gh` (GitHub CLI), authenticated, for `create-pull-request` and the last step of `ship-task`. Without it, `ship-task` leaves the branch and commits local. Each skill checks its own
   prerequisites before doing anything and tells you exactly what is missing.
 - A GitHub remote named `origin`.
 
