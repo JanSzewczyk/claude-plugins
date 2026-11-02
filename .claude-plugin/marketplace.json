@@ -185,7 +185,7 @@
     {
       "name": "git-workflow",
       "source": "./plugins/git-workflow",
-      "description": "Everyday Git workflow on GitHub — branches, Conventional Commits, and pull requests with a unified description",
+      "description": "Everyday Git workflow on GitHub — branches, Conventional Commits, pull requests with a unified description, and whole tasks from branch to PR",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
