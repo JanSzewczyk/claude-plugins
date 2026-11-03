@@ -3,7 +3,7 @@
   "name": "testing",
   "displayName": "Testing core",
   "description": "Technology-agnostic testing core — Playwright browser automation and accessibility-tree DOM test generation, usable whatever the project's language or framework.",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

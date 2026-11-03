@@ -218,3 +218,15 @@ test("rejects a $schema that is not a URL", () => {
   assert.equal(report.status, 1);
   assert.ok(messages(report).includes("`$schema` is not a URL or path"));
 });
+
+test("reports a plugin.json left in the plugin root, as an error with conventions", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo", ...ATTRIBUTION }]);
+  plugin("plugins/foo");
+  renameSync(join(root, "plugins/foo/.claude-plugin/plugin.json"), join(root, "plugins/foo/plugin.json"));
+  const plain = run();
+  assert.equal(plain.status, 0);
+  assert.ok(messages(plain).includes("plugin.json sits in the plugin root"));
+
+  write(".marketplace-doctor.json", { conventions: true });
+  assert.equal(run().status, 1);
+});

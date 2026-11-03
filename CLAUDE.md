@@ -13,7 +13,8 @@ This repository is a **Claude Code marketplace** distributing skills and agents 
   marketplace.json              # Marketplace manifest listing all plugins
 plugins/
   <plugin-name>/
-    plugin.json                 # Plugin metadata (name, description, agents, skills)
+    .claude-plugin/
+      plugin.json               # Plugin manifest (name, description, agents, skills)
     README.md                   # Per-plugin docs (skills table, install, troubleshooting)
     agents/                     # Agent definitions (.md files with frontmatter)
     skills/                     # Skill directories (SKILL.md + supporting docs)
@@ -49,7 +50,7 @@ serve any stack and stay grouped by purpose. Why: D23 in
 Three manifest layers must stay in sync when adding capabilities:
 
 1. **`.claude-plugin/marketplace.json`** — lists every plugin with its `source` path. A new *plugin* must be added here; new agents/skills inside an existing plugin do **not** touch this file.
-2. **`plugins/<name>/plugin.json`** — `agents` is an explicit array of relative `.md` paths (each new agent must be added). `skills` is a **directory glob** (`"./skills/"`), so a new skill is auto-discovered just by creating its folder — no manifest edit needed.
+2. **`plugins/<name>/.claude-plugin/plugin.json`** — `agents` is an explicit array of relative `.md` paths (each new agent must be added). `skills` is a **directory glob** (`"./skills/"`), so a new skill is auto-discovered just by creating its folder — no manifest edit needed.
 3. **Documentation** — the root `README.md`, the per-plugin `README.md`, and this file's Plugins table all enumerate capabilities by hand; update them when adding an agent or skill. Use `/repository-documentation` to regenerate the READMEs.
 
 ## Conventions
@@ -81,7 +82,7 @@ SKILL.md, the `*-rules` knowledge skills). Never edit those: edit the note and r
 
 Every plugin must be attributed in **both** manifest layers, because two different surfaces read
 two different files: the marketplace browser renders the entry in `.claude-plugin/marketplace.json`,
-while an installed plugin renders its own `plugins/<name>/plugin.json`. A block present in only one
+while an installed plugin renders its own `plugins/<name>/.claude-plugin/plugin.json`. A block present in only one
 of them leaves the plugin nameless in the other view — which is exactly why author information was
 not showing up before.
 
@@ -114,11 +115,11 @@ The block is identical in both places, and must be byte-for-byte the same for a 
 
 ## Versioning
 
-Versions live in two places: `plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to the fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.
+Versions live in two places: `.claude-plugin/plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to the fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.
 
 **IMPORTANT — this must happen automatically, without being asked:** whenever you edit an agent `.md` file or anything under a plugin's `skills/` directory (or the plugin otherwise changes), bump the version before ending the turn. Don't leave a version unchanged just because the user didn't mention versioning.
 
-- Editing a skill (any file under `plugins/<name>/skills/**`) → bump that plugin's `version` in `plugins/<name>/plugin.json`.
+- Editing a skill (any file under `plugins/<name>/skills/**`) → bump that plugin's `version` in `plugins/<name>/.claude-plugin/plugin.json`.
 - Editing an agent (`plugins/<name>/agents/*.md`) → bump both that agent's own `version` in its frontmatter **and** the plugin's `version` in `plugin.json`, and set `lastUpdated` to today's date.
 - Editing `plugin.json` metadata directly (description, agents list) with no other content change → bump the plugin `version` for that alone.
 - A brand-new plugin starts at `1.0.0`; a brand-new agent starts at `1.0.0` with `lastUpdated` set to the creation date.

@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "design",
-  "displayName": "Design System",
-  "description": "Design system & styling — skills for building UI with the Szum-Tech design system, Tailwind CSS v4, and CVA-based component conventions.",
+  "name": "ai-tools",
+  "displayName": "AI Tools",
+  "description": "AI tool integrations — NotebookLM automation, content generation, research workflows, and Polish real estate (KW) lookup.",
   "version": "1.0.6",
   "author": {
     "name": "Szum Tech Team",
@@ -11,6 +11,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
-  "keywords": ["design-system", "tailwind", "css", "cva", "styling"],
+  "keywords": ["ai", "notebooklm", "youtube", "automation", "research"],
+  "agents": [],
   "skills": "./skills/"
 }

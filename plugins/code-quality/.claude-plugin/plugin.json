@@ -3,7 +3,7 @@
   "name": "code-quality",
   "displayName": "Code Quality",
   "description": "Technology-agnostic repository maintenance — README and GitHub description generation, catching a project up with the template repository it was created from, and safe dependency updates for Node, with Python and Java/JVM in beta.",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

@@ -341,7 +341,8 @@ const depKey = (deps) =>
   );
 
 // Claude Code reads the manifest from .claude-plugin/; a plugin.json beside skills/ is the older
-// layout some marketplaces, this one included, still use with `claude plugin tag`.
+// layout some marketplaces still use with `claude plugin tag`. It is read, and reported by
+// convention as misplaced.
 function findManifest(dir) {
   return [join(dir, ".claude-plugin", "plugin.json"), join(dir, "plugin.json")].find((p) => existsSync(p)) ?? null;
 }
@@ -376,6 +377,14 @@ for (const { name, dir: pluginDir, entry } of local) {
   const manifest = manifestPath ? readJson(manifestPath) : {};
   if (!manifest) continue;
   const file = manifestPath ?? pluginDir;
+  if (manifestPath === join(pluginDir, "plugin.json")) {
+    convention(
+      name,
+      file,
+      "plugin.json sits in the plugin root",
+      "Claude Code reads the manifest from .claude-plugin/plugin.json — move it with `git mv` (paths inside stay relative to the plugin)"
+    );
+  }
 
   if (manifest.name && manifest.name !== name) {
     error(name, file, `plugin.json name is "${manifest.name}" but marketplace.json lists it as "${name}"`);

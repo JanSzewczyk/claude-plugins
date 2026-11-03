@@ -29,7 +29,8 @@ cat > .claude-plugin/marketplace.json <<'JSON'
 }
 JSON
 
-cat > plugins/alpha/plugin.json <<'JSON'
+mkdir -p plugins/alpha/.claude-plugin plugins/beta/.claude-plugin
+cat > plugins/alpha/.claude-plugin/plugin.json <<'JSON'
 {
   "name": "alpha",
   "description": "First plugin",
@@ -40,7 +41,7 @@ cat > plugins/alpha/plugin.json <<'JSON'
 }
 JSON
 
-cat > plugins/beta/plugin.json <<'JSON'
+cat > plugins/beta/.claude-plugin/plugin.json <<'JSON'
 {
   "name": "beta",
   "description": "Second plugin",

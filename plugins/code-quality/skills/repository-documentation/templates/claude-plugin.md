@@ -95,7 +95,7 @@ become available via the `Agent` tool.
 
 - **`.claude-plugin/`** — Marketplace manifest (`marketplace.json`) listing all plugins
 - **`plugins/<plugin-name>/`** — One directory per plugin
-  - `plugin.json` — Plugin metadata
+  - `.claude-plugin/plugin.json` — Plugin manifest
   - `agents/` — Agent definitions (`.md` with YAML frontmatter)
   - `skills/<skill-name>/SKILL.md` — Skill definitions + supporting docs
 
@@ -106,7 +106,7 @@ become available via the `Agent` tool.
 - Plugin names use **kebab-case**
 - Agent files are Markdown with YAML frontmatter (`name`, `version`, `model`, `tools`, `skills`)
 - Skill directories contain `SKILL.md` as the entry plus optional `references/`, `templates/`, `examples.md`
-- Each `plugin.json` lists its agents and skills with paths relative to the plugin directory
+- Each `.claude-plugin/plugin.json` lists its agents and skills with paths relative to the plugin directory
 - All paths in manifests are relative to the plugin directory
 
 ---
@@ -118,7 +118,7 @@ Contributions are welcome!
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-skill`)
 3. Add your skill/agent following the conventions above
-4. Update `plugin.json` and the README plugin table
+4. Update `.claude-plugin/plugin.json` and the README plugin table
 5. Open a Pull Request
 
 ---

@@ -25,6 +25,7 @@ rules by committing `.marketplace-doctor.json` at its root:
 | Doc tables | checked only if the file has a row for some plugin | every plugin needs a row |
 | Per-plugin README | warning if a skill or agent is never mentioned | error unless the name appears in bold |
 | `$schema` | warning when absent | error when absent |
+| Manifest location | root `plugin.json` is read, warning | error: it must be `.claude-plugin/plugin.json` |
 | Native pass | `claude plugin validate` | `claude plugin validate --strict` |
 
 What the script could not audit is printed under `Not checked` (and in `skipped` with `--json`):
@@ -50,7 +51,7 @@ sources have nothing on disk, so they are listed under `Not checked`.
 
 ## Layer 2 — `plugin.json`
 
-The manifest is read from `.claude-plugin/plugin.json`, then from `plugin.json` beside `skills/`.
+The manifest lives at `.claude-plugin/plugin.json`. A `plugin.json` beside `skills/` is still read, but flagged as misplaced.
 
 The important asymmetry, and the source of most silent breakage:
 
@@ -63,6 +64,7 @@ The important asymmetry, and the source of most silent breakage:
 
 | Message | What actually broke | Repair |
 | --- | --- | --- |
+| `plugin.json sits in the plugin root` (warning; error with conventions) | Claude Code reads the manifest from `.claude-plugin/plugin.json`. A copy beside `skills/` is the older layout and may be ignored at install, taking `dependencies`, `displayName` and the `agents` list with it. | `git mv <plugin>/plugin.json <plugin>/.claude-plugin/plugin.json`. Paths inside it stay relative to the plugin directory, so nothing else changes. |
 | `agents/<file>.md exists but is not listed in plugin.json` | The manifest has an `agents` value and the agent will not load. This is the check most worth having. With conventions on, the array is required even if the folder would be scanned. | Append `"./agents/<file>.md"` to the `agents` array. |
 | `agents[] references a missing file` | The agent was renamed or deleted; the manifest still points at it. | Fix the path, or drop the entry. |
 | `plugin.json name is "x" but marketplace.json lists it as "y"` | Ambiguous plugin id. | Make them identical — prefer changing the manifest if the marketplace name is already published. |

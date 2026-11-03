@@ -101,7 +101,7 @@ really does. **What to read (in priority order):**
    `pages/**/*.tsx` to list all routes; this reveals scope (dashboard,
    auth flows, API surface, etc.).
 6. **Plugin / agent manifests** — for claude-plugin type, read all
-   `plugin.json` and `SKILL.md` files to enumerate capabilities.
+   `.claude-plugin/plugin.json` and `SKILL.md` files to enumerate capabilities.
 
 **From this research, synthesise:**
 

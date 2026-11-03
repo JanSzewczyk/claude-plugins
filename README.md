@@ -355,62 +355,62 @@ claude-plugins/
 ├── knowledge/                    # Shared rule notes, one decision per file, built into skills
 └── plugins/
     ├── testing/                   # Technology-agnostic testing core
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 2 skills (playwright-cli, true-dom-tester)
     ├── typescript/                # TypeScript & JavaScript language layer
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # unit-tester, library-updater
     │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
     ├── python/                    # Python language layer
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 1 skill (generated builder-rules-py)
     ├── react/                     # React 19 UI development
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester
     │   └── skills/                # 4 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules)
     ├── design/                    # Design system & styling
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
     ├── nextjs/                    # Next.js full-stack development
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # nextjs-backend-engineer, code-reviewer, performance-analyzer, testing-strategist
     │   └── skills/                # 10 skills (server-actions, error-handling, api-test, lighthouse-audit, …)
     ├── firebase/                  # Firebase & database architecture
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # database-architect
     │   └── skills/                # 2 skills (firebase-firestore, db-migration)
     ├── code-quality/              # Repository maintenance
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 3 skills (repository-documentation, template-sync, update-deps)
     ├── product-management/        # PRD/TDD orchestration & coordination
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # product-owner
     │   └── skills/                # 1 skill (prd-spec)
     ├── ai-tools/                  # AI tool integrations & automation
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
     ├── plugin-dev/                 # Marketplace auditing & plugin releases
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 2 skills (marketplace-doctor, plugin-release)
     ├── skill-dev/                  # Skill authoring quality & A/B testing
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator)
     ├── shared-rules/               # Source of truth for .claude/rules/ files
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 1 skill (sync-rules)
     ├── git-workflow/               # Branches, commits, pull requests
-    │   ├── plugin.json
+    │   ├── .claude-plugin/plugin.json
     │   ├── references/            # Shared conventions for all its skills
     │   └── skills/                # 4 skills (create-branch, create-commit, create-pull-request, ship-task)
     └── knowledge-dev/              # Knowledge base authoring and build
-        ├── plugin.json
+        ├── .claude-plugin/plugin.json
         └── skills/                # 1 skill (knowledge-author)
 ```
 
 ### 🗂️ Key Files
 
 - **`.claude-plugin/marketplace.json`** — Marketplace manifest; Claude Code reads this to discover all plugins
-- **`plugins/<name>/plugin.json`** — Plugin metadata: name, version, agent paths, skills directory
+- **`plugins/<name>/.claude-plugin/plugin.json`** — Plugin metadata: name, version, agent paths, skills directory
 - **`plugins/<name>/agents/<agent>.md`** — Agent definition with YAML frontmatter (`name`, `model`, `tools`, `skills`)
 - **`plugins/<name>/skills/<skill>/SKILL.md`** — Skill entry point; supporting docs live alongside it
 - **`knowledge/`** — Shared rule notes; `references/rules.md`, the `BEGIN:knowledge` blocks and the `*-rules` skills are generated from them
@@ -437,7 +437,7 @@ Contributions are welcome!
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-skill`)
 3. Add your skill or agent following the [conventions above](#️-conventions)
-4. Update the plugin's `plugin.json` and the plugin's own `README.md` table
+4. Update the plugin's `.claude-plugin/plugin.json` and the plugin's own `README.md` table
 5. Open a Pull Request — describe which plugin is affected and what the new capability does
 
 ---

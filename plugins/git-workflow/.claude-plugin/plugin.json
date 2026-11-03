@@ -3,7 +3,7 @@
   "name": "git-workflow",
   "displayName": "Git Workflow",
   "description": "Everyday Git workflow on GitHub — create branches, split work into Conventional Commits, open pull requests with a unified description, and carry a whole task from branch to pull request. Every artifact is written in English, and no commit ever carries AI attribution.",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
