@@ -3,7 +3,7 @@
   "name": "typescript",
   "displayName": "TypeScript",
   "description": "TypeScript and JavaScript tooling — Vitest unit tests, mimicry-js test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm package updates.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

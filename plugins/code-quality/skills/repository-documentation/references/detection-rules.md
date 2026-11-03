@@ -7,8 +7,8 @@ evidence so the user can verify the choice.
 
 **Strong signals (any one is sufficient):**
 - `.claude-plugin/marketplace.json` exists
-- `plugins/*/plugin.json` exists (this repo's pattern)
-- A `plugin.json` in repo root with `skills` or `agents` field
+- `plugins/*/.claude-plugin/plugin.json` exists (this repo's pattern)
+- A `.claude-plugin/plugin.json` (or a root `plugin.json`) with `skills` or `agents` field
 
 **Confirmatory signals:**
 - Directories named `skills/`, `agents/`, `hooks/`, `commands/`

@@ -147,7 +147,8 @@ function localPluginDir(entry) {
   return existsSync(dir) ? dir : null;
 }
 
-// Claude Code reads .claude-plugin/plugin.json; a plugin.json beside skills/ is the older layout.
+// Claude Code reads .claude-plugin/plugin.json; a plugin.json beside skills/ is the older layout,
+// still found here so a release can be cut before the manifest is moved.
 function manifestRel(prefix, dir) {
   const candidate = [".claude-plugin/plugin.json", "plugin.json"].find((p) => existsSync(join(dir, p)));
   return candidate ? `${prefix}${candidate}` : null;

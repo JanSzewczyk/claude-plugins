@@ -18,7 +18,7 @@ bump is the release. This skill makes that bump correct and repeatable instead o
 If the repository's `CLAUDE.md` has a Versioning section, read it before deciding anything: it is
 the contract, and where it differs from the defaults below, it wins.
 
-- **Versions live in the manifest**, in `plugin.json` or the marketplace entry. A plugin with
+- **Versions live in the manifest**, in `.claude-plugin/plugin.json` or the marketplace entry. A plugin with
   neither follows the git commit and has nothing to bump; the plan says so. **Skills have no
   version field** — a skill's version is its parent plugin's version.
 - **Every plugin bumps independently.** Three plugins changed in one batch means three separate

@@ -64,6 +64,12 @@ loads without them. See [references/checks.md](./references/checks.md#display-me
 validation and autocomplete. A missing one is a warning (an error with conventions); `--fix` adds
 it. See [references/checks.md](./references/checks.md#the-schema-property-both-manifests).
 
+## The manifest belongs in `.claude-plugin/`
+
+Claude Code reads `<plugin>/.claude-plugin/plugin.json`. A `plugin.json` in the plugin root is
+still found by this skill, but reported (a warning, an error with conventions) and moved with
+`git mv`. See [references/checks.md](./references/checks.md#layer-2--pluginjson).
+
 ## Run it
 
 The script ships with this skill, not with the repo you are auditing (they are usually different
