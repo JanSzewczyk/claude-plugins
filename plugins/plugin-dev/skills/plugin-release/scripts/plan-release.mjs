@@ -6,7 +6,10 @@
 // The semantic half stays with the caller — this script proposes a floor, never the final call.
 // A "patch" verdict on a diff that quietly changed a skill's contract is still a major.
 //
-// Usage: node plan-release.mjs [repo-root] [--since <ref>] [--apply] [--json] [--plugin <name>]
+// Usage: node plan-release.mjs [repo-root] [--since <ref>] [--apply] [--json] [--plugin <name>] [--check]
+//
+// --check is the CI gate: with --since <the PR's base>, it exits 1 when a changed plugin has no
+// version bump, and warns when the bump is smaller than the change implies. It writes nothing.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -15,6 +18,7 @@ import { join, relative, resolve } from "node:path";
 const argv = process.argv.slice(2);
 const asJson = argv.includes("--json");
 const apply = argv.includes("--apply");
+const check = argv.includes("--check");
 
 function flag(name, fallback) {
   const i = argv.indexOf(name);
@@ -26,6 +30,10 @@ const positional = argv.filter((a, i) => !a.startsWith("--") && !VALUE_FLAGS.has
 const root = resolve(positional[0] ?? process.cwd());
 const onlyPlugin = flag("--plugin", null);
 const explicitSince = flag("--since", null);
+if (check && apply) {
+  console.error("✗ --check and --apply exclude each other");
+  process.exit(1);
+}
 
 function fail(msg) {
   console.error(`✗ ${msg}`);
@@ -203,7 +211,10 @@ for (const entry of marketplace.plugins ?? []) {
   }
 
   // Was the version already bumped in this range? If so we report it and propose nothing.
-  const previousVersion = since && manifestPath ? versionAt(since, manifestPath) : null;
+  // The manifest may have moved within the range (plugin.json → .claude-plugin/plugin.json).
+  const previousVersion = since
+    ? ([manifestPath, `${prefix}.claude-plugin/plugin.json`, `${prefix}plugin.json`].filter(Boolean).map((p) => versionAt(since, p)).find((v) => v !== null) ?? null)
+    : null;
   const alreadyBumped = previousVersion !== null && previousVersion !== currentVersion;
 
   const reasons = [];
@@ -258,6 +269,7 @@ for (const entry of marketplace.plugins ?? []) {
     alreadyBumped,
     firstRelease,
     bump: alreadyBumped ? "none" : kind,
+    kind,
     proposedVersion: proposed,
     reasons,
     touched,
@@ -308,6 +320,32 @@ if (apply) {
     else console.error(`✗ ${plan.plugin}: could not find its "version" field to rewrite`);
   }
   if (marketplaceOut !== marketplaceRaw) writeFileSync(marketplacePath, marketplaceOut, "utf8");
+}
+
+const order = ["none", "patch", "minor", "major"];
+function bumpKind(from, to) {
+  const [a, b, c] = from.split(/[-+]/)[0].split(".").map(Number);
+  const [x, y, z] = to.split(/[-+]/)[0].split(".").map(Number);
+  return x > a ? "major" : y > b ? "minor" : z > c ? "patch" : "none";
+}
+
+if (check) {
+  const missing = plans.filter((p) => !p.alreadyBumped && !p.firstRelease && p.bump !== "none");
+  const tooSmall = plans.filter((p) => p.alreadyBumped && order.indexOf(bumpKind(p.previousVersion, p.currentVersion)) < order.indexOf(p.kind));
+  if (asJson) {
+    console.log(JSON.stringify({ root, since: explicitSince ?? "per plugin", missing, tooSmall, notPlanned }, null, 2));
+  } else {
+    for (const p of missing) {
+      console.log(`✗ ${p.plugin} changed but is still at ${p.currentVersion} — needs a ${p.bump} bump to ${p.proposedVersion}`);
+      for (const reason of p.reasons) console.log(`    · ${reason}`);
+    }
+    for (const p of tooSmall) {
+      console.log(`⚠ ${p.plugin} went ${p.previousVersion} → ${p.currentVersion}, but the change suggests a ${p.kind} bump`);
+      for (const reason of p.reasons) console.log(`    · ${reason}`);
+    }
+    if (!missing.length && !tooSmall.length) console.log(`✓ every changed plugin has a version bump since ${explicitSince ?? "its last release"}`);
+  }
+  process.exit(missing.length ? 1 : 0);
 }
 
 if (asJson) {

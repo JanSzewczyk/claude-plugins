@@ -200,3 +200,35 @@ test("an unknown --plugin fails instead of reporting nothing to release", () => 
   assert.equal(out.status, 1);
   assert.match(out.stderr, /no plugin named "nope"/);
 });
+
+function runCheck(...args) {
+  const out = spawnSync(process.execPath, [SCRIPT, root, "--json", "--check", ...args], { encoding: "utf8" });
+  return { status: out.status, ...JSON.parse(out.stdout) };
+}
+
+test("--check fails on a changed plugin without a bump and passes once it is bumped", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo", ".claude-plugin/plugin.json");
+  commit("base");
+  write("plugins/foo/skills/second/SKILL.md", "---\nname: second\ndescription: Two\n---\nTwo\n");
+  const missing = runCheck("--since", "HEAD");
+  assert.equal(missing.status, 1);
+  assert.equal(missing.missing[0].plugin, "foo");
+
+  write("plugins/foo/.claude-plugin/plugin.json", { name: "foo", version: "1.0.1" });
+  const small = runCheck("--since", "HEAD");
+  assert.equal(small.status, 0);
+  assert.equal(small.tooSmall[0].kind, "minor");
+});
+
+test("--check reads the old version from a manifest that moved into .claude-plugin/", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  mkdirSync(join(root, "plugins/foo/.claude-plugin"));
+  git("mv", "plugins/foo/plugin.json", "plugins/foo/.claude-plugin/plugin.json");
+  write("plugins/foo/.claude-plugin/plugin.json", { name: "foo", version: "1.0.1" });
+  const report = runCheck("--since", "HEAD");
+  assert.equal(report.status, 0);
+  assert.deepEqual(report.missing, []);
+});

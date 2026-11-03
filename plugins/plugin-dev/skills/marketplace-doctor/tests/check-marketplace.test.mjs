@@ -207,7 +207,7 @@ test("flags a manifest without $schema, and --fix adds it without reformatting",
   assert.ok(!messages(fixed).some((m) => m.includes("$schema")));
   assert.equal(
     readFileSync(manifest, "utf8"),
-    '{\n    "$schema": "https://anthropic.com/claude-code/plugin.schema.json",\n    "name": "foo",\n    "displayName": "Foo",\n    "keywords": ["a"],\n    "version": "1.0.0"\n}\n'
+    '{\n    "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",\n    "name": "foo",\n    "displayName": "Foo",\n    "keywords": ["a"],\n    "version": "1.0.0"\n}\n'
   );
 });
 

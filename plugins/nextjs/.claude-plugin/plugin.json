@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "nextjs",
   "displayName": "Next.js",
   "description": "Next.js full-stack development — agents and skills for the App Router: Server Actions, route handler tests, error handling, structured logging, env validation, toast notifications, feature scaffolding, code review, performance optimization, Lighthouse audits, and test strategy.",

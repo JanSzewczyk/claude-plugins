@@ -2,7 +2,7 @@
 
 Author and maintain a Claude Code plugin marketplace — audit a repo for drift between its manifest layers and the documentation that enumerates them by hand, then cut versioned plugin releases.
 
-This plugin is about **distribution**: whether the repo describes itself truthfully, and what version a change deserves. Both skills need a marketplace repo to work on, and read any layout: plugins are found through each entry's `source`, with the manifest in `.claude-plugin/plugin.json` or beside `skills/`. If what you want is to make one *skill* better, that is [**skill-dev**](../skill-dev/) — the two were split so neither audience carries the other's tooling.
+This plugin is about **distribution**: whether the repo describes itself truthfully, and what version a change deserves. Every skill works on any plugin or marketplace repo, not just this one: plugins are found through each entry's `source`, and the manifest is read from `.claude-plugin/plugin.json` (a legacy `plugin.json` beside `skills/` is still read, and reported). The plugin authoring rules they apply ship inside each skill as `references/rules.md`, generated from `knowledge/plugin-authoring/`. If what you want is to make one *skill* better, that is [**skill-dev**](../skill-dev/) — the two were split so neither audience carries the other's tooling.
 
 ## Contents
 
@@ -11,7 +11,8 @@ This plugin is about **distribution**: whether the repo describes itself truthfu
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
 | **marketplace-doctor** | `/marketplace-doctor` | Audit a plugin marketplace repo for drift between manifest layers and the docs that enumerate them by hand |
-| **plugin-release** | `/plugin-release` | Work out which plugins changed, propose the semver bump each change implies, write it into plugin.json, and tag the release |
+| **plugin-release** | `/plugin-release` | Work out which plugins changed, propose the semver bump each change implies, write it into plugin.json, and tag the release; `--check` is the CI gate for a missing bump |
+| **plugin-dev-setup** | `/plugin-dev-setup` | Write the plugin-development workflow (where manifests live, what to bump and update after each change) into a project's CLAUDE.md, and optionally a CI workflow that enforces it |
 
 ## Installation
 

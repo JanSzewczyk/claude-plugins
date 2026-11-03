@@ -1,7 +1,7 @@
 {
   "languages": ["typescript", "python"],
   "frameworks": ["react", "vue", "nextjs", "react-router", "django"],
-  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest"],
+  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest", "claude-code"],
   "budgets": {
     "title": 90,
     "summary": 120,

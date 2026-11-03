@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "python",
   "displayName": "Python",
   "description": "Python development — rules for factory_boy test data factories; the home for future pytest and Python tooling skills.",

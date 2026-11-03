@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "typescript",
   "displayName": "TypeScript",
   "description": "TypeScript and JavaScript tooling — Vitest unit tests, mimicry-js test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm package updates.",

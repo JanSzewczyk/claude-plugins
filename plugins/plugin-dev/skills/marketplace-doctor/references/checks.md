@@ -65,6 +65,8 @@ The important asymmetry, and the source of most silent breakage:
 | Message | What actually broke | Repair |
 | --- | --- | --- |
 | `plugin.json sits in the plugin root` (warning; error with conventions) | Claude Code reads the manifest from `.claude-plugin/plugin.json`. A copy beside `skills/` is the older layout and may be ignored at install, taking `dependencies`, `displayName` and the `agents` list with it. | `git mv <plugin>/plugin.json <plugin>/.claude-plugin/plugin.json`. Paths inside it stay relative to the plugin directory, so nothing else changes. |
+| `<folder>/ sits inside .claude-plugin/ and never loads` | A component folder was put next to the manifest. Only `plugin.json` belongs in `.claude-plugin/`. | Move the folder to the plugin root. |
+| `CLAUDE.md in a plugin is never loaded as context` (warning) | Instructions were written where nothing reads them. | Move them into a skill (`user-invocable: false` for background knowledge). |
 | `agents/<file>.md exists but is not listed in plugin.json` | The manifest has an `agents` value and the agent will not load. This is the check most worth having. With conventions on, the array is required even if the folder would be scanned. | Append `"./agents/<file>.md"` to the `agents` array. |
 | `agents[] references a missing file` | The agent was renamed or deleted; the manifest still points at it. | Fix the path, or drop the entry. |
 | `plugin.json name is "x" but marketplace.json lists it as "y"` | Ambiguous plugin id. | Make them identical — prefer changing the manifest if the marketplace name is already published. |
@@ -137,8 +139,8 @@ letting the doctor find it later — it is the single most-forgotten part of reg
 
 A `$schema` URL lets editors validate and autocomplete a manifest while it is typed. Claude Code
 ignores the key at load time, so a manifest without it works — it only loses that feedback.
-`marketplace.json` uses `https://anthropic.com/claude-code/marketplace.schema.json`, each
-`plugin.json` `https://anthropic.com/claude-code/plugin.schema.json`. Any other URL or path is
+`marketplace.json` uses `https://www.schemastore.org/claude-code-marketplace.json`, each
+`plugin.json` `https://www.schemastore.org/claude-code-plugin-manifest.json`. Any other URL or path is
 accepted: a repo may pin its own copy.
 
 | Message | What actually broke | Repair |
@@ -196,6 +198,17 @@ attribution; otherwise they only have to agree when both declare it:
 | `cannot evaluate the range "<r>"` (warning) | The doctor reads `x.y.z`, `=`, `^`, `~` and `>=`. | Use one of those forms. |
 | `dependency cycle: a → b → a` / `depends on itself` | Installing either plugin installs both, and how a cycle resolves is undocumented. | Drop the preload that closes the cycle, as `nextjs-backend-engineer` did with `firebase-firestore`. |
 | `skills: preloads "<s>", which no plugin in this marketplace provides` (warning) | A misspelled or removed skill, or one from outside the marketplace. The agent starts without it. | Fix or drop the name. |
+
+---
+
+## Skill size and routing (every repo)
+
+| Message | What actually broke | Repair |
+| --- | --- | --- |
+| `description is N characters; the skill listing cuts it at 1536` (warning) | The listing truncates `description` + `when_to_use`; trigger phrases and the `NOT for` clause at the end are lost first. | Cut the description to what it does, when to use it, what it is not for. Move detail into the body. |
+| `SKILL.md is N lines` (warning) | Past 500 lines the whole body is paid on every use, and only its first 5,000 tokens survive compaction. | Move tables, long examples and rare cases into `references/`. |
+| `SKILL.md frontmatter carries keys Claude Code does not read` (warning, without conventions) | An unknown key is ignored silently — usually a typo such as `allowed_tools`. | Fix the spelling, or drop the key. |
+| `agent frontmatter carries keys that plugin agents ignore` | `permissionMode`, `hooks`, `mcpServers` and `initialPrompt` are dropped from plugin agents. | Put hooks in `hooks/hooks.json` and servers in `.mcp.json`. |
 
 ---
 
