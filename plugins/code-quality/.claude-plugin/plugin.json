@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "code-quality",
   "displayName": "Code Quality",
   "description": "Technology-agnostic repository maintenance — README and GitHub description generation, catching a project up with the template repository it was created from, and safe dependency updates for Node, with Python and Java/JVM in beta.",

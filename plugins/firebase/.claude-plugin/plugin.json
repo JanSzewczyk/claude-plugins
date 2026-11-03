@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "firebase",
   "displayName": "Firebase",
   "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",

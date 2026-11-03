@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "react",
   "displayName": "React 19",
   "description": "React development — agents and skills for building modern React 19 UIs: the React Compiler and new hooks, Storybook stories and interaction tests in CSF Next, and WCAG accessibility audits.",

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "knowledge-dev",
   "displayName": "Knowledge Base Tooling",
   "description": "Authoring and build tooling for the marketplace's shared knowledge notes — one decision per file in knowledge/, rendered into the skills and agents that apply them, with a drift check for CI.",

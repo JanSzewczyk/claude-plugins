@@ -191,10 +191,11 @@ function checkDisplayMetadata(scope, file, manifest) {
 // ------------------------------------------------------------------ $schema contract
 // A `$schema` URL makes editors validate and autocomplete a manifest as it is typed. Claude Code
 // ignores the key at load time, so a manifest without it still works — it just loses that help.
+// The schemas are published on SchemaStore; Claude Code's docs name the key but no URL.
 
 const SCHEMAS = {
-  marketplace: "https://anthropic.com/claude-code/marketplace.schema.json",
-  plugin: "https://anthropic.com/claude-code/plugin.schema.json",
+  marketplace: "https://www.schemastore.org/claude-code-marketplace.json",
+  plugin: "https://www.schemastore.org/claude-code-plugin-manifest.json",
 };
 const fixed = []; // files --fix wrote, so the report can say what changed
 
@@ -325,10 +326,21 @@ const AGENT_KEY_ORDER = [
 ];
 // Agents shipped in a plugin ignore these keys (Claude Code drops them for security), so carrying
 // them only suggests behaviour that never happens.
-const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers"];
+const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
 // user-invocable: false is the documented "background knowledge" pattern: a skill agents preload
 // through skills:, hidden from the / menu. The generated knowledge skills rely on it.
 const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
+// Every key Claude Code reads in SKILL.md frontmatter. Anything else is silently ignored, which is
+// how a typo such as `allowed_tools` goes unnoticed.
+const OFFICIAL_SKILL_KEYS = [
+  "name", "description", "when_to_use", "argument-hint", "arguments", "disable-model-invocation",
+  "user-invocable", "allowed-tools", "disallowed-tools", "model", "effort", "context", "agent",
+  "background", "hooks", "paths", "shell", "metadata", "license", "compatibility",
+];
+// The skill listing cuts description + when_to_use here; the cut part never reaches the router.
+const SKILL_LISTING_LIMIT = 1536;
+// Claude Code's guidance: past this, move detail into references/.
+const SKILL_LINE_LIMIT = 500;
 
 const depSpec = (dep) =>
   typeof dep === "string" ? { name: dep.split("@")[0], marketplace: dep.split("@")[1] } : (dep ?? {});
@@ -377,6 +389,14 @@ for (const { name, dir: pluginDir, entry } of local) {
   const manifest = manifestPath ? readJson(manifestPath) : {};
   if (!manifest) continue;
   const file = manifestPath ?? pluginDir;
+  for (const component of ["skills", "agents", "commands", "hooks", "output-styles"]) {
+    if (existsSync(join(pluginDir, ".claude-plugin", component))) {
+      error(name, join(pluginDir, ".claude-plugin", component), `${component}/ sits inside .claude-plugin/ and never loads`, "only plugin.json belongs in .claude-plugin/; move the folder to the plugin root");
+    }
+  }
+  if (pluginDir !== root && existsSync(join(pluginDir, "CLAUDE.md"))) {
+    warn(name, join(pluginDir, "CLAUDE.md"), "CLAUDE.md in a plugin is never loaded as context", "put instructions the plugin needs into a skill");
+  }
   if (manifestPath === join(pluginDir, "plugin.json")) {
     convention(
       name,
@@ -524,6 +544,25 @@ for (const { name, dir: pluginDir, entry } of local) {
     }
     if (!fm.values.description) {
       convention(name, skillPath, "SKILL.md has no description — the description is what routes the skill");
+    }
+    const listing = `${fm.values.description ?? ""} ${fm.values.when_to_use ?? ""}`.replace(/^[>|][-+]?\s*/, "").trim();
+    if (listing.length > SKILL_LISTING_LIMIT) {
+      warn(
+        name,
+        skillPath,
+        `description is ${listing.length} characters; the skill listing cuts it at ${SKILL_LISTING_LIMIT}`,
+        "the cut part never reaches the router — move detail into the body"
+      );
+    }
+    const lines = readFileSync(skillPath, "utf8").split(/\r?\n/).length;
+    if (lines > SKILL_LINE_LIMIT) {
+      warn(name, skillPath, `SKILL.md is ${lines} lines`, `keep it under ${SKILL_LINE_LIMIT}; move reference material into references/`);
+    }
+    if (!conventions) {
+      const unknownKeys = fm.keys.filter((k) => !OFFICIAL_SKILL_KEYS.includes(k));
+      if (unknownKeys.length) {
+        warn(name, skillPath, `SKILL.md frontmatter carries keys Claude Code does not read: ${unknownKeys.join(", ")}`, "they are silently ignored — check for a typo");
+      }
     }
     if (fm.keys.includes("user-invocable") && !["true", "false"].includes(String(fm.values["user-invocable"]))) {
       error(name, skillPath, `user-invocable is "${fm.values["user-invocable"]}"`, "it takes true or false");

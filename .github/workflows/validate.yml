@@ -113,3 +113,21 @@ jobs:
           name: eval-${{ matrix.plugin }}
           path: eval-${{ matrix.plugin }}.json
           if-no-files-found: ignore
+
+  version-bumps:
+    name: version bumps
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      # A plugin that pins `version` keeps users on the cached copy until the string changes, so a
+      # change merged without a bump never reaches anyone. Compare against the PR's base.
+      - name: Every changed plugin has a version bump
+        run: node plugins/plugin-dev/skills/plugin-release/scripts/plan-release.mjs . --check --since "origin/${{ github.base_ref }}"

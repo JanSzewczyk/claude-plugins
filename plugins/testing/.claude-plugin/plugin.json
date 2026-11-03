@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "testing",
   "displayName": "Testing core",
   "description": "Technology-agnostic testing core — Playwright browser automation and accessibility-tree DOM test generation, usable whatever the project's language or framework.",

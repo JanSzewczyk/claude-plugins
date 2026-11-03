@@ -48,6 +48,21 @@
       "include": ["testing/builders/**"],
       "where": { "languages": ["python"] },
       "inline": "high"
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/plugin-dev/skills/marketplace-doctor",
+      "include": ["plugin-authoring/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/plugin-dev/skills/plugin-release",
+      "include": ["plugin-authoring/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/plugin-dev/skills/plugin-dev-setup",
+      "include": ["plugin-authoring/**"]
     }
   ]
 }

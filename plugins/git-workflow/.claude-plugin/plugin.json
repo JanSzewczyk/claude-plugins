@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "git-workflow",
   "displayName": "Git Workflow",
   "description": "Everyday Git workflow on GitHub — create branches, split work into Conventional Commits, open pull requests with a unified description, and carry a whole task from branch to pull request. Every artifact is written in English, and no commit ever carries AI attribution.",

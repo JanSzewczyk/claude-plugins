@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ai-tools",
   "displayName": "AI Tools",
   "description": "AI tool integrations — NotebookLM automation, content generation, research workflows, and Polish real estate (KW) lookup.",

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "shared-rules",
   "displayName": "Shared Rules",
   "description": "Single source of truth for `.claude/rules/` files shared across many repositories — pull the latest canonical rules into any project with drift detection.",

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "skill-dev",
   "displayName": "Skill Dev",
   "description": "Write better skills — audit one skill for authoring quality and propose the edits, then A/B test whether a wording change actually improved the outcome.",

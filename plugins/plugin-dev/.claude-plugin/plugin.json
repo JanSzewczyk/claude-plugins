@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "plugin-dev",
   "displayName": "Plugin Dev",
   "description": "Author and maintain a Claude Code plugin marketplace — audit a repo for manifest and documentation drift, and cut versioned plugin releases.",
