@@ -64,6 +64,20 @@ Run `/marketplace-doctor` first — shipping a stale README is the failure this 
 Both answer questions *about the repo*. The question *about one skill* — is it well written, and did
 that edit help — belongs to [**skill-dev**](../skill-dev/).
 
+## Shared GitHub Action
+
+The repository ships a composite action that runs the doctor and the version bump check, so any
+other marketplace repo can gate its pull requests with one step (`/plugin-dev-setup --ci` writes it):
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+- uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@plugin-dev--v3.5.0
+```
+
+Inputs: `node-version` (default `26`), `install-claude`, `strict`, `check-version-bumps`, `base-ref`, `path`.
+
 ## Requirements
 
 - Node.js 18+ (the bundled scripts are plain ESM, no dependencies)

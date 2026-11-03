@@ -94,8 +94,9 @@ exists before writing it:
 git ls-remote --tags https://github.com/JanSzewczyk/claude-plugins "plugin-dev--v*"
 ```
 
-If that version is not tagged, use the newest tag the command lists and say so. The workflow
-downloads the two dependency-free scripts at that tag, so the project vendors nothing. Skip the
+If that version is not tagged, use the newest tag the command lists and say so. The workflow calls
+the shared `plugin-checks` action at that tag (Node 26, optional `strict`, `base-ref` and `path`
+inputs), so the project vendors nothing and any other repository can use the same action. Skip the
 step when the repo is not on GitHub, and say why.
 
 ### 5. Report

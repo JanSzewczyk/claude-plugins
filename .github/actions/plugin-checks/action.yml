@@ -1,0 +1,55 @@
+name: Plugin checks
+description: >
+  Fail a pull request whose plugin manifests or docs drifted from the plugins on disk, or that
+  changed a plugin without bumping its version. Runs the plugin-dev scripts from the ref this
+  action is pinned to, so the calling repository vendors nothing.
+
+inputs:
+  node-version:
+    description: Node.js version the scripts run on.
+    default: "26"
+  install-claude:
+    description: Install Claude Code so the doctor can run the native `claude plugin validate` pass. A failed install is ignored.
+    default: "true"
+  strict:
+    description: Pass --strict to the doctor, so warnings fail the job too.
+    default: "false"
+  check-version-bumps:
+    description: On pull requests, require a version bump for every changed plugin. Needs a checkout with fetch-depth 0.
+    default: "true"
+  base-ref:
+    description: Branch the version bump check compares against.
+    default: ${{ github.base_ref }}
+  path:
+    description: Root of the marketplace repository, relative to the workspace.
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code
+      if: inputs.install-claude == 'true'
+      continue-on-error: true
+      shell: bash
+      run: npm install -g @anthropic-ai/claude-code
+
+    - name: Manifests and documentation agree
+      shell: bash
+      env:
+        SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
+        STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
+        ROOT: ${{ inputs.path }}
+      run: node "$SKILLS/marketplace-doctor/scripts/check-marketplace.mjs" "$ROOT" $STRICT
+
+    - name: Every changed plugin has a version bump
+      if: inputs.check-version-bumps == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
+        ROOT: ${{ inputs.path }}
+        BASE: ${{ inputs.base-ref }}
+      run: node "$SKILLS/plugin-release/scripts/plan-release.mjs" "$ROOT" --check --since "origin/$BASE"
