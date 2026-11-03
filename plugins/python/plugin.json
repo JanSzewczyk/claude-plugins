@@ -1,8 +1,9 @@
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "python",
   "displayName": "Python",
   "description": "Python development — rules for factory_boy test data factories; the home for future pytest and Python tooling skills.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",

@@ -24,6 +24,7 @@ rules by committing `.marketplace-doctor.json` at its root:
 | `dependencies` | a mismatch only when both layers declare it | both layers carry the same block |
 | Doc tables | checked only if the file has a row for some plugin | every plugin needs a row |
 | Per-plugin README | warning if a skill or agent is never mentioned | error unless the name appears in bold |
+| `$schema` | warning when absent | error when absent |
 | Native pass | `claude plugin validate` | `claude plugin validate --strict` |
 
 What the script could not audit is printed under `Not checked` (and in `skipped` with `--json`):
@@ -127,6 +128,21 @@ of them is invisible in the other view:
 
 When adding a **new plugin**, write this block into both manifests at creation time rather than
 letting the doctor find it later — it is the single most-forgotten part of registering a plugin.
+
+---
+
+## The `$schema` property (both manifests)
+
+A `$schema` URL lets editors validate and autocomplete a manifest while it is typed. Claude Code
+ignores the key at load time, so a manifest without it works — it only loses that feedback.
+`marketplace.json` uses `https://anthropic.com/claude-code/marketplace.schema.json`, each
+`plugin.json` `https://anthropic.com/claude-code/plugin.schema.json`. Any other URL or path is
+accepted: a repo may pin its own copy.
+
+| Message | What actually broke | Repair |
+| --- | --- | --- |
+| ``has no `$schema` `` (warning; error with conventions) | The manifest gets no editor validation. | Add `"$schema"` as the first key, or run the script with `--fix`, which inserts the line and leaves the rest of the file untouched. |
+| ``$schema is not a URL or path`` | The value is empty, not a string, or not a URL. Editors silently ignore it. | Use the URL above. |
 
 ---
 

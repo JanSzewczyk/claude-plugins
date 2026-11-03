@@ -6,7 +6,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, beforeEach, test } from "node:test";
@@ -33,13 +33,13 @@ function write(rel, content) {
 }
 
 function marketplace(plugins, extra = {}) {
-  write(".claude-plugin/marketplace.json", { name: "m", owner: { name: "X" }, plugins, ...extra });
+  write(".claude-plugin/marketplace.json", { $schema: "https://x.io/m.json", name: "m", owner: { name: "X" }, plugins, ...extra });
 }
 
 // A plugin as the documentation lays it out: manifest in .claude-plugin/, official frontmatter
 // keys, an agents/ folder discovered by the default scan, a YAML list for skills:.
 function plugin(dir, name = "foo") {
-  write(`${dir}/.claude-plugin/plugin.json`, { name, displayName: "Foo", keywords: ["a"], version: "1.0.0", ...ATTRIBUTION });
+  write(`${dir}/.claude-plugin/plugin.json`, { $schema: "https://x.io/p.json", name, displayName: "Foo", keywords: ["a"], version: "1.0.0", ...ATTRIBUTION });
   write(`${dir}/skills/hello/SKILL.md`, "---\nname: hello\ndescription: Says hello\nlicense: MIT\ndisable-model-invocation: true\n---\nHi\n");
   write(`${dir}/agents/rev.md`, "---\nname: rev\ndescription: Reviews\nmodel: sonnet\nskills:\n  - hello\n---\nHi\n");
   write(`${dir}/README.md`, "# Foo\n\nUse hello, or the rev agent.\n");
@@ -193,4 +193,28 @@ test("this repository passes with its own conventions on", () => {
   const report = JSON.parse(out.stdout);
   assert.equal(report.conventions, true);
   assert.equal(out.status, 0, messages(report).join("\n"));
+});
+
+test("flags a manifest without $schema, and --fix adds it without reformatting", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo", ...ATTRIBUTION }], { $schema: "https://x.io/m.json" });
+  plugin("plugins/foo");
+  const manifest = join(root, "plugins/foo/.claude-plugin/plugin.json");
+  writeFileSync(manifest, '{\n    "name": "foo",\n    "displayName": "Foo",\n    "keywords": ["a"],\n    "version": "1.0.0"\n}\n');
+  assert.ok(messages(run()).some((m) => m.includes("$schema")));
+
+  const fixed = run("--fix");
+  assert.deepEqual(fixed.fixed, ["plugins/foo/.claude-plugin/plugin.json"]);
+  assert.ok(!messages(fixed).some((m) => m.includes("$schema")));
+  assert.equal(
+    readFileSync(manifest, "utf8"),
+    '{\n    "$schema": "https://anthropic.com/claude-code/plugin.schema.json",\n    "name": "foo",\n    "displayName": "Foo",\n    "keywords": ["a"],\n    "version": "1.0.0"\n}\n'
+  );
+});
+
+test("rejects a $schema that is not a URL", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo", ...ATTRIBUTION }], { $schema: 42 });
+  plugin("plugins/foo");
+  const report = run();
+  assert.equal(report.status, 1);
+  assert.ok(messages(report).includes("`$schema` is not a URL or path"));
 });

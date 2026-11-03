@@ -11,9 +11,12 @@
 // go beyond what Claude Code requires apply only when the repo opts in through
 // .marketplace-doctor.json: { "conventions": true }.
 //
-// Usage: node check-marketplace.mjs [repo-root] [--json] [--strict] [--no-native]
+// Usage: node check-marketplace.mjs [repo-root] [--json] [--strict] [--no-native] [--fix]
+//
+// --fix is the one thing that writes: it inserts the missing `$schema` line into a manifest and
+// touches nothing else in the file.
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
@@ -21,6 +24,7 @@ const argv = process.argv.slice(2);
 const asJson = argv.includes("--json");
 const strict = argv.includes("--strict");
 const skipNative = argv.includes("--no-native");
+const fix = argv.includes("--fix");
 const root = resolve(argv.find((a) => !a.startsWith("--")) ?? process.cwd());
 
 const issues = [];
@@ -184,8 +188,48 @@ function checkDisplayMetadata(scope, file, manifest) {
   }
 }
 
+// ------------------------------------------------------------------ $schema contract
+// A `$schema` URL makes editors validate and autocomplete a manifest as it is typed. Claude Code
+// ignores the key at load time, so a manifest without it still works — it just loses that help.
+
+const SCHEMAS = {
+  marketplace: "https://anthropic.com/claude-code/marketplace.schema.json",
+  plugin: "https://anthropic.com/claude-code/plugin.schema.json",
+};
+const fixed = []; // files --fix wrote, so the report can say what changed
+
+// Inserts `"$schema"` as the first key by text, so the rest of the file keeps its formatting.
+function insertSchema(path, url) {
+  const text = readFileSync(path, "utf8");
+  const m = text.match(/^(\uFEFF?\s*\{)(\r?\n)([ \t]*)(?=\S)/);
+  if (!m || text[m[0].length] === "}") return false;
+  writeFileSync(path, `${m[1]}${m[2]}${m[3]}"$schema": "${url}",${m[2]}${m[3]}${text.slice(m[0].length)}`);
+  return true;
+}
+
+function checkSchema(scope, file, manifest, kind) {
+  const value = manifest.$schema;
+  if (value !== undefined) {
+    if (typeof value !== "string" || !/^(https?:\/\/|\.{0,2}\/)\S+$/.test(value.trim())) {
+      error(scope, file, "`$schema` is not a URL or path", `use "${SCHEMAS[kind]}"`);
+    }
+    return;
+  }
+  if (fix && insertSchema(file, SCHEMAS[kind])) {
+    fixed.push(relative(root, file).replace(/\\/g, "/"));
+    return;
+  }
+  convention(
+    scope,
+    file,
+    `${kind === "plugin" ? "plugin.json" : "marketplace.json"} has no \`$schema\``,
+    `add "$schema": "${SCHEMAS[kind]}" as the first key, or run with --fix — editors validate and autocomplete the manifest from it`
+  );
+}
+
 // The marketplace owner is the attribution fallback for the repo as a whole.
 if (marketplace) {
+  checkSchema("marketplace", marketplacePath, marketplace, "marketplace");
   if (!marketplace.owner?.name) {
     error("marketplace", marketplacePath, "marketplace has no `owner.name`");
   } else if (conventions) {
@@ -353,6 +397,7 @@ for (const { name, dir: pluginDir, entry } of local) {
     checkAttribution(name, file, { author: pick("author"), homepage: pick("homepage"), license: pick("license") }, name);
   }
   checkDisplayMetadata(name, file, manifest);
+  if (manifestPath) checkSchema(name, file, manifest, "plugin");
 
   // The two layers are read by different surfaces, so they must agree — otherwise a plugin is
   // attributed to one author while browsing the marketplace and to another once installed.
@@ -812,6 +857,7 @@ if (asJson) {
           [...inventory].map(([n, i]) => [n, { dir: relative(root, i.dir) || ".", version: i.version, skills: i.skills, agents: i.agents }])
         ),
         issues,
+        fixed,
         skipped,
         summary: { errors: errors.length, warnings: warnings.length, ok: !failing },
       },
@@ -829,6 +875,11 @@ for (const scope of [...new Set(issues.map((i) => i.scope))]) {
     console.log(`  ${mark} ${issue.message}${issue.file ? `\n      ${issue.file}` : ""}`);
     if (issue.hint) console.log(`      → ${issue.hint}`);
   }
+}
+
+if (fixed.length) {
+  console.log(`\nAdded \`$schema\` to ${fixed.length} file(s):`);
+  for (const f of fixed) console.log(`  + ${f}`);
 }
 
 const skillCount = [...inventory.values()].reduce((n, i) => n + i.skills.length, 0);
