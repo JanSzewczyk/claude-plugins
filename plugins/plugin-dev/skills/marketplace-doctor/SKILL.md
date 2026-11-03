@@ -58,6 +58,12 @@ findable by search in the `/plugin` marketplace browser — the thing to check w
 plugins "don't display nicely". Both are checked but only ever warnings, since the plugin still
 loads without them. See [references/checks.md](./references/checks.md#display-metadata-pluginjson).
 
+## Manifests carry a `$schema`
+
+`marketplace.json` and each `plugin.json` should open with a `$schema` URL, which gives editors
+validation and autocomplete. A missing one is a warning (an error with conventions); `--fix` adds
+it. See [references/checks.md](./references/checks.md#the-schema-property-both-manifests).
+
 ## Run it
 
 The script ships with this skill, not with the repo you are auditing (they are usually different
@@ -71,9 +77,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/check-marketplace.mjs" .
 | --- | --- |
 | `--json` | Machine-readable report: full inventory plus every issue. Use it in CI or when you want to diff two runs. |
 | `--strict` | Warnings fail the run too (exit 1). Use in CI once the repo is clean. |
+| `--fix` | Insert the missing `$schema` line into each manifest. The only flag that writes, and it changes nothing else in the file. |
 | `--no-native` | Skip the `claude plugin validate` pass — useful when the CLI is unavailable or you only care about doc drift. |
 
-Exit code is 0 when clean, 1 when anything failed. The script never writes to the repo.
+Exit code is 0 when clean, 1 when anything failed. Without `--fix` the script never writes to the repo.
 
 ## The workflow
 

@@ -1,8 +1,9 @@
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "firebase",
   "displayName": "Firebase",
   "description": "Firebase Firestore database patterns, data migrations, and database architecture agent.",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
