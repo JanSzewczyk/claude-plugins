@@ -73,7 +73,7 @@ other marketplace repo can gate its pull requests with one step (`/plugin-dev-se
 - uses: actions/checkout@v4
   with:
     fetch-depth: 0
-- uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@plugin-dev--v3.5.0
+- uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@plugin-dev--v3.6.0
 ```
 
 Inputs: `node-version` (default `26`), `install-claude`, `strict`, `check-version-bumps`, `base-ref`, `path`.

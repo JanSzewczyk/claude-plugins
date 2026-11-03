@@ -86,6 +86,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/check-marketplace.mjs" .
 | `--fix` | Insert the missing `$schema` line into each manifest. The only flag that writes, and it changes nothing else in the file. |
 | `--no-native` | Skip the `claude plugin validate` pass — useful when the CLI is unavailable or you only care about doc drift. |
 
+The text report opens with a banner and the counts, then a per-plugin checklist (`✓` clean, `⚠`
+warnings, `✗` errors, with version, skill and agent counts), the issues grouped by plugin, and a
+closing status line. Colour appears only on a terminal; set `NO_COLOR` to turn it off.
+
 Exit code is 0 when clean, 1 when anything failed. Without `--fix` the script never writes to the repo.
 
 ## The workflow
