@@ -1,16 +1,13 @@
 name: plugin-checks
 
 # Added by /plugin-dev-setup. Fails a pull request whose manifests or docs drifted from the plugins
-# on disk, or that changed a plugin without bumping its version. The scripts come from the
-# plugin-dev release named below, so nothing is vendored into this repository.
+# on disk, or that changed a plugin without bumping its version. The checks come from the shared
+# action at the ref named below, so nothing is vendored into this repository.
 
 on:
   push:
     branches: [main]
   pull_request:
-
-env:
-  PLUGIN_DEV: https://raw.githubusercontent.com/JanSzewczyk/claude-plugins/{{PLUGIN_DEV_REF}}/plugins/plugin-dev/skills
 
 jobs:
   checks:
@@ -20,24 +17,4 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Fetch the plugin-dev scripts
-        run: |
-          mkdir -p "$RUNNER_TEMP/plugin-dev"
-          curl -fsSL "$PLUGIN_DEV/marketplace-doctor/scripts/check-marketplace.mjs" -o "$RUNNER_TEMP/plugin-dev/check-marketplace.mjs"
-          curl -fsSL "$PLUGIN_DEV/plugin-release/scripts/plan-release.mjs" -o "$RUNNER_TEMP/plugin-dev/plan-release.mjs"
-
-      # The native `claude plugin validate` pass needs the CLI; without it the doctor skips that part.
-      - name: Install Claude Code
-        continue-on-error: true
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Manifests and documentation agree
-        run: node "$RUNNER_TEMP/plugin-dev/check-marketplace.mjs" .
-
-      - name: Every changed plugin has a version bump
-        if: github.event_name == 'pull_request'
-        run: node "$RUNNER_TEMP/plugin-dev/plan-release.mjs" . --check --since "origin/${{ github.base_ref }}"
+      - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@{{PLUGIN_DEV_REF}}
