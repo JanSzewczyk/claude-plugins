@@ -916,33 +916,75 @@ if (asJson) {
   process.exit(failing ? 1 : 0);
 }
 
-for (const scope of [...new Set(issues.map((i) => i.scope))]) {
-  console.log(`\n${scope}`);
-  for (const issue of issues.filter((i) => i.scope === scope)) {
-    const mark = issue.severity === "error" ? "✗" : "⚠";
-    console.log(`  ${mark} ${issue.message}${issue.file ? `\n      ${issue.file}` : ""}`);
-    if (issue.hint) console.log(`      → ${issue.hint}`);
-  }
-}
-
-if (fixed.length) {
-  console.log(`\nAdded \`$schema\` to ${fixed.length} file(s):`);
-  for (const f of fixed) console.log(`  + ${f}`);
-}
+// Colour only on a terminal that wants it; piped output and CI logs stay plain text.
+const color = process.stdout.isTTY && !process.env.NO_COLOR;
+const paint = (code, text) => (color ? `\x1b[${code}m${text}\x1b[0m` : text);
+const green = (t) => paint(32, t);
+const red = (t) => paint(31, t);
+const yellow = (t) => paint(33, t);
+const dim = (t) => paint(2, t);
+const bold = (t) => paint(1, t);
+const markOf = { error: red("✗"), warn: yellow("⚠"), ok: green("✓") };
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 const skillCount = [...inventory.values()].reduce((n, i) => n + i.skills.length, 0);
 const agentCount = [...inventory.values()].reduce((n, i) => n + i.agents.length, 0);
 
-console.log(`\n${inventory.size} plugins · ${agentCount} agents · ${skillCount} skills`);
-if (skipped.length) {
-  console.log("Not checked:");
-  for (const reason of skipped) console.log(`  - ${reason}`);
+const title = ` marketplace-doctor · ${basename(root)} `;
+console.log(`\n${dim("╭" + "─".repeat(title.length) + "╮")}`);
+console.log(`${dim("│")}${bold(title)}${dim("│")}`);
+console.log(dim("╰" + "─".repeat(title.length) + "╯"));
+console.log(`  ${plural(inventory.size, "plugin")} · ${plural(agentCount, "agent")} · ${plural(skillCount, "skill")}`);
+
+// One row per plugin, then one per non-plugin scope that raised something (repo, marketplace).
+const severityOf = (scope) => {
+  const own = issues.filter((i) => i.scope === scope);
+  return own.some((i) => i.severity === "error") ? "error" : own.length ? "warn" : "ok";
+};
+const rows = [...inventory.keys(), ...[...new Set(issues.map((i) => i.scope))].filter((s) => !inventory.has(s))];
+if (rows.length) {
+  const width = Math.max(...rows.map((r) => r.length));
+  const detailOf = (scope) =>
+    inventory.has(scope)
+      ? `v${inventory.get(scope).version ?? "?"} · ${plural(inventory.get(scope).skills.length, "skill")} · ${plural(inventory.get(scope).agents.length, "agent")}`
+      : "";
+  const detailWidth = Math.max(...rows.map((r) => detailOf(r).length));
+  console.log(`\n${bold("Checklist")}`);
+  for (const scope of rows) {
+    const own = issues.filter((i) => i.scope === scope);
+    const errs = own.filter((i) => i.severity === "error").length;
+    const warns = own.length - errs;
+    const detail = detailOf(scope).padEnd(detailWidth);
+    const counts = [errs && red(plural(errs, "error")), warns && yellow(plural(warns, "warning"))].filter(Boolean).join(", ");
+    console.log(`  ${markOf[severityOf(scope)]} ${scope.padEnd(width)}  ${counts ? `${dim(detail)}  ${counts}` : dim(detail.trimEnd())}`);
+  }
 }
+
+for (const scope of [...new Set(issues.map((i) => i.scope))]) {
+  console.log(`\n${bold(scope)} ${dim(`(${issues.filter((i) => i.scope === scope).length})`)}`);
+  for (const issue of issues.filter((i) => i.scope === scope)) {
+    console.log(`  ${markOf[issue.severity]} ${issue.message}`);
+    if (issue.file) console.log(`      ${dim(issue.file)}`);
+    if (issue.hint) console.log(`      ${dim("→")} ${issue.hint}`);
+  }
+}
+
+if (fixed.length) {
+  console.log(`\nAdded \`$schema\` to ${plural(fixed.length, "file")}:`);
+  for (const f of fixed) console.log(`  ${green("+")} ${f}`);
+}
+
+if (skipped.length) {
+  console.log(`\n${bold("Not checked")}`);
+  for (const reason of skipped) console.log(`  ${dim("-")} ${reason}`);
+}
+
+console.log(dim(`\n${"─".repeat(48)}`));
 console.log(
   errors.length || warnings.length
-    ? `${errors.length} error(s), ${warnings.length} warning(s)`
+    ? `${errors.length ? red(`✗ ${plural(errors.length, "error")}`) : green("✓ 0 errors")}  ${warnings.length ? yellow(`⚠ ${plural(warnings.length, "warning")}`) : green("✓ 0 warnings")}`
     : inventory.size
-      ? "✓ manifests and documentation agree"
+      ? green("✓ manifests and documentation agree")
       : "Nothing local to audit"
 );
 
