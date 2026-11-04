@@ -65,6 +65,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
 - **🧰 [plugin-dev-setup](./plugins/plugin-dev/skills/plugin-dev-setup/)** — Writes the plugin-development workflow into another project's `CLAUDE.md` and optionally adds CI that fails a PR with drift or a missing version bump
+- **🧱 [mod-creator](./plugins/plugin-dev/skills/mod-creator/)** — Builds, tests, debugs and reviews Claude Code mods: plugins whose hooks module draws panes, bands and toasts, adds commands, or guards tool calls
 - **🔎 [skill-audit](./plugins/skill-dev/skills/skill-audit/)** — Audits one skill for authoring quality — triggering, context budget, dead references, and prose that does not earn its tokens
 - **🔬 [skill-ab-optimizer](./plugins/skill-dev/skills/skill-ab-optimizer/)** — A/B tests skill wording and accepts a change only when the measured outcome improves
 - **🧩 [workflow-creator](./plugins/skill-dev/skills/workflow-creator/)** — Creates, audits and optimizes Claude Code dynamic workflow scripts (`agent()` / `pipeline()` / `parallel()`)
@@ -112,7 +113,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync, dependency updates across ecosystems | — | 3 | [README](./plugins/code-quality/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
-| [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging, project setup | — | 3 | [README](./plugins/plugin-dev/README.md) |
+| [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging, project setup | — | 4 | [README](./plugins/plugin-dev/README.md) |
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
@@ -392,7 +393,7 @@ claude-plugins/
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
     ├── plugin-dev/                 # Marketplace auditing & plugin releases
     │   ├── .claude-plugin/plugin.json
-    │   └── skills/                # 3 skills (marketplace-doctor, plugin-release, plugin-dev-setup)
+    │   └── skills/                # 4 skills (marketplace-doctor, plugin-release, plugin-dev-setup, mod-creator)
     ├── skill-dev/                  # Skill authoring quality & A/B testing
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator)
