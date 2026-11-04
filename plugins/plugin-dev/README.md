@@ -13,7 +13,7 @@ This plugin is about **distribution**: whether the repo describes itself truthfu
 | **marketplace-doctor** | `/marketplace-doctor` | Audit a plugin marketplace repo for drift between manifest layers and the docs that enumerate them by hand |
 | **plugin-release** | `/plugin-release` | Work out which plugins changed, propose the semver bump each change implies, write it into plugin.json, and tag the release; `--check` is the CI gate for a missing bump |
 | **plugin-dev-setup** | `/plugin-dev-setup` | Write the plugin-development workflow (where manifests live, what to bump and update after each change) into a project's CLAUDE.md, and optionally a CI workflow that enforces it |
-| **mod-creator** | `/mod-creator` | Build, test, debug and review Claude Code mods — plugins whose `hooks/hooks.json` lists `modules` that draw panes, bands and toasts, add commands, or guard tool calls |
+| **mod-creator** | `/mod-creator`, `/mod-creator audit <path>` | Build, test, debug and audit Claude Code mods (`/mod-creator audit <path>` ranks findings and gives a verdict) — plugins whose `hooks/hooks.json` lists `modules` that draw panes, bands and toasts, add commands, or guard tool calls |
 
 ## Installation
 

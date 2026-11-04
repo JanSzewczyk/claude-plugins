@@ -65,7 +65,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
 - **🧰 [plugin-dev-setup](./plugins/plugin-dev/skills/plugin-dev-setup/)** — Writes the plugin-development workflow into another project's `CLAUDE.md` and optionally adds CI that fails a PR with drift or a missing version bump
-- **🧱 [mod-creator](./plugins/plugin-dev/skills/mod-creator/)** — Builds, tests, debugs and reviews Claude Code mods: plugins whose hooks module draws panes, bands and toasts, adds commands, or guards tool calls
+- **🧱 [mod-creator](./plugins/plugin-dev/skills/mod-creator/)** — Builds, tests, debugs and audits Claude Code mods: plugins whose hooks module draws panes, bands and toasts, adds commands, or guards tool calls
 - **🔎 [skill-audit](./plugins/skill-dev/skills/skill-audit/)** — Audits one skill for authoring quality — triggering, context budget, dead references, and prose that does not earn its tokens
 - **🔬 [skill-ab-optimizer](./plugins/skill-dev/skills/skill-ab-optimizer/)** — A/B tests skill wording and accepts a change only when the measured outcome improves
 - **🧩 [workflow-creator](./plugins/skill-dev/skills/workflow-creator/)** — Creates, audits and optimizes Claude Code dynamic workflow scripts (`agent()` / `pipeline()` / `parallel()`)
