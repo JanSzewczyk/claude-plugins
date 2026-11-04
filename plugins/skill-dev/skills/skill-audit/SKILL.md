@@ -178,32 +178,90 @@ quiet one and rerun that single probe.
 
 ## The report
 
+The report is Markdown built to be scanned: a verdict, a scorecard, one table of findings, then
+diffs for the few findings that need one. Write it in the user's language, but keep the script's
+messages word for word, so they stay greppable against `references/checks.md`.
+
+One status scale throughout, the same in the verdict, the scorecard and the findings:
+
+| Mark | Means | Comes from |
+| :-: | --- | --- |
+| 🔴 | broken on disk | a script `error` — never a probe |
+| 🟡 | costs the reader, fix it | `warn` |
+| 🔵 | worth tidying | `polish` |
+| 🟢 | nothing found | — |
+| ⚪ | not checked | the area has nothing to check, or its probe did not return |
+
+The verdict is the worst mark found: 🔴 **Broken**, 🟡 **Needs work**, 🔵 **Polish only** or
+🟢 **Clean**.
+
+````markdown
+## 🩺 Skill audit · `<plugin>/<skill>`
+
+> 🟡 **Needs work** · 0 errors · 3 warnings · 2 polish
+> `0 error(s), 3 warning(s)` · `6 files · 101 body lines · 1116 ≈tokens · 5 references`
+
+| Area | Status | Found |
+| --- | :-: | --- |
+| Frontmatter | 🟢 | — |
+| Description & routing | 🟡 | 1 warning |
+| Instructions | 🟢 | — |
+| Prose & language | 🔵 | 2 polish |
+| Links & budget | 🟡 | 2 warnings |
+| Bundled files | ⚪ | no scripts or assets |
+
+### Findings
+
+| # | Sev | Where | Problem | Fix | By |
+| :-: | :-: | --- | --- | --- | --- |
+| 1 | 🟡 | `SKILL.md:3` | <claim, one line> | <repair, one line> | P1 |
+| 2 | 🟡 | `references/guide.md` | <script message, verbatim> | <its hint, shortened> | script |
+| 3 | 🔵 | `SKILL.md:140` | <claim> | <repair> | P3 |
+
+### 1 · 🟡 <claim>
+
+> <evidence, copied verbatim>
+
+```diff
+- <current line>
++ <proposed line>
 ```
-<verdict line: N errors, M warnings, P polish — quoting the script's summary line>
 
-## What the script found
-<the script's grouped output, glyphs intact>
+**Not checked:** routing performance → `skill-ab-optimizer` · repo registration → `marketplace-doctor`
 
-## What the probes found
-<grouped by file: claim, the quoted evidence, the repair, which probe>
+**Next:** nothing is applied yet. Reply with the numbers to apply (`1 3`) or `all`.
+````
 
-## Proposed edits
-1. <file>:<line> — <one-line rationale>
-   <a diff block>
-
-Not applied. Say which numbers to apply, or "all".
-
-## Not checked here
-<routing performance → skill-ab-optimizer; repo registration → marketplace-doctor>
-```
+- **Scorecard rows are fixed**, so two audits compare line by line: Frontmatter (script
+  `frontmatter`), Description & routing (P1), Instructions (P2), Prose & language (script `prose`
+  and P3), Links & budget (script `links` and `budget`), Bundled files (script `scripts` and P4).
+  A row's mark is the worst finding in it.
+- **The findings table** follows the merge order and keeps every cell to one line. `By` names the
+  source: `script`, `P1`–`P4`, or two probes joined (`P3+P4`) when they reported the same repair.
+  In a session that renders file links (the Claude desktop app), make `Where` a link to the file
+  at the line; elsewhere keep the path in backticks. Past fifteen rows, split it into one table per
+  file under a `#### <file>` heading, numbering straight through.
+- **Detail blocks: at most five**, only for 🔴 and 🟡 findings whose edit does not fit in the
+  `Fix` cell — the quoted evidence and a diff. Pick the ones that cost the reader most. Findings
+  that share lines share a block (`### 1–3 · 🟡 <claim>`). Every other finding is settled by its
+  table row; its diff is written when it is applied, not in the report.
+- **Leftovers go in one line above `Next`:** probes run sequentially, findings dropped because
+  their evidence did not match the file (with the count), a probe rerun after a truncated reply,
+  findings merged across probes, polish cut by the cap of ten.
+- **No HTML** — no `<details>`, no colour. Not every surface renders it.
 
 Applying the edits happens in the turn after approval, under the normal tool set. Say so in the
-approval line, and say that applying them obligates a version bump of the **audited** plugin in
+`Next` line, and say that applying them obligates a version bump of the **audited** plugin in
 its own `plugin.json` — not of `skill-dev`.
 
 ## Reporting back
 
-Lead with the counts and quote the script's summary line as evidence. Never call a skill clean
-unless the script exited 0 and the probes returned `FINDINGS: 0` — and when that happens, say it
-in one line. A clean report padded with a restatement of everything that was checked is how a
-reader learns to skim the next one.
+Never call a skill clean unless the script exited 0 and every probe returned `FINDINGS: 0`. When
+that happens, the whole report is the heading and one line:
+
+```markdown
+> 🟢 **Clean** · `0 error(s), 0 warning(s)` · probes: `FINDINGS: 0`
+```
+
+A clean report padded with a restatement of everything that was checked is how a reader learns
+to skim the next one.
