@@ -314,8 +314,13 @@ for (const file of authoredFiles) {
   // lines, so past 200 the reader sees under half the file and a contents list starts carrying
   // real weight. Below that it mostly adds a maintenance burden for a file you can see anyway.
   if (lines.length <= 200) continue;
+  // A contents list is either labelled as one (a heading or bold label) or made of links to the
+  // file's own anchors. Any three bullets used to count, so a file whose intro opened with a
+  // plain list of facts passed as indexed — most long files in a healthy repo do exactly that.
   const head = lines.slice(0, 30);
-  const hasToc = /contents|in this file|table of contents/i.test(head.join("\n")) || head.filter((l) => /^\s*([-*]|\d+\.)\s+\S/.test(l)).length >= 3;
+  const labelled = head.some((l) => /^\s*(#{1,6}\s*|\*\*|_)?(table of contents|contents|in this file|on this page)\b/i.test(l));
+  const anchorItems = head.filter((l) => /^\s*([-*]|\d+\.)\s+.*\]\(#[^)]+\)/.test(l)).length;
+  const hasToc = labelled || anchorItems >= 3;
   if (!hasToc) {
     warn("links", join(target, file), `${file} is ${lines.length} lines with no table of contents`, "a preview reads the top of the file — past 200 lines a contents list is what makes the rest visible");
   }
