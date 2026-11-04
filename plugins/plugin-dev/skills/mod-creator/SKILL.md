@@ -1,8 +1,8 @@
 ---
 name: mod-creator
-description: "Builds, changes, tests, debugs and reviews Claude Code mods: plugins whose hooks/hooks.json lists \"modules\" (register.ts/.js) that run inside Claude Code to draw panes, a band above the prompt or toasts, restyle the spinner or tool rows, add code-backed /commands and tools, guard or rewrite tool calls and prompts, or enforce org policy; answers how mods work. Use when the mod should live in a folder the user owns, be tested or shared, or whenever a register.ts/.js or a hooks.json with \"modules\" is written or debugged: 'make a mod that…', 'show X above the prompt', 'why does my mod do nothing', 'hook skipped', 'write tests for my mod', 'zrób moda', 'czemu mój mod nie działa'. For a quick mod live in this session only, use plugin-authoring. NOT for settings.json hooks, a 'whenever X, block Y' rule a settings hook can express, or a statusLine command (update-config); markdown-only /commands, skills (skill-creator), agents, MCP servers, or marketplace manifests (plugin-dev:marketplace-doctor)."
+description: "Builds, changes, tests, debugs and audits Claude Code mods: plugins whose hooks/hooks.json lists \"modules\" (register.ts/.js) that run inside Claude Code to draw panes, a band above the prompt or toasts, restyle the spinner or tool rows, add code-backed /commands and tools, guard or rewrite tool calls and prompts, or enforce org policy; answers how mods work. Use when the mod should live in a folder the user owns, be tested or shared, or whenever a register.ts/.js or a hooks.json with \"modules\" is written or debugged: 'make a mod that…', 'show X above the prompt', 'why does my mod do nothing', 'hook skipped', 'write tests for my mod', 'audit this mod', 'is this mod safe to install', 'zrób moda', 'czemu mój mod nie działa', 'zrób audyt moda'. For a quick mod live in this session only, use plugin-authoring. NOT for settings.json hooks, a 'whenever X, block Y' rule a settings hook can express, or a statusLine command (update-config); markdown-only /commands, skills (skill-creator), agents, MCP servers, or marketplace manifests (plugin-dev:marketplace-doctor)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(claude --version), Bash(claude plugin validate *), Bash(claude plugin test *), Bash(mkdir -p *), Bash(ls *)
-argument-hint: "[what the mod should do | path to an existing mod | question about mods]"
+argument-hint: "[what the mod should do | audit <path to a mod> | path to an existing mod | question about mods]"
 ---
 
 # Mod Creator
@@ -54,6 +54,7 @@ Open only what the task needs:
 | [references/troubleshooting.md](references/troubleshooting.md) | A mod does nothing, a hook is skipped, a drawing is missing, a value is lost, or any error line from Claude Code |
 | [references/admin.md](references/admin.md) | Org-wide mods, managed settings, the built-in guard, policy mods, reviewing a third-party mod |
 | [references/reference.md](references/reference.md) | Looking up any event, API method, render site, element prop, limit, setting, command or version gate |
+| [references/audit.md](references/audit.md) | Auditing an existing mod, own or third-party: the checklist, severities, verdict and report format |
 
 ## Progress list
 
@@ -79,8 +80,9 @@ Hand over to the user
 ```
 
 For debugging use `Find the error line` / `Look it up in troubleshooting.md` / `Fix, then
-validate and test`; for a review use `Validate the mod` / `Check calls: and hooks: against
-admin.md` / `Report findings`.
+validate and test`; for an audit use `Inventory the mod` / `Validate with claude plugin
+validate --strict` / `Review the code against the checklist` / `Run the tests` / `Report findings
+and verdict`.
 
 - **One item in progress at a time.** Finish it when its step ends, and start the next in the same update.
 - **While waiting for the user,** say so in the item: `Frame the mod and agree on name and directory: waiting for your decision`.
@@ -123,9 +125,12 @@ admin.md` / `Report findings`.
 troubleshooting.md; when there is no line, ask for the output of
 `claude --debug-file ./mod-debug.log --plugin-dir <dir>`. After the fix, run steps 5 and 6.
 
-**Reviewing** a third-party mod: run `validate` and read the `calls:` and `hooks:` lines against
-admin.md → Reviewing a mod before install. Do not write tests for or change a third-party mod;
-report what you found.
+**Auditing** runs when the argument starts with `audit`, or the user asks whether a mod is
+correct, robust or safe to install. Follow audit.md: inventory, `validate --strict`, the code
+read against checklist A–H, the tests, then one report with ranked findings and a verdict. The
+audit changes nothing. For the user's own mod, offer to fix the findings afterwards and do it
+through steps 4–6; a third-party mod is never edited and gets no new tests, only an install
+recommendation. After creating a mod, an audit is also the self-check before step 7.
 
 ## Rules that break mods silently
 
