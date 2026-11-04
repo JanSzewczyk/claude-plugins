@@ -65,7 +65,7 @@
     {
       "kind": "skill-index",
       "skill": "plugins/plugin-dev/skills/marketplace-doctor",
-      "include": ["plugin-authoring/**"]
+      "include": ["plugin-authoring/**", "reporting/**"]
     },
     {
       "kind": "skill-index",
@@ -76,6 +76,36 @@
       "kind": "skill-index",
       "skill": "plugins/plugin-dev/skills/plugin-dev-setup",
       "include": ["plugin-authoring/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/plugin-dev/skills/mod-creator",
+      "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/skill-dev/skills/skill-audit",
+      "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/react/skills/accessibility-audit",
+      "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/nextjs/skills/lighthouse-audit",
+      "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/typescript/skills/coverage-gaps",
+      "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/typescript/skills/dead-code",
+      "include": ["reporting/**"]
     }
   ]
 }

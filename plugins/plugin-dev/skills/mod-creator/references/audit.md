@@ -123,33 +123,59 @@ Each item names where the rule is explained; cite that section in the finding's 
 
 ## Severity and verdict
 
-| Severity | Means | Examples |
-|---|---|---|
-| **error** | The mod doesn't load, a guard fails open, or it reaches more than it should | Validation error; refusing hook without `.catch`; `$.process.run` built from prompt text; a failing test |
-| **warning** | It loads but misbehaves under some condition, surface or version | Missing `e.surface` check; state lost after `/clear`; a limit that real input can exceed; feature newer than the stated version |
-| **note** | Works, but is harder to maintain or debug than it needs to be | Missing tests for a refusal path; `deny` text Claude can't act on; no minimum version stated |
+| Mark | Severity | Means | Examples |
+|:-:|---|---|---|
+| 🔴 | **error** | The mod doesn't load, a guard fails open, or it reaches more than it should | Validation error; refusing hook without `.catch`; `$.process.run` built from prompt text; a failing test |
+| 🟡 | **warning** | It loads but misbehaves under some condition, surface or version | Missing `e.surface` check; state lost after `/clear`; a limit that real input can exceed; feature newer than the stated version |
+| 🔵 | **note** | Works, but is harder to maintain or debug than it needs to be | Missing tests for a refusal path; `deny` text Claude can't act on; no minimum version stated |
 
-Verdict, from the worst finding: **not ready** (any error), **ready with warnings**, **ready**.
-For a third-party mod, phrase it as the install recommendation: **don't install**, **install
-after reading the warnings**, **safe to install**.
+Verdict, from the worst finding: 🔴 **not ready** (any error), 🟡 **ready with warnings**,
+🟢 **ready**; 🔵 notes alone still make it **ready**. For a third-party mod, phrase it as the
+install recommendation: **don't install**, **install after reading the warnings**, **safe to
+install**.
 
 ## Report format
 
+Follow the reporting rules indexed at the end of SKILL.md. For a mod audit that means:
+
+- **Verdict line:** the verdict, the counts, and the evidence line: Claude Code version, the
+  `validate` result, the test result, the `-p` runs.
+- **Scorecard:** checklist A–H, one row each, in that order. A section the audit did not run (a
+  third-party mod reviewed for A, C and G only, no `tests/`) is ⚪ with the reason.
+- **Findings:** ordered by severity, then file and line. Every finding names a location, the rule
+  it breaks and a fix, never only a category; the `Fix` cell cites the section that explains it.
+- **Reach line:** `What the mod can reach` goes above `Not checked`, always — for a third-party mod
+  it is the part of the report the install decision rests on.
+- **Not checked:** what wasn't run (no tests, no `claude` CLI, no interactive session), instead of
+  implying it passed.
+
 ```markdown
-## Audit: <mod name> (<dir>)
+## 🩺 Mod audit · `<mod name>` (`<dir>`)
 
-**Verdict:** not ready: 2 errors, 3 warnings, 1 note
-Claude Code <version> · validate: failed · tests: 4 passed, 1 failed · -p: /tally ok
+> 🔴 **Not ready** · 2 errors · 3 warnings · 1 note
+> Claude Code <version> · validate: failed · tests: 4 passed, 1 failed · -p: /tally ok
 
-| # | Severity | Where | Finding | Fix |
-|---|---|---|---|---|
-| 1 | error | hooks/register.ts:14 | `tool.call` guard has no `.catch`, so a thrown error lets the call through | Add `.catch` that refuses (events.md → Failing safely) |
-| 2 | warning | hooks/register.ts:52 | Pane draws `Image` without checking `e.surface` | Fall back to `Text` off the terminal (interface.md → VS Code differences) |
+| Checklist | Status | Found |
+| --- | :-: | --- |
+| A. Loads at all | 🔴 | 1 error |
+| B. Silent failures | 🔴 | 1 error |
+| C. Surfaces | 🟡 | 1 warning |
+| D. Limits | 🟢 | — |
+| E. Version gates | 🟡 | 2 warnings |
+| F. Text Claude reads | 🔵 | 1 note |
+| G. Trust and scope | 🟢 | — |
+| H. Tests | ⚪ | no `tests/` |
+
+| # | Sev | Where | Problem | Fix |
+| :-: | :-: | --- | --- | --- |
+| 1 | 🔴 | `hooks/register.ts:14` | `tool.call` guard has no `.catch`, so a thrown error lets the call through | Add a `.catch` that refuses (events.md → Failing safely) |
+| 2 | 🟡 | `hooks/register.ts:52` | Pane draws `Image` without checking `e.surface` | Fall back to `Text` off the terminal (interface.md → VS Code differences) |
 
 **What the mod can reach:** files (`$.fs.read`), network to api.example.com (`$.http.fetch`); sees every tool call.
+
 **Not checked:** drawing, focus and hotkeys need a live `claude --plugin-dir` session.
+
+**Next:** say which numbers to fix, or `all`.
 ```
 
-Order findings by severity, then by file and line. Every finding names a location, the rule it
-breaks and a fix, never only a category. Report what wasn't run (no tests, no `claude` CLI,
-no interactive session) instead of implying it passed.
+For a third-party mod, `Next` is the install recommendation, and no fix is offered.
