@@ -218,54 +218,45 @@ Quick before/after for the violations that show up most often.
 
 ## Audit Report Format
 
-Report findings with this template (one block; each `Fix` embeds before/after code):
+Follow the reporting rules indexed in SKILL.md → 5. Report. For an accessibility audit:
+
+- **Marks:** critical and serious → 🔴 (blocks a user), moderate → 🟡, minor → 🔵.
+- **Scorecard:** the automated scan, then the four WCAG principles, always in this order.
+- **Findings:** add a `WCAG` column with the success criterion (`1.4.3`). `Problem` says who is
+  blocked and how, not only what is missing.
+- **Detail blocks:** before/after code, for the 🔴 and 🟡 findings whose fix needs more than one line.
+- **No "passed checks" list:** the scorecard's 🟢 rows already say it.
 
 ````markdown
-# Accessibility Audit Report
+## 🩺 Accessibility audit · `<ComponentName>` · WCAG 2.1 AA
 
-**Component:** [ComponentName]
-**Date:** [Date]
-**WCAG Level:** AA
+> 🔴 **Not accessible** · 2 critical · 1 serious · 3 moderate · 1 minor
+> axe: `3 violations` · manual review: keyboard, VoiceOver
 
-## Summary
+| Area | Status | Found |
+| --- | :-: | --- |
+| Automated scan (axe) | 🔴 | 3 violations |
+| 1. Perceivable | 🟡 | 2 moderate |
+| 2. Operable | 🔴 | 2 critical |
+| 3. Understandable | 🟢 | — |
+| 4. Robust | 🔴 | 1 serious · 1 moderate · 1 minor |
 
-- **Critical Issues:** X
-- **Serious Issues:** X
-- **Moderate Issues:** X
-- **Minor Issues:** X
+| # | Sev | WCAG | Where | Problem | Fix |
+| :-: | :-: | --- | --- | --- | --- |
+| 1 | 🔴 | 2.1.1 | `Menu.tsx:24` | Menu items are `div`s: keyboard users cannot open them | Use `<button>` |
+| 2 | 🔴 | 4.1.2 | `IconButton.tsx:8` | Icon-only button has no accessible name | Add `aria-label` |
 
-## Critical Issues (Must Fix)
+### 1 · 🔴 Menu items are not keyboard accessible
 
-### 1. [Issue Title]
+```tsx
+// Before
+<div onClick={onSelect}>{label}</div>
 
-- **WCAG Criterion:** X.X.X - [Name]
-- **Location:** [file:line]
-- **Description:** [What's wrong]
-- **Impact:** [Who is affected]
-- **Fix:**
+// After
+<button type="button" onClick={onSelect}>{label}</button>
+```
 
-  ```tsx
-  // Before
-  <bad code>
+**Not checked:** screen-reader pass on NVDA (macOS only here) · real-device touch targets
 
-  // After
-  <good code>
-  ```
-
-## Serious Issues
-
-### 2. [Issue Title]
-
-...
-
-## Recommendations
-
-1. [Recommendation 1]
-2. [Recommendation 2]
-
-## Passed Checks
-
-- ✅ Color contrast meets requirements
-- ✅ Form labels present
-- ✅ Keyboard navigation works
+**Next:** say which numbers to fix, or `all`; step 6 then locks them in with a Storybook test.
 ````

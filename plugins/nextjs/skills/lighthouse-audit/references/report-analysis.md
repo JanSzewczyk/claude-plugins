@@ -133,5 +133,5 @@ Many audits include a `details` object with the specific resources/elements to f
 }
 ```
 
-Always extract and include these `items` in the action plan — they pinpoint
+Always extract and include these `items` in the report's findings — they pinpoint
 the exact files/elements to fix.

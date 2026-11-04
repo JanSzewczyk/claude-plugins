@@ -1,7 +1,7 @@
 # Audit ID → Next.js Fix Mapping
 
 Maps Lighthouse audit IDs to concrete Next.js 15+ code changes.
-Use this during Step 8 (action plan generation) in SKILL.md.
+Use this during Step 7 (mapping failing audits to fixes) in SKILL.md.
 
 ## Performance
 
