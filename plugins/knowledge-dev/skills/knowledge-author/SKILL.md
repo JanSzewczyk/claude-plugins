@@ -2,7 +2,7 @@
 name: knowledge-author
 description: Write, extract and maintain knowledge notes, the one-decision-per-file rules in the marketplace's knowledge/ folder that skills and agents receive as generated renderings, and evolve the format and build behind them. Use when the user wants to add a rule or convention, turn an existing SKILL.md or agent into notes, change or retire a rule, rebuild and check the generated files, or change how notes are written or rendered ("add a rule that…", "extract the rules from this skill", "this convention changed", "knowledge build", "why does check fail", "why is the knowledge base built this way"). Works on the repo checkout, not on an installed plugin.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-argument-hint: "[extract <skill-dir> | new <path> | build | check]"
+argument-hint: "[extract <skill-dir> | new <path> | build | check | lint]"
 ---
 
 # Knowledge author
@@ -81,3 +81,12 @@ edited by hand, move the edit into the source note first, then `build`.
 
 `coverage` lists principles whose `expects` has no implementation for a language or framework.
 It is a to-do list, not an error, unless run with `--strict`.
+
+## Lint
+
+`lint` looks across the base for what `validate` cannot: notes no target receives, near-duplicate
+titles or summaries, a principle that expects implementations and has none, a knowledge skill near
+its line budget. `--links` also probes every `sources` URL, `--strict` makes findings fail. A hook
+runs it, with `validate`, after each edit under `knowledge/`; fix what it reports about the note
+you just wrote, or say why it is not real. It cannot judge contradictions or a fact posing as a
+decision: read the neighbours in the same folder for that (D25).
