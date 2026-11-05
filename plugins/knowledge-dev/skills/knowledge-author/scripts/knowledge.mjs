@@ -28,6 +28,7 @@
 //   build                write every target
 //   check                exit 1 if anything generated differs from a fresh build
 //   coverage [--strict]  principles whose `expects` has no implementation yet
+//   lint [--links] [--strict]  warnings validate cannot give: orphans, near-duplicates, budgets; --links probes sources
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
@@ -499,6 +500,94 @@ export function coverage(root) {
   return rows;
 }
 
+// ------------------------------------------------------------------ lint
+
+// Findings `validate` cannot make: it checks one note against the contract, lint looks across the
+// base. Every finding is a warning, because each is a judgement call; `--strict` makes them fail.
+// Deterministic and offline by default, so a hook can run it after every edit. The checks that need
+// a model (semantic duplicates, contradictions) belong to a reviewer, not here (D1, D25).
+const NEAR_DUPLICATE = 0.7; // word overlap of two titles, or of two summaries
+const BUDGET_NEAR = 0.9; // warn from this share of a knowledge skill's line budget
+
+const words = (text) => new Set(String(text ?? "").toLowerCase().match(/[a-z0-9]{3,}/g) ?? []);
+function overlap(a, b) {
+  const [small, large] = a.size <= b.size ? [a, b] : [b, a];
+  if (small.size < 3) return 0; // too few words to say anything
+  let shared = 0;
+  for (const w of small) if (large.has(w)) shared += 1;
+  return shared / small.size;
+}
+
+export async function lint(root, { links = false, fetchImpl = globalThis.fetch } = {}) {
+  const config = loadConfig(root);
+  const notes = loadNotes(root, config);
+  const targets = loadTargets(root);
+  const budgets = config.budgets ?? {};
+  const findings = [];
+  const warn = (note, message, hint) => findings.push({ file: note?.rel, message, hint });
+
+  // 1. A note no target receives never reaches a skill or an agent.
+  const received = new Set(targets.flatMap((t) => selectNotes(notes, t).map((n) => n.id)));
+  for (const n of notes) {
+    if (!received.has(n.id)) warn(n, "no target in targets.json receives this note", "add it to a target's `include`, or delete it");
+  }
+
+  // 2. Near-duplicates: two notes that say nearly the same thing in their title or summary.
+  for (let i = 0; i < notes.length; i += 1) {
+    for (let j = i + 1; j < notes.length; j += 1) {
+      const [a, b] = [notes[i], notes[j]];
+      // The same decision for two languages is a parallel, not a duplicate (D6).
+      if (a.facets.languages.length && b.facets.languages.length && !a.facets.languages.some((l) => b.facets.languages.includes(l))) continue;
+      const title = overlap(words(a.data.title), words(b.data.title));
+      const summary = overlap(words(a.data.summary), words(b.data.summary));
+      if (title >= NEAR_DUPLICATE || summary >= NEAR_DUPLICATE) {
+        warn(a, `looks like ${b.id} (${title >= NEAR_DUPLICATE ? "title" : "summary"} overlaps ${Math.round(Math.max(title, summary) * 100)}%)`, "merge them, or make the difference explicit in the titles");
+      }
+    }
+  }
+
+  // 3. A principle that expects implementations and has none is an unbacked promise. One without
+  // `expects` may stand alone (a reporting principle has no language to implement it in).
+  const implemented = new Set(notes.map((n) => n.data.implements).filter(Boolean));
+  for (const n of notes) {
+    if (n.type === "principle" && (n.data.expects ?? []).length && !implemented.has(n.id)) warn(n, "no rule implements this principle", "write a rule with `implements`, or fold the principle into one");
+  }
+
+  // 4. Budgets: a knowledge skill near its line limit stops building on the next rule. (Titles and
+  // summaries are not warned about: validate already fails them over the limit.)
+  for (const target of targets.filter((t) => t.kind === "knowledge-skill")) {
+    const file = join(root, target.skill, "SKILL.md");
+    if (!existsSync(file)) continue;
+    const lines = readFileSync(file, "utf8").split("\n").length;
+    const max = target.maxLines ?? budgets.knowledgeSkillLines ?? 300;
+    if (lines >= max * BUDGET_NEAR) findings.push({ file: "knowledge/targets.json", message: `${target.skill} is ${lines} of ${max} lines`, hint: "set `inline` to a stricter impact, or narrow `include`, before it stops building" });
+  }
+
+  // 5. Dead sources: only on request, because it needs the network.
+  if (links) {
+    const seen = new Map();
+    for (const n of notes) {
+      for (const url of Array.isArray(n.data.sources) ? n.data.sources : []) {
+        if (!seen.has(url)) seen.set(url, probe(url, fetchImpl));
+        const problem = await seen.get(url);
+        if (problem) warn(n, `source ${url} ${problem}`, "update the link or drop the source");
+      }
+    }
+  }
+  return findings;
+}
+
+// Resolves to a problem description, or null when the URL answers. A network error is a
+// finding too: from here the source cannot be reached either way.
+async function probe(url, fetchImpl) {
+  try {
+    const response = await fetchImpl(url, { method: "GET", redirect: "follow", signal: AbortSignal.timeout(10_000) });
+    return response.ok ? null : `answers ${response.status}`;
+  } catch (error) {
+    return `cannot be reached (${error.cause?.code ?? error.name})`;
+  }
+}
+
 // ------------------------------------------------------------------ new
 
 export function scaffold(root, id) {
@@ -531,13 +620,14 @@ function report(issues) {
   }
 }
 
-function main(argv) {
+async function main(argv) {
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
     options: {
       root: { type: "string", default: process.cwd() },
       strict: { type: "boolean", default: false },
+      links: { type: "boolean", default: false },
     },
   });
   const [command, ...rest] = positionals;
@@ -603,15 +693,25 @@ function main(argv) {
       console.log(`\n${rows.length - gaps}/${rows.length} expected implementations exist`);
       return values.strict && gaps ? 1 : 0;
     }
+    case "lint": {
+      const findings = await lint(root, { links: values.links });
+      for (const { file, message, hint } of findings) {
+        console.log(`  ! ${message}`);
+        if (file) console.log(`      ${file}`);
+        if (hint) console.log(`      → ${hint}`);
+      }
+      console.log(findings.length ? `\n${findings.length} finding(s)` : "✓ no findings");
+      return values.strict && findings.length ? 1 : 0;
+    }
     default:
-      console.error("usage: knowledge.mjs <new|validate|build|check|coverage> [--root <dir>]");
+      console.error("usage: knowledge.mjs <new|validate|build|check|coverage|lint> [--root <dir>]");
       return 2;
   }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    process.exitCode = main(process.argv.slice(2));
+    process.exitCode = await main(process.argv.slice(2));
   } catch (error) {
     if (!(error instanceof KnowledgeError)) throw error;
     report([{ file: error.file, message: error.message, hint: error.hint }]);
