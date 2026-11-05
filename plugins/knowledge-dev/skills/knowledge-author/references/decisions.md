@@ -359,7 +359,7 @@ silently picking one side of a conflict.
 **Decision.** `knowledge.mjs` lives in `plugins/knowledge-dev/skills/knowledge-author/scripts/`,
 takes the repo root as `--root`, and uses only Node built-ins (Node 22+; CI runs Node 26).
 
-**Why.** It mirrors how `marketplace-doctor` ships its script, so moving the PoC into the repo is a
+**Why.** It mirrors how `marketplace-creator` (then `marketplace-doctor`) ships its script, so moving the PoC into the repo is a
 copy, and the repo needs no `package.json`.
 
 **Consequences.** The tests run against `tests/fixture/`, a frozen copy of the PoC notes, targets

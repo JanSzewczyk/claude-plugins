@@ -9,7 +9,7 @@ description: >-
   has grown bloated or rambling, wonders whether its reference files are still linked or whether
   anyone reads them, asks why a skill never fires, or wants to know what to cut before shipping
   it. Not for auditing a whole marketplace repo's manifests and
-  READMEs — that is marketplace-doctor — and not for measuring whether a wording change improved
+  READMEs — that is marketplace-creator — and not for measuring whether a wording change improved
   triggering, which is skill-ab-optimizer. This one reads the skill and proposes edits.
 allowed-tools: Read, Glob, Grep, Bash, Task, TaskCreate, TaskUpdate, TodoWrite, mcp__ccd_turn__update_plan
 argument-hint: "[path to the skill directory to audit]"
@@ -60,7 +60,7 @@ Write the report
 
 ## What this is not
 
-`marketplace-doctor` asks whether the **repo** describes itself truthfully — manifests against
+`marketplace-creator`'s audit asks whether the **repo** describes itself truthfully — manifests against
 the plugins on disk, READMEs against the skills they enumerate. This asks whether **one skill**
 is well built. The two overlap on the frontmatter contract, which is checked here as well
 because the target may be a skill that lives outside a marketplace repo entirely, where there is
@@ -221,7 +221,7 @@ Verdict words: 🔴 **Broken**, 🟡 **Needs work**, 🔵 **Polish only**, 🟢 
 + <proposed line>
 ```
 
-**Not checked:** routing performance → `skill-ab-optimizer` · repo registration → `marketplace-doctor`
+**Not checked:** routing performance → `skill-ab-optimizer` · repo registration → `marketplace-creator`
 
 **Next:** nothing is applied yet. Reply with the numbers to apply (`1 3`) or `all`.
 ````

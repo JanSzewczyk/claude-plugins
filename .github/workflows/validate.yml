@@ -28,12 +28,12 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Check manifests and documentation
-        run: node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
+        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs .
 
       - name: Test the doctor and the release planner
         run: >
           node --test
-          plugins/plugin-dev/skills/marketplace-doctor/tests/check-marketplace.test.mjs
+          plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs
           plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 
   knowledge:

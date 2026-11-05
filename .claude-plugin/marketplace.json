@@ -149,7 +149,7 @@
     {
       "name": "plugin-dev",
       "source": "./plugins/plugin-dev",
-      "description": "Author and maintain a Claude Code plugin marketplace — manifest and documentation drift auditing, plus semver release tagging",
+      "description": "Author and maintain Claude Code plugins and marketplaces — create and audit plugins and marketplaces, manifest and documentation drift, mods, and semver release tagging",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",

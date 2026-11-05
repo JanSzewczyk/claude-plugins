@@ -64,18 +64,23 @@
     },
     {
       "kind": "skill-index",
-      "skill": "plugins/plugin-dev/skills/marketplace-doctor",
-      "include": ["plugin-authoring/**", "reporting/**"]
+      "skill": "plugins/plugin-dev/skills/marketplace-creator",
+      "include": ["plugin-authoring/claude-code/*", "plugin-authoring/claude-code/marketplace/**", "reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/plugin-dev/skills/plugin-creator",
+      "include": ["plugin-authoring/claude-code/*", "plugin-authoring/claude-code/components/**", "plugin-authoring/claude-code/evals/**", "reporting/**"]
     },
     {
       "kind": "skill-index",
       "skill": "plugins/plugin-dev/skills/plugin-release",
-      "include": ["plugin-authoring/**"]
+      "include": ["plugin-authoring/claude-code/*"]
     },
     {
       "kind": "skill-index",
       "skill": "plugins/plugin-dev/skills/plugin-dev-setup",
-      "include": ["plugin-authoring/**"]
+      "include": ["plugin-authoring/claude-code/*"]
     },
     {
       "kind": "skill-index",

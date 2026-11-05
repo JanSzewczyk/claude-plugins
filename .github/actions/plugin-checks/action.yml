@@ -43,7 +43,7 @@ runs:
         SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
         STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
         ROOT: ${{ inputs.path }}
-      run: node "$SKILLS/marketplace-doctor/scripts/check-marketplace.mjs" "$ROOT" $STRICT
+      run: node "$SKILLS/marketplace-creator/scripts/check-marketplace.mjs" "$ROOT" $STRICT
 
     - name: Every changed plugin has a version bump
       if: inputs.check-version-bumps == 'true' && github.event_name == 'pull_request'

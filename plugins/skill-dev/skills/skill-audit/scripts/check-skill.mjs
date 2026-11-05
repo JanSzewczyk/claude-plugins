@@ -3,7 +3,7 @@
 // the frontmatter contract, the progressive-disclosure budget, the link graph, and a small
 // set of prose signals that survive being measured.
 //
-// `marketplace-doctor` answers "does the repo still describe itself truthfully?" across every
+// `marketplace-creator`'s audit answers "does the repo still describe itself truthfully?" across every
 // manifest and README. This script answers "is this one skill well built?" — and it stops where
 // judgement begins. Anything that needs a reader rather than a regex is emitted as a metric
 // instead of an issue, for the audit's probe layer to weigh.

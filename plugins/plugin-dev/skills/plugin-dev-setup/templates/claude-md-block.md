@@ -21,7 +21,7 @@ Do these in the same change, without being asked. A change is unfinished until t
 
 1. **Bump the version.** {{VERSIONING}}
 2. **Update the docs that list capabilities by hand:** {{DOCS}}.
-3. **Run `/marketplace-doctor`** and fix what it reports before committing. It checks manifests,
+3. **Run `/marketplace-creator audit`** and fix what it reports before committing. It checks manifests,
    docs and frontmatter against what is on disk.
 4. **Check the bump** with `/plugin-release` in plan mode: it proposes the semver size per plugin.
    Do not let it tag.
