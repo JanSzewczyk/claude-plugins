@@ -1,6 +1,6 @@
 ---
-title: Always re-raise asyncio.CancelledError after cleanup
-summary: Swallowing CancelledError breaks cancellation, timeouts and TaskGroup shutdown.
+title: Re-raise asyncio.CancelledError after cleanup
+summary: Swallowing CancelledError can break cancellation, timeouts and TaskGroup shutdown.
 impact: high
 applies: [python, asyncio]
 sources: [https://docs.python.org/3/library/asyncio-task.html#task-cancellation]
@@ -12,7 +12,7 @@ When you catch `asyncio.CancelledError` to clean up, run the cleanup and then `r
 
 ## Why
 
-`asyncio.timeout()` and `TaskGroup` rely on the cancellation propagating, so a swallowed `CancelledError` leaves the task running and the timeout never fires.
+The asyncio docs warn that `asyncio.timeout()` and `TaskGroup` "might misbehave" when a coroutine swallows `CancelledError`: the task keeps running after it was told to stop.
 
 ## Incorrect
 
@@ -34,3 +34,7 @@ async def worker():
         await cleanup()
         raise
 ```
+
+## Exceptions
+
+Suppress the cancellation only when this code deliberately owns it, and then call `Task.uncancel()` so the cancellation count stays correct.

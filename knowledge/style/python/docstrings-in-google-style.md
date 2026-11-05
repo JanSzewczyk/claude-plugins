@@ -3,12 +3,12 @@ title: Write docstrings for public API in Google style without repeating annotat
 summary: PEP 257 sets the shape; Google style (Args, Returns, Raises) gives sections, and the signature already states types.
 impact: low
 applies: [python]
-sources: [https://peps.python.org/pep-0257/]
+sources: [https://peps.python.org/pep-0257/, https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings]
 ---
 
 ## Rule
 
-Give every module, public function, class and public method a docstring in triple double quotes. Use an imperative one-line summary ending in a period; add a blank line and Google-style sections (`Args`, `Returns`, `Raises`) when behaviour needs them. Do not repeat types that the annotations already state. Comments explain why, not what.
+Give every module, public function, class and public method a docstring in triple double quotes. Use an imperative one-line summary ending in a period; add a blank line and Google-style sections (`Args`, `Returns`, `Raises`) when behaviour needs them. Do not repeat types that the annotations already state.
 
 ## Why
 
