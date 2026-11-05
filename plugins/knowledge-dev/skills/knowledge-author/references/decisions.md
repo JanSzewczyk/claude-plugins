@@ -37,6 +37,8 @@ Storybook skill; it has since become `create-stories`.
 - [D23 Plugins by technology, layered, with an agnostic testing core](#d23-plugins-by-technology-layered-with-an-agnostic-testing-core)
 - [D24 React Testing Library rules stay apart from Storybook rules](#d24-react-testing-library-rules-stay-apart-from-storybook-rules)
 - [D25 Cross-note checks are a deterministic lint; judgement stays with a reviewer](#d25-cross-note-checks-are-a-deterministic-lint-judgement-stays-with-a-reviewer)
+- [D26 Semantic review is a read-only agent fed by a lexical shortlist](#d26-semantic-review-is-a-read-only-agent-fed-by-a-lexical-shortlist)
+- [D27 Guides: the long form, beside the one-decision notes](#d27-guides-the-long-form-beside-the-one-decision-notes)
 - [Open questions](#open-questions)
 
 ## D1 Plain files, not RAG
@@ -506,6 +508,43 @@ if the reviewer's own `grep` hits it.
 
 **Revisit when** reviewers' findings show the shortlist misses real neighbours (then widen it or
 add stemming), or when a CI-runnable reviewer exists.
+
+## D27 Guides: the long form, beside the one-decision notes
+
+**Decision.** A third note type, the guide, lives in a `guides/` folder (`architecture/python/guides/api-structure`).
+It explains a choice that does not fit one decision: the options and their costs, the shapes they
+produce (directory trees), and when to move from one to the next. Fixed sections: `## Decision`
+(the verdict in a few sentences), `## Options`, `## Layouts` (optional), `## Evolution`. A
+guide carries `decides`, a list of the principles and rules it produced, and `validate` fails
+a guide with none, a path that does not exist, or a rule that lists `decides`. The verdict lives
+twice on purpose: as atomic rules that agents apply and `check` verifies, and as the guide's
+Decision. A target says how much of a guide it receives with `guides`, a list of sections:
+the default is `["Decision"]`, rendered inline like a rule. Asking for more writes the other sections
+to `references/guides/<id>.md`, and the entry names that file. Procedure skills and architecture
+agents ask for everything; the `*-rules` knowledge skills keep the default, so their budgets do not move.
+
+**Why.** The notes' one-decision format (D4, D10) is right for rules and wrong for an explanation:
+a comparison of four architectures with trees and exit criteria has no "Incorrect" snippet and cannot
+be cut into one decision per file without losing the reasoning that connects them. Without a long
+form that reasoning ends up in a hand-written reference nobody builds, checks or keeps in step
+with the rules. A guide keeps it in `knowledge/`, so it gets the same validation, the same
+drift check and the same delivery to several consumers (D3, D12).
+
+**Rejected.** Longer notes with free sections: every consumer would pay for text it does not need,
+and `validate` could no longer say what a note is for (D10). A `guides/` folder per skill: the same
+reasoning would be written twice. Rendering the whole guide everywhere: it would blow the
+300-line budget of a knowledge skill for text that matters only when designing, not when writing a line.
+Putting learning material (exercises, reading order) in the guide: D13, the model does not use it;
+it stays in whatever document teaches people.
+
+**Cost.** Two places say the verdict (the guide's Decision and the rules), and nothing but the
+`librarian` can tell when they drift; `decides` at least makes the pair visible to `neighbors`.
+A guide is read whole, so it must stay short enough to be worth it: aim for under 150 lines.
+An agent reads the long sections from `references/guides/` of a preloaded skill, which depends on
+the unresolved preload question under Open questions; the Decision, inlined, does not.
+
+**Revisit when** guides outnumber the rules they decide (then the rules are too thin), or when two
+guides repeat the same options table (then it is a principle).
 
 ## Open questions
 

@@ -26,7 +26,7 @@ plugins/
 | ---------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **testing**            | Technology-agnostic testing core                | —                                                                          | playwright-cli, true-dom-tester                                                                                                                         |
 | **typescript**         | TypeScript & JavaScript language layer          | unit-tester, library-updater                                               | unit-testing, builder-factory, coverage-gaps, dead-code, builder-rules-ts                                                                               |
-| **python**             | Python language layer                           | —                                                                          | builder-rules-py, python-rules, pytest-rules, fastapi-rules                                                                                             |
+| **python**             | Python language layer                           | python-developer, python-api-architect                                     | api-architecture, builder-rules-py, python-rules, pytest-rules, fastapi-rules                                                                           |
 | **react**              | React 19 UI development                         | frontend-expert, storybook-tester                                          | react-19-compiler, create-stories, accessibility-audit, storybook-rules, component-test-rules                                                           |
 | **design**             | Design system & styling                         | —                                                                          | szum-tech-design-system, tailwind-css-4, design-system-component, implement-design                                                                      |
 | **nextjs**             | Next.js full-stack development                  | nextjs-backend-engineer, code-reviewer, performance-analyzer, testing-strategist | server-actions, t3-env-validation, structured-logging, toast-notifications, error-handling, generate-feature-package, devlogs, api-test, performance-optimization, lighthouse-audit |
@@ -67,7 +67,7 @@ Three manifest layers must stay in sync when adding capabilities:
 
 ## Knowledge base
 
-Rules that skills and agents apply live once in `knowledge/`, one decision per file. Skills and
+Rules that skills and agents apply live once in `knowledge/`, one decision per file (plus long-form guides that explain a choice and list the rules it produced, D27). Skills and
 agents receive generated renderings (`references/rules.md`, the `BEGIN:knowledge` block in a
 SKILL.md, the `*-rules` knowledge skills). Never edit those: edit the note and run
 `node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs build`. CI runs `check`.
