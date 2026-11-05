@@ -2,7 +2,7 @@
 title: Keep tutorials, how-to guides, reference and explanation on separate pages
 summary: The Diátaxis split: each page serves one reader need, so none mixes lessons, recipes, facts and background.
 impact: low
-applies: [python]
+applies: []
 sources: [https://diataxis.fr]
 ---
 

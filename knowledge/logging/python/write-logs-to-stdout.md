@@ -1,8 +1,9 @@
 ---
-title: Write logs to stdout or stderr and let the platform collect them
-summary: A containerised app emits a stream; rotation and shipping belong to the platform. Files only where no collector exists.
+title: Point Python log handlers at sys.stdout, not at a file
+summary: StreamHandler on sys.stdout in the logging config; RotatingFileHandler only on hosts without a collector.
 impact: medium
 applies: [python]
+implements: logging/principles/write-logs-to-a-stream-not-a-file
 sources: [https://12factor.net/logs]
 ---
 
