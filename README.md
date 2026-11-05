@@ -118,9 +118,9 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
-| [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
+| [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 10 agents · 51 skills**
+**Total: 11 agents · 51 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -407,6 +407,7 @@ claude-plugins/
     │   └── skills/                # 4 skills (create-branch, create-commit, create-pull-request, ship-task)
     └── knowledge-dev/              # Knowledge base authoring and build
         ├── .claude-plugin/plugin.json
+        ├── agents/                # librarian
         └── skills/                # 1 skill (knowledge-author)
 ```
 

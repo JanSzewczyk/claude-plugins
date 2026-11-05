@@ -20,10 +20,12 @@ import {
   lint,
   loadConfig,
   loadNotes,
+  neighbors,
   parseFrontmatter,
   renderNote,
   scaffold,
   selectNotes,
+  similar,
   validateNotes,
 } from "../scripts/knowledge.mjs";
 
@@ -244,6 +246,38 @@ describe("new", () => {
     const result = cli("new", "testing/storybook/portal-content-via-screen");
     assert.equal(result.status, 1);
     assert.match(result.stderr, /already exists/);
+  });
+});
+
+describe("similar and neighbors", () => {
+  test("similar ranks the note a sentence is about first and ignores unrelated ones", () => {
+    const title = byId("testing/storybook/portal-content-via-screen").data.title;
+    const rows = similar(root, title);
+    assert.equal(rows[0].id, "testing/storybook/portal-content-via-screen");
+    assert.ok(rows[0].score >= 0.5);
+    assert.deepEqual(similar(root, "zebra giraffe antelope savanna"), []);
+  });
+
+  test("new --about lists the closest existing notes and the folder's siblings", () => {
+    const about = byId("testing/storybook/portal-content-via-screen").data.summary;
+    const result = cli("new", "testing/storybook/portal-content-again", "--about", about);
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /closest existing notes/);
+    assert.match(result.stdout, /! testing\/storybook\/portal-content-via-screen/);
+    assert.match(result.stdout, /same folder: .*portal-content-via-screen/);
+  });
+
+  test("neighbors gives siblings and links, and reports an unknown id", () => {
+    const [row, missing] = neighbors(root, ["testing/storybook/portal-content-via-screen", "testing/nope"]);
+    assert.ok(row.sameFolder.length > 0);
+    assert.ok(Array.isArray(row.similar) && Array.isArray(row.linked));
+    assert.equal(missing.missing, true);
+  });
+
+  test("the CLI prints neighbors as JSON", () => {
+    const result = cli("neighbors", "testing/storybook/portal-content-via-screen", "--json");
+    assert.equal(result.status, 0);
+    assert.equal(JSON.parse(result.stdout)[0].id, "testing/storybook/portal-content-via-screen");
   });
 });
 
