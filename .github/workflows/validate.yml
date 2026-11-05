@@ -113,7 +113,12 @@ jobs:
       - name: Check the generated files are current
         run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
 
-      - name: Test the build script
+      - name: Lint the notes across the base
+        # Warnings only (orphans, near-duplicates, a knowledge skill near its line budget): read
+        # them in the log. Add --strict to make them fail. Offline: --links probes sources.
+        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs lint
+
+      - name: Test the build script and the edit hook
         run: node --test plugins/knowledge-dev/skills/knowledge-author/tests/knowledge.test.mjs
 
   evals:
