@@ -1,6 +1,6 @@
 name: plugin-checks
 
-# Added by /plugin-dev-setup. Fails a pull request whose manifests or docs drifted from the plugins
+# Added by /plugin-setup. Fails a pull request whose manifests or docs drifted from the plugins
 # on disk, or that changed a plugin without bumping its version. The checks come from the shared
 # action at the ref named below, so nothing is vendored into this repository.
 
