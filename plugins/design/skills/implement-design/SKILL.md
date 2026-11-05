@@ -1,24 +1,18 @@
 ---
 name: implement-design
 description: >
-  Implement UI in any project that imports from @szum-tech/design-system,
-  especially when picking up a native Claude Design → Claude Code handoff,
-  pulling screens from a /design-sync'd design project, porting a mockup,
-  recreating a screenshot, or building a hero/landing/dashboard view. Use
-  this skill BEFORE writing any JSX with components, classes, or design
-  tokens — it enforces an inventory-first protocol that prevents the most
-  common failure mode: reinventing components (Button, Card, Dialog, Input,
-  etc.) that already exist in the DS, or using raw Tailwind utilities
-  (text-gray-*, bg-white, hex colors) instead of semantic tokens. The
-  preferred source is the native Claude Design handoff (files dropped into
-  the workspace by "Send to local coding agent") or a /design-sync'd design
-  project read via DesignSync; a Claude Design share URL, pasted JSX/HTML, a
-  screenshot, or a verbal spec work as fallbacks. Optional quoted notes
-  describe adjustments to apply (copy changes, color swaps, sections to skip).
-  Trigger phrases: "build this view", "implement this design",
-  "from Claude Design", "Claude Design handoff", "design-sync", "create
-  landing page", "port mockup", "recreate this UI", "zbuduj ten widok",
-  "zaimplementuj design", "z Claude Design".
+  Implement UI in a project that imports @szum-tech/design-system — a native
+  Claude Design handoff ("Send to local coding agent"), screens from a
+  /design-sync'd project, a mockup, a screenshot, or a hero/landing/dashboard
+  view. Use BEFORE writing any JSX with components, classes, or design tokens:
+  it enforces an inventory-first protocol so existing DS components (Button,
+  Card, Dialog, Input…) are reused and semantic tokens replace raw Tailwind
+  (text-gray-*, bg-white, hex colors). A Claude Design share URL, pasted
+  JSX/HTML, a screenshot, or a verbal spec work as fallbacks; quoted notes
+  describe adjustments (copy, colors, sections to skip). Triggers: "build this
+  view", "implement this design", "from Claude Design", "Claude Design
+  handoff", "design-sync", "create landing page", "port mockup", "recreate
+  this UI", "zbuduj ten widok", "zaimplementuj design", "z Claude Design".
 allowed-tools: Read, Write, Edit, Glob, Grep, WebFetch, DesignSync, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 argument-hint: '[claude-design-source] ["adjustment notes"]'
 ---

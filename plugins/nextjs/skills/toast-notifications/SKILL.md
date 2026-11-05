@@ -1,23 +1,18 @@
 ---
 name: toast-notifications
 description: >
-  Send a one-shot toast/flash message from a Next.js (App Router) Server Action to the
-  client so it appears on the next page render — crucially, surviving a redirect(), which
-  normally drops all response data. Works by writing a short-lived cookie that the next
-  render reads, fires once, and clears. Library-agnostic plumbing (sonner, react-hot-toast,
-  or any toast UI) — it does NOT build the toast component itself. Use this skill whenever a
-  Server Action needs to give page-level feedback after a mutation, especially when it ends
-  in redirect() or revalidatePath(): "show a success/error message after delete/create/
-  update", "toast after redirect", "notify the user after a server-side action", "flash
-  message like Rails flash[:notice]", "message waiting on the destination/sign-in page after
-  redirect", "setToastCookie", "wire up ToastHandler". Trigger even when the user names their
-  toast library (e.g. "fire a sonner toast from a server action that redirects") or doesn't
-  say "toast" at all but clearly needs post-redirect feedback. Do NOT use for: building or
-  styling a toast/banner UI component (use a component skill), configuring a toast library's
-  Toaster, inline per-field form validation errors (return fieldErrors instead), client-side
-  loading/optimistic toasts during a fetch, persistent dismissible banners, browser/web-push
-  notifications, or setting cookies for non-message state like theme. Bundles ready-to-copy
-  source files under assets/.
+  Send a one-shot toast/flash message from a Next.js (App Router) Server Action
+  that appears on the next render — surviving redirect() — via a short-lived
+  cookie the next render reads, fires once, and clears. Library-agnostic
+  plumbing (sonner, react-hot-toast, any toast UI); bundles ready-to-copy files
+  under assets/. Use whenever a mutation needs page-level feedback, especially
+  after redirect() or revalidatePath(): "success message after save/delete",
+  "toast after redirect", "flash message like Rails flash[:notice]",
+  "setToastCookie", "wire up ToastHandler" — even when the user names their
+  toast library or never says "toast". NOT for building or styling a toast
+  component, configuring a Toaster, inline field errors (return fieldErrors),
+  client-side loading/optimistic toasts, persistent banners, push
+  notifications, or cookies for non-message state like theme.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "show toast after action | toast after redirect | add toast system"
 ---
