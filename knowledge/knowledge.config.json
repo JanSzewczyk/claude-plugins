@@ -1,7 +1,7 @@
 {
   "languages": ["typescript", "python"],
-  "frameworks": ["react", "vue", "nextjs", "react-router", "django"],
-  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest", "msw", "claude-code", "uv", "ruff", "asyncio"],
+  "frameworks": ["react", "vue", "nextjs", "react-router", "django", "fastapi"],
+  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest", "msw", "claude-code", "uv", "ruff", "asyncio", "structlog", "hypothesis", "griffe", "schemathesis", "oasdiff", "spectral", "testcontainers", "time-machine", "pytest-asyncio"],
   "budgets": {
     "title": 90,
     "summary": 120,
