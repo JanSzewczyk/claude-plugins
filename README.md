@@ -106,7 +106,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | --- | --- | --- | --- | --- |
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
 | [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
-| [**python**](./plugins/python/) | Python — team conventions (Ruff, uv, typing, errors, asyncio, pytest, security) and factory_boy test data rules | — | 2 | [README](./plugins/python/README.md) |
+| [**python**](./plugins/python/) | Python — team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | — | 4 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
@@ -120,7 +120,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 11 agents · 51 skills**
+**Total: 11 agents · 53 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -366,7 +366,7 @@ claude-plugins/
     │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
-    │   └── skills/                # 2 skills (generated builder-rules-py, python-rules)
+    │   └── skills/                # 4 skills (generated builder-rules-py, python-rules, pytest-rules, fastapi-rules)
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester
