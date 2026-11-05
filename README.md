@@ -65,7 +65,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🩺 [marketplace-creator](./plugins/plugin-dev/skills/marketplace-creator/)** — Creates, maintains and audits a plugin marketplace: entries and sources, hosting, renames and removals, relevance — and finds drift between the manifest layers and the docs that enumerate them by hand
 - **🧩 [plugin-creator](./plugins/plugin-dev/skills/plugin-creator/)** — Creates, extends, debugs and audits a Claude Code plugin: manifest, skills, agents, hooks, MCP servers, `userConfig`, dependencies, evals and release readiness
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
-- **🧰 [plugin-dev-setup](./plugins/plugin-dev/skills/plugin-dev-setup/)** — Writes the plugin-development workflow into another project's `CLAUDE.md` and optionally adds CI that fails a PR with drift or a missing version bump
+- **🧰 [plugin-setup](./plugins/plugin-dev/skills/plugin-setup/)** — Writes the plugin-development workflow into another project's `CLAUDE.md` and optionally adds CI that fails a PR with drift or a missing version bump
 - **🧱 [mod-creator](./plugins/plugin-dev/skills/mod-creator/)** — Builds, tests, debugs and audits Claude Code mods: plugins whose hooks module draws panes, bands and toasts, adds commands, or guards tool calls
 - **🔎 [skill-audit](./plugins/skill-dev/skills/skill-audit/)** — Audits one skill for authoring quality — triggering, context budget, dead references, and prose that does not earn its tokens
 - **🔬 [skill-ab-optimizer](./plugins/skill-dev/skills/skill-ab-optimizer/)** — A/B tests skill wording and accepts a change only when the measured outcome improves
@@ -394,7 +394,7 @@ claude-plugins/
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
     ├── plugin-dev/                 # Plugin & marketplace authoring, releases
     │   ├── .claude-plugin/plugin.json
-    │   └── skills/                # 5 skills (plugin-creator, marketplace-creator, plugin-release, plugin-dev-setup, mod-creator)
+    │   └── skills/                # 5 skills (plugin-creator, marketplace-creator, plugin-release, plugin-setup, mod-creator)
     ├── skill-dev/                  # Skill authoring quality & A/B testing
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator)

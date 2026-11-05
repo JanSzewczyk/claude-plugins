@@ -79,7 +79,7 @@
     },
     {
       "kind": "skill-index",
-      "skill": "plugins/plugin-dev/skills/plugin-dev-setup",
+      "skill": "plugins/plugin-dev/skills/plugin-setup",
       "include": ["plugin-authoring/claude-code/*"]
     },
     {

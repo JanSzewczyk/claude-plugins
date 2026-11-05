@@ -21,7 +21,7 @@ inputs:
     description: Branch the version bump check compares against.
     default: ${{ github.base_ref }}
   path:
-    description: Root of the marketplace repository, relative to the workspace.
+    description: Root of the marketplace or single-plugin repository, relative to the workspace.
     default: "."
 
 runs:
@@ -43,7 +43,16 @@ runs:
         SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
         STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
         ROOT: ${{ inputs.path }}
-      run: node "$SKILLS/marketplace-creator/scripts/check-marketplace.mjs" "$ROOT" $STRICT
+      run: |
+        if [ -f "$ROOT/.claude-plugin/marketplace.json" ]; then
+          node "$SKILLS/marketplace-creator/scripts/check-marketplace.mjs" "$ROOT" $STRICT
+        elif command -v claude >/dev/null; then
+          # A single-plugin repo has no catalog to compare against: validate the plugin itself.
+          claude plugin validate "$ROOT" --strict
+        else
+          echo "::error::No marketplace.json under $ROOT and Claude Code is not installed to validate the plugin."
+          exit 1
+        fi
 
     - name: Every changed plugin has a version bump
       if: inputs.check-version-bumps == 'true' && github.event_name == 'pull_request'
@@ -52,4 +61,9 @@ runs:
         SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
         ROOT: ${{ inputs.path }}
         BASE: ${{ inputs.base-ref }}
-      run: node "$SKILLS/plugin-release/scripts/plan-release.mjs" "$ROOT" --check --since "origin/$BASE"
+      run: |
+        if [ ! -f "$ROOT/.claude-plugin/marketplace.json" ]; then
+          echo "::notice::Single-plugin repo: the bump check needs a marketplace.json, so it is skipped."
+          exit 0
+        fi
+        node "$SKILLS/plugin-release/scripts/plan-release.mjs" "$ROOT" --check --since "origin/$BASE"

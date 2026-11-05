@@ -13,7 +13,7 @@ This plugin is about **building and distributing plugins**: what goes into one, 
 | **plugin-creator** | `/plugin-creator`, `/plugin-creator audit <dir>` | Create, extend, debug and audit a plugin — manifest, skills, agents, hooks, MCP/LSP servers, `userConfig`, dependencies, evals, token cost and release readiness; converts a `.claude/` setup |
 | **marketplace-creator** | `/marketplace-creator`, `/marketplace-creator audit` | Create a marketplace, add, rename or remove entries, host it, set relevance; its audit finds manifest and doc drift plus unpinned sources, missing `renames` and other install-time breakage |
 | **plugin-release** | `/plugin-release` | Work out which plugins changed, propose the semver bump each change implies, write it into plugin.json, and tag the release; `--check` is the CI gate for a missing bump |
-| **plugin-dev-setup** | `/plugin-dev-setup` | Write the plugin-development workflow (where manifests live, what to bump and update after each change) into a project's CLAUDE.md, and optionally a CI workflow that enforces it |
+| **plugin-setup** | `/plugin-setup` | Write the plugin-development workflow (where manifests live, what to bump and update after each change) into a project's CLAUDE.md, and optionally a CI workflow that enforces it |
 | **mod-creator** | `/mod-creator`, `/mod-creator audit <path>` | Build, test, debug and audit Claude Code mods (`/mod-creator audit <path>` ranks findings and gives a verdict) — plugins whose `hooks/hooks.json` lists `modules` that draw panes, bands and toasts, add commands, or guard tool calls |
 
 ## Installation
@@ -78,7 +78,7 @@ that edit help — belongs to [**skill-dev**](../skill-dev/).
 ## Shared GitHub Action
 
 The repository ships a composite action that runs the marketplace audit script and the version bump check, so any
-other marketplace repo can gate its pull requests with one step (`/plugin-dev-setup --ci` writes it):
+other marketplace repo can gate its pull requests with one step (`/plugin-setup --ci` writes it):
 
 ```yaml
 - uses: actions/checkout@v4
@@ -109,6 +109,8 @@ node --test plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 | The marketplace audit reports drift you intend to keep | The tables in `CLAUDE.md` and the READMEs are the hand-typed layer — fix them rather than silencing the check; there is no ignore file by design |
 | The marketplace audit flags house rules your repo never adopted | Remove `.marketplace-creator.json` (or `.marketplace-doctor.json`), or set `conventions` to `false` |
 | `/marketplace-doctor` no longer exists | It became `marketplace-creator` in plugin-dev 4.0.0; its audit is `/marketplace-creator audit`, and the script moved to `skills/marketplace-creator/scripts/` |
+| `/plugin-dev-setup` no longer exists | It became `/plugin-setup` in plugin-dev 4.0.0. The block it writes keeps its `<!-- BEGIN:plugin-dev -->` markers, so re-running refreshes a block written by the old name |
+| `/plugin-setup` in a single-plugin repo | It validates the plugin with `claude plugin validate --strict` instead of the marketplace audit, and the shared action skips the bump check, which needs a `marketplace.json` |
 | A new plugin's `userConfig` dialog never appears | `--plugin-dir` never shows it; run `/plugin configure <plugin>` in the session (plugin-creator → `references/components.md`) |
 | A plugin is missing from the report | It has a remote `source`, which the `Not checked` lines name, or no entry in `marketplace.json` |
 | `claude plugin validate` fails but the script passes | Run with `--no-native` to isolate which layer complains, then read the native error — it checks schema details the script does not |
