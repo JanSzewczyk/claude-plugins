@@ -8,15 +8,16 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 
 import {
   build,
   check,
   coverage,
+  lint,
   loadConfig,
   loadNotes,
   parseFrontmatter,
@@ -253,6 +254,73 @@ describe("coverage", () => {
       "testing/builders/principles/reset-builder-state-between-tests [python]",
       "testing/storybook/principles/use-csf-next-factories [vue]",
     ]);
+  });
+});
+
+describe("lint", () => {
+  const body = "\n## Rule\n\nR.\n\n## Why\n\nW.\n";
+  const write = (id, front) => {
+    mkdirSync(dirname(note(id)), { recursive: true });
+    writeFileSync(note(id), `---\n${front}\n---\n${body}`);
+  };
+  const messagesOf = async (options) => (await lint(root, options)).map((f) => `${f.file} ${f.message}`).join("\n");
+
+  test("a note no target receives is reported", async () => {
+    write("elsewhere/lonely-note", "title: Nobody reads this\nsummary: No target includes it.\nimpact: low");
+    assert.match(await messagesOf(), /elsewhere\/lonely-note\.md no target in targets\.json receives this note/);
+  });
+
+  test("two notes that say the same thing are reported, a parallel across languages is not", async () => {
+    const original = readFileSync(note("testing/storybook/never-import-userevent"), "utf8");
+    writeFileSync(note("testing/storybook/never-import-user-event"), original);
+    const found = await messagesOf();
+    assert.match(found, /never-import-user-event\.md looks like testing\/storybook\/never-import-userevent/);
+    assert.doesNotMatch(found, /overrides-and-traits/, "the python and typescript notes are parallel, not duplicates");
+  });
+
+  test("a principle that expects implementations and has none is reported", async () => {
+    write("testing/principles/lonely-principle", "title: A principle nobody implements\nsummary: Expects a language with no rule.\nimpact: low\nexpects: [typescript]");
+    assert.match(await messagesOf(), /lonely-principle\.md no rule implements this principle/);
+  });
+
+  test("a principle without expects may stand alone", async () => {
+    write("testing/principles/standalone", "title: Stands alone\nsummary: Needs no implementation.\nimpact: low");
+    assert.doesNotMatch(await messagesOf(), /standalone\.md no rule implements/);
+  });
+
+  test("a knowledge skill close to its line budget is reported", async () => {
+    build(root);
+    const lines = readFileSync(skill("storybook-rules"), "utf8").split("\n").length;
+    assert.doesNotMatch(await messagesOf(), /storybook-rules is/);
+    setTarget("storybook-rules", { maxLines: lines });
+    assert.match(await messagesOf(), new RegExp(`storybook-rules is ${lines} of ${lines} lines`));
+  });
+
+  test("sources are probed only on request", async () => {
+    let calls = 0;
+    const fetchImpl = async () => (calls += 1, { ok: false, status: 404 });
+    assert.doesNotMatch(await messagesOf({ fetchImpl }), /source/);
+    assert.equal(calls, 0);
+    const found = await messagesOf({ links: true, fetchImpl });
+    assert.match(found, /source https:\/\/storybook\.js\.org\/docs\/writing-tests\/interaction-testing answers 404/);
+    assert.ok(calls > 0);
+  });
+
+  test("an unreachable source is a finding, and one URL is probed once", async () => {
+    let calls = 0;
+    const fetchImpl = async () => {
+      calls += 1;
+      throw new TypeError("fetch failed", { cause: { code: "ENOTFOUND" } });
+    };
+    assert.match(await messagesOf({ links: true, fetchImpl }), /cannot be reached \(ENOTFOUND\)/);
+    const urls = new Set(loadNotes(root).flatMap((n) => n.data.sources ?? []));
+    assert.equal(calls, urls.size);
+  });
+
+  test("the CLI exits 0 on findings and 1 with --strict", () => {
+    write("elsewhere/lonely-note", "title: Nobody reads this\nsummary: No target includes it.\nimpact: low");
+    assert.equal(cli("lint").status, 0);
+    assert.equal(cli("lint", "--strict").status, 1);
   });
 });
 
