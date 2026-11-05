@@ -1,6 +1,6 @@
 ---
 title: Run an informational free-threaded Python job in CI before adopting that build
-summary: The free-threaded build is supported (PEP 779) but exposes races the GIL hid; test it before switching services.
+summary: The free-threaded build is supported (PEP 779) but exposes races the GIL hid; run it as a non-blocking CI job first.
 impact: low
 applies: [python]
 sources: [https://peps.python.org/pep-0779/]
@@ -8,25 +8,34 @@ sources: [https://peps.python.org/pep-0779/]
 
 ## Rule
 
-Add a CI job on the free-threaded build of the latest release (`3.15t`) that reports failures without blocking merges. Do not move production services to the free-threaded build until it is green and every native extension you ship or depend on declares thread safety.
+Add a CI job on the free-threaded build of the latest release (`3.15t`) that reports failures without blocking merges, and read its results before moving any service to that build.
 
 ## Why
 
-The GIL hid many data races, and one extension that does not declare thread safety turns the GIL back on for the whole process, so the only way to learn this is to run the code.
+The GIL hid many data races, so code that passes on the regular build can fail on the free-threaded one, and the only way to learn this early is to run the tests there.
 
 ## Incorrect
 
-```python
+```yaml
 # .github/workflows/ci.yml
-matrix:
-  python: ["3.15"]
+strategy:
+  matrix:
+    python: ["3.15"]
 ```
 
 ## Correct
 
-```python
+```yaml
 # .github/workflows/ci.yml
-matrix:
-  python: ["3.15", "3.15t"]
-  # 3.15t is informational: continue-on-error: true
+strategy:
+  matrix:
+    python: ["3.15"]
+    include:
+      - python: "3.15t"
+        experimental: true
+continue-on-error: ${{ matrix.experimental == true }}
 ```
+
+## Exceptions
+
+A second job on the free-threaded build of the same latest release is not a compatibility matrix for older interpreters, so it does not conflict with using only the latest Python.

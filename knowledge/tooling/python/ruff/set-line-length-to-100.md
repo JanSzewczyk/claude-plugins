@@ -1,6 +1,6 @@
 ---
-title: Set the line length to 100 and let the formatter enforce it
-summary: PEP 8 allows more than 79 with team agreement; one team-wide value, enforced by ruff format, ends manual wrapping.
+title: Set Ruff's line length to 100 once, in pyproject.toml
+summary: PEP 8 allows up to 99 with team agreement; 100 is our choice, set once so editors and CI agree.
 impact: low
 applies: [python, ruff]
 sources: [https://peps.python.org/pep-0008/#maximum-line-length, https://docs.astral.sh/ruff/settings/#line-length]
@@ -8,23 +8,22 @@ sources: [https://peps.python.org/pep-0008/#maximum-line-length, https://docs.as
 
 ## Rule
 
-Set `line-length = 100` once in `[tool.ruff]` and keep docstrings and comments within PEP 8's 72 characters where practical. Do not wrap lines by hand to reach it.
+Set `line-length = 100` once in `[tool.ruff]`. The formatter wraps to it and the `E501` lint rule flags what it cannot wrap. Do not wrap lines by hand to reach it.
 
 ## Why
 
-Without one agreed value the limit drifts per editor, and reviews argue about wrapping instead of logic.
+PEP 8 stops at 99 for teams that agree, so 100 is a deliberate team choice; without one value in the configuration the limit drifts per editor and reviews argue about wrapping instead of logic.
 
 ## Incorrect
 
-```python
-# editor says 79, CI says 88, a colleague uses 120
+```toml
 [tool.ruff]
-line-length = 88
+# line-length not set: the editor, CI and the docs each assume a different value
 ```
 
 ## Correct
 
-```python
+```toml
 [tool.ruff]
 line-length = 100
 ```
