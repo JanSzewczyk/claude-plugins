@@ -2,7 +2,7 @@
 title: Record every public change in CHANGELOG.md in the Keep a Changelog format
 summary: Each pull request that changes public behaviour adds an entry under Unreleased, grouped by kind.
 impact: low
-applies: [python]
+applies: []
 sources: [https://keepachangelog.com/en/1.1.0/]
 ---
 

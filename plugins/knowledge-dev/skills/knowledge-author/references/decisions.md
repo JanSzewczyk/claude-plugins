@@ -518,7 +518,9 @@ Verified neither in the PoC nor in the docs. Settle before relying on them:
 - Can an agent that preloads a knowledge skill open the `references/rules.md` its injected SKILL.md
   links to? D11 and D15 assume the medium and low rules are one file away; if the relative link does
   not resolve for a preloaded skill, those rules never reach the agent.
-- Is CSF Next (`preview.meta`, `.test()`) supported by the Vue renderer? Decides how much of the
-  Storybook knowledge Vue shares. (plan, spike 0d)
+- ~~Is CSF Next supported by the Vue renderer?~~ Settled 2026-11-05: yes, Storybook's docs show
+  `preview.meta` and `meta.story` for Vue single-file components. The Vue note
+  `testing/storybook/vue/story-file-setup` implements the principle; no skill receives it until a
+  Vue plugin exists. `.test()` on Vue was not checked.
 - The `rules-file` target (notes rendered into `.claude/rules/*.md` for `sync-rules`) is designed
   but not built.

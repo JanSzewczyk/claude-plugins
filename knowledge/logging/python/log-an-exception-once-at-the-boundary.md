@@ -1,8 +1,9 @@
 ---
-title: Log an exception once, where it is finally handled
+title: Log the exception once at the boundary; layers in between only wrap it
 summary: Intermediate layers add context with raise ... from err; the HTTP handler, worker or main logs it.
 impact: medium
 applies: [python]
+implements: logging/principles/log-an-error-once-where-it-is-handled
 sources: [https://docs.python.org/3/library/exceptions.html#exception-context]
 ---
 
