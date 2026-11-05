@@ -36,6 +36,7 @@ Storybook skill; it has since become `create-stories`.
 - [D22 An agent preloads the procedure it runs and the knowledge it applies](#d22-an-agent-preloads-the-procedure-it-runs-and-the-knowledge-it-applies)
 - [D23 Plugins by technology, layered, with an agnostic testing core](#d23-plugins-by-technology-layered-with-an-agnostic-testing-core)
 - [D24 React Testing Library rules stay apart from Storybook rules](#d24-react-testing-library-rules-stay-apart-from-storybook-rules)
+- [D25 Cross-note checks are a deterministic lint; judgement stays with a reviewer](#d25-cross-note-checks-are-a-deterministic-lint-judgement-stays-with-a-reviewer)
 - [Open questions](#open-questions)
 
 ## D1 Plain files, not RAG
@@ -443,6 +444,39 @@ have fitted, but it moves the high-impact rules out to a file agents may not be 
 **Rejected.** Dropping the React Testing Library rules because the repo routes component tests to
 Storybook: projects that use it would get no guidance, and the strategy and mocking rules apply to them
 as well.
+
+## D25 Cross-note checks are a deterministic lint; judgement stays with a reviewer
+
+**Decision.** `lint` reports what `validate` cannot see because it looks across notes: a note no
+target receives, two notes whose titles or summaries overlap by 70% or more, a principle that
+lists `expects` and has no implementing rule, and a knowledge skill at 90% of its line budget.
+`--links` also probes every `sources` URL. Findings are warnings and exit 0; `--strict` fails.
+A PostToolUse hook in `plugins/knowledge-dev/hooks/` runs `validate` and `lint` after Claude writes
+a file under `knowledge/` and returns only what concerns that note: a contract violation blocks
+(exit 2), a lint finding comes back as context.
+
+**Why.** Duplicates, orphans and drift toward a budget are found by comparing text and the target
+globs, which a script does in milliseconds, offline and the same way every time, so it can run
+after every edit. Word overlap is enough at 100 notes; embeddings would be a second copy of the
+knowledge that drifts from the files ([D1](#d1-plain-files-not-rag)). A model is for what overlap
+cannot decide: whether two differently worded notes contradict each other, or a fact slipped in
+as a decision ([D9](#d9-notes-hold-decisions-not-api-facts)). That is a separate, on-demand
+reviewer, not part of the hook.
+
+**Tuned on the repository's own notes.** First run flagged a Python and a TypeScript note about
+the same decision as duplicates (the same decision in two languages is a parallel, so notes whose
+`languages` do not intersect are skipped), about twenty reporting and testing principles with no rule
+(those without `expects` may stand alone), and dozens of titles and summaries within 10% of their limit
+(`validate` already fails them over the limit, so warning is noise). What remains is two
+knowledge skills near 300 lines.
+
+**Rejected.** Sources checked by default: it needs the network, so a hook and CI would flake.
+Lint findings as errors: each is a judgement call, and a check that fails on a judgement call
+is disabled. A hook that runs a model on every edit: slow, costly, and it would judge notes
+that are still half-written.
+
+**Revisit when** the base outgrows word overlap (hundreds of notes with paraphrased duplicates),
+or when a reviewer exists and its findings show which lint checks never catch anything.
 
 ## Open questions
 

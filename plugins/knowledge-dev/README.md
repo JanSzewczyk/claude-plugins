@@ -10,7 +10,7 @@ receives a generated rendering. A drift check keeps the renderings honest in CI.
 
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
-| **knowledge-author** | `/knowledge-author` | Extracts rules from an existing skill or agent into notes, adds or changes a rule, rebuilds the generated files and explains a failing check |
+| **knowledge-author** | `/knowledge-author` | Extracts rules from an existing skill or agent into notes, adds or changes a rule, rebuilds the generated files, explains a failing check and lints the base for orphans, near-duplicates and budgets |
 
 ## Installation
 
@@ -28,6 +28,7 @@ The skill works on a checkout of this repository, not on an installed copy: it r
 /knowledge-author new testing/storybook/<slug>
 /knowledge-author build
 /knowledge-author check
+/knowledge-author lint
 ```
 
 The script behind it runs without Claude too, from the repo root (Node 22+, no dependencies):
@@ -52,6 +53,29 @@ node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
 
 Why each of these choices was made, with the evidence and the rejected alternatives, is in
 [decisions.md](./skills/knowledge-author/references/decisions.md).
+
+## Lint and the edit hook
+
+`lint` reports what `validate` cannot see because it looks across notes. Every finding is a warning
+(exit 0, `--strict` to fail):
+
+| Finding | Means |
+|---------|-------|
+| no target receives this note | it never reaches a skill or agent: add it to a target or delete it |
+| looks like `<id>` | title or summary overlaps 70%+ with a note that is not just the same decision in another language |
+| no rule implements this principle | the principle lists `expects` and nothing has `implements` it |
+| `<skill>` is N of M lines | a knowledge skill is at 90% of its line budget |
+
+```bash
+node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs lint
+node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs lint --links   # also probe sources (network)
+```
+
+The plugin ships a `PostToolUse` hook (`hooks/hooks.json`). After Claude writes a file under
+`knowledge/` it runs `validate` and `lint` and speaks only about that note: a contract violation
+blocks (exit 2) so it is fixed in the same turn, a lint finding comes back as context. It does not
+see edits made outside Claude Code; CI runs `validate`, `check` and `lint` for those. Why this is a
+script and not a model: D25 in `decisions.md`.
 
 ## Checking preloads in a live session
 
