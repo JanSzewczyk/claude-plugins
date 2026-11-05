@@ -29,7 +29,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🧪 [testing-strategist](./plugins/nextjs/)** — Plans test coverage across unit, integration, and E2E layers
 - **🧪 [storybook-tester](./plugins/react/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
 - **🐍 [python-developer](./plugins/python/)** — Writes and fixes Python code with its pytest tests under the team rules, then runs Ruff, the type checker and the tests
-- **🏛️ [python-api-architect](./plugins/python/)** — Read-only architecture advice for Python APIs: flat, domain modules, hexagonal or DDD, with a layout and a hand-off
+- **🏛️ [python-api-architect](./plugins/python/)** — Read-only architecture advice for Python APIs: domain modules or hexagonal modules, with a layout and a hand-off
 - **🧪 [unit-tester](./plugins/typescript/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
 - **🧹 [code-reviewer](./plugins/nextjs/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
 - **⚡ [performance-analyzer](./plugins/nextjs/)** — Bundle size, React rendering efficiency, and slow query analysis
@@ -80,7 +80,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
 - **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
-- **🏗️ [api-architecture](./plugins/python/skills/api-architecture/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, hexagonal ports, when DDD pays
+- **🏗️ [api-architecture](./plugins/python/skills/api-architecture/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, and hexagonal layers where a module needs them
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution

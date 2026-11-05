@@ -12,4 +12,4 @@ Begin every module with a handler, a service and models. Add a port, a fake and 
 
 ## Why
 
-Hexagonal layers and aggregates on a module that is mostly CRUD add files and indirection that repay nothing; the Cosmic Python authors say a thin wrapper over a database probably does not need a domain model or a repository. Fowler advises learning the boundaries inside a well-modularised monolith before splitting further, so the step is taken per module, on evidence.
+Hexagonal layers and a rich domain model on a module that is mostly CRUD add files and indirection that repay nothing; the Cosmic Python authors say a thin wrapper over a database probably does not need a domain model or a repository. Fowler advises learning the boundaries inside a well-modularised monolith before splitting further, so the step is taken per module, on evidence.

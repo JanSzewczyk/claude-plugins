@@ -9,13 +9,13 @@ Python development — the language layer for Python projects. It carries two ag
 | Agent                    | Description                                                                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **python-developer**     | Writes and fixes Python code and its pytest tests under the team rules (`python-rules`, `fastapi-rules`, `pytest-rules`, `builder-rules-py`), then runs Ruff, the type checker and the tests |
-| **python-api-architect** | Read-only: places a Python API on the ladder from flat to domain modules, hexagonal and DDD, recommends the smallest step and returns a layout plus a hand-off for the developer |
+| **python-api-architect** | Read-only: places a Python API as domain modules or hexagonal modules, recommends the smallest step and returns a layout plus a hand-off for the developer |
 
 ### Skills
 
 | Skill                | Invoke with   | Description                                                                                                                  |
 | -------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **api-architecture** | `/api-architecture` | Choose and lay out a Python API (FastAPI): flat, domain modules, hexagonal or DDD, and where each piece of code goes; carries the architecture guide and its rules |
+| **api-architecture** | `/api-architecture` | Choose and lay out a Python API (FastAPI): domain modules or hexagonal modules, and where each piece of code goes; carries the architecture guide and its rules |
 | **builder-rules-py** | — (preloaded) | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents to preload |
 | **python-rules**     | — (preloaded) | Generated background knowledge: Ruff and uv setup, docstrings and library documentation, typing syntax, exceptions, logging, asyncio, supply-chain and t-string security |
 | **pytest-rules**     | — (preloaded) | Generated background knowledge: strict markers, assertions, fixtures, mocking, time, testcontainers, async, Hypothesis, coverage, flaky tests |
