@@ -85,7 +85,7 @@
     {
       "name": "python",
       "source": "./plugins/python",
-      "description": "Python development — factory_boy test data rules, the home for pytest and Python tooling",
+      "description": "Python development — team conventions (Ruff, uv, typing, errors, asyncio, pytest, security) and factory_boy test data rules",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",

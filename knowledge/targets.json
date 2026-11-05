@@ -63,6 +63,17 @@
       "inline": "high"
     },
     {
+      "kind": "knowledge-skill",
+      "skill": "plugins/python/skills/python-rules",
+      "title": "Python rules",
+      "description": "Team conventions for Python code (latest stable release only): Ruff and uv setup, docstrings, modern typing syntax, exceptions, logging, asyncio TaskGroup and cancellation, pytest style, supply-chain and t-string security. Use when writing, fixing or reviewing Python code or pyproject.toml. Background knowledge that agents preload; not a command.",
+      "intro": "Apply these rules to every Python file you write or review. The first section is always in force; open a rule from the table when the task touches it.",
+      "include": ["style/python/**", "typing/python/**", "errors/python/**", "logging/python/**", "concurrency/python/**", "security/python/**", "tooling/python/**", "testing/python/**"],
+      "where": { "languages": ["python"] },
+      "inline": "high",
+      "profile": "lean"
+    },
+    {
       "kind": "skill-index",
       "skill": "plugins/plugin-dev/skills/marketplace-creator",
       "include": ["plugin-authoring/claude-code/*", "plugin-authoring/claude-code/marketplace/**", "reporting/**"]
