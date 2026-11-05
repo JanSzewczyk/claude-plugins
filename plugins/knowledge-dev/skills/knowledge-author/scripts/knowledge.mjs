@@ -3,7 +3,8 @@
 //
 // Notes live in <root>/knowledge/, one decision per file; knowledge/README.md is the authoring
 // contract this script enforces. The path is the note's id, and a `principles` folder in the path
-// makes it a principle. knowledge/targets.json says which notes each skill receives. An installed
+// makes it a principle; a `guides` folder makes a guide, the long form that explains a decision and
+// points at the rules it produced (D27). knowledge/targets.json says which notes each skill receives. An installed
 // plugin is copied into a cache and cannot read anything outside its own directory, so every
 // target gets its own rendered copy. Rendering drops everything only tooling needs (frontmatter,
 // sources) and keeps what the model acts on:
@@ -40,13 +41,16 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
 // Every key has a consumer; id and type come from the path (D4, D7).
-export const KEY_ORDER = ["title", "summary", "impact", "applies", "implements", "expects", "sources"];
-const LIST_KEYS = new Set(["applies", "expects", "sources"]);
+export const KEY_ORDER = ["title", "summary", "impact", "applies", "implements", "expects", "decides", "sources"];
+const LIST_KEYS = new Set(["applies", "expects", "decides", "sources"]);
 const REQUIRED_KEYS = ["title", "summary", "impact"];
 export const IMPACTS = ["critical", "high", "medium", "low"];
 const FACETS = ["languages", "frameworks", "libraries"];
 const SECTION_ORDER = ["Rule", "Why", "Incorrect", "Correct", "Exceptions"];
-const REQUIRED_SECTIONS = { principle: ["Rule", "Why"], rule: ["Rule", "Why", "Incorrect", "Correct"] };
+// A guide is the long form (D27): the verdict in Decision, the reasoning in the sections after it.
+export const GUIDE_SECTIONS = ["Decision", "Options", "Layouts", "Evolution"];
+const SECTIONS_BY_TYPE = { principle: SECTION_ORDER, rule: SECTION_ORDER, guide: GUIDE_SECTIONS };
+const REQUIRED_SECTIONS = { principle: ["Rule", "Why"], rule: ["Rule", "Why", "Incorrect", "Correct"], guide: ["Decision", "Options", "Evolution"] };
 const PROFILES = ["full", "lean", "compact"];
 const LAYOUTS = ["single", "per-rule"];
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -55,11 +59,15 @@ const BEGIN = "<!-- BEGIN:knowledge -->";
 const END = "<!-- END:knowledge -->";
 const RULES_FILE = "references/rules.md";
 const RULES_DIR = "references/rules";
+const GUIDES_DIR = "references/guides";
 
 const toPosix = (p) => p.split(sep).join("/");
 const libraryName = (value) => value.split("@")[0];
 const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 12);
-export const typeOf = (id) => (id.split("/").includes("principles") ? "principle" : "rule");
+export const typeOf = (id) => {
+  const segments = id.split("/");
+  return segments.includes("guides") ? "guide" : segments.includes("principles") ? "principle" : "rule";
+};
 
 export class KnowledgeError extends Error {
   constructor(message, { file, hint } = {}) {
@@ -218,7 +226,8 @@ export function validateNotes(notes, config) {
       if (!config.facetOf.has(libraryName(value))) at(`applies value "${libraryName(value)}" is not in knowledge.config.json`, "add it to languages, frameworks or libraries there first, so the vocabulary stays controlled");
     }
     for (const source of Array.isArray(d.sources) ? d.sources : []) if (!source.startsWith("https://")) at(`source "${source}" is not an https:// link`);
-    if (note.type === "rule" && note.facets.libraries.length && !(d.sources ?? []).length) at("a rule about a library needs at least one source", "link the docs page you checked it against");
+    if (note.type !== "principle" && note.facets.libraries.length && !(d.sources ?? []).length) at(`a ${note.type} about a library needs at least one source`, "link the docs page you checked it against");
+    if (note.type !== "guide" && d.decides) at("only a guide can list `decides`", "guides live in a guides/ folder");
 
     if (note.type === "principle") {
       if (note.facets.languages.length || note.facets.frameworks.length) at("a principle applies to no single language or framework", "move the concrete part into a rule outside principles/ that `implements` this one");
@@ -226,6 +235,14 @@ export function validateNotes(notes, config) {
       for (const e of d.expects ?? []) {
         const facet = config.facetOf.get(e);
         if (facet !== "languages" && facet !== "frameworks") at(`expects "${e}", which is neither a language nor a framework in knowledge.config.json`);
+      }
+    } else if (note.type === "guide") {
+      if (d.implements || d.expects) at("a guide has no `implements` or `expects`", "it points at the rules it produced with `decides`");
+      if (!(d.decides ?? []).length) at("a guide must list the notes it decided in `decides`", "a guide with no rules behind it is an essay; write the rules first, then list them");
+      for (const id of d.decides ?? []) {
+        const target = byId.get(id);
+        if (!target) at(`decides "${id}", which does not exist`, "fix the path or remove it");
+        else if (target.type === "guide") at(`decides "${id}", which is a guide`, "a guide decides principles and rules");
       }
     } else {
       if (d.expects) at("only a principle can list `expects`", "principles live in a principles/ folder");
@@ -237,7 +254,8 @@ export function validateNotes(notes, config) {
     }
 
     for (const name of note.sections.keys()) {
-      if (!SECTION_ORDER.includes(name)) at(`unknown section "## ${name}"`, `sections are ${SECTION_ORDER.map((s) => `## ${s}`).join(", ")}; anything else would be dropped when rendered`);
+      const allowed = SECTIONS_BY_TYPE[note.type];
+      if (!allowed.includes(name)) at(`unknown section "## ${name}"`, `a ${note.type} has ${allowed.map((s) => `## ${s}`).join(", ")}; anything else would be dropped when rendered`);
     }
     for (const required of REQUIRED_SECTIONS[note.type]) {
       if (!note.sections.get(required)) at(`missing section "## ${required}"`, `a ${note.type} needs ${REQUIRED_SECTIONS[note.type].map((s) => `## ${s}`).join(", ")}`);
@@ -292,9 +310,21 @@ const stampFor = (notes, target) => {
 //   full     Rule, Why, Incorrect, Correct, Exceptions
 //   lean     Rule, Why, Correct, Exceptions; Incorrect only for critical
 //   compact  Rule, the first sentence of Why, Correct, Exceptions; Incorrect only for critical
-export function renderNote(note, { level = 2, profile = "full" } = {}) {
+//
+// A guide shows its Decision like a rule's Rule. When the target also asks for the longer sections
+// (`guides`), they go to references/guides/ and the entry names that file, so a skill pays for the
+// reasoning only when a task needs it (D27).
+export const guideExtras = (note, guides = ["Decision"]) => GUIDE_SECTIONS.filter((name) => name !== "Decision" && guides.includes(name) && note.sections.get(name));
+export const guideFile = (note) => `${GUIDES_DIR}/${flatName(note.id)}`;
+
+export function renderNote(note, { level = 2, profile = "full", guides } = {}) {
   const s = note.sections;
   const parts = [`${"#".repeat(level)} ${note.data.title}`, "", `_${note.data.impact} · ${scopeOf(note)}_`];
+  if (note.type === "guide") {
+    parts.push("", `**Decision.** ${s.get("Decision")}`);
+    if (guideExtras(note, guides).length) parts.push("", `**Read in full:** \`${guideFile(note)}\``);
+    return parts.join("\n");
+  }
   const add = (label, text) => {
     if (!text) return;
     parts.push("", /^(```|~~~)/.test(text) ? `**${label}:**\n\n${text}` : `**${label}.** ${text}`);
@@ -305,6 +335,21 @@ export function renderNote(note, { level = 2, profile = "full" } = {}) {
   add("Correct", s.get("Correct"));
   add("Exceptions", s.get("Exceptions"));
   return parts.join("\n");
+}
+
+// The longer sections of a guide, for the targets that ask for them.
+function renderGuideFile(note, target) {
+  const names = guideExtras(note, target.guides);
+  return `${[
+    `# ${note.data.title}`,
+    "",
+    stampFor([note], target),
+    "",
+    `_${note.data.impact} · ${scopeOf(note)}_`,
+    "",
+    `**Decision.** ${note.sections.get("Decision")}`,
+    ...names.flatMap((name) => ["", `## ${name}`, "", note.sections.get(name)]),
+  ].join("\n").trimEnd()}\n`;
 }
 
 function indexTable(notes, linkOf) {
@@ -321,7 +366,7 @@ function renderRulesFile(title, notes, target, profile) {
     stampFor(notes, target),
     "",
     ...notes.map((n) => `- [${n.data.title}](#${slug(n.data.title)}) · ${n.data.impact}`),
-    ...notes.flatMap((n) => ["", renderNote(n, { level: 2, profile })]),
+    ...notes.flatMap((n) => ["", renderNote(n, { level: 2, profile, guides: target.guides })]),
   ].join("\n").trimEnd()}\n`;
 }
 
@@ -334,7 +379,7 @@ function renderReferences(dir, title, notes, target, layout, profile) {
   if (!notes.length) return files;
   if (layout === "per-rule") {
     for (const n of notes) {
-      files.set(join(dir, RULES_DIR, flatName(n.id)), `${stampFor([n], target)}\n\n${renderNote(n, { level: 1, profile })}\n`);
+      files.set(join(dir, RULES_DIR, flatName(n.id)), `${stampFor([n], target)}\n\n${renderNote(n, { level: 1, profile, guides: target.guides })}\n`);
     }
   } else {
     files.set(join(dir, RULES_FILE), renderRulesFile(title, notes, target, profile));
@@ -384,7 +429,7 @@ function renderKnowledgeSkill(target, inlined, linked, layout, config) {
   ];
   if (inlined.length) {
     parts.push("", `## Always apply (${IMPACTS.slice(0, IMPACTS.indexOf(target.inline ?? "high") + 1).join(", ")})`);
-    for (const n of inlined) parts.push("", renderNote(n, { level: 3, profile }));
+    for (const n of inlined) parts.push("", renderNote(n, { level: 3, profile, guides: target.guides }));
   }
   if (linked.length) {
     parts.push("", "## Read when the task touches it", "", indexTable(linked, linkerFor(layout)));
@@ -417,6 +462,11 @@ export function plan(root) {
     if (target.profile && !PROFILES.includes(target.profile)) throw new KnowledgeError(`${target.skill}: profile "${target.profile}" is not one of ${PROFILES.join(", ")}`, where);
     const selected = selectNotes(notes, target);
     if (!selected.length) throw new KnowledgeError(`${target.skill} selects no notes`, { ...where, hint: "check `include` and `where`" });
+    const guideNames = target.guides ?? ["Decision"];
+    const unknownGuide = guideNames.find((name) => !GUIDE_SECTIONS.includes(name));
+    if (unknownGuide || !guideNames.includes("Decision")) {
+      throw new KnowledgeError(`${target.skill}: guides ${JSON.stringify(guideNames)} must name sections of ${GUIDE_SECTIONS.join(", ")} and include Decision`, where);
+    }
     const slugs = new Map();
     for (const n of selected) {
       const key = layout === "per-rule" ? flatName(n.id) : slug(n.data.title);
@@ -425,7 +475,10 @@ export function plan(root) {
     }
 
     const dir = join(root, target.skill);
-    owned.push(join(dir, RULES_FILE), ...filesIn(join(dir, RULES_DIR)));
+    owned.push(join(dir, RULES_FILE), ...filesIn(join(dir, RULES_DIR)), ...filesIn(join(dir, GUIDES_DIR)));
+    for (const n of selected.filter((g) => g.type === "guide" && guideExtras(g, target.guides).length)) {
+      outputs.set(join(dir, guideFile(n)), renderGuideFile(n, target));
+    }
     const title = target.title ? `${target.title}: full text` : `Rules for ${basename(target.skill)}`;
     if (target.kind === "skill-index") {
       for (const [file, content] of renderReferences(dir, title, selected, target, layout, target.profile ?? "full")) outputs.set(file, content);
@@ -525,7 +578,7 @@ function overlap(a, b) {
 
 // What a note says, as words: title, summary and Rule. Why and the examples are left out, because
 // they repeat vocabulary (the language, the library) that every note in a folder shares.
-const ruleText = (note) => [note.data.title, note.data.summary, note.sections?.get("Rule")].join(" ");
+const ruleText = (note) => [note.data.title, note.data.summary, note.sections?.get("Rule") ?? note.sections?.get("Decision")].join(" ");
 const noteWords = (note) => words(ruleText(note));
 const FILLER = new Set(["the", "and", "for", "with", "that", "this", "from", "into", "when", "not", "are", "use", "only", "every", "each", "any", "all", "its", "than", "then", "also", "instead", "never", "always"]);
 const content = (set) => new Set([...set].filter((w) => !FILLER.has(w)));
@@ -577,7 +630,7 @@ export function neighbors(root, ids) {
     const note = byId.get(id);
     if (!note) return { id, missing: true };
     const folder = id.split("/").slice(0, -1).join("/");
-    const linked = notes.filter((n) => n.data.implements === id || n.id === note.data.implements).map((n) => n.id);
+    const linked = notes.filter((n) => n.data.implements === id || n.id === note.data.implements || (note.data.decides ?? []).includes(n.id) || (n.data.decides ?? []).includes(id)).map((n) => n.id);
     const siblings = notes.filter((n) => n.id !== id && n.id.startsWith(`${folder}/`) && n.id.split("/").length === id.split("/").length).map((n) => n.id);
     const lexical = similar(root, ruleText(note), { exclude: [id] });
     return {
@@ -674,12 +727,14 @@ export function scaffold(root, id) {
 
   // `applies` values the folder names already state, so the author adds only what the path can't say.
   const config = loadConfig(root);
-  const principle = typeOf(id) === "principle";
+  const type = typeOf(id);
+  const principle = type === "principle";
   const applies = id.split("/").filter((s) => {
     const facet = config.facetOf.get(s);
     return facet && (!principle || facet === "libraries");
   });
-  const content = readFileSync(join(root, "knowledge", "_template.md"), "utf8").replace("{{applies}}", applies.join(", "));
+  const template = type === "guide" ? "_template-guide.md" : "_template.md";
+  const content = readFileSync(join(root, "knowledge", template), "utf8").replace("{{applies}}", applies.join(", "));
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, content);
   return file;

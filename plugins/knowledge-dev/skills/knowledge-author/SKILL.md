@@ -1,6 +1,6 @@
 ---
 name: knowledge-author
-description: Write, extract and maintain knowledge notes, the one-decision-per-file rules in the marketplace's knowledge/ folder that skills and agents receive as generated renderings, and evolve the format and build behind them. Use when the user wants to add a rule or convention, turn an existing SKILL.md or agent into notes, change or retire a rule, rebuild and check the generated files, or change how notes are written or rendered ("add a rule that…", "extract the rules from this skill", "this convention changed", "knowledge build", "why does check fail", "why is the knowledge base built this way"). Works on the repo checkout, not on an installed plugin.
+description: Write, extract and maintain knowledge notes, the one-decision-per-file rules in the marketplace's knowledge/ folder that skills and agents receive as generated renderings, and evolve the format and build behind them. Use when the user wants to add a rule or convention, write a guide that explains a choice, turn an existing SKILL.md or agent into notes, change or retire a rule, rebuild and check the generated files, or change how notes are written or rendered ("add a rule that…", "extract the rules from this skill", "this convention changed", "knowledge build", "why does check fail", "why is the knowledge base built this way"). Works on the repo checkout, not on an installed plugin.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[extract <skill-dir> | new <path> | build | check | lint]"
 ---
@@ -25,6 +25,7 @@ the evidence, what was rejected, and when to revisit it. The ones people ask abo
 - The model gets no frontmatter and one `references/rules.md` per skill: copied frontmatter was a
   quarter of the tokens, and eleven files cost ten extra reads and turns for the same result
   (D13, D14).
+- A guide (`guides/` folder) is the long form for a choice with options and costs; targets ask for the sections they need (D27).
 - Agents get knowledge passively, through preloaded `user-invocable: false` skills (D15).
 - Why and the Incorrect examples stay: the A/B found no gain from cutting them, and the only misses
   came from trimmed profiles (D10, D16).
@@ -71,6 +72,19 @@ note says `.one()`), stop and ask which is right before writing anything.
 folder's siblings before you write anything: read them, and if one already holds the decision, edit
 it instead. Fill the note, add it to a target's `include` if no glob already covers it, `build`, then
 review (below).
+
+## Write a guide
+
+A choice with options, costs and exit criteria (an architecture, a migration path) does not fit
+one decision. Write it as a guide (D27):
+
+1. Write the rules and principles first: one note per verdict, as above.
+2. `new <domain>/<...>/guides/<slug> --about "<the choice>"`, then fill `## Decision`, `## Options`,
+   `## Layouts` (optional) and `## Evolution`, and list the notes from step 1 in `decides`.
+3. Keep the Decision short enough to stand alone, and the whole guide under about 150 lines.
+   Leave learning material (exercises, reading lists) out: the model does not use it.
+4. Give a target the sections it needs with `guides` in `targets.json`. Knowledge skills keep the
+   default `["Decision"]`; a procedure skill or an architecture agent asks for all of them.
 
 ## Review what you added or changed
 

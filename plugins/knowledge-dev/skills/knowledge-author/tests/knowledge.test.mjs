@@ -230,6 +230,84 @@ describe("build and check", () => {
   });
 });
 
+describe("guides", () => {
+  const guide = "testing/guides/choose-how-to-query";
+  const withGuide = (patch = {}) => setTarget("storybook-rules", { include: ["testing/principles/**", "testing/testing-library/**", "testing/guides/**"], ...patch });
+
+  test("the folder makes it a guide, and it passes validate", () => {
+    assert.equal(byId(guide).type, "guide");
+    assert.deepEqual(issues(), []);
+  });
+
+  test("decides must name notes that exist and are not guides; sections are the guide's own", () => {
+    edit(note(guide), "decides: [testing/principles/query-like-a-user,", "decides: [testing/guides/missing, testing/guides/choose-how-to-query,");
+    edit(note(guide), "## Evolution", "## Why\n\nx\n\n## Evolution");
+    const text = messages(issues());
+    assert.match(text, /which does not exist/);
+    assert.match(text, /which is a guide/);
+    assert.match(text, /unknown section "## Why"/);
+  });
+
+  test("a rule cannot list decides, and a guide cannot omit it", () => {
+    edit(note("testing/storybook/portal-content-via-screen"), "sources:", "decides: [testing/principles/query-like-a-user]\nsources:");
+    edit(note(guide), /decides: .*\n/, "");
+    const text = messages(issues());
+    assert.match(text, /only a guide can list `decides`/);
+    assert.match(text, /must list the notes it decided/);
+  });
+
+  test("by default only the Decision is rendered, inline, with no extra file", () => {
+    withGuide();
+    build(root);
+    const skillMd = readFileSync(skill("storybook-rules"), "utf8");
+    assert.match(skillMd, /Query the way a user finds the element/);
+    assert.doesNotMatch(skillMd, /nothing visible identifies it/);
+    assert.doesNotMatch(skillMd, /Read in full/);
+    assert.throws(() => readdirSync(skill("storybook-rules", "references/guides")));
+  });
+
+  test("asking for more sections writes them to references/guides and points at the file", () => {
+    withGuide({ guides: ["Decision", "Options", "Evolution"] });
+    build(root);
+    const file = skill("storybook-rules", "references/guides/testing--guides--choose-how-to-query.md");
+    const full = readFileSync(file, "utf8");
+    assert.match(full, /## Options/);
+    assert.match(full, /nothing visible identifies it/);
+    assert.match(full, /## Evolution/);
+    assert.match(readFileSync(skill("storybook-rules"), "utf8"), /Read in full:\*\* `references\/guides\/testing--guides--choose-how-to-query\.md`/);
+    assert.deepEqual(drift(), []);
+    appendFileSync(file, "\nextra\n");
+    assert.match(messages(drift()), /edited by hand/);
+  });
+
+  test("dropping the extra sections removes the guide file as left behind", () => {
+    withGuide({ guides: ["Decision", "Options"] });
+    build(root);
+    withGuide({ guides: ["Decision"] });
+    assert.match(messages(drift()), /left behind/);
+    build(root);
+    assert.deepEqual(drift(), []);
+  });
+
+  test("a target must ask for Decision and for real sections", () => {
+    withGuide({ guides: ["Options"] });
+    assert.match(cli("build").stderr, /must name sections .* and include Decision/);
+  });
+
+  test("new scaffolds a guide from its own template and it stays invalid until finished", () => {
+    scaffold(root, "testing/guides/another-one");
+    assert.match(readFileSync(note("testing/guides/another-one"), "utf8"), /^decides: /m);
+    assert.match(messages(issues()), /\{\{TODO\}\}/);
+  });
+
+  test("neighbors links a guide to the notes it decided, both ways", () => {
+    const [forGuide] = neighbors(root, [guide]);
+    assert.deepEqual(forGuide.linked.sort(), ["testing/principles/query-like-a-user", "testing/testing-library/query-variants"]);
+    const [forRule] = neighbors(root, ["testing/testing-library/query-variants"]);
+    assert.ok(forRule.linked.includes(guide));
+  });
+});
+
 describe("new", () => {
   test("fills applies from the path and stays invalid until every {{TODO}} is replaced", () => {
     const text = readFileSync(scaffold(root, "testing/builders/python/factory-boy/reset-sequences"), "utf8");

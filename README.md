@@ -28,6 +28,8 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
 - **🧪 [testing-strategist](./plugins/nextjs/)** — Plans test coverage across unit, integration, and E2E layers
 - **🧪 [storybook-tester](./plugins/react/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
+- **🐍 [python-developer](./plugins/python/)** — Writes and fixes Python code with its pytest tests under the team rules, then runs Ruff, the type checker and the tests
+- **🏛️ [python-api-architect](./plugins/python/)** — Read-only architecture advice for Python APIs: flat, domain modules, hexagonal or DDD, with a layout and a hand-off
 - **🧪 [unit-tester](./plugins/typescript/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
 - **🧹 [code-reviewer](./plugins/nextjs/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
 - **⚡ [performance-analyzer](./plugins/nextjs/)** — Bundle size, React rendering efficiency, and slow query analysis
@@ -78,6 +80,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
 - **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
+- **🏗️ [api-architecture](./plugins/python/skills/api-architecture/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, hexagonal ports, when DDD pays
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
@@ -106,7 +109,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | --- | --- | --- | --- | --- |
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
 | [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
-| [**python**](./plugins/python/) | Python — team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | — | 4 | [README](./plugins/python/README.md) |
+| [**python**](./plugins/python/) | Python — developer and API-architect agents, API architecture guide, team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | 2 | 5 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
@@ -291,6 +294,10 @@ What are you doing?
 │   ├── What's untested / gaps?    → Skill: coverage-gaps (typescript)
 │   └── Accessibility audit        → Skill: accessibility-audit (react)
 │
+├── Writing Python code, or structuring a Python API
+│   ├── Implementation + tests     → Agent: python-developer (python)
+│   └── Architecture / layout      → Agent: python-api-architect, Skill: api-architecture (python)
+│
 ├── Code review / quality check
 │   └── Agent: code-reviewer (nextjs)
 │
@@ -326,6 +333,8 @@ What are you doing?
 | Write Storybook tests | `storybook-tester` agent |
 | Plan which tests to write | `testing-strategist` agent |
 | Write unit tests | `unit-tester` agent (or `/unit-testing` skill) |
+| Write Python code and its tests | `python-developer` agent |
+| Decide how a Python API is structured | `python-api-architect` agent (or `/api-architecture` skill) |
 | Find out what's untested and what to test first | `/coverage-gaps` skill |
 | Review code quality | `code-reviewer` agent |
 | Optimize performance | `performance-analyzer` agent |
@@ -366,7 +375,8 @@ claude-plugins/
     │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
-    │   └── skills/                # 4 skills (generated builder-rules-py, python-rules, pytest-rules, fastapi-rules)
+    │   ├── agents/                # python-developer, python-api-architect
+    │   └── skills/                # 5 skills (api-architecture, generated builder-rules-py, python-rules, pytest-rules, fastapi-rules)
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester

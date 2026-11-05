@@ -1,7 +1,7 @@
 # knowledge-dev
 
 Authoring and build tooling for the marketplace's shared knowledge base: the rules that skills and
-agents apply live once in `knowledge/` at the repo root, one decision per file, and every consumer
+agents apply live once in `knowledge/` at the repo root, one decision per file (plus long-form guides that explain a choice and list the rules it produced), and every consumer
 receives a generated rendering. A drift check keeps the renderings honest in CI.
 
 ## Contents

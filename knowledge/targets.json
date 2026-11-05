@@ -77,9 +77,9 @@
       "kind": "knowledge-skill",
       "skill": "plugins/python/skills/fastapi-rules",
       "title": "FastAPI rules",
-      "description": "Team conventions for documenting, versioning and testing a FastAPI web API: OpenAPI generated from code, response models and error responses, Problem Details errors, stable operation ids, docs exposure, Spectral and oasdiff in CI, Schemathesis, dependency overrides. Use when writing, fixing or reviewing a FastAPI route, model or API test. Background knowledge that agents preload; not a command.",
-      "intro": "Apply these rules to every FastAPI endpoint, Pydantic model and API test you write or review. The first section is always in force; open a rule from the table when the task touches it.",
-      "include": ["api/python/**"],
+      "description": "Team conventions for structuring, documenting, versioning and testing a FastAPI web API: domain packages, thin routes, services and domain rules, ports, OpenAPI generated from code, response models and error responses, Problem Details errors, operation ids, docs exposure, Spectral and oasdiff in CI, Schemathesis, dependency overrides. Use when writing, fixing or reviewing a FastAPI route, service, model or API test. Background knowledge that agents preload; not a command.",
+      "intro": "Apply these rules to every FastAPI endpoint, service, Pydantic model and API test you write or review. The first section is always in force; open a rule from the table when the task touches it.",
+      "include": ["api/python/**", "architecture/principles/**", "architecture/python/**"],
       "where": { "languages": ["python"] },
       "inline": "high",
       "profile": "lean"
@@ -144,6 +144,13 @@
       "kind": "skill-index",
       "skill": "plugins/typescript/skills/dead-code",
       "include": ["reporting/**"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/python/skills/api-architecture",
+      "include": ["architecture/principles/**", "architecture/python/**"],
+      "where": { "languages": ["python"] },
+      "guides": ["Decision", "Options", "Layouts", "Evolution"]
     }
   ]
 }

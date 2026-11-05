@@ -12,7 +12,8 @@ The D-numbers below point there. Change a rule here only together with its decis
 ```
 knowledge/
   README.md                 this guide
-  _template.md              what `knowledge.mjs new` copies
+  _template.md              what `knowledge.mjs new` copies for a rule or principle
+  _template-guide.md        what it copies for a guide
   knowledge.config.json     vocabulary for `applies` and size budgets
   targets.json              which skills receive which notes, and how they are rendered
   <domain>/principles/      decisions that hold in every language and framework
@@ -20,6 +21,7 @@ knowledge/
   <domain>/<library>/principles/
   <domain>/<library>/<framework>/
   <domain>/<concept>/<language>/<library>/
+  <domain>/<language>/guides/   long-form explanations of a choice (see "Guides")
 ```
 
 ## Before you write a note
@@ -78,6 +80,7 @@ values. The repo's other scripts read the same dialect.
 | `applies` | no | Target selection. Languages, frameworks and libraries from `knowledge.config.json` in one list; empty means "any". A library may carry a range: `storybook@>=10` |
 | `implements` | rules only | `coverage`. The path of the principle this rule carries out |
 | `expects` | principles only | `coverage`. Languages or frameworks that should each have an implementation |
+| `decides` | guides only | `neighbors`, and the reader. Paths of the principles and rules the guide produced; at least one |
 | `sources` | rules with a library | You, when you re-check the note. `https://` links to the docs it was checked against. Never rendered |
 
 There is deliberately no `id` (the path), no `type` (the folder), no `tags` (search the text) and
@@ -114,6 +117,24 @@ No other sections: the renderer knows only these, and `validate` rejects the res
   each. Same scenario in both, so the reader sees only the change.
 - Write in English, like the rest of the repo.
 
+## Guides
+
+A guide is the long form (D27) for a choice that does not fit one decision: the options and what
+each costs, the directory shapes they produce, and when to move on. Write the rules first, then
+the guide that explains them and lists them in `decides`. A guide lives in a `guides/` folder and
+has its own sections, in this order:
+
+| Section | Required | Holds |
+| --- | --- | --- |
+| `## Decision` | yes | The verdict in three to five sentences. An agent that reads nothing else can act on it |
+| `## Options` | yes | The choices, their cost and when each fits. Usually a table |
+| `## Layouts` | no | Directory trees or other shapes the options produce |
+| `## Evolution` | yes | The signals to move to the next option, and how to move one module at a time |
+
+Keep it under about 150 lines. The Decision repeats what the rules say, so a rule that changes
+means rereading the guide. Exercises, reading lists and anything else only a person learns from
+stay out: the model does not use them (D13). Scaffold one with `new <domain>/<...>/guides/<slug>`.
+
 ## What the model receives
 
 `targets.json` decides the rendering. Nothing only the author or the build needs (frontmatter,
@@ -126,6 +147,7 @@ No other sections: the renderer knows only these, and `validate` rejects the res
 | `profile` | `full`: Rule, Why, Incorrect, Correct. `lean`: the same without Incorrect unless `critical`. `compact`: as lean, with only the first sentence of Why. Use the smaller ones only when `maxLines` binds | `full` |
 | `inline` | Lowest impact a knowledge skill puts in its own SKILL.md; the rest go to the rules file in full | `high` |
 | `maxLines` | Line budget for a generated knowledge skill, which agents preload whole | 300 |
+| `guides` | Sections of each guide the target receives. `Decision` is always rendered like a rule; any others go to `references/guides/<id>.md` and the entry names that file | `["Decision"]` |
 
 ## Keep it true
 
@@ -139,7 +161,7 @@ No other sections: the renderer knows only these, and `validate` rejects the res
 
 | Command | What it does |
 | --- | --- |
-| `new <path>` | Scaffold a note |
+| `new <path>` | Scaffold a note, or a guide when the path has a `guides` folder |
 | `validate` | Check every note against this guide |
 | `build` | Write every target in `targets.json` |
 | `check` | Rebuild in memory and fail if anything on disk differs. CI runs this |
