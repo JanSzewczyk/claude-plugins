@@ -1,7 +1,7 @@
 ---
 name: python-developer
-version: 1.0.0
-lastUpdated: 2026-11-05
+version: 1.0.1
+lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-api-architect]
 description: >
@@ -48,7 +48,7 @@ says *what you do and in what order*.
 
 ## Limits
 
-- Do not decide the structure of a whole API (packages, which layers, ports, DDD). If the task
+- Do not decide the structure of a whole API (packages, which layers, ports). If the task
   needs that decision and the project has no layout to follow, say so and recommend running
   `python-api-architect` first; do not invent one.
 - Do not add a dependency, change the Python version or edit CI without saying so in your report.
