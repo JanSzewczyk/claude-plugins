@@ -23,6 +23,21 @@ inputs:
   path:
     description: Root of the marketplace or single-plugin repository, relative to the workspace.
     default: "."
+  check-load:
+    description: Ask the CLI to load every plugin and fail on any that loads with errors. Needs Claude Code; runs in a throwaway config.
+    default: "false"
+  check-install:
+    description: Add the marketplace and install every plugin in a throwaway config, failing on any install error. Needs Claude Code.
+    default: "false"
+  check-budget:
+    description: Fail a plugin whose always-on tokens reach budget-fail, warn above budget-warn. Signed out, the CLI estimates offline and the limits scale down.
+    default: "false"
+  budget-warn:
+    description: Always-on tokens above which the budget check warns.
+    default: "1800"
+  budget-fail:
+    description: Always-on tokens at which the budget check fails.
+    default: "2000"
 
 runs:
   using: composite
@@ -67,3 +82,17 @@ runs:
           exit 0
         fi
         node "$SKILLS/plugin-release/scripts/plan-release.mjs" "$ROOT" --check --since "origin/$BASE"
+
+    - name: Plugins load, install and stay in budget
+      if: inputs.check-load == 'true' || inputs.check-install == 'true' || inputs.check-budget == 'true'
+      shell: bash
+      env:
+        SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
+        ROOT: ${{ inputs.path }}
+        CHECKS: >-
+          ${{ inputs.check-load == 'true' && '--load' || '' }}
+          ${{ inputs.check-install == 'true' && '--install' || '' }}
+          ${{ inputs.check-budget == 'true' && '--budget' || '' }}
+        WARN: ${{ inputs.budget-warn }}
+        FAIL: ${{ inputs.budget-fail }}
+      run: node "$SKILLS/marketplace-creator/scripts/check-cli.mjs" "$ROOT" $CHECKS --warn-at "$WARN" --fail-at "$FAIL"

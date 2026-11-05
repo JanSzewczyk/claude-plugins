@@ -138,8 +138,9 @@ When several plugins/agents change in one turn, bump each one independently acco
 
 ## Validation & testing
 
-There is no application code to unit-test, so validation means two different questions: *does the
-repo describe itself truthfully?* and *do the skills actually fire?*
+There is no application code to unit-test, so validation means three different questions: *does
+the repo describe itself truthfully?*, *does every plugin load and install?* and *do the skills
+actually fire?*
 
 **1. Manifests and documentation — `/marketplace-creator audit`.** The check that must pass before every
 commit that adds, renames or removes a skill or agent. It compares the plugins, agents and skills
@@ -156,6 +157,29 @@ Exit 0 clean, 1 on any error; `--strict` also fails on warnings, `--json` for ma
 pull request — see `.github/workflows/validate.yml`. The conventions in this file are enforced
 because `.marketplace-creator.json` turns them on; the skill itself runs on any marketplace, where
 they apply only if that repo opts in the same way.
+
+**Load, install and token budget — `check-cli.mjs`.** Asks the CLI itself what validate and the
+drift check can't see: every plugin loads without errors (`claude --plugin-dir <plugin> plugin
+list --json`), installs from the marketplace (`marketplace add ./`, then `plugin install
+<plugin>@szum-tech` for each, then `plugin list`), and keeps its always-on tokens (skill and agent
+descriptions, from `claude plugin details`) under 1,800, failing at 2,000. Load and install run in
+a throwaway `HOME`/`CLAUDE_CONFIG_DIR`, never your own config. Needs Claude Code 2.1.265+:
+
+```bash
+node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs .
+```
+
+Signed in, the budget is counted through the API (nextjs ~1,735 on 2026-11-05); signed out, as in
+CI without an `ANTHROPIC_API_KEY` secret, the CLI estimates offline 25–40% low and the limits scale
+down by 0.77 to match. CI runs the three checks in the `cli` job.
+
+**Skill audit sweep.** CI runs the mechanical half of `/skill-audit` on every skill and fails on
+errors (a description over 1,024 characters, a broken frontmatter contract, a dead link); warnings
+are left to the author:
+
+```bash
+for d in plugins/*/skills/*/; do node plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs "$d" >/dev/null || echo "$d"; done
+```
 
 **Knowledge renderings — `knowledge.mjs check`.** Must pass whenever a note in `knowledge/`,
 `knowledge/targets.json` or a generated file changes. CI runs it with `validate` and the script's
@@ -184,7 +208,7 @@ node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mj
 The `plugin-dev` scripts have tests, which CI runs against marketplaces laid out unlike this one:
 
 ```bash
-node --test plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
+node --test plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs plugins/plugin-dev/skills/marketplace-creator/tests/check-cli.test.mjs plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 ```
 
 **4. End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`)
@@ -198,9 +222,12 @@ claude plugin marketplace add /absolute/path/to/claude-plugins
 claude plugin install <plugin>@szum-tech
 ```
 
-Cross-plugin `dependencies` are resolved against git tags (`<plugin>--v<version>`), not against
-`plugin.json`. A plugin whose dependency has no tag in range fails with "installed at an unknown
-version"; `/marketplace-creator audit` reports the same as a warning. Fix it with
+Cross-plugin `dependencies` look at git tags (`<plugin>--v<version>`) as well as `plugin.json`.
+When a tag satisfies the range, the dependency is recorded at that tag (`1.0.4-<tag commit>`)
+even though it loads in place from the checkout; with no tag in range, a fresh install falls back
+to the `plugin.json` version and succeeds (Claude Code 2.1.309, from `./` and from GitHub alike).
+An older install whose recorded version no longer satisfies a range fails with "installed at an
+unknown version"; `/marketplace-creator audit` warns about ranges with no tag. Fix it with
 `claude plugin update <dependency>@szum-tech` (re-records the version from the checkout) or by
 tagging the dependency; to try one plugin without installing, `claude --plugin-dir ./plugins/<name>`.
 

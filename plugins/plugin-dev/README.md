@@ -55,6 +55,14 @@ node plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs
 Exit 0 clean, 1 on any error. `--strict` also fails on warnings, `--json` for machine output,
 `--no-native` skips the wrapped `claude plugin validate` pass.
 
+A second script asks the CLI itself whether every plugin loads, installs from the marketplace,
+and keeps its always-on tokens under 1,800 (failing at 2,000). Load and install run in a
+throwaway config, never yours; needs Claude Code 2.1.265+:
+
+```bash
+node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs .   # --load, --install, --budget to pick
+```
+
 House rules that Claude Code does not require (closed frontmatter key sets, attribution in both manifests, a bold README row per skill) apply only to a repo that commits `.marketplace-creator.json` with `{ "conventions": true }` (the older `.marketplace-doctor.json` is still read).
 
 ### Cut a release
@@ -99,6 +107,7 @@ Inputs: `node-version` (default `26`), `install-claude`, `strict`, `check-versio
 
 ```bash
 node --test plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs
+node --test plugins/plugin-dev/skills/marketplace-creator/tests/check-cli.test.mjs
 node --test plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 ```
 

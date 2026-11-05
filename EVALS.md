@@ -123,5 +123,10 @@ tag with pinned models. It is `workflow_dispatch`-only: the harness is gated and
 real API spend, so it is not wired to push or pull_request. Once early access opens for this
 account, switching the trigger is a one-line change.
 
+Routing evals are the one check that needs a model. Whether a plugin loads, installs and fits its
+always-on token budget is checked on every push by the `cli` job instead (CLAUDE.md → Validation &
+testing); a description cut to fit that budget is exactly the change a routing eval should then
+confirm still fires.
+
 Pin `--model` whenever comparing runs over time — otherwise a model rollout looks exactly like a
 plugin regression.

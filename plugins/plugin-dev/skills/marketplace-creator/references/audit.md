@@ -1,9 +1,10 @@
 # Audit a marketplace: does it install, and does it describe itself truthfully?
 
-An audit answers three questions in order: **is every manifest well-formed** (`claude plugin
+An audit answers four questions in order: **is every manifest well-formed** (`claude plugin
 validate`), **does the repo still describe itself truthfully** (the script: manifests, files on
-disk and docs agree), and **will it keep working for the people who install it** (the judgement
-checklist M1–M6: sources, versions, renames, hosting, suggestions). It changes nothing until the
+disk and docs agree), **does every plugin load, install and stay affordable** (the CLI pass), and
+**will it keep working for the people who install it** (the judgement checklist M1–M6: sources,
+versions, renames, hosting, suggestions). It changes nothing until the
 user asks, except `--fix`, which only inserts missing `$schema` lines.
 
 ## Contents
@@ -11,6 +12,7 @@ user asks, except `--fix`, which only inserts missing `$schema` lines.
 - [What the script checks, and what it leaves to you](#what-the-script-checks-and-what-it-leaves-to-you)
 - [Own marketplace or someone else's](#own-marketplace-or-someone-elses)
 - [Run the script](#run-the-script)
+- [Ask the CLI: load, install, budget](#ask-the-cli-load-install-budget)
 - [Steps](#steps)
 - [Checklist M1–M6](#checklist-m1m6)
 - [Severity and verdict](#severity-and-verdict)
@@ -50,7 +52,7 @@ their repo breaks a rule it never adopted (checks.md → House conventions).
 | --- | --- | --- |
 | Runs the script and `validate` | Yes | Yes, on a local clone |
 | Checklist | M1–M6 | M1, M2, M5 first: what it installs and from where |
-| Installs locally to test | Only after asking: it writes to the user's settings | No |
+| CLI pass (`check-cli.mjs`) | All three checks; install runs in a throwaway config | `--load --budget` only: no install |
 | After the report | Offers to fix; fixes go through the Add, Rename or Maintain steps | Never edits; ends with an add recommendation |
 
 When it is unclear whose marketplace it is, treat it as someone else's.
@@ -76,10 +78,27 @@ warnings, `✗` errors, with version, skill and agent counts), the issues groupe
 closing status line. Colour appears only on a terminal; set `NO_COLOR` to turn it off. Exit code
 is 0 when clean, 1 when anything failed.
 
+## Ask the CLI: load, install, budget
+
+The second script asks Claude Code itself (checks.md → The CLI pass). It needs the CLI, takes
+about half a minute for fifteen plugins, and never touches the user's own settings:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/check-cli.mjs" .
+```
+
+| Flag | Effect |
+| --- | --- |
+| `--load` / `--install` / `--budget` | Run only the named checks; with none named, all three run. |
+| `--warn-at <n>` / `--fail-at <n>` | Always-on token limits, default 1,800 and 2,000. |
+| `--offline-factor <f>` | How far the limits scale down when the CLI is signed out and only estimates (default 0.77). |
+| `--json`, `--strict` | As in check-marketplace.mjs. |
+
 ## Steps
 
 1. **Run the script first, before reading any file.** It is cheap and tells you which files are
-   worth opening. Don't start by grepping the repo by hand.
+   worth opening. Don't start by grepping the repo by hand. Then run `check-cli.mjs` when the
+   CLI is installed; without it, the CLI pass goes under Not checked.
 2. **Read checks.md for every issue class in the output.** Several repairs are not the obvious
    one: a "does not list the skill" error in `CLAUDE.md` is fixed in the table, never by deleting
    the skill.
@@ -177,13 +196,13 @@ Follow the reporting rules indexed at the end of SKILL.md. For a marketplace aud
 
 - **Verdict line:** the verdict word, the counts the banner prints (plugins, agents, skills), the
   count at each severity, then the script's closing status line as evidence.
-- **Scorecard:** first the six checklist areas M1–M6, then one row per plugin in the script's
-  order with its version, mark and issue count.
+- **Scorecard:** first the six checklist areas M1–M6, then one row for the CLI pass, then one
+  row per plugin in the script's order with its version, mark and issue count.
 - **Findings:** one numbered row per issue, ranked by severity. For a script issue `Where` is the
   file it names, `Problem` its message word for word, `Fix` its `→` hint, shortened. Past fifteen
   rows, one table per plugin.
-- **Not checked:** the script's `Not checked` lines (remote plugins, missing doc tables), plus a
-  local install when it was not run.
+- **Not checked:** the `Not checked` lines of both scripts (remote plugins, missing doc tables,
+  an offline token estimate), plus the CLI pass when it was not run.
 - **After fixing,** say in the line above `Not checked` what the count went from and to.
 
 ```markdown
@@ -200,6 +219,7 @@ Follow the reporting rules indexed at the end of SKILL.md. For a marketplace aud
 | M4. Renames | — | 🟡 | 1 warning |
 | M5. Hosting | — | 🔵 | 1 note |
 | M6. Suggestions | — | ⚪ | no `relevance` |
+| CLI pass | — | 🟢 | 15 load · 15 install · max ~1,735 tok |
 | nextjs | 1.4.0 | 🟡 | 2 warnings |
 | design | 1.0.7 | 🟢 | — |
 
@@ -208,7 +228,7 @@ Follow the reporting rules indexed at the end of SKILL.md. For a marketplace aud
 | 1 | 🟡 | `.claude-plugin/marketplace.json` | `formatter` left `plugins` in a284e03 with no `renames` key | Add `"formatter": null` (maintain.md → How to remove a plugin) |
 | 2 | 🟡 | `plugins/nextjs/.claude-plugin/plugin.json` | no release tag of react satisfies ^1.2.0 | `claude plugin tag plugins/react` |
 
-**Not checked:** a local install (`claude plugin marketplace add ./`) — it writes to your settings.
+**Not checked:** `far` (remote source).
 
 **Next:** say which numbers to fix, or `all`.
 ```
