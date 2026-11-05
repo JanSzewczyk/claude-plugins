@@ -30,11 +30,69 @@ jobs:
       - name: Check manifests and documentation
         run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs .
 
-      - name: Test the doctor and the release planner
+      - name: Test the marketplace scripts and the release planner
         run: >
           node --test
           plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs
+          plugins/plugin-dev/skills/marketplace-creator/tests/check-cli.test.mjs
           plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
+
+  cli:
+    name: plugins load, install and stay in budget
+    runs-on: ubuntu-latest
+    # validate reads manifests; these steps ask the CLI itself. Load and install run in a
+    # throwaway HOME and CLAUDE_CONFIG_DIR the script deletes afterwards, never the runner's own.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      # A missing agent or skill path, a broken hooks file or a corrupt manifest: the plugin
+      # loads with errors, or not at all, and validate can pass anyway.
+      - name: Every plugin loads
+        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --load
+
+      # marketplace add ./ then install <plugin>@szum-tech for each entry: a wrong source path, a
+      # reserved name, a dependency range no plugin.json satisfies.
+      - name: Every plugin installs from the marketplace
+        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --install
+
+      # Skill and agent descriptions are paid in every session. Warn above 1,800, fail at 2,000.
+      # Signed out, the CLI only estimates offline (25–40% low) and the limits scale down to
+      # match; an ANTHROPIC_API_KEY secret, when the repo has one, gives counted figures.
+      - name: Always-on token budget
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --budget
+
+  skills:
+    name: skill-audit sweep
+    runs-on: ubuntu-latest
+    # The mechanical half of skill-audit on every skill: frontmatter contract, description
+    # length, dead links, orphan references. Errors fail the job; warnings are left to the author.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Audit every skill
+        run: |
+          status=0
+          for dir in plugins/*/skills/*/; do
+            if ! out=$(node plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs "$dir" 2>&1); then
+              echo "::error file=${dir}SKILL.md::skill-audit found errors in ${dir}"
+              echo "$out"
+              status=1
+            fi
+          done
+          exit $status
 
   knowledge:
     name: knowledge base renderings

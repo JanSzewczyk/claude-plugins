@@ -17,6 +17,7 @@ about whether a skill is *good*, only whether the repo's own statements about it
 - [Skill size and routing (every repo)](#skill-size-and-routing-every-repo)
 - [Layer 3 — documentation](#layer-3--documentation)
 - [The native pass](#the-native-pass)
+- [The CLI pass: load, install, budget](#the-cli-pass-load-install-budget)
 
 ## House conventions
 
@@ -260,3 +261,31 @@ itself was given `--strict`. If the
 Anything reported by that pass is a **schema** problem — fix it against the message it prints, not
 against this file. If it disagrees with something here, the native validator wins: house
 conventions can only be stricter than the runtime's, never looser.
+
+---
+
+## The CLI pass: load, install, budget
+
+`scripts/check-cli.mjs` asks the CLI what neither the native pass nor the drift check can see.
+Load and install run in a throwaway `HOME` and `CLAUDE_CONFIG_DIR` deleted afterwards, so the
+user's settings, installs and marketplaces are never read or written. Entries with a remote
+source are listed under Not checked. Needs Claude Code 2.1.265 or later.
+
+| Check | Message | What it means | Repair |
+| --- | --- | --- | --- |
+| load | `Path not found: <path> (agents)` (or skills, hooks, …) | A component path in `plugin.json` names a file that isn't there; the rest of the plugin loads with errors | Fix the path or create the file; a missing agent is also a drift error in the main script |
+| load | `Failed to load plugin: …` / `not listed at all` | A corrupt manifest or an invalid `hooks.json`; the whole plugin is dropped | Fix the file the message names, then `claude plugin validate` it |
+| install | `Source path does not exist: <path>` | The entry's relative `source` points at a missing directory | Fix the `source` or move the plugin |
+| install | `Dependency "<p>@<m>" is installed at <v>, which does not satisfy: <range>` | A dependency range no version of that plugin satisfies | Raise the dependency's version or widen the range, in both manifests |
+| install | `` `claude plugin marketplace add` failed `` | A reserved or invalid marketplace name, or a catalog the CLI rejects | Read the CLI output under the message |
+| budget | `~<n> always-on tokens, over <warn>` / `at or over <fail>` | Skill and agent descriptions every session pays for, whether or not the plugin is used. Defaults warn above 1,800 and fail at 2,000, where the official marketplace highlights the cost | Shorten the longest descriptions (the per-component table of `claude plugin details <plugin>` names them), move rarely used skills behind `disable-model-invocation`, or split the plugin |
+
+The budget is only as good as the count. A signed-in CLI counts through the API; signed out it
+prints an offline estimate 25–40% lower, so the script scales both limits by `--offline-factor`
+(0.77, the lowest counted-to-offline ratio measured) and says `offline estimate` in the report.
+An offline failure is always a real one; an offline pass near the limit is worth a signed-in run.
+
+A dependency range with no matching `<plugin>--v*` tag is a drift warning (the dependencies
+contract), not an install error: on Claude Code 2.1.309 a directory or GitHub marketplace
+installs on the `plugin.json` versions, so the tag matters to `claude plugin update` and to users
+whose recorded version came from an older tag, not to a fresh install.

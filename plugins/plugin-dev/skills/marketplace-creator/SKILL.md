@@ -70,7 +70,7 @@ it as each step finishes. Write the items in the user's language:
 | Add | `Read the plugin's manifest` / `Write the entry` / `Update the doc tables` / `Validate and audit` |
 | Rename or remove | `Check who depends on the name` / `Change the entry and renames` / `Update docs and versions` / `Validate and audit` |
 | Maintain | one item per change the user asked for, then `Validate and audit` |
-| Audit | `Run the marketplace script` / `Read the checks behind each issue` / `Review M1–M6` / `Report findings and verdict` |
+| Audit | `Run the marketplace script` / `Ask the CLI: load, install, budget` / `Read the checks behind each issue` / `Review M1–M6` / `Report findings and verdict` |
 
 One item in progress at a time. A step that won't run stays on the list with the reason. Show
 an outcome that isn't a plain success in the item: `Validate and audit: 2 errors, stopped`.
@@ -88,9 +88,11 @@ an outcome that isn't a plain success in the item: `Validate and audit: 2 errors
 3. **Add the entries** with the Add steps for each plugin that already exists. For a plugin that
    doesn't exist yet, hand over to `plugin-creator` and add its entry afterwards.
 4. **Validate and install.** `claude plugin validate <root>` and `claude plugin validate` on each
-   plugin directory (a marketplace run doesn't open component files). Installing locally writes
-   to the user's settings, so ask first, then `claude plugin marketplace add <root>` and
-   `claude plugin install <plugin>@<name>` (create.md → How to test the marketplace locally).
+   plugin directory (a marketplace run doesn't open component files). Then
+   [scripts/check-cli.mjs](scripts/check-cli.mjs) loads and installs every plugin in a throwaway
+   config and measures its always-on tokens, leaving the user's settings alone. Installing into
+   the user's own config is `claude plugin marketplace add <root>` and
+   `claude plugin install <plugin>@<name>`; ask first (create.md → How to test the marketplace locally).
 5. **Audit and hand over.** Run the audit; it is the self-check. Give the user the add and
    install lines for their host (maintain.md → How to host the marketplace) and say what was
    verified and what only a real install from the host can show.
@@ -134,7 +136,8 @@ out for the user to pass on, not applied.
 ## Audit
 
 Runs on `audit`, on a request to validate or health-check a marketplace, and as the last step of
-every other mode. Follow audit.md: run [scripts/check-marketplace.mjs](scripts/check-marketplace.mjs),
+every other mode. Follow audit.md: run [scripts/check-marketplace.mjs](scripts/check-marketplace.mjs)
+and [scripts/check-cli.mjs](scripts/check-cli.mjs) (load, install, token budget),
 read checks.md for each issue class, review
 the judgement checklist M1–M6 the script can't see, then one report with ranked findings and a
 verdict.
