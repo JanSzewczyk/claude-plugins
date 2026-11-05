@@ -12,6 +12,12 @@ receives a generated rendering. A drift check keeps the renderings honest in CI.
 |-------|-------------|-------------|
 | **knowledge-author** | `/knowledge-author` | Extracts rules from an existing skill or agent into notes, adds or changes a rule, rebuilds the generated files, explains a failing check and lints the base for orphans, near-duplicates and budgets |
 
+### Agents
+
+| Agent | Description |
+|-------|-------------|
+| **librarian** | Read-only reviewer for one note: paraphrased duplicates, contradictions with neighbouring notes, facts posing as decisions, wrong principle/rule placement, sources that do not support the note. Run one per note, in parallel |
+
 ## Installation
 
 The skill works on a checkout of this repository, not on an installed copy: it reads and writes
@@ -29,6 +35,8 @@ The skill works on a checkout of this repository, not on an installed copy: it r
 /knowledge-author build
 /knowledge-author check
 /knowledge-author lint
+/knowledge-author similar "pin the python version"
+/knowledge-author review      # neighbors --changed, then one librarian per note in parallel
 ```
 
 The script behind it runs without Claude too, from the repo root (Node 22+, no dependencies):
@@ -76,6 +84,14 @@ The plugin ships a `PostToolUse` hook (`hooks/hooks.json`). After Claude writes 
 blocks (exit 2) so it is fixed in the same turn, a lint finding comes back as context. It does not
 see edits made outside Claude Code; CI runs `validate`, `check` and `lint` for those. Why this is a
 script and not a model: D25 in `decisions.md`.
+
+## Semantic review
+
+Scripts decide what overlap and globs can: `new --about` and `similar` list the closest notes before
+you write, `lint` finds near-duplicate titles and summaries. A paraphrased duplicate, a contradiction
+between two notes and a fact posing as a decision need reading, so `neighbors --changed` hands each
+changed note and its neighbours to a `librarian` agent, one per note, in parallel. The
+reviewer only reports (with quoted evidence); the author fixes. Why: D26 in `decisions.md`.
 
 ## Checking preloads in a live session
 

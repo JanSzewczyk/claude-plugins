@@ -478,6 +478,35 @@ that are still half-written.
 **Revisit when** the base outgrows word overlap (hundreds of notes with paraphrased duplicates),
 or when a reviewer exists and its findings show which lint checks never catch anything.
 
+## D26 Semantic review is a read-only agent fed by a lexical shortlist
+
+**Decision.** Three layers, cheapest first. (1) Before writing, `new <path> --about "<sentence>"`
+and `similar` rank the existing notes by word overlap and list the folder's siblings, so a
+duplicate is spotted before it exists. (2) `lint` (D25) stays the offline check after each edit.
+(3) After notes are added or changed, `neighbors --changed` builds per note the reading list
+(similar, same folder, linked), and one `librarian` agent per note judges what overlap
+cannot: a paraphrased duplicate, a contradiction, a fact posing as a decision, placement, and
+whether `sources` support the Rule. Reviewers run in parallel, are read-only (no Edit, Write) and
+report findings with quoted evidence; the author fixes. This is the on-demand reviewer D25 deferred.
+
+**Why.** The failures that matter (two notes that disagree, a duplicate in other words) are not
+visible to word overlap, and cannot be found by reading only the new note. Narrowing 120 notes to a
+shortlist keeps each reviewer's context small, so one agent per note scales and runs in parallel.
+Lexical shortlisting is still not a second copy of the knowledge that can drift (D1); it is
+computed from the files each time. Reviewers cannot edit, so a model never changes a rule on its
+own judgement.
+
+**Rejected.** Embeddings (D1, D25). A model call inside the hook: slow, costly, and it would judge
+half-written notes. One agent reviewing the whole base: its context fills and findings thin out
+(note count grows with every rule). Letting the reviewer fix: a wrong merge silently deletes a rule.
+
+**Cost.** A review is minutes and tokens per note, so it is a step the author runs (and CI cannot),
+not a gate. `neighbors` shortlists by overlap, so a paraphrase with no shared words is only found
+if the reviewer's own `grep` hits it.
+
+**Revisit when** reviewers' findings show the shortlist misses real neighbours (then widen it or
+add stemming), or when a CI-runnable reviewer exists.
+
 ## Open questions
 
 Verified neither in the PoC nor in the docs. Settle before relying on them:

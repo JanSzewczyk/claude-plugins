@@ -29,7 +29,10 @@
 //   check                exit 1 if anything generated differs from a fresh build
 //   coverage [--strict]  principles whose `expects` has no implementation yet
 //   lint [--links] [--strict]  warnings validate cannot give: orphans, near-duplicates, budgets; --links probes sources
+//   similar <text>       the notes closest to a sentence, to read before writing a new one
+//   neighbors [ids|--changed] [--json]  per note, what a reviewer must read next to it: similar, same folder, linked
 
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
@@ -518,6 +521,78 @@ function overlap(a, b) {
   return shared / small.size;
 }
 
+// ------------------------------------------------------------------ similar and neighbors
+
+// What a note says, as words: title, summary and Rule. Why and the examples are left out, because
+// they repeat vocabulary (the language, the library) that every note in a folder shares.
+const ruleText = (note) => [note.data.title, note.data.summary, note.sections?.get("Rule")].join(" ");
+const noteWords = (note) => words(ruleText(note));
+const FILLER = new Set(["the", "and", "for", "with", "that", "this", "from", "into", "when", "not", "are", "use", "only", "every", "each", "any", "all", "its", "than", "then", "also", "instead", "never", "always"]);
+const content = (set) => new Set([...set].filter((w) => !FILLER.has(w)));
+// How much of the query the note covers, blended with Dice so a long note that merely mentions the
+// words does not outrank a short note that is about them. A one-line query is short next to a
+// note, so plain Dice would always rate it low.
+function closeness(query, note) {
+  const [a, b] = [content(query), content(note)];
+  if (a.size < 3 || b.size < 3) return 0;
+  let shared = 0;
+  for (const w of a) if (b.has(w)) shared += 1;
+  return (shared / a.size + (2 * shared) / (a.size + b.size)) / 2;
+}
+export const LIKELY_DUPLICATE = 0.5;
+const RELATED = 0.2;
+
+// The notes closest to a query. Lexical on purpose: it narrows 100+ notes to a handful a reviewer
+// can read, and it is the same offline script the hook uses (D26). Judging them is the reviewer's job.
+export function similar(root, query, { exclude = [], limit = 5 } = {}) {
+  const notes = loadNotes(root, loadConfig(root));
+  const q = words(query);
+  return notes
+    .filter((n) => !exclude.includes(n.id))
+    .map((n) => ({ id: n.id, title: n.data.title, applies: n.data.applies ?? [], score: Math.round(closeness(q, noteWords(n)) * 100) / 100 }))
+    .filter((r) => r.score >= RELATED)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+    .slice(0, limit);
+}
+
+// Notes that changed or were added under knowledge/, from git; empty outside a repository.
+export function changedNoteIds(root) {
+  const git = (args) => spawnSync("git", args, { cwd: root, encoding: "utf8" });
+  const tracked = git(["diff", "--name-only", "HEAD", "--", "knowledge"]);
+  const fresh = git(["ls-files", "--others", "--exclude-standard", "--", "knowledge"]);
+  return [...(tracked.stdout ?? "").split("\n"), ...(fresh.stdout ?? "").split("\n")]
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => f.replace(/^knowledge\//, "").replace(/\.md$/, ""))
+    .filter((id) => !id.startsWith("_") && id !== "README" && !id.endsWith("/README"))
+    .sort();
+}
+
+// For each note: what a reviewer has to read next to it to judge duplicates and contradictions.
+// Same-folder siblings come first because notes about one library or one stack contradict each
+// other, not notes about unrelated topics.
+export function neighbors(root, ids) {
+  const notes = loadNotes(root, loadConfig(root));
+  const byId = new Map(notes.map((n) => [n.id, n]));
+  return ids.map((id) => {
+    const note = byId.get(id);
+    if (!note) return { id, missing: true };
+    const folder = id.split("/").slice(0, -1).join("/");
+    const linked = notes.filter((n) => n.data.implements === id || n.id === note.data.implements).map((n) => n.id);
+    const siblings = notes.filter((n) => n.id !== id && n.id.startsWith(`${folder}/`) && n.id.split("/").length === id.split("/").length).map((n) => n.id);
+    const lexical = similar(root, ruleText(note), { exclude: [id] });
+    return {
+      id,
+      title: note.data.title,
+      applies: note.data.applies ?? [],
+      sources: note.data.sources ?? [],
+      likelyDuplicates: lexical.filter((r) => r.score >= LIKELY_DUPLICATE).map((r) => r.id),
+      similar: lexical,
+      sameFolder: siblings,
+      linked,
+    };
+  });
+}
+
 export async function lint(root, { links = false, fetchImpl = globalThis.fetch } = {}) {
   const config = loadConfig(root);
   const notes = loadNotes(root, config);
@@ -610,6 +685,17 @@ export function scaffold(root, id) {
   return file;
 }
 
+// The first look at what already exists is free before the note is written and expensive after:
+// the slug and the `--about` sentence are all there is to compare (D26).
+export function closestTo(root, id, about = "") {
+  const query = `${id.split("/").pop().replace(/-/g, " ")} ${about}`;
+  const near = similar(root, query, { exclude: [id] });
+  const folder = id.split("/").slice(0, -1).join("/");
+  const dir = join(root, "knowledge", folder);
+  const siblings = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".md") && f !== `${id.split("/").pop()}.md`).map((f) => `${folder}/${f.slice(0, -3)}`) : [];
+  return { near, siblings };
+}
+
 // ------------------------------------------------------------------ CLI
 
 function report(issues) {
@@ -628,6 +714,9 @@ async function main(argv) {
       root: { type: "string", default: process.cwd() },
       strict: { type: "boolean", default: false },
       links: { type: "boolean", default: false },
+      about: { type: "string", default: "" },
+      changed: { type: "boolean", default: false },
+      json: { type: "boolean", default: false },
     },
   });
   const [command, ...rest] = positionals;
@@ -637,7 +726,14 @@ async function main(argv) {
   switch (command) {
     case "new": {
       const file = scaffold(root, rest[0]);
+      const { near, siblings } = closestTo(root, rest[0], values.about);
       console.log(`✓ created ${show(file)} (${typeOf(rest[0])})`);
+      if (near.length) {
+        console.log("  closest existing notes (read them before writing; merge into one if it is the same decision):");
+        for (const r of near) console.log(`    ${r.score >= LIKELY_DUPLICATE ? "!" : " "} ${r.id} (${Math.round(r.score * 100)}%) ${r.title}`);
+      }
+      if (siblings.length) console.log(`  same folder: ${siblings.join(", ")}`);
+      if (!values.about) console.log("  tip: pass --about \"<the decision in one sentence>\" for a closer comparison");
       console.log("  next: replace every {{TODO}}, then run `validate` and `build`");
       return 0;
     }
@@ -703,8 +799,38 @@ async function main(argv) {
       console.log(findings.length ? `\n${findings.length} finding(s)` : "✓ no findings");
       return values.strict && findings.length ? 1 : 0;
     }
+    case "similar": {
+      const rows = similar(root, rest.join(" "));
+      if (values.json) console.log(JSON.stringify(rows, null, 2));
+      else if (!rows.length) console.log("✓ nothing close: no existing note overlaps this");
+      else for (const r of rows) console.log(`  ${r.score >= LIKELY_DUPLICATE ? "!" : " "} ${r.id} (${Math.round(r.score * 100)}%) ${r.title}`);
+      return 0;
+    }
+    case "neighbors": {
+      const ids = values.changed ? changedNoteIds(root) : rest.map((r) => r.replace(/^knowledge\//, "").replace(/\.md$/, ""));
+      if (!ids.length) {
+        console.log(values.json ? "[]" : "✓ no changed notes to review");
+        return 0;
+      }
+      const rows = neighbors(root, ids);
+      if (values.json) console.log(JSON.stringify(rows, null, 2));
+      else {
+        for (const r of rows) {
+          if (r.missing) {
+            console.log(`  ✗ ${r.id}: no such note`);
+            continue;
+          }
+          console.log(`  ${r.id}${r.likelyDuplicates.length ? `  ! likely duplicate of ${r.likelyDuplicates.join(", ")}` : ""}`);
+          if (r.similar.length) console.log(`      similar:     ${r.similar.map((s) => `${s.id} (${Math.round(s.score * 100)}%)`).join(", ")}`);
+          if (r.sameFolder.length) console.log(`      same folder: ${r.sameFolder.join(", ")}`);
+          if (r.linked.length) console.log(`      linked:      ${r.linked.join(", ")}`);
+        }
+        console.log(`\n${rows.length} note(s) to review`);
+      }
+      return 0;
+    }
     default:
-      console.error("usage: knowledge.mjs <new|validate|build|check|coverage|lint> [--root <dir>]");
+      console.error("usage: knowledge.mjs <new|validate|build|check|coverage|lint|similar|neighbors> [--root <dir>]");
       return 2;
   }
 }
