@@ -27,7 +27,7 @@ carries; both are linked from `SKILL.md`, and neither needs the other to be read
 reference nothing can reach. `warn` means it works but degrades. A run exits 1 on any `error`,
 and on warnings too under `--strict`.
 
-There is no ignore file, by the same reasoning `marketplace-doctor` uses: a check that needs
+There is no ignore file, by the same reasoning `marketplace-creator`'s audit uses: a check that needs
 silencing is a check that should be demoted to a metric or deleted. If one of these fires on
 something you meant, the check is wrong — say so rather than working around it.
 

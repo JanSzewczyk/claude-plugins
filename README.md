@@ -62,7 +62,8 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🧹 [dead-code](./plugins/typescript/skills/dead-code/)** — Finds unused files, exports, types, and dependencies via Knip's reachability graph, then ranks and verifies before proposing removals
 - **📖 [repository-documentation](./plugins/code-quality/skills/repository-documentation/)** — Generates or updates README.md plus a ready-to-paste GitHub description and topics list
 - **🧬 [template-sync](./plugins/code-quality/skills/template-sync/)** — Finds what a GitHub template repository changed since your project was created from it and writes an ordered catch-up plan
-- **🩺 [marketplace-doctor](./plugins/plugin-dev/skills/marketplace-doctor/)** — Audits a plugin marketplace repo for drift between the manifest layers and the docs that enumerate them by hand
+- **🩺 [marketplace-creator](./plugins/plugin-dev/skills/marketplace-creator/)** — Creates, maintains and audits a plugin marketplace: entries and sources, hosting, renames and removals, relevance — and finds drift between the manifest layers and the docs that enumerate them by hand
+- **🧩 [plugin-creator](./plugins/plugin-dev/skills/plugin-creator/)** — Creates, extends, debugs and audits a Claude Code plugin: manifest, skills, agents, hooks, MCP servers, `userConfig`, dependencies, evals and release readiness
 - **🏷️ [plugin-release](./plugins/plugin-dev/skills/plugin-release/)** — Works out which plugins changed, proposes the semver bump each change implies, writes it into `plugin.json`, and tags the release
 - **🧰 [plugin-dev-setup](./plugins/plugin-dev/skills/plugin-dev-setup/)** — Writes the plugin-development workflow into another project's `CLAUDE.md` and optionally adds CI that fails a PR with drift or a missing version bump
 - **🧱 [mod-creator](./plugins/plugin-dev/skills/mod-creator/)** — Builds, tests, debugs and audits Claude Code mods: plugins whose hooks module draws panes, bands and toasts, adds commands, or guards tool calls
@@ -113,13 +114,13 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync, dependency updates across ecosystems | — | 3 | [README](./plugins/code-quality/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
 | [**ai-tools**](./plugins/ai-tools/) | NotebookLM automation, YouTube search, Polish land register (KW) lookup | — | 3 | [README](./plugins/ai-tools/README.md) |
-| [**plugin-dev**](./plugins/plugin-dev/) | Marketplace auditing and plugin releases — manifest/doc drift, semver tagging, project setup | — | 4 | [README](./plugins/plugin-dev/README.md) |
+| [**plugin-dev**](./plugins/plugin-dev/) | Plugin and marketplace authoring — create and audit plugins and marketplaces, mods, semver tagging, project setup | — | 5 | [README](./plugins/plugin-dev/README.md) |
 | [**skill-dev**](./plugins/skill-dev/) | Skill authoring craft — quality audits of one skill, and A/B testing wording changes, dynamic workflow scripts, workflow skills | — | 4 | [README](./plugins/skill-dev/README.md) |
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | — | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 10 agents · 49 skills**
+**Total: 10 agents · 50 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -391,9 +392,9 @@ claude-plugins/
     ├── ai-tools/                  # AI tool integrations & automation
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 3 skills (notebooklm, youtube-scraper, kw-lookup)
-    ├── plugin-dev/                 # Marketplace auditing & plugin releases
+    ├── plugin-dev/                 # Plugin & marketplace authoring, releases
     │   ├── .claude-plugin/plugin.json
-    │   └── skills/                # 4 skills (marketplace-doctor, plugin-release, plugin-dev-setup, mod-creator)
+    │   └── skills/                # 5 skills (plugin-creator, marketplace-creator, plugin-release, plugin-dev-setup, mod-creator)
     ├── skill-dev/                  # Skill authoring quality & A/B testing
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator)

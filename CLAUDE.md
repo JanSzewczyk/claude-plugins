@@ -34,7 +34,7 @@ plugins/
 | **code-quality**       | Repository maintenance                          | —                                                                          | repository-documentation, template-sync, update-deps                                                                                                    |
 | **product-management** | PRD/TDD orchestration & agent coordination      | product-owner                                                              | prd-spec                                                                                                                                                |
 | **ai-tools**           | AI tool integrations & automation               | —                                                                          | notebooklm, youtube-scraper, kw-lookup                                                                                                                  |
-| **plugin-dev**         | Marketplace auditing, plugin releases & setup   | —                                                                          | marketplace-doctor, plugin-release, plugin-dev-setup, mod-creator                                                                                                 |
+| **plugin-dev**         | Plugin & marketplace authoring, releases, setup | —                                                                          | plugin-creator, marketplace-creator, plugin-release, plugin-dev-setup, mod-creator                                                                               |
 | **skill-dev**          | Skill authoring quality & A/B testing           | —                                                                          | skill-audit, skill-ab-optimizer, workflow-creator, workflow-skill-creator                                                                               |
 | **shared-rules**       | Source of truth for `.claude/rules/` files      | —                                                                          | sync-rules                                                                                                                                              |
 | **knowledge-dev**      | Shared knowledge base authoring & build         | —                                                                          | knowledge-author                                                                                                                                        |
@@ -52,6 +52,8 @@ Three manifest layers must stay in sync when adding capabilities:
 1. **`.claude-plugin/marketplace.json`** — lists every plugin with its `source` path. A new *plugin* must be added here; new agents/skills inside an existing plugin do **not** touch this file.
 2. **`plugins/<name>/.claude-plugin/plugin.json`** — `agents` is an explicit array of relative `.md` paths (each new agent must be added). `skills` is a **directory glob** (`"./skills/"`), so a new skill is auto-discovered just by creating its folder — no manifest edit needed.
 3. **Documentation** — the root `README.md`, the per-plugin `README.md`, and this file's Plugins table all enumerate capabilities by hand; update them when adding an agent or skill. Use `/repository-documentation` to regenerate the READMEs.
+
+`/plugin-creator` scaffolds a new plugin or component against these rules, and `/marketplace-creator add <plugin>` registers it in all three layers.
 
 ## Conventions
 
@@ -108,7 +110,7 @@ The block is identical in both places, and must be byte-for-byte the same for a 
   installs it.
 - `.claude-plugin/marketplace.json` additionally carries `owner` with the same `{ name, email, url }`
   shape; it is the attribution fallback for the marketplace as a whole.
-- A **new plugin must be created with this block already filled in**, in both layers. `/marketplace-doctor`
+- A **new plugin must be created with this block already filled in**, in both layers. `/marketplace-creator audit`
   enforces it: a missing `author` object or `owner.name` is an error, a missing `email`/`url`/`homepage`/
   `license` is a warning, and an `author.name` or `license` that disagrees between the two layers is an
   error.
@@ -139,20 +141,20 @@ When several plugins/agents change in one turn, bump each one independently acco
 There is no application code to unit-test, so validation means two different questions: *does the
 repo describe itself truthfully?* and *do the skills actually fire?*
 
-**1. Manifests and documentation — `/marketplace-doctor`.** The check that must pass before every
+**1. Manifests and documentation — `/marketplace-creator audit`.** The check that must pass before every
 commit that adds, renames or removes a skill or agent. It compares the plugins, agents and skills
 on disk against `marketplace.json`, every `plugin.json`, the Plugins table above, the root
 `README.md` counts, and each per-plugin README, and enforces the frontmatter contracts below and
 the `dependencies` that cross-plugin preloads require.
 
 ```bash
-node plugins/plugin-dev/skills/marketplace-doctor/scripts/check-marketplace.mjs .
+node plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs .
 ```
 
 Exit 0 clean, 1 on any error; `--strict` also fails on warnings, `--json` for machine output,
 `--no-native` to skip the wrapped `claude plugin validate` pass. This runs in CI on every push and
 pull request — see `.github/workflows/validate.yml`. The conventions in this file are enforced
-because `.marketplace-doctor.json` turns them on; the skill itself runs on any marketplace, where
+because `.marketplace-creator.json` turns them on; the skill itself runs on any marketplace, where
 they apply only if that repo opts in the same way.
 
 **Knowledge renderings — `knowledge.mjs check`.** Must pass whenever a note in `knowledge/`,
@@ -182,7 +184,7 @@ node "plugins/nextjs/skills/generate-feature-package/scripts/scaffold-feature.mj
 The `plugin-dev` scripts have tests, which CI runs against marketplaces laid out unlike this one:
 
 ```bash
-node --test plugins/plugin-dev/skills/marketplace-doctor/tests/check-marketplace.test.mjs plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
+node --test plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
 ```
 
 **4. End-to-end** — install the marketplace locally (`/plugin marketplace add JanSzewczyk/claude-plugins`)
@@ -198,11 +200,11 @@ claude plugin install <plugin>@szum-tech
 
 Cross-plugin `dependencies` are resolved against git tags (`<plugin>--v<version>`), not against
 `plugin.json`. A plugin whose dependency has no tag in range fails with "installed at an unknown
-version"; `/marketplace-doctor` reports the same as a warning. Fix it with
+version"; `/marketplace-creator audit` reports the same as a warning. Fix it with
 `claude plugin update <dependency>@szum-tech` (re-records the version from the checkout) or by
 tagging the dependency; to try one plugin without installing, `claude --plugin-dir ./plugins/<name>`.
 
 **Releasing.** `/plugin-release` works out which plugins changed since the last tag, proposes the
 semver bump each change implies against the rules in the Versioning section, and drives
-`claude plugin tag` to create `<plugin>--v<version>`. Run `/marketplace-doctor` first — a release
+`claude plugin tag` to create `<plugin>--v<version>`. Run `/marketplace-creator audit` first — a release
 that ships a stale README is the exact failure this repo keeps hitting.

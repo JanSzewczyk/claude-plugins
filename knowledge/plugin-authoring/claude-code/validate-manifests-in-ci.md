@@ -8,7 +8,7 @@ sources: [https://code.claude.com/docs/en/plugins-reference]
 
 ## Rule
 
-In CI run `claude plugin validate --strict` on the marketplace and on each plugin directory (it does not read other plugins from the marketplace root), plus a drift check such as `marketplace-doctor` and a version-bump check against the PR base.
+In CI run `claude plugin validate --strict` on the marketplace and on each plugin directory (it does not read other plugins from the marketplace root), plus a drift check such as the `marketplace-creator` audit and a version-bump check against the PR base.
 
 ## Why
 

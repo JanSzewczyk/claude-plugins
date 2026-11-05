@@ -6,7 +6,7 @@ harness — not a home-grown script.
 
 A skill that never triggers is indistinguishable from a skill that does not exist. That is the
 failure this suite is here to catch, and it is invisible to `claude plugin validate`, to
-`/marketplace-doctor`, and to reading the Markdown.
+the `/marketplace-creator` audit, and to reading the Markdown.
 
 ## Status
 
@@ -46,7 +46,7 @@ Two kinds of case:
   before knowing the skill exists. The single grader is deterministic and free (`tool_used` on
   `Skill`), so a full routing sweep costs agent runs and no judge calls.
 - **Outcome cases** — fewer, and only where the artifact is worth grading. They scaffold a fixture,
-  let the skill work, then grade what it produced. `plugins/plugin-dev/evals/marketplace-doctor-reports-drift/`
+  let the skill work, then grade what it produced. `plugins/plugin-dev/evals/marketplace-creator-reports-drift/`
   is the worked example: a mini-marketplace with four planted defects, graded on whether the
   report names all four. `plugins/skill-dev/evals/skill-audit-reports-authoring-defects/` is the second: a deliberately
   badly-authored skill with six planted defects, graded on whether the report names all six **and**
@@ -79,7 +79,7 @@ shell out to node:
 
 ```bash
 claude plugin eval plugins/plugin-dev \
-  --case marketplace-doctor-reports-drift \
+  --case marketplace-creator-reports-drift \
   --scaffold \
   --allow-tools Write "Bash(node:*)" "Bash(bash:*)"
 ```
