@@ -324,6 +324,46 @@ describe("lint", () => {
   });
 });
 
+describe("the edit hook", () => {
+  const HOOK = resolve(import.meta.dirname, "../../../hooks/check-edited-note.mjs");
+  const run = (file) =>
+    spawnSync(process.execPath, [HOOK], { input: JSON.stringify({ tool_input: { file_path: file }, cwd: root }), encoding: "utf8" });
+  const NEVER = "knowledge/testing/storybook/never-import-userevent.md";
+
+  test("is silent for a clean note and for files outside knowledge/", () => {
+    assert.deepEqual([run(NEVER).status, run(NEVER).stdout, run(NEVER).stderr], [0, "", ""]);
+    assert.equal(run("README.md").stdout, "");
+    assert.equal(run("knowledge/README.md").status, 0);
+  });
+
+  test("blocks with exit 2 and names the contract violation", () => {
+    edit(join(root, NEVER), "impact: critical", "impact: bogus");
+    const result = run(NEVER);
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /impact "bogus" is not one of/);
+  });
+
+  test("lets an unfinished {{TODO}} note through", () => {
+    scaffold(root, "testing/storybook/half-written");
+    const result = run("knowledge/testing/storybook/half-written.md");
+    assert.doesNotMatch(result.stderr, /TODO/);
+  });
+
+  test("returns lint findings about the edited note as context, without blocking", () => {
+    writeFileSync(note("testing/storybook/never-import-user-event"), readFileSync(note("testing/storybook/never-import-userevent"), "utf8"));
+    const result = run("knowledge/testing/storybook/never-import-user-event.md");
+    assert.equal(result.status, 0);
+    const { hookSpecificOutput } = JSON.parse(result.stdout);
+    assert.equal(hookSpecificOutput.hookEventName, "PostToolUse");
+    assert.match(hookSpecificOutput.additionalContext, /looks like testing\/storybook\/never-import-userevent/);
+  });
+
+  test("does not report findings about other notes", () => {
+    writeFileSync(note("testing/storybook/never-import-user-event"), readFileSync(note("testing/storybook/never-import-userevent"), "utf8"));
+    assert.equal(run("knowledge/testing/storybook/name-stories-after-states.md").stdout, "");
+  });
+});
+
 test("the repository is built and current", () => {
   assert.deepEqual(check(REPO_ROOT).problems, []);
 });
