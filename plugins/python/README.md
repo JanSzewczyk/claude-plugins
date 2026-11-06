@@ -20,14 +20,14 @@ and passes each agent's hand-off to the next:
 
 1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards), shown as a plan for you to approve, edit or reject before anything is built.
 2. `python-developer` — implements it with its own tests and ends with a hand-off.
-3. `python-tester` — tests the contract independently and reports defects as failing tests.
+3. `python-tester` — lists the cases from the contract first, then adds only the missing ones to the project's own tests and reports defects as failing tests.
 4. `python-developer` — fixes the defects.
 5. `python-reviewer` — runs the checks, reviews against the rules and returns a verdict.
 6. `python-developer` — fixes the findings. At most two rounds of steps 5–6; open findings are
    reported, not looped on.
 
 Each agent stays in its lane by instruction: the reviewer has no write tools, the tester writes
-only in `tests/` (plus one proved, temporary change to `src/` to check a guard), and neither fixes
+only in the project's test directory (plus one proved, temporary change to `src/` to check a guard), and neither fixes
 what it finds. Skip steps 1 and 3 for a small change inside an existing module. Each agent ends with a Proposals
 section (a rule that seems wrong or missing, with evidence); the flow collects them for you to
 decide, and nothing is applied automatically.
