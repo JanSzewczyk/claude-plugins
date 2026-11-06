@@ -8,7 +8,7 @@ sources: [https://docs.pytest.org/en/stable/explanation/goodpractices.html]
 
 ## Rule
 
-Put a new test in the project's existing test directory, in the file that already holds its topic (status cases beside the other status cases, race tests beside the other race tests). Before you write, check which cases an existing test already proves and write only the rest; a case is never written twice. A weak existing test is fixed in place, see `testing/principles/every-test-must-be-able-to-fail`.
+Put a new test in the project's existing test directory, in the file that already holds its topic (status cases beside the other status cases, race tests beside the other race tests). Before you write, check which cases an existing test already proves and write only the rest; a case is never written twice. When two tests cover one case, keep the stronger one and move any assertion only the other had into it. A weak existing test is fixed in place, see `testing/principles/every-test-must-be-able-to-fail`; after merging suites, run the guard mutants again, because a guard may have been left with a single test.
 
 ## Why
 
