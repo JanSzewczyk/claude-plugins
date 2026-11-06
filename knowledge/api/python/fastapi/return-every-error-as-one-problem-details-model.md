@@ -3,16 +3,16 @@ title: Return every API error in one Problem Details model
 summary: One RFC 9457 shape (type, title, status, detail) for all endpoints, declared in responses.
 impact: medium
 applies: [python, fastapi]
-sources: [https://www.rfc-editor.org/rfc/rfc9457, https://fastapi.tiangolo.com/advanced/additional-responses/, https://schemathesis.readthedocs.io/en/stable/reference/checks/]
+sources: [https://www.rfc-editor.org/rfc/rfc9457, https://fastapi.tiangolo.com/advanced/additional-responses/, https://fastapi.tiangolo.com/tutorial/handling-errors/]
 ---
 
 ## Rule
 
-Return all errors in one Pydantic model shaped after RFC 9457 (`type`, `title`, `status`, `detail`), reference it from `responses`, and register exception handlers so framework errors (`HTTPException`, `RequestValidationError`) use it too.
+Return all errors in one Pydantic model shaped after RFC 9457 (`type`, `title`, `status`, `detail`), reference it from `responses` through `content` with the `application/problem+json` media type, and register exception handlers so framework errors (`HTTPException`, `RequestValidationError`) use it too.
 
 ## Why
 
-When each endpoint invents its own error body, every client needs a parser per endpoint.
+When each endpoint invents its own error body, every client needs a parser per endpoint, and a spec that documents `application/json` for a body the server sends as `application/problem+json` misleads generated clients.
 
 ## Incorrect
 
@@ -30,20 +30,25 @@ class ProblemDetail(BaseModel):
     detail: str | None = None
     errors: list[dict] | None = None # field-level problems on 422
 
+# FastAPI reads `content`, not a `media_type` key, from a responses entry
 PROBLEM = {
     "model": ProblemDetail,
     "content": {"application/problem+json": {
         "schema": {"$ref": "#/components/schemas/ProblemDetail"}}},
 }
 
-def problem(status: int, detail: str, **extra) -> JSONResponse:
-    body = ProblemDetail(title=HTTPStatus(status).phrase, status=status, detail=detail, **extra)
-    return JSONResponse(body.model_dump(exclude_none=True), status,
+def problem(status: int, detail: str, headers=None, **extra) -> JSONResponse:
+    try:
+        title = HTTPStatus(status).phrase
+    except ValueError:
+        title = "Error"
+    body = ProblemDetail(title=title, status=status, detail=detail, **extra)
+    return JSONResponse(body.model_dump(exclude_none=True), status, headers=headers,
                         media_type="application/problem+json")
 
 @app.exception_handler(StarletteHTTPException)   # also the 404 and 405 the framework raises
 async def http_problem(request, exc):
-    return problem(exc.status_code, str(exc.detail))
+    return problem(exc.status_code, str(exc.detail), headers=exc.headers)  # 405 needs Allow
 
 @app.exception_handler(RequestValidationError)
 async def validation_problem(request, exc):
@@ -55,4 +60,4 @@ def log_cup(...): ...
 
 ## Exceptions
 
-A `media_type` key in `responses` is not read by FastAPI; the media type of an error goes in `content`. Without it the spec documents only `application/json` while the server sends `application/problem+json`, which Schemathesis reports as ST105.
+FastAPI also lists `application/json` next to the `content` entry because of `model`; leave it, the spec stays valid.
