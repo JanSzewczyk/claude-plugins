@@ -41,4 +41,6 @@ def test_only_one_of_eight_gets_the_last_copy(client, book_with_one_copy):
 
 ## Exceptions
 
-A guard that a database constraint already enforces needs one sequential test of the error mapping.
+A guard that a database constraint already enforces and maps to its own error (`UNIQUE` to 409) needs one sequential test of the error mapping.
+
+A `CHECK` constraint that only backs the guard changes what removing the `WHERE` clause shows: the constraint refuses the oversell, so the test goes red on an error, not on interleaving. Also run an atomicity mutant that writes an absolute value read earlier (read, check, then set), so the `CHECK` stays silent, and see the race tests go red on a wrong status or count.

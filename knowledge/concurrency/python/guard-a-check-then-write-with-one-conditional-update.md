@@ -1,7 +1,7 @@
 ---
 title: Guard a check-then-write rule with one conditional UPDATE
 summary: Put the rule in the UPDATE's WHERE clause and raise when no row changed; never read, check, then write.
-impact: medium
+impact: high
 applies: [python, sqlalchemy]
 sources: [https://docs.sqlalchemy.org/en/20/core/connections.html#sqlalchemy.engine.CursorResult.rowcount, https://www.sqlite.org/lang_transaction.html, https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#serializable-isolation-savepoints-transactional-ddl]
 ---
@@ -26,11 +26,11 @@ book.available_copies -= 1          # a second request read the same value
 ## Correct
 
 ```python
-result = session.execute(
+result = cast("CursorResult[Any]", session.execute(   # the cast satisfies strict mypy: Result has no rowcount
     update(Book)
     .where(Book.id == book_id, Book.available_copies > 0)
     .values(available_copies=Book.available_copies - 1)
-)
+))
 if result.rowcount == 0:
     raise NoFreeCopy(book_id)
 ```
@@ -49,4 +49,4 @@ def _begin_immediate(conn):
     conn.exec_driver_sql("BEGIN IMMEDIATE")
 ```
 
-A process that never serves concurrent requests needs neither. A `UNIQUE` constraint already guards a plain uniqueness rule; catch its error instead.
+A process that never serves concurrent requests needs neither. A `UNIQUE` constraint already guards a plain uniqueness rule; catch its error instead, as in `concurrency/python/map-only-the-unique-violation-and-roll-back`.

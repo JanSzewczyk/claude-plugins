@@ -3,7 +3,7 @@ title: Log a caught exception with logger.exception, not with its text in the me
 summary: logger.exception writes ERROR with the traceback; str(err) in the message loses the stack.
 impact: high
 applies: [python]
-sources: [https://docs.python.org/3/library/logging.html#logging.Logger.exception, https://docs.astral.sh/ruff/rules/error-instead-of-exception/, https://docs.astral.sh/ruff/rules/verbose-log-message/]
+sources: [https://docs.python.org/3/library/logging.html#logging.Logger.exception, https://docs.astral.sh/ruff/rules/error-instead-of-exception/, https://docs.astral.sh/ruff/rules/verbose-log-message/, https://docs.astral.sh/ruff/rules/log-exception-outside-except-handler/]
 ---
 
 ## Rule
@@ -27,3 +27,7 @@ except JobError as err:
 except JobError:
     logger.exception("Job %s failed", job.id)   # the layer that handles it
 ```
+
+## Exceptions
+
+A handler that is the final place an exception is handled but is defined outside an `except` block (a FastAPI `@app.exception_handler` for a domain error) trips Ruff's `LOG004` on `logger.exception`. Keep the call and add `# noqa: LOG004` with that reason; do not switch to `exc_info=`. The catch-all `Exception` handler logs nothing, see `api/python/fastapi/answer-unhandled-exceptions-with-a-generic-500-problem`.

@@ -43,3 +43,7 @@ user = UserFactory.build(name="Ada Lovelace")
 admins = UserFactory.build_batch(3, admin=True)
 assert render_greeting(user) == "Hello, Ada Lovelace"
 ```
+
+## Exceptions
+
+Under `mypy --strict` the example above fails: `factory.Factory` takes no type argument through the `factory` package, and the declarations are untyped calls. Import `Factory` from `factory.base` and subclass `Factory[User]`, import `Faker` from `factory.faker` and `Trait` from `factory.declarations`, and silence the remaining `no-untyped-call` on each declaration with a reason: `# type: ignore[no-untyped-call]  # factory_boy declarations are untyped`.
