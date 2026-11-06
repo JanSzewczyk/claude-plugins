@@ -28,7 +28,7 @@ async def get_user(user_id: int):
 @router.get(
     "/{user_id}",
     response_model=UserOut,
-    responses={404: {"model": ProblemDetail}},
+    responses={404: PROBLEM},   # PROBLEM: model plus the problem+json media type
 )
 async def get_user(user_id: int) -> UserOut: ...
 ```
