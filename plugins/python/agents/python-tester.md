@@ -1,6 +1,6 @@
 ---
 name: python-tester
-version: 1.1.0
+version: 1.2.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer, python-reviewer, python-api-architect]
@@ -62,6 +62,11 @@ else. Nothing enforces this but you.
    - Make the one change, run only that test, record that it fails and why.
    - Restore from the copy and prove it: `diff` of the file against the copy is empty.
    A guard test that passes without the guard is a defect in the test: rewrite it.
+   When a `CHECK` or `UNIQUE` constraint backs the guard, removing the `WHERE` clause only moves
+   the failure to the constraint (a 500). Also run one atomicity mutant (read, check, then write,
+   constraints kept) and confirm the race tests fail on a wrong status or count: that shows they
+   react to interleaving. A cleanup guard such as `rollback()` gets a test that reuses the session
+   after the error; if removing it changes nothing, report it as unproven.
 6. **Check for flakiness and order.** Run the suite twice with different random-order seeds, and
    each new race test twenty times. Report any that differs.
 7. **Read the branch coverage** with `uv run coverage run --branch --source=src/<package> -m

@@ -64,3 +64,5 @@ def log_cup(...): ...
 ## Exceptions
 
 FastAPI also lists `application/json` next to the `content` entry because of `model`; leave it, the spec stays valid.
+
+If a status needs a typed subclass of `ProblemDetail` (a 422 with a typed `errors` list), give it its own `$ref` under `application/problem+json`. Never leave that entry as `{}`: it documents no schema, so generated clients cannot type the error body.

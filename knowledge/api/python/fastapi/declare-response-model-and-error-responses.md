@@ -3,12 +3,12 @@ title: Give every endpoint a response model and list its real error statuses in 
 summary: response_model filters and documents the output; responses puts 401, 404, 409 into the spec.
 impact: high
 applies: [python, fastapi]
-sources: [https://fastapi.tiangolo.com/tutorial/response-model/, https://fastapi.tiangolo.com/advanced/additional-responses/]
+sources: [https://fastapi.tiangolo.com/tutorial/response-model/, https://fastapi.tiangolo.com/advanced/additional-responses/, https://fastapi.tiangolo.com/tutorial/handling-errors/]
 ---
 
 ## Rule
 
-Declare `response_model` (or a return annotation) on every endpoint and list every error status it can return in `responses`, with the error model. Include the statuses FastAPI raises itself: 422 for validation, and 400 when a body could not be read.
+Declare `response_model` (or a return annotation) on every endpoint and list every error status it can return in `responses`, with the error model. Include the statuses FastAPI raises itself: 422 for validation (a malformed JSON body is a 422 `json_invalid` too). List 400 only for a case you have seen the app answer with 400; a declared status the app never sends misleads clients.
 
 ## Why
 
@@ -28,7 +28,7 @@ async def get_user(user_id: int):
 @router.get(
     "/{user_id}",
     response_model=UserOut,
-    responses={404: PROBLEM},   # PROBLEM: model plus the problem+json media type
+    responses={404: PROBLEM, 422: PROBLEM},   # PROBLEM: model plus the problem+json media type
 )
 async def get_user(user_id: int) -> UserOut: ...
 ```
