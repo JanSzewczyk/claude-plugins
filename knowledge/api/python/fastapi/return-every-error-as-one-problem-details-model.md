@@ -52,7 +52,8 @@ async def http_problem(request, exc):
 
 @app.exception_handler(RequestValidationError)
 async def validation_problem(request, exc):
-    return problem(422, "The request did not pass validation.", errors=jsonable_encoder(exc.errors()))
+    errors = [{"loc": list(e["loc"]), "msg": e["msg"], "type": e["type"]} for e in exc.errors()]
+    return problem(422, "The request did not pass validation.", errors=errors)  # only loc, msg, type: see the validation-errors note
 
 @router.post("/cups", responses={409: PROBLEM, 422: PROBLEM})
 def log_cup(...): ...

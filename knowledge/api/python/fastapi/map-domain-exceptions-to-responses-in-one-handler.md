@@ -8,7 +8,7 @@ sources: [https://fastapi.tiangolo.com/tutorial/handling-errors/]
 
 ## Rule
 
-Give a domain one base exception, map its subclasses to statuses in one table, and register one handler for the base class from a `register(app)` function that `main.py` calls. Routes call the service and do not catch these exceptions.
+Give a domain one base exception, map its subclasses to statuses in one table, and register one handler for the base class from a `register(app)` function that `main.py` calls. Routes call the service and do not catch these exceptions. The handler sends `str(exc)` as `detail`, so word each message for the client: no identifiers of other tenants, SQL or paths (unhandled errors: see the generic 500 note).
 
 ## Why
 
