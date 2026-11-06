@@ -1,7 +1,7 @@
 ---
 name: python-api-flow
 description: "Run the Python API team as one flow: architect, developer, tester and reviewer in turn, ending with a verdict, open decisions and rule proposals. Use when a Python (FastAPI) service or endpoint should be built and verified end to end, an existing API should be tested and reviewed, or the user wants a new endpoint delivered with independent tests and a review before merge, even without mentioning agents: 'build this API with the agents', 'run the full flow', 'zbuduj to z agentami', 'zrób pełny flow', 'build it, test it and review it'. Wins over api-architecture and python-developer when the request covers building and verifying; a request about where code should live goes to api-architecture, one that only asks for an implementation to python-developer. NOT for a single step (call python-tester or python-reviewer directly) or for non-Python work."
-allowed-tools: Agent(python:python-api-architect, python:python-developer, python:python-tester, python:python-reviewer), Read, Glob, Grep, Bash(uv run:*), Bash(make:*), TodoWrite, AskUserQuestion
+allowed-tools: Agent(python:python-api-architect, python:python-developer, python:python-tester, python:python-reviewer), Read, Glob, Grep, Bash(uv run:*), Bash(make:*), TodoWrite, AskUserQuestion, EnterPlanMode, ExitPlanMode
 argument-hint: "[task description | path of existing code to test and review]"
 ---
 
@@ -19,7 +19,7 @@ the session has (`mcp__ccd_turn__update_plan`, otherwise `TaskCreate` and `TaskU
 
 ```
 0 variant   → one of full / short / review, named, with the reason
-1 plan      → architect: layout and checklist           (full only)
+1 plan      → architect: layout and checklist, approved by the user (full only)
 2 build     → developer: code, tests, hand-off          (full, short)
 3 test      → tester: contract tests, defects as red tests
 4 fix       → developer: the defects, in order          (when any are red)
@@ -66,8 +66,14 @@ to follow, and step 3 gets the OpenAPI path and rule list from the developer (sh
 own reading of the code and `/openapi.json` (review). Without step 2 (review), step 5 gets the
 tester's files and Result line only.
 
-1. **Plan.** Task and project path. Keep the layout and the checklist (cross-cutting pieces, error
-   statuses, guards); they go into step 2 and step 3.
+1. **Plan.** Enter plan mode (`EnterPlanMode`, unless the session is already in it): the user
+   gets the approve / reject / edit dialog, and the read-only architect runs fine inside it. Give
+   the architect the task and project path, then present its layout, checklist (cross-cutting
+   pieces, error statuses, guards) and open decisions as the plan with `ExitPlanMode`. Approved:
+   the plan goes into step 2 and step 3. Edited: use the user's version. Rejected: ask what to
+   change and run the architect once more with that; a second rejection ends the flow. Without the
+   plan-mode tools, print the plan and ask with `AskUserQuestion` (approve / change / reject).
+   Gate: the user approved a plan; nothing is built before.
 2. **Build.** Task, the architect's hand-off, and "return the exported OpenAPI path, the list of
    state-dependent rules with their guards, and which checks you ran". Gate: the hand-off states
    each check as run or not run, and names the OpenAPI file. Missing either: the gate fails.
