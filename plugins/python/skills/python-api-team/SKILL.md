@@ -1,5 +1,5 @@
 ---
-name: api-flow
+name: python-api-team
 description: "Run the Python API team as one flow: architect, developer, tester and reviewer in turn, ending with a verdict, open decisions and rule proposals. Use when a Python (FastAPI) service or endpoint should be built and verified end to end, an existing API should be tested and reviewed, or the user wants a new endpoint delivered with independent tests and a review before merge, even without mentioning agents: 'build this API with the agents', 'run the full flow', 'zbuduj to z agentami', 'zrób pełny flow', 'build it, test it and review it'. Wins over api-architecture and python-developer when the request covers building and verifying; a request about where code should live goes to api-architecture, one that only asks for an implementation to python-developer. NOT for a single step (call python-tester or python-reviewer directly) or for non-Python work."
 allowed-tools: Agent(python:python-api-architect, python:python-developer, python:python-tester, python:python-reviewer), Read, Glob, Grep, Bash(uv run:*), Bash(make:*), TodoWrite, AskUserQuestion, EnterPlanMode, ExitPlanMode
 argument-hint: "[task description | path of existing code to test and review]"
