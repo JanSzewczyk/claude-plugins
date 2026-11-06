@@ -38,6 +38,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **📦 [library-updater](./plugins/typescript/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
 - **🔥 [database-architect](./plugins/firebase/)** — Firebase Firestore schema design, data modeling, and architecture guidance
 - **📋 [product-owner](./plugins/product-management/)** — Multi-phase PRD/TDD orchestrator that coordinates specialist agents across implementation phases
+- **📚 [librarian](./plugins/knowledge-dev/)** — Reviews knowledge notes for what scripts cannot judge: duplicates, contradictions, API facts posing as decisions and unsupported sources
 
 ### 🛠️ Slash-Command Skills
 
@@ -80,6 +81,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **📋 [prd-spec](./plugins/product-management/skills/prd-spec/)** — PRD and TDD document templates and generation
 - **📓 [notebooklm](./plugins/ai-tools/skills/notebooklm/)** — NotebookLM automation via CLI and Python API
 - **🎬 [youtube-scraper](./plugins/ai-tools/skills/youtube-scraper/)** — YouTube content extraction and transcript processing
+- **🏠 [kw-lookup](./plugins/ai-tools/skills/kw-lookup/)** — Looks up a Polish property by land register (KW) number: address, parcels, owners, rights and mortgages
 - **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
 - **🔁 [python-api-team](./plugins/python/skills/python-api-team/)** — Runs the architect, developer, tester and reviewer in turn with hand-offs, decision stops and a collected list of rule proposals
@@ -126,7 +128,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
 
-**Total: 11 agents · 55 skills**
+**Total: 15 agents · 57 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -384,7 +386,7 @@ claude-plugins/
     │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
-    │   ├── agents/                # python-developer, python-api-architect, python-tester, python-reviewer, python-tester, python-reviewer
+    │   ├── agents/                # python-developer, python-api-architect, python-tester, python-reviewer
     │   └── skills/                # 7 skills (api-architecture, python-api-team, generated builder-rules-py, python-rules, python-project-rules, pytest-rules, fastapi-rules)
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
