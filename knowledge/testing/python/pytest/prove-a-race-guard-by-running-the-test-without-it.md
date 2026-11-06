@@ -13,7 +13,7 @@ After writing a test for a race guard, remove the guard once and confirm the tes
 
 ## Why
 
-A race test that also passes without the guard proves nothing: on SQLite a last-copy test stayed green with a plain `BEGIN` instead of `BEGIN IMMEDIATE`, so it guarded nothing.
+A race test that also passes without the guard proves nothing: on SQLite a last-copy test stayed green against a mutant that kept `BEGIN IMMEDIATE` and wrote an absolute value, so it guarded nothing.
 
 ## Incorrect
 
@@ -43,4 +43,6 @@ def test_only_one_of_eight_gets_the_last_copy(client, book_with_one_copy):
 
 A guard that a database constraint already enforces and maps to its own error (`UNIQUE` to 409) needs one sequential test of the error mapping.
 
-A `CHECK` constraint that only backs the guard changes what removing the `WHERE` clause shows: the constraint refuses the oversell, so the test goes red on an error, not on interleaving. Also run an atomicity mutant that writes an absolute value read earlier (read, check, then set), so the `CHECK` stays silent, and see the race tests go red on a wrong status or count.
+Pick a mutant the backend lets fail. A `CHECK` that backs the guard makes removing the `WHERE` clause go red on an error (a 500), not on interleaving. On SQLite, `BEGIN IMMEDIATE` serialises every writer, so a read-check-write mutant that keeps it still passes; the mutant that shows red is a plain `BEGIN`, with `database is locked` 500s. Do not claim the conditional `UPDATE` itself is proven there.
+
+Confirm the mutant was the code that ran: run it from a copy and print the package's `__file__` first, because an editable install imports the original and the test stays green.

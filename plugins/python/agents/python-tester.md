@@ -59,7 +59,10 @@ else. Nothing enforces this but you.
    - Copy the file you will change to a `mktemp -d` directory outside the project first (a backup
      is not a project write; the tree may hold uncommitted work, so do not rely on `git checkout`).
      Delete the copy when the proof is done.
-   - Make the one change, run only that test, record that it fails and why.
+   - Make the one change, run only that test, record that it fails and why. Run the copy with
+     `PYTHONPATH` set to its `src` and print the package's `__file__` first: `uv run` imports the
+     installed editable `src`, so a mutant in a copy passes silently. Script repeated runs in bash;
+     a zsh loop does not split an unquoted `$var` and fails every run.
    - Restore from the copy and prove it: `diff` of the file against the copy is empty.
    A guard test that passes without the guard is a defect in the test: rewrite it.
    When a `CHECK` or `UNIQUE` constraint backs the guard, removing the `WHERE` clause only moves

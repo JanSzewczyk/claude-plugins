@@ -63,6 +63,6 @@ def log_cup(...): ...
 
 ## Exceptions
 
-FastAPI also lists `application/json` next to the `content` entry because of `model`; leave it, the spec stays valid.
+FastAPI 0.162 lists `application/json` next to the `application/problem+json` entry because of `model` (checked by generating the spec). The server never sends that type, so remove it in a custom `app.openapi` function that is cached and set on the app, so the CI export stays `app.openapi()`, and assert in a test that no error response lists `application/json`. Re-check after a FastAPI upgrade.
 
 If a status needs a typed subclass of `ProblemDetail` (a 422 with a typed `errors` list), give it its own `$ref` under `application/problem+json`. Never leave that entry as `{}`: it documents no schema, so generated clients cannot type the error body.
