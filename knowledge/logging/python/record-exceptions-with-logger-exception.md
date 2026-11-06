@@ -30,4 +30,4 @@ except JobError:
 
 ## Exceptions
 
-A handler that is the final place an exception is handled but is defined outside an `except` block (a FastAPI `@app.exception_handler` for a domain error) trips Ruff's `LOG004` on `logger.exception`. Keep the call and add `# noqa: LOG004` with that reason; do not switch to `exc_info=`. The catch-all `Exception` handler logs nothing, see `api/python/fastapi/answer-unhandled-exceptions-with-a-generic-500-problem`.
+An expected domain error that a handler turns into a 4xx response (404, 409, 410) is not a failure of the service: log it with `logger.warning("Request refused: %s", exc)` and no traceback, so every unknown code is not an ERROR line with a stack. Keep `logger.exception` for the errors nobody expected; the catch-all `Exception` handler logs nothing here, see `api/python/fastapi/answer-unhandled-exceptions-with-a-generic-500-problem`.

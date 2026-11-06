@@ -8,7 +8,7 @@ sources: [https://docs.sqlalchemy.org/en/20/core/connections.html#sqlalchemy.eng
 
 ## Rule
 
-When a rule reads before it writes (the last free copy), make the repository run one `UPDATE ... WHERE <rule>` and raise when it changed no row. The domain method keeps the readable rule; the UPDATE is what makes it hold under concurrent requests.
+When a rule reads before it writes (the last free copy), make the repository run one `UPDATE ... WHERE <rule>` and raise when it changed no row. The domain method keeps the readable rule; the UPDATE is what makes it hold under concurrent requests. Back a counter with a `CHECK` that states the rule (`CHECK (used <= max_uses)`), so a write that bypasses the UPDATE fails loudly.
 
 ## Why
 
@@ -37,7 +37,7 @@ if result.rowcount == 0:
 
 ## Exceptions
 
-A rule that counts rows (a per-member limit) cannot be one UPDATE: take the write lock before the read. On PostgreSQL lock the parent row with `SELECT ... FOR UPDATE`. On SQLite start the transaction with `BEGIN IMMEDIATE` through the SQLAlchemy `connect` and `begin` hooks, on an engine used for writes, because it serialises every transaction on that engine and a second writer waits for the busy timeout:
+A rule that counts rows (a per-member limit) cannot be one UPDATE: take the write lock before the read. On PostgreSQL lock the parent row with `SELECT ... FOR UPDATE`. On SQLite start the transaction with `BEGIN IMMEDIATE` through the SQLAlchemy `connect` and `begin` hooks, on an engine used for writes, because it serialises every transaction on that engine, and a second writer waits for the driver's `timeout` or fails with `SQLITE_BUSY`:
 
 ```python
 @event.listens_for(engine, "connect")
@@ -49,4 +49,4 @@ def _begin_immediate(conn):
     conn.exec_driver_sql("BEGIN IMMEDIATE")
 ```
 
-A process that never serves concurrent requests needs neither. A `UNIQUE` constraint already guards a plain uniqueness rule; catch its error instead, as in `concurrency/python/map-only-the-unique-violation-and-roll-back`.
+A process that never serves concurrent requests needs neither. A `UNIQUE` or `PRIMARY KEY` constraint already guards a plain uniqueness rule (once per customer); catch its error instead, as in `concurrency/python/map-only-the-unique-violation-and-roll-back`.

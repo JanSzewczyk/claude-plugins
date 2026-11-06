@@ -60,7 +60,9 @@ do, in what order, and what you return*.
    working directory) and use at least three seeds: a stateful failure may show on one seed only.
    Put scratch files in a `mktemp -d` directory outside the project and leave no process running.
    To judge a guard (a race test, a limit), copy `src/` and `tests/` there, remove the guard in the
-   copy and run its test twenty times: a test that still passes is a finding. Do this for guards
+   copy and run its test twenty times: a test that still passes is a finding. Run the copy with
+   `PYTHONPATH` set to its `src` and print the package's `__file__` first (`uv run` otherwise
+   imports the installed `src` and the mutant passes silently), and script the runs in bash. Do this for guards
    only, not for every rule. What you cannot reproduce is marked ⚪ and listed under
    *Not checked*, not asserted.
 4. **Check the author's claims.** Each statement in their report, or in the README when there is
