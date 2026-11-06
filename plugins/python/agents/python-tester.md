@@ -1,6 +1,6 @@
 ---
 name: python-tester
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer, python-reviewer, python-api-architect]
@@ -81,6 +81,10 @@ else. Nothing enforces this but you.
 - **Flakiness and coverage**: the seeds and counts, the branches still uncovered.
 - **Hand-off** for `python-developer`: the defect numbers to fix, in order, and the command that
   turns the suite green. For `python-reviewer`: the files you added. Never "call X".
+- **Proposals** (up to five, only with evidence): where a rule seems wrong, missing or contradicted by
+  what you observed, or your own instructions were unclear — what you saw (`file:line`, or the
+  command and its output), what should change (a rule, a note or this definition) and whether you
+  reproduced it. Propose, never apply, and keep following the rule until it is changed.
 - End with **Not checked:** (a rule you could not reach a test for, a check you could not run) and
   **Next:**.
 
