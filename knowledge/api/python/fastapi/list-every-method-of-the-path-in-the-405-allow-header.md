@@ -34,18 +34,18 @@ def allowed_methods(request: Request) -> str | None:
             t.startswith("{") or t == p for t, p in zip(template_parts, parts)
         ):
             methods |= {m.upper() for m in operations}
-    if "GET" in methods:
-        methods.add("HEAD")
     return ", ".join(sorted(methods)) or None
 
 @app.exception_handler(StarletteHTTPException)
 async def http_problem(request, exc):
     headers = dict(exc.headers or {})
     if exc.status_code == 405 and (allow := allowed_methods(request)):
-        headers["Allow"] = allow                      # GET, HEAD, POST
+        headers["Allow"] = allow                      # GET, POST
     return problem(exc.status_code, str(exc.detail), headers=headers)  # problem(): Problem Details note
 ```
 
 ## Exceptions
+
+List only the methods the OpenAPI document shows: FastAPI does not serve `HEAD` for a `GET` route, so adding it would advertise a method that answers 405.
 
 Do not walk `app.router.routes` instead: in current FastAPI `include_router` stores an included router as one entry without `methods`, so routes declared in feature modules would produce an empty header.
