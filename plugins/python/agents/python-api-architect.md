@@ -1,15 +1,16 @@
 ---
 name: python-api-architect
-version: 1.2.0
+version: 1.3.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
-related-agents: [python-developer]
+related-agents: [python-developer, python-reviewer, python-tester]
 description: >
-  Use when: deciding or reviewing how a Python web API (FastAPI) is structured — whether
-  domain modules or hexagonal modules fit, how to lay out packages, where a piece of code belongs,
-  when and how to split a growing codebase — or when the user says "architecture", "project
-  structure", "modular monolith", "hexagonal", "where should this go". Read-only: it returns
-  a recommendation and a layout. NOT for writing the code (use python-developer).
+  Use when: deciding how a Python web API (FastAPI) is structured, or judging an existing
+  structure — whether domain modules or hexagonal modules fit, how to lay out packages, where a
+  piece of code belongs, when and how to split a growing codebase — or when the user says
+  "architecture", "project structure", "modular monolith", "hexagonal", "where should this go".
+  Read-only: it returns a recommendation and a layout. NOT for writing the code (use
+  python-developer) or for reviewing code against the rules (use python-reviewer).
 tools: Glob, Grep, Read, Bash, TodoWrite
 model: sonnet
 color: purple

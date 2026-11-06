@@ -1,6 +1,6 @@
 # python
 
-Python development — the language layer for Python projects. It carries two agents (a developer that writes Python with its tests, and an architect that decides how an API is structured), a skill that guides the architecture decision, and generated background knowledge: team conventions for Python code, pytest tests and FastAPI web APIs, and rules for `factory_boy` test data factories.
+Python development — the language layer for Python projects. It carries four agents (a developer that writes Python with its tests, an architect that decides how an API is structured, a tester that tests an API from its contract, and a reviewer that checks the result against the rules), a skill that guides the architecture decision, and generated background knowledge: team conventions for Python code, pytest tests and FastAPI web APIs, and rules for `factory_boy` test data factories.
 
 ## Contents
 
@@ -10,6 +10,25 @@ Python development — the language layer for Python projects. It carries two ag
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **python-developer**     | Writes and fixes Python code and its pytest tests under the team rules (`python-rules`, `python-project-rules`, `fastapi-rules`, `pytest-rules`, `builder-rules-py`), then runs Ruff, the type checker and the tests |
 | **python-api-architect** | Read-only: places a Python API as domain modules or hexagonal modules, recommends the smallest step and returns a layout plus a hand-off for the developer |
+| **python-tester**        | Writes black-box tests from the API contract: documented statuses, Schemathesis with no check excluded, parallel race tests proved by removing the guard, flakiness and branch coverage; reports defects as failing tests and fixes none |
+| **python-reviewer**      | Read-only: runs the project's checks, reviews the code against the team rules, reproduces each finding and returns a verdict with a numbered findings table and a hand-off per role |
+
+### Team flow
+
+Subagents cannot call each other, so the main session runs the sequence and passes each agent's
+hand-off to the next:
+
+1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards).
+2. `python-developer` — implements it with its own tests and ends with a hand-off.
+3. `python-tester` — tests the contract independently and reports defects as failing tests.
+4. `python-developer` — fixes the defects.
+5. `python-reviewer` — runs the checks, reviews against the rules and returns a verdict.
+6. `python-developer` — fixes the findings. At most two rounds of steps 5–6; open findings are
+   reported, not looped on.
+
+Each agent stays in its lane by instruction: the reviewer has no write tools, the tester writes
+only in `tests/` (plus one proved, temporary change to `src/` to check a guard), and neither fixes
+what it finds. Skip steps 1 and 3 for a small change inside an existing module.
 
 ### Skills
 
