@@ -8,7 +8,7 @@ sources: [https://schemathesis.readthedocs.io/en/stable/reference/cli/]
 
 ## Rule
 
-Run `schemathesis run openapi.json --url <base-url>` in CI against a test instance, using the exported spec. Fix a mismatch in the code or in `responses`, never by loosening the test.
+Run `schemathesis run openapi.json --url <base-url>` in CI against a test instance, using the exported spec. Fix a mismatch in the code or in `responses`; never narrow the run with `--exclude-checks` or by dropping a phase.
 
 ## Why
 
