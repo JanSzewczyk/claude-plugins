@@ -89,8 +89,9 @@ tester's files and Result line only.
 2. **Build.** Task, the architect's hand-off, and "return the exported OpenAPI path, the list of
    state-dependent rules with their guards, and which checks you ran". Gate: the hand-off states
    each check as run or not run, and names the OpenAPI file. Missing either: the gate fails.
-3. **Test.** The OpenAPI path, the rule list and the architect's checklist. Not the developer's tests
-   to read first: independence is the point. Gate: the hand-off has a Result line and a defects
+3. **Test.** The OpenAPI path, the rule list and the architect's checklist. The tester lists the
+   cases from the contract first, then reads the developer's tests and adds only what is missing, in
+   the project's own test directory: one suite at the end, not a second one beside it. Gate: the hand-off has a Result line and a defects
    table.
 4. **Fix.** The tester's defects table, in its order. Gate: every number comes back fixed or
    disputed with a reason. Run the tester's command that turns the suite green yourself; a
