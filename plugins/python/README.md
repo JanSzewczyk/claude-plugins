@@ -18,7 +18,7 @@ Python development — the language layer for Python projects. It carries four a
 `/python-api-flow` runs this sequence. Subagents cannot call each other, so the main session runs it
 and passes each agent's hand-off to the next:
 
-1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards).
+1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards), shown as a plan for you to approve, edit or reject before anything is built.
 2. `python-developer` — implements it with its own tests and ends with a hand-off.
 3. `python-tester` — tests the contract independently and reports defects as failing tests.
 4. `python-developer` — fixes the defects.
