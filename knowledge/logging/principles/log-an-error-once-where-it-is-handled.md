@@ -14,3 +14,7 @@ Log a failure in the layer that finally handles it (request handler, worker loop
 ## Why
 
 Logging and re-raising at every layer prints the same failure several times and multiplies every error count and alert.
+
+## Exceptions
+
+In an HTTP handler, an expected refusal answered with a 4xx response (a 404, 409 or 410) is not a failure of the service: log it once at warning level without a traceback, not as an error.
