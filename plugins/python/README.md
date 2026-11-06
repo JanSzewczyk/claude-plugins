@@ -15,7 +15,7 @@ Python development — the language layer for Python projects. It carries four a
 
 ### Team flow
 
-`/python-api-flow` runs this sequence. Subagents cannot call each other, so the main session runs it
+`/api-flow` runs this sequence. Subagents cannot call each other, so the main session runs it
 and passes each agent's hand-off to the next:
 
 1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards), shown as a plan for you to approve, edit or reject before anything is built.
@@ -37,7 +37,7 @@ decide, and nothing is applied automatically.
 | Skill                | Invoke with   | Description                                                                                                                  |
 | -------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **api-architecture** | `/api-architecture` | Choose and lay out a Python API (FastAPI): domain modules or hexagonal modules, and where each piece of code goes; carries the architecture guide and its rules |
-| **python-api-flow**  | `/python-api-flow` | Runs the four agents as one flow (full, short or review) from the main session: hand-offs passed verbatim, stops for decisions, one fix round after review, and a table of the rules the agents propose to change |
+| **api-flow**         | `/api-flow`         | Runs the four agents as one flow (full, short or review) from the main session: hand-offs passed verbatim, stops for decisions, one fix round after review, and a table of the rules the agents propose to change |
 | **builder-rules-py** | — (preloaded) | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents to preload |
 | **python-rules**     | — (preloaded) | Generated background knowledge: docstrings and library documentation, typing syntax and mypy strict, exceptions, logging, asyncio, race-safe writes, t-string and secret-handling security |
 | **python-project-rules** | — (preloaded) | Generated background knowledge: project setup and tooling, uv and the lockfile, Ruff, CI workflow, Makefile, dependency audit, trusted publishing |
