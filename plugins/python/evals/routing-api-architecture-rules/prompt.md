@@ -1,6 +1,6 @@
 ---
-name: routing-api-architecture
-description: A natural request that api-architecture should pick up, phrased the way a user would actually ask.
+name: routing-api-architecture-rules
+description: A natural request that api-architecture-rules should pick up, phrased the way a user would actually ask.
 tags: [routing, smoke]
 plugins: ["../.."]
 runs: 3

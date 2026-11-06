@@ -266,7 +266,7 @@ Vercel `react-best-practices` compiles its rule files into one document.
 ## D15 Agents get knowledge passively, through preloaded knowledge skills
 
 **Decision.** For each domain and language there is a generated knowledge skill with
-`user-invocable: false` (`storybook-rules`, `builder-rules-ts`, `builder-rules-py`). Agents preload
+`user-invocable: false` (`storybook-rules`, `builder-rules-ts`, `builder-rules` in python). Agents preload
 it with `skills:` instead of preloading full procedure skills. Its SKILL.md has a line budget
 (`maxLines`, default 300) and a description limit of 1024 characters.
 
@@ -346,12 +346,12 @@ silently picking one side of a conflict.
   Not built yet: as of 2026-10-27 `builder-factory` covers TypeScript and `mimicry-js` only.
 - A different workflow gets its own skill, named after the tool (`vitest-unit-testing`,
   `pytest-testing`), so routing never has two candidates for "unit test".
-- Agents preload one knowledge skill per language (`builder-rules-ts`, `builder-rules-py`),
+- Agents preload one knowledge skill per language (`builder-rules-ts`, `builder-rules` in python),
   generated from the same notes with different filters; principles reach both.
 - ~~The `testing` plugin stays one plugin for both languages until routing evals start confusing
   them or skill descriptions from the other language cost too much (about 100 tokens each per
   session).~~ Superseded 2026-10-27 by D23: language-specific skills live in the language's plugin
-  (`builder-rules-ts` in `typescript`, `builder-rules-py` in `python`); a skill moves to the
+  (`builder-rules-ts` in `typescript`, `builder-rules` in `python`); a skill moves to the
   technology-agnostic `testing` core only once it really serves every stack (`builder-factory` is
   TypeScript-only today, so it lives in `typescript`).
 

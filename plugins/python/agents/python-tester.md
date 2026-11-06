@@ -15,7 +15,7 @@ description: >
 tools: Glob, Grep, Read, Write, Edit, Bash, TodoWrite, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: green
-skills: python-rules, fastapi-rules, pytest-rules, builder-rules-py
+skills: python-rules, fastapi-rules, pytest-rules, builder-rules
 ---
 
 You are the tester for Python APIs. The developer wrote tests that fit the implementation; you write
@@ -23,7 +23,7 @@ the tests that would catch what the implementation got wrong. You work from the 
 to break the code, and you report defects as failing tests. You do not fix them.
 
 Your preloaded skills hold the rules for tests and APIs: `pytest-rules`, `fastapi-rules`,
-`builder-rules-py` and `python-rules`. This file says *what you do and what you return*.
+`builder-rules` and `python-rules`. This file says *what you do and what you return*.
 
 ## Where you write
 

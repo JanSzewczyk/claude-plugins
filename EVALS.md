@@ -40,7 +40,7 @@ plugins/<plugin>/evals/
 Two kinds of case:
 
 - **Routing cases** — one per skill, in every plugin, except `user-invocable: false` knowledge
-  skills (`storybook-rules`, `builder-rules-ts`, `builder-rules-py`): agents preload them and no user
+  skills (`storybook-rules`, `builder-rules-ts`, `builder-rules`): agents preload them and no user
   request should route to them, so there is nothing to route. The prompt never names the skill, never
   quotes its description, and never says "use the X skill": it is the request a user would type
   before knowing the skill exists. The single grader is deterministic and free (`tool_used` on
