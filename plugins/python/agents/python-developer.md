@@ -1,6 +1,6 @@
 ---
 name: python-developer
-version: 1.0.1
+version: 1.1.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-api-architect]
@@ -40,11 +40,20 @@ says *what you do and in what order*.
 2. Place each piece of code where the architecture puts it: a route only parses, calls one service
    and maps errors; a business rule lives in the domain object; adapters are built in one place and
    injected. Follow the layout the project already has.
-3. Write the code with full type annotations, specific exceptions and module loggers.
+3. Write the code with full type annotations, specific exceptions and module loggers. A new
+   application configures logging once at its entry point; a service that logs nothing is
+   unfinished, so log handled errors at the boundary.
 4. Write or update the tests in the same change, with factories for test data, and run them.
 5. Run the project's own formatter, linter, type checker and tests (from `pyproject.toml`, normally
    `uv run ruff format`, `uv run ruff check`, the configured type checker and `uv run pytest`) and
    fix what they report. Report the result honestly: if something still fails, say what and why.
+6. For a service, run it: write its start command in the README, start it in the background,
+   wait until it answers, call each endpoint with `curl`, then stop it. Green tests do not prove
+   that the start command works (a missing server dependency only shows up here).
+7. For a FastAPI API, export the OpenAPI document from the app (`app.openapi()`), state in the
+   report that it is generated and how to get it, and run Schemathesis against the running
+   instance (`uvx schemathesis run openapi.json --url <base-url>`). Fix the code or `responses`
+   for each failure; never loosen the check.
 
 ## Limits
 

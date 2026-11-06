@@ -1,6 +1,6 @@
 ---
 name: python-api-architect
-version: 1.0.1
+version: 1.1.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer]
@@ -38,6 +38,9 @@ They are the source of truth; this file says *what you return*.
 - **The recommended step**, in one module, and what you deliberately leave for later.
 - **The layout** as a tree and where the next pieces of code go.
 - **A hand-off** for `python-developer`: the module to start with, the files to create or move, in
-  order, and the tests that should pass before and after.
+  order, and the tests that should pass before and after. For a new service also name the
+  cross-cutting pieces the developer must not skip: logging configured at the entry point, one
+  Problem Details model with exception handlers, the ASGI server as a dependency with the start
+  command in the README, and the exported OpenAPI document.
 
 Be short and specific. If the project is too small to need a decision, say so.
