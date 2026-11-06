@@ -8,7 +8,7 @@ sources: [https://fastapi.tiangolo.com/tutorial/response-model/, https://fastapi
 
 ## Rule
 
-Declare `response_model` (or a return annotation) on every endpoint and list every error status it can return in `responses`, with the error model.
+Declare `response_model` (or a return annotation) on every endpoint and list every error status it can return in `responses`, with the error model. Include the statuses FastAPI raises itself: 422 for validation, and 400 when a body could not be read.
 
 ## Why
 
