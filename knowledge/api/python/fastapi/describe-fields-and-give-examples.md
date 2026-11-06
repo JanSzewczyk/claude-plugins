@@ -17,7 +17,7 @@ The generated docs show only names and types, so consumers guess units, formats 
 ## Incorrect
 
 ```python
-class UserOut(BaseModel):
+class UserResponse(BaseModel):
     id: int
     email: str
 ```
@@ -25,7 +25,7 @@ class UserOut(BaseModel):
 ## Correct
 
 ```python
-class UserOut(BaseModel):
+class UserResponse(BaseModel):
     id: int = Field(description="Unique user identifier.", examples=[1])
     email: str = Field(description="Primary e-mail address.", examples=["ada@example.com"])
 ```
