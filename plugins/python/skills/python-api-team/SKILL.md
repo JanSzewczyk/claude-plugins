@@ -1,6 +1,6 @@
 ---
 name: python-api-team
-description: "Run the Python API team as one flow: architect, developer, tester and reviewer in turn, ending with a verdict, open decisions and rule proposals. Use when a Python (FastAPI) service or endpoint should be built and verified end to end, an existing API should be tested and reviewed, or the user wants a new endpoint delivered with independent tests and a review before merge, even without mentioning agents: 'build this API with the agents', 'run the full flow', 'zbuduj to z agentami', 'zrób pełny flow', 'build it, test it and review it'. Wins over api-architecture and python-developer when the request covers building and verifying; a request about where code should live goes to api-architecture, one that only asks for an implementation to python-developer. NOT for a single step (call python-tester or python-reviewer directly) or for non-Python work."
+description: "Run the Python API team as one flow: architect, developer, tester and reviewer in turn, ending with a verdict, open decisions and rule proposals. Use when a Python (FastAPI) service or endpoint should be built and verified end to end, an existing API should be tested and reviewed, or the user wants a new endpoint delivered with independent tests and a review before merge, even without mentioning agents: 'build this API with the agents', 'run the full flow', 'zbuduj to z agentami', 'zrób pełny flow', 'build it, test it and review it'. Wins over api-architecture-rules and python-developer when the request covers building and verifying; a request about where code should live goes to api-architecture-rules, one that only asks for an implementation to python-developer. NOT for a single step (call python-tester or python-reviewer directly) or for non-Python work."
 allowed-tools: Agent(python:python-api-architect, python:python-developer, python:python-tester, python:python-reviewer), Read, Glob, Grep, Bash(uv run:*), Bash(make:*), TodoWrite, AskUserQuestion, EnterPlanMode, ExitPlanMode
 argument-hint: "[task description | path of existing code to test and review]"
 ---
@@ -69,14 +69,23 @@ tester's files and Result line only.
 
 1. **Plan.** Enter plan mode (`EnterPlanMode`, unless the session is already in it): the user
    gets the approve / reject / edit dialog, and the read-only architect runs fine inside it. Give
-   the architect the task and project path, write its layout, checklist (cross-cutting pieces,
-   error statuses, guards) and open decisions into the plan file in full (plan mode allows no other
-   write, and a condensed plan is no longer the hand-off to pass verbatim), then show it with
-   `ExitPlanMode`. Approved:
+   the architect the task and project path, and ask it to list every open decision with its
+   recommended option and the realistic alternatives.
+   **Resolve the open decisions before the plan is shown.** When the hand-off lists any (a project
+   folder, an id type, which rule wins when two apply, whether docs are exposed), ask them first
+   with `AskUserQuestion`: up to four questions per call, each with the architect's recommendation
+   as the first option marked "(Recommended)", the alternatives after it, and a line on what each
+   costs. The plan is not shown while a question is open. Record every answer in the plan as a
+   decided decision; one the user leaves to you takes the recommendation and is marked as such.
+   With no open decisions, go on. When an answer changes the layout, run the architect once more
+   with the answers: that is not a rejection.
+   Then write the layout, checklist (cross-cutting pieces, error statuses, guards) and the decided
+   decisions into the plan file in full (plan mode allows no other write, and a condensed plan is
+   no longer the hand-off to pass verbatim), and show it with `ExitPlanMode`. Approved:
    the plan goes into step 2 and step 3. Edited: use the user's version. Rejected: ask what to
    change and run the architect once more with that; a second rejection ends the flow. Without the
    plan-mode tools, print the plan and ask with `AskUserQuestion` (approve / change / reject).
-   Gate: the user approved a plan; nothing is built before.
+   Gate: no open decision is left, and the user approved a plan; nothing is built before.
 2. **Build.** Task, the architect's hand-off, and "return the exported OpenAPI path, the list of
    state-dependent rules with their guards, and which checks you ran". Gate: the hand-off states
    each check as run or not run, and names the OpenAPI file. Missing either: the gate fails.

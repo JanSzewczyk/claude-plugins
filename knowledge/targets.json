@@ -54,7 +54,7 @@
     },
     {
       "kind": "knowledge-skill",
-      "skill": "plugins/python/skills/builder-rules-py",
+      "skill": "plugins/python/skills/builder-rules",
       "title": "Test data factory rules (Python, factory_boy)",
       "description": "Rules for building test data in Python with factory_boy: explicit values for everything a test asserts on, keyword overrides and Traits, build() versus create(), resetting sequences. Use when creating or using a factory in a Python test. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules whenever you create or use a factory in a Python test.",
@@ -158,7 +158,7 @@
     },
     {
       "kind": "skill-index",
-      "skill": "plugins/python/skills/api-architecture",
+      "skill": "plugins/python/skills/api-architecture-rules",
       "include": ["architecture/principles/**", "architecture/python/**"],
       "where": { "languages": ["python"] },
       "guides": ["Decision", "Options", "Layouts", "Evolution"]

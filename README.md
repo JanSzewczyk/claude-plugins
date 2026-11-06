@@ -85,7 +85,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
 - **🔁 [python-api-team](./plugins/python/skills/python-api-team/)** — Runs the architect, developer, tester and reviewer in turn with hand-offs, decision stops and a collected list of rule proposals
-- **🏗️ [api-architecture](./plugins/python/skills/api-architecture/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, and hexagonal layers where a module needs them
+- **🏗️ [api-architecture-rules](./plugins/python/skills/api-architecture-rules/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, and hexagonal layers where a module needs them
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
@@ -149,7 +149,7 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 | `testing:unit-tester`, `unit-testing`, `builder-factory`, `coverage-gaps`, `builder-rules-ts` | `typescript:…` |
 | `testing:storybook-tester`, `create-stories`, `storybook-rules`, `accessibility-audit` | `react:…` |
 | `testing:testing-strategist`, `api-test` | `nextjs:…` |
-| `testing:builder-rules-py` | `python:builder-rules-py` |
+| `testing:builder-rules-py` | `python:builder-rules` |
 | `code-quality:code-reviewer`, `performance-analyzer`, `performance-optimization` | `nextjs:…` |
 | `code-quality:library-updater`, `dead-code` | `typescript:…` |
 | `typescript:update-deps` | `code-quality:update-deps` |
@@ -304,7 +304,7 @@ What are you doing?
 │   ├── Full build + verify flow   → Skill: python-api-team (python)
 │   ├── Black-box tests / guards   → Agent: python-tester (python)
 │   ├── Review against the rules   → Agent: python-reviewer (python)
-│   └── Architecture / layout      → Agent: python-api-architect, Skill: api-architecture (python)
+│   └── Architecture / layout      → Agent: python-api-architect, Skill: api-architecture-rules (python)
 │
 ├── Code review / quality check
 │   └── Agent: code-reviewer (nextjs)
@@ -342,7 +342,7 @@ What are you doing?
 | Plan which tests to write | `testing-strategist` agent |
 | Write unit tests | `unit-tester` agent (or `/unit-testing` skill) |
 | Write Python code and its tests | `python-developer` agent |
-| Decide how a Python API is structured | `python-api-architect` agent (or `/api-architecture` skill) |
+| Decide how a Python API is structured | `python-api-architect` agent (or `/api-architecture-rules` skill) |
 | Build and verify a Python API end to end | `/python-api-team` skill |
 | Test a Python API from its contract, prove a guard | `python-tester` agent |
 | Review Python code against the team rules | `python-reviewer` agent |
@@ -387,7 +387,7 @@ claude-plugins/
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # python-developer, python-api-architect, python-tester, python-reviewer
-    │   └── skills/                # 7 skills (api-architecture, python-api-team, generated builder-rules-py, python-rules, python-project-rules, pytest-rules, fastapi-rules)
+    │   └── skills/                # 7 skills (api-architecture-rules, python-api-team, generated builder-rules, python-rules, python-project-rules, pytest-rules, fastapi-rules)
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester
