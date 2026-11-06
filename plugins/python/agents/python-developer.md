@@ -1,6 +1,6 @@
 ---
 name: python-developer
-version: 1.1.0
+version: 1.2.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-api-architect]
@@ -53,7 +53,13 @@ says *what you do and in what order*.
 7. For a FastAPI API, export the OpenAPI document from the app (`app.openapi()`), state in the
    report that it is generated and how to get it, and run Schemathesis against the running
    instance (`uvx schemathesis run openapi.json --url <base-url>`). Fix the code or `responses`
-   for each failure; never loosen the check.
+   for each failure; never exclude a check or a phase. A failure you cannot fix without a product
+   decision goes in the report with the options.
+8. When a rule reads before it writes (a stock, a per-member limit), write a test that fires the
+   competing calls in parallel, then remove the guard once and confirm the test fails.
+9. For a new project, finish the tooling the rules ask for: type checker in strict mode, a CI
+   workflow and a Makefile that run the same `check`, and a README that lists every command. Say
+   in the report that the workflow was written but never run.
 
 ## Limits
 

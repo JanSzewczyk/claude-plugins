@@ -1,6 +1,6 @@
 ---
 name: python-api-architect
-version: 1.1.0
+version: 1.2.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer]
@@ -41,6 +41,9 @@ They are the source of truth; this file says *what you return*.
   order, and the tests that should pass before and after. For a new service also name the
   cross-cutting pieces the developer must not skip: logging configured at the entry point, one
   Problem Details model with exception handlers, the ASGI server as a dependency with the start
-  command in the README, and the exported OpenAPI document.
+  command in the README, the exported OpenAPI document, a strict type checker, a CI workflow and a
+  Makefile with one `check` target, and `httpx2` in the test group. For every rule that depends on
+  stored state (limits, stock, already-done) state the error status the rules give (409, not 422), a
+  Problem Details type per error, and that the rule needs an atomic guard and a parallel test.
 
 Be short and specific. If the project is too small to need a decision, say so.

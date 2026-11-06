@@ -8,7 +8,7 @@ sources: [https://fastapi.tiangolo.com/tutorial/schema-extra-example/, https://f
 
 ## Rule
 
-In every request and response model, give fields `Field(description=..., examples=[...])`, and describe path and query parameters through `Path` and `Query`.
+In every request and response model, give fields `Field(description=..., examples=[...])`, and describe path and query parameters through `Path` and `Query`. Every example must be accepted by the endpoint it documents, so give none that depends on stored data or on today's date.
 
 ## Why
 

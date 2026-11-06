@@ -25,7 +25,7 @@ return JSONResponse({"error": "no user"}, status_code=404)   # elsewhere: {"mess
 ```python
 class ProblemDetail(BaseModel):
     type: str = "about:blank"
-    title: str                       # stable per status; the occurrence goes in detail
+    title: str                       # stable per problem type; the occurrence goes in detail
     status: int
     detail: str | None = None
     errors: list[dict] | None = None # field-level problems on 422
@@ -37,18 +37,20 @@ PROBLEM = {
         "schema": {"$ref": "#/components/schemas/ProblemDetail"}}},
 }
 
-def problem(status: int, detail: str, headers=None, **extra) -> JSONResponse:
-    try:
-        title = HTTPStatus(status).phrase
-    except ValueError:
-        title = "Error"
-    body = ProblemDetail(title=title, status=status, detail=detail, **extra)
+def problem(status: int, detail: str, headers=None, *, type: str = "about:blank",
+            title: str | None = None, **extra) -> JSONResponse:
+    if title is None:
+        try:
+            title = HTTPStatus(status).phrase
+        except ValueError:
+            title = "Error"
+    body = ProblemDetail(type=type, title=title, status=status, detail=detail, **extra)
     return JSONResponse(body.model_dump(exclude_none=True), status, headers=headers,
                         media_type="application/problem+json")
 
 @app.exception_handler(StarletteHTTPException)   # also the 404 and 405 the framework raises
 async def http_problem(request, exc):
-    return problem(exc.status_code, str(exc.detail), headers=exc.headers)  # 405 needs Allow
+    return problem(exc.status_code, str(exc.detail), headers=exc.headers)  # 405: see the Allow note
 
 @app.exception_handler(RequestValidationError)
 async def validation_problem(request, exc):

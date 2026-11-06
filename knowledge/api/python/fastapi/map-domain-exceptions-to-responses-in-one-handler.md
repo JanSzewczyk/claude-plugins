@@ -8,7 +8,7 @@ sources: [https://fastapi.tiangolo.com/tutorial/handling-errors/]
 
 ## Rule
 
-Give a domain one base exception, map its subclasses to statuses in one table, and register one handler for the base class from a `register(app)` function that `main.py` calls. Routes call the service and do not catch these exceptions. The handler sends `str(exc)` as `detail`, so word each message for the client: no identifiers of other tenants, SQL or paths (unhandled errors: see the generic 500 note).
+Give a domain one base exception, map its subclasses to a status, a type slug and a title in one table, and register one handler for the base class from a `register(app)` function that `main.py` calls. Routes call the service and do not catch these exceptions. The handler sends `str(exc)` as `detail`, so word each message for the client: no identifiers of other tenants, SQL or paths (unhandled errors: see the generic 500 note).
 
 ## Why
 
@@ -35,13 +35,16 @@ class OrderError(Exception): ...
 class OrderNotFound(OrderError): ...
 class EmptyOrder(OrderError): ...
 
-STATUS = {OrderNotFound: 404, EmptyOrder: 409}
+ERRORS = {   # exception -> (status, type slug, title): see the problem-type note
+    OrderNotFound: (404, "order-not-found", "Order not found"),
+    EmptyOrder: (409, "empty-order", "Order has no lines"),
+}
 
 def register(app: FastAPI) -> None:
     @app.exception_handler(OrderError)
     async def order_problem(request: Request, exc: OrderError) -> JSONResponse:
-        status = next(s for t, s in STATUS.items() if isinstance(exc, t))
-        return problem(status, str(exc))   # problem(): see the Problem Details note
+        status, slug, title = next(v for t, v in ERRORS.items() if isinstance(exc, t))
+        return problem(status, str(exc), type=f"urn:problem:orders:{slug}", title=title)
 
 # orders/router.py: the route only calls the service
 def confirm(order_id: UUID, service: OrderService = Depends(get_order_service)):
