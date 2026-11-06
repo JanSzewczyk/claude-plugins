@@ -9,7 +9,7 @@ sources: [https://www.cosmicpython.com/book/chapter_04_service_layer.html]
 
 ## Rule
 
-Write a route so that it receives validated input, calls one service method and turns the service's exceptions into HTTP responses. A loop, an `if` about a business rule or a second database call in a route belongs in the service.
+Write a route so that it receives validated input, calls one service method and leaves the service's exceptions to the domain's registered exception handler, which turns them into HTTP responses. A loop, an `if` about a business rule or a second database call in a route belongs in the service.
 
 ## Why
 
@@ -33,13 +33,8 @@ def confirm(order_id: UUID, session: Session = Depends(get_session)):
 @router.post(
     "/orders/{order_id}/confirm",
     status_code=204,
-    responses={404: {"model": ProblemDetail}, 409: {"model": ProblemDetail}},
+    responses={404: PROBLEM, 409: PROBLEM},   # PROBLEM: see the Problem Details note
 )
 def confirm(order_id: UUID, service: OrderService = Depends(get_order_service)):
-    try:
-        service.confirm(order_id)
-    except OrderNotFound:
-        raise HTTPException(status_code=404, detail="Order not found")
-    except EmptyOrder:
-        raise HTTPException(status_code=409, detail="Order has no lines")
+    service.confirm(order_id)   # OrderNotFound and EmptyOrder are mapped by the domain's handler
 ```
