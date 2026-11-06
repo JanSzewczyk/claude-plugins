@@ -24,7 +24,7 @@ A client that never heard of the removal finds out when its calls start failing 
 
 ```python
 @router.get("/v1/users/{user_id}", deprecated=True)
-async def get_user_v1(user_id: int, response: Response) -> UserOut:
+async def get_user_v1(user_id: int, response: Response) -> UserResponse:
     response.headers["Deprecation"] = "@1767225600"
     response.headers["Sunset"] = "Thu, 01 Jul 2027 00:00:00 GMT"
     ...

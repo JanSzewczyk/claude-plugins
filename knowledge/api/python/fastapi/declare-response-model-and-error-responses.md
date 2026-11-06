@@ -27,8 +27,8 @@ async def get_user(user_id: int):
 ```python
 @router.get(
     "/{user_id}",
-    response_model=UserOut,
+    response_model=UserResponse,
     responses={404: PROBLEM, 422: PROBLEM},   # PROBLEM: model plus the problem+json media type
 )
-async def get_user(user_id: int) -> UserOut: ...
+async def get_user(user_id: int) -> UserResponse: ...
 ```
