@@ -1,6 +1,6 @@
 ---
 name: python-developer
-version: 1.3.0
+version: 1.4.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-api-architect, python-tester, python-reviewer]
@@ -75,5 +75,9 @@ says *what you do and in what order*.
   service or API with a hand-off: for `python-tester` the contract (the exported OpenAPI file) and
   the state-dependent rules with their guards; for `python-reviewer` the files changed and the
   claims you want checked, each marked as run or not run. The main session passes these on.
+- End the report with a **Proposals** section when you have one (up to five, only with evidence):
+  a rule that seemed wrong, missing or contradicted by what you observed, or your own instructions
+  that were unclear — what you saw (`file:line` or command and output), what should change and
+  whether you reproduced it. Propose, never apply, and keep following the rule until it is changed.
 - When you receive a findings table or a list of defects, fix them in the order given, re-run the
   checks, and report each number as fixed or as disputed with the reason; do not silently skip one.

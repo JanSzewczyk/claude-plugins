@@ -15,8 +15,8 @@ Python development — the language layer for Python projects. It carries four a
 
 ### Team flow
 
-Subagents cannot call each other, so the main session runs the sequence and passes each agent's
-hand-off to the next:
+`/python-api-flow` runs this sequence. Subagents cannot call each other, so the main session runs it
+and passes each agent's hand-off to the next:
 
 1. `python-api-architect` — layout and a checklist (cross-cutting pieces, error statuses, guards).
 2. `python-developer` — implements it with its own tests and ends with a hand-off.
@@ -28,13 +28,16 @@ hand-off to the next:
 
 Each agent stays in its lane by instruction: the reviewer has no write tools, the tester writes
 only in `tests/` (plus one proved, temporary change to `src/` to check a guard), and neither fixes
-what it finds. Skip steps 1 and 3 for a small change inside an existing module.
+what it finds. Skip steps 1 and 3 for a small change inside an existing module. Each agent ends with a Proposals
+section (a rule that seems wrong or missing, with evidence); the flow collects them for you to
+decide, and nothing is applied automatically.
 
 ### Skills
 
 | Skill                | Invoke with   | Description                                                                                                                  |
 | -------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **api-architecture** | `/api-architecture` | Choose and lay out a Python API (FastAPI): domain modules or hexagonal modules, and where each piece of code goes; carries the architecture guide and its rules |
+| **python-api-flow**  | `/python-api-flow` | Runs the four agents as one flow (full, short or review) from the main session: hand-offs passed verbatim, stops for decisions, one fix round after review, and a table of the rules the agents propose to change |
 | **builder-rules-py** | — (preloaded) | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents to preload |
 | **python-rules**     | — (preloaded) | Generated background knowledge: docstrings and library documentation, typing syntax and mypy strict, exceptions, logging, asyncio, race-safe writes, t-string and secret-handling security |
 | **python-project-rules** | — (preloaded) | Generated background knowledge: project setup and tooling, uv and the lockfile, Ruff, CI workflow, Makefile, dependency audit, trusted publishing |

@@ -1,6 +1,6 @@
 ---
 name: python-api-architect
-version: 1.3.0
+version: 1.4.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer, python-reviewer, python-tester]
@@ -46,5 +46,10 @@ They are the source of truth; this file says *what you return*.
   Makefile with one `check` target, and `httpx2` in the test group. For every rule that depends on
   stored state (limits, stock, already-done) state the error status the rules give (409, not 422), a
   Problem Details type per error, and that the rule needs an atomic guard and a parallel test.
+
+- **Proposals** (up to five, only with evidence): where a rule seems wrong, missing or contradicted by
+  what you observed, or your own instructions were unclear — what you saw (`file:line`, or the
+  command and its output), what should change (a rule, a note or this definition) and whether you
+  reproduced it. Propose, never apply, and keep following the rule until it is changed.
 
 Be short and specific. If the project is too small to need a decision, say so.

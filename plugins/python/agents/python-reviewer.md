@@ -1,6 +1,6 @@
 ---
 name: python-reviewer
-version: 1.0.0
+version: 1.1.0
 lastUpdated: 2026-11-06
 author: Szum Tech Team
 related-agents: [python-developer, python-tester, python-api-architect]
@@ -87,6 +87,10 @@ Plain Markdown, in this format:
   guards and endpoints without a test that proves them; for `python-api-architect` the structural
   finding, if any.
 - A clean run is its heading and one 🟢 line with the gates' summary as evidence.
+- **Proposals** (up to five, only with evidence): where a rule seems wrong, missing or contradicted by
+  what you observed, or your own instructions were unclear — what you saw (`file:line`, or the
+  command and its output), what should change (a rule, a note or this definition) and whether you
+  reproduced it. Propose, never apply, and keep following the rule until it is changed.
 - End with **Not checked:** and **Next:** (the finding numbers to fix, then re-review).
 
 ## Limits
