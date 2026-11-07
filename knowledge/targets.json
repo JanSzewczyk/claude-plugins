@@ -79,7 +79,7 @@
       "title": "Python project rules",
       "description": "Team conventions for setting up and maintaining a Python project: the latest stable Python, src layout, uv commands, dev dependency groups and a committed lockfile, Ruff for format and lint, a GitHub Actions workflow with uv, a Makefile check target, dependency audit and trusted publishing. Use when creating a Python project, or editing pyproject.toml, CI or tooling. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules when you create a Python project or change its tooling: pyproject.toml, uv, Ruff, CI, the Makefile and publishing. The first section is always in force; open a rule from the table when the task touches it.",
-      "include": ["tooling/python/**", "security/python/audit-*", "security/python/install-*", "security/python/publish-*"],
+      "include": ["tooling/python/**", "configuration/python/**", "security/python/audit-*", "security/python/install-*", "security/python/publish-*"],
       "where": { "languages": ["python"] },
       "inline": "high",
       "profile": "lean"
