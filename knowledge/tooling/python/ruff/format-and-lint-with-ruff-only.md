@@ -1,6 +1,6 @@
 ---
 title: Use Ruff as the only formatter and linter
-summary: Ruff replaces Black, Flake8 and isort; run it through pre-commit and nothing next to it.
+summary: Ruff replaces Black, Flake8 and isort; run it from the check target and nothing next to it.
 impact: medium
 applies: [python, ruff]
 sources: [https://docs.astral.sh/ruff/formatter/, https://docs.astral.sh/ruff/linter/, https://docs.astral.sh/ruff/integrations/]
@@ -8,7 +8,7 @@ sources: [https://docs.astral.sh/ruff/formatter/, https://docs.astral.sh/ruff/li
 
 ## Rule
 
-Format with `ruff format` and lint with `ruff check`, configured in `pyproject.toml`; do not add Black, Flake8 or isort next to it. Run both as pre-commit hooks.
+Format with `ruff format` and lint with `ruff check`, configured in `pyproject.toml`; do not add Black, Flake8 or isort next to it. Run both from the project's `check` target, so the developer and CI run the same commands.
 
 ## Why
 
@@ -16,23 +16,17 @@ Two tools that format the same code disagree on edge cases and rewrite each othe
 
 ## Incorrect
 
-```yaml
-repos:
-  - repo: https://github.com/psf/black
-    hooks: [{id: black}]
-  - repo: https://github.com/PyCQA/flake8
-    hooks: [{id: flake8}]
-  - repo: https://github.com/PyCQA/isort
-    hooks: [{id: isort}]
+```makefile
+check:
+	uv run black --check .
+	uv run flake8 .
+	uv run isort --check .
 ```
 
 ## Correct
 
-```yaml
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    hooks:
-      - id: ruff-check
-        args: [--fix]
-      - id: ruff-format
+```makefile
+check:
+	uv run ruff format --check .
+	uv run ruff check .
 ```
