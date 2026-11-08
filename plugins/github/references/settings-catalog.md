@@ -1,6 +1,7 @@
 # Settings catalog
 
-Every setting the skill may propose, with the exact command phase 5 puts into the plan. Checked
+The baseline both skills use: every setting `github-repo-init` proposes and `github-repo-audit`
+checks, with the exact command a plan step runs. Checked
 against gh 2.103 and the GitHub REST API (version `2026-03-10`) in November 2026. `{repo}` is
 replaced by `<owner>/<name>` by the apply script.
 
@@ -91,7 +92,8 @@ and offer `write`.
 
 | Setting | Step args | Tier | Default |
 |---|---|---|---|
-| Default-branch ruleset | `["api","-X","POST","repos/{repo}/rulesets","--input","-"]` with `body` = the ruleset from `04-protection.md`, `group: "protection"` | Public; private: Pro, Team, Enterprise | on |
+| Default-branch ruleset | `["api","-X","POST","repos/{repo}/rulesets","--input","-"]` with `body` = the full ruleset, `group: "protection"` | Public; private: Pro, Team, Enterprise | on |
+| Update an existing ruleset (audit) | `["api","-X","PUT","repos/{repo}/rulesets/<id>","--input","-"]` with `body` = the full ruleset after the change | as above | only the approved changes |
 
 Rule types used: `deletion`, `non_fast_forward`, `pull_request`, `required_status_checks`
 (`required_status_checks: [{ "context": "<name>" }]`, `strict_required_status_checks_policy`),

@@ -1,7 +1,10 @@
 # github
 
-GitHub repository administration through the `gh` CLI. You describe the project in a sentence. The
-skill then proposes each choice in turn: owner, name, visibility, which of your template
+GitHub repository administration through the `gh` CLI, with two skills on one settings baseline:
+`github-repo-init` creates a new repository, and `github-repo-audit` checks an existing one and fixes
+what you approve.
+
+For a new repository you describe the project in a sentence. The skill then proposes each choice in turn: owner, name, visibility, which of your template
 repositories fits, and every settings group. You approve, adjust or skip each one, and only then does
 it create and configure the repository in one run and read the result back from GitHub.
 
@@ -16,6 +19,12 @@ its template later, see [code-quality](../code-quality/).
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
 | **github-repo-init** | `/github-repo-init <what the project is>` | Creates a new repository from your own template (or empty with gitignore, license and README) and configures features, merge methods, head-branch cleanup, Dependabot alerts and security updates, secret and code scanning, Actions token permissions, labels, and a default-branch ruleset with required status checks and the bypass your release bot needs. Every decision is approved; nothing is written before the final "Apply" |
+| **github-repo-audit** | `/github-repo-audit [owner/repo]` | Reads an existing repository's settings (read-only) and compares them with the same baseline. It flags required checks that never ran on the last merged PR, release workflows a ruleset would block, and missing Dependabot, scanning or protection. Then it fixes what you approve per group, updating an existing ruleset in place rather than replacing it |
+
+Both skills share [`references/settings-catalog.md`](./references/settings-catalog.md) (the baseline:
+every setting, its command, tier availability and order) and the scripts in `scripts/`:
+`read-settings.mjs` (read-only snapshot plus comparison) and `apply-plan.mjs` (applies an approved
+plan, refusing a plan whose sha256 does not match its approval file).
 
 ## Installation
 
@@ -55,6 +64,24 @@ The run walks eight phases, each ending in a file in the session scratchpad:
 The repository records its template (`templateRepository`), so `/template-sync` finds it later
 without arguments.
 
+### github-repo-audit
+
+```bash
+/github-repo-audit
+/github-repo-audit JanSzewczyk/design-system
+```
+
+1. **Preflight**: the repository (argument or current directory). Admin access is required.
+2. **Read**: `scripts/read-settings.mjs` takes a snapshot using GET requests only and compares it
+   with the baseline.
+3. **Judge**: a report with high/medium/low findings. It names who pushes to `main`
+   (`file:line`) and which checks really run (from the last merged PR).
+4. **Decide**: per group, fix all, choose, or keep as is (recorded as deliberate).
+5. **Review**: the exact commands, dry-run checked, then Apply, Change or Cancel.
+6. **Apply**: the same `apply-plan.mjs`, then a second read-only snapshot.
+7. **Report**: before/after counts, what was fixed, what was kept and why, and what is left to do by
+   hand.
+
 ### What it deliberately does not do
 
 - **Commit files.** Dependabot version updates (`.github/dependabot.yml`), CODEOWNERS and
@@ -70,10 +97,12 @@ without arguments.
 | A pull request waits forever for a check | The required check name never runs | Edit the ruleset in Settings → Rules. The report says which names came from workflow files rather than a real run |
 | A release job fails to push to `main` | The release actor has no bypass | Add it in Settings → Rules → Bypass list (GitHub Actions is app `15368`) |
 | `gh auth status` fails in preflight | Token expired or missing | Run `gh auth login` yourself and start again |
+| The audit stops with "not an admin" | Settings endpoints need admin access | Run it as a repository admin, or ask one to |
 
 ## Development
 
 ```bash
-node --test plugins/github/skills/github-repo-init/tests/apply-plan.test.mjs
-node plugins/github/skills/github-repo-init/scripts/apply-plan.mjs <plan.json> --dry-run
+node --test plugins/github/tests/*.test.mjs
+node plugins/github/scripts/apply-plan.mjs <plan.json> --dry-run
+node plugins/github/scripts/read-settings.mjs <owner/repo>        # read-only
 ```

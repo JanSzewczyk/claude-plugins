@@ -4,7 +4,7 @@
 below. A group with no recorded decision cannot be told apart from a group that was forgotten.
 
 **Input:** `01-brief.md`, `02-template.md`, and
-`${CLAUDE_SKILL_DIR}/references/settings-catalog.md` for the exact values and the
+`${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md` for the exact values and the
 tier availability of each setting.
 
 ## How to ask

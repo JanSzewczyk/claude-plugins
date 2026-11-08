@@ -6,7 +6,7 @@ phase writes `04-protection.skipped` with the reason (the tier cannot have rules
 declined).
 
 **Input:** `01-brief.md`, `02-template.md`, `03-settings.md` (the Merge and Security decisions),
-`${CLAUDE_SKILL_DIR}/references/ruleset-default.json`.
+`${CLAUDE_SKILL_DIR}/../../references/ruleset-default.json`.
 
 Do the evidence steps even when the answer looks obvious: both failures this phase prevents stay
 invisible until the first release or the first pull request.
@@ -89,7 +89,7 @@ choice.
 
 ## 4. The rest of the ruleset
 
-Start from `${CLAUDE_SKILL_DIR}/references/ruleset-default.json`: deletion and force-push blocked,
+Start from `${CLAUDE_SKILL_DIR}/../../references/ruleset-default.json`: deletion and force-push blocked,
 pull request required with **0 approvals** (a solo owner cannot approve their own pull request),
 `allowed_merge_methods` set to the methods enabled in `03-settings.md` (all three when the Merge
 group was accepted or skipped), review threads resolved before merge. Add the

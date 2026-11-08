@@ -5,8 +5,8 @@ user answered **Apply**. Or `05-cancelled` holds the reason. The plan file is th
 in it does not happen, and anything in it was approved here.
 
 **Input:** `01-brief.md` to `04-protection.md` (or `.skipped`),
-`${CLAUDE_SKILL_DIR}/references/plan-schema.md`, and
-`${CLAUDE_SKILL_DIR}/references/settings-catalog.md` for the exact flags and payloads.
+`${CLAUDE_SKILL_DIR}/../../references/plan-schema.md`, and
+`${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md` for the exact flags and payloads.
 
 ## 1. Build the plan
 
@@ -20,7 +20,7 @@ API and will fail or do something else.
 Run as written:
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/apply-plan.mjs <run-dir>/05-plan.json --dry-run
+node ${CLAUDE_SKILL_DIR}/../../scripts/apply-plan.mjs <run-dir>/05-plan.json --dry-run
 ```
 
 Exit 2 means the plan is invalid; fix `05-plan.json` and run the dry run again. Never hand the user a
@@ -42,7 +42,7 @@ Then one `AskUserQuestion`:
 - **Apply (Recommended)** — record the approval, as written:
 
   ```bash
-  node ${CLAUDE_SKILL_DIR}/scripts/apply-plan.mjs <run-dir>/05-plan.json --approve
+  node ${CLAUDE_SKILL_DIR}/../../scripts/apply-plan.mjs <run-dir>/05-plan.json --approve
   ```
 
   It writes `05-approved` with the plan's sha256. Phase 6 refuses to run if the plan changed after

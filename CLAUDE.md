@@ -39,7 +39,7 @@ plugins/
 | **shared-rules**       | Source of truth for `.claude/rules/` files      | —                                                                          | sync-rules                                                                                                                                              |
 | **knowledge-dev**      | Shared knowledge base authoring & build         | librarian                                                         | knowledge-author                                                                                                                                        |
 | **git-workflow**       | Git workflow — branches, commits, pull requests | —                                                                          | create-branch, create-commit, create-pull-request, ship-task                                                                                            |
-| **github**             | GitHub repository creation & settings           | —                                                                          | github-repo-init                                                                                                                                        |
+| **github**             | GitHub repository creation, audit & settings    | —                                                                          | github-repo-init, github-repo-audit                                                                                                                     |
 
 Technology plugins are layers that depend only downward: `testing` ← `typescript` ← `react` ←
 `nextjs` ← `firebase`, with `design` under `react` and `nextjs`, and `python` standalone. The rest
