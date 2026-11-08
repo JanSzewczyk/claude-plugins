@@ -7,12 +7,15 @@ admin access most settings answer 404, and an audit built on that would report e
 
 ## Checks
 
-Create the run directory, then run these as written:
+Run these as written:
 
 ```bash
 gh --version
 gh auth status
+node --version
 ```
+
+Node.js older than 18, or missing → stop and say so; the scripts need it.
 
 `gh` missing or not signed in → stop and tell the user to run `gh auth login` themselves.
 
@@ -29,6 +32,9 @@ repository and there is no argument, ask for `owner/repo` with `AskUserQuestion`
   and change its settings.
 - Archived → stop: an archived repository is read-only, nothing could be fixed.
 - A fork → continue, but say that some security features are configured on the upstream.
+
+Then create the run directory `<session scratchpad>/github-repo-audit/<owner>-<repo>-<YYYYMMDD-HHMMSS>/`
+with `mkdir -p` and write `00-preflight.md` in it.
 
 ## The artifact — `00-preflight.md`
 

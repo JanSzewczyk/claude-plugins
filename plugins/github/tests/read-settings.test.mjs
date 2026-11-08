@@ -3,7 +3,14 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compare, scanWorkflow } from "../scripts/read-settings.mjs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync, chmodSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { compare, scanWorkflow, pushesTo } from "../scripts/read-settings.mjs";
+
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "../scripts/read-settings.mjs");
 
 const good = () => ({
   visibility: "public", planName: "free", defaultBranch: "main",
@@ -72,4 +79,77 @@ test("scanWorkflow collects secrets and the pull_request trigger", () => {
   assert.deepEqual(w.secrets, ["TOKEN_A"]);
   assert.equal(w.pullRequestTrigger, true);
   assert.equal(w.onPushToDefault, false);
+});
+
+test("pushesTo: bare push, on: [push], a push branch filter, and pull_request-only filters", () => {
+  assert.equal(pushesTo("on: push\n", "main"), true);
+  assert.equal(pushesTo("on: [push, pull_request]\n", "main"), true);
+  assert.equal(pushesTo("on:\n  push:\njobs: {}\n", "main"), true);
+  assert.equal(pushesTo("on:\n  push:\n    branches: [main]\n", "main"), true);
+  assert.equal(pushesTo("on:\n  push:\n    branches:\n      - main\n", "main"), true);
+  assert.equal(pushesTo("on:\n  push:\n    branches: [develop]\n", "main"), false);
+  assert.equal(pushesTo("on:\n  pull_request:\n    branches: [main]\n", "main"), false);
+  assert.equal(pushesTo("on:\n  push:\n    tags: ['v*']\n    branches: ['**']\n", "main"), true);
+});
+
+test("pushesTo escapes the branch name", () => {
+  assert.equal(pushesTo("on:\n  push:\n    branches: [release-1x0]\n", "release-1.0"), false);
+  assert.equal(pushesTo("on:\n  push:\n    branches: [release-1.0]\n", "release-1.0"), true);
+});
+
+test("an unread setting (null) raises no finding; only a confirmed off does", () => {
+  const s = good(); s.vulnerabilityAlerts = null; s.dependabotConfig = null;
+  const got = ids(s);
+  assert.ok(!got.includes("vulnerability-alerts") && !got.includes("dependabot-version-updates"));
+  s.vulnerabilityAlerts = false; s.dependabotConfig = false;
+  assert.ok(ids(s).includes("vulnerability-alerts") && ids(s).includes("dependabot-version-updates"));
+});
+
+test("an unknown tier keeps private-repo findings, with a note, and no false 'not available'", () => {
+  const s = good(); s.visibility = "private"; s.planName = "unknown"; s.rulesets = []; s.repo.security_and_analysis = {};
+  const f = compare(s);
+  assert.ok(f.some((x) => x.id === "protect-default-branch"));
+  assert.match(f.find((x) => x.id === "secret-scanning").note, /tier not visible/);
+  assert.ok(!f.some((x) => x.id === "protection-not-available"));
+});
+
+function fakeGh(dir, script) {
+  const bin = join(dir, "gh");
+  writeFileSync(bin, `#!/usr/bin/env node\nconst a = process.argv.slice(2).join(" ");\n${script}\n`);
+  chmodSync(bin, 0o755);
+  return bin;
+}
+
+test("errors other than 404 land in unreadable instead of reading as off", () => {
+  const dir = mkdtempSync(join(tmpdir(), "read-settings-"));
+  const gh = fakeGh(dir, `
+const repo = JSON.stringify({ visibility: "public", default_branch: "main", permissions: { admin: true }, owner: { login: "o", type: "User" } });
+if (a === "api repos/o/r") { console.log(repo); process.exit(0); }
+if (a.startsWith("api user")) { console.log("free"); process.exit(0); }
+if (a.includes("vulnerability-alerts") || a.includes("protection") || a.includes(".github/workflows") || a.includes("dependabot")) { console.error("HTTP 403: Resource not accessible"); process.exit(1); }
+if (a.includes("rulesets")) { process.exit(0); }
+console.log("{}"); process.exit(0);`);
+  const p = spawnSync("node", [SCRIPT, "o/r"], { encoding: "utf8", env: { ...process.env, GH_BIN: gh } });
+  assert.equal(p.status, 0, p.stderr);
+  const d = JSON.parse(p.stdout);
+  const keys = d.unreadable.map((u) => u.key);
+  for (const k of ["vulnerabilityAlerts", "branchProtection", "workflows", "dependabotConfig"]) assert.ok(keys.includes(k), k);
+  const got = d.findings.map((f) => f.id);
+  assert.ok(!got.includes("vulnerability-alerts") && !got.includes("dependabot-version-updates"));
+});
+
+test("an empty repository with no default branch stops with exit 1", () => {
+  const dir = mkdtempSync(join(tmpdir(), "read-settings-"));
+  const gh = fakeGh(dir, `console.log(JSON.stringify({ visibility: "public", default_branch: null, permissions: { admin: true }, owner: { login: "o", type: "User" } }));`);
+  const p = spawnSync("node", [SCRIPT, "o/r"], { encoding: "utf8", env: { ...process.env, GH_BIN: gh } });
+  assert.equal(p.status, 1);
+  assert.match(p.stderr, /no default branch/);
+});
+
+test("the script runs when invoked through a symlinked path with a space", () => {
+  const dir = mkdtempSync(join(tmpdir(), "read settings "));
+  const link = join(dir, "link.mjs");
+  spawnSync("ln", ["-s", SCRIPT, link]);
+  const p = spawnSync("node", [link], { encoding: "utf8" });
+  assert.equal(p.status, 2, "usage error means main() ran");
 });

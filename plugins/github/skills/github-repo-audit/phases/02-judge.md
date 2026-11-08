@@ -1,15 +1,16 @@
 # Phase 2 — Judge
 
 **Exit:** `02-findings.md` lists every finding from `01-settings.json` with its evidence, the
-protection analysis below is done, and the report is shown to the user. Nothing is changed yet.
+protection analysis below is done, and the findings are shown to the user. Nothing is changed yet.
 
 **Input:** `01-settings.json`, `${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md`.
 
 ## 1. Verify the script's findings
 
 Take each finding as the script wrote it. Do not drop one because it looks minor and do not add one
-the snapshot does not support. Where `unreadable` lists an endpoint, write the matching area as
-**not checked**, never as "off".
+the snapshot does not support. Where `unreadable` lists an endpoint, write the matching group as
+**not checked**, never as "off". `plan` in `unreadable` means the billing tier is not visible:
+say that findings on a private repository may need a paid tier, as their notes do.
 
 ## 2. Protection — the part the script cannot finish
 
@@ -27,16 +28,16 @@ workflows with no bypass. Finish the analysis from the snapshot:
 - **Required checks that never ran** (`required-check-never-ran:*`) are the most urgent finding: a
   pull request waits forever for them.
 
-## 3. Show the report
+## 3. Show the findings
 
 Write `02-findings.md` and show it:
 
 ```markdown
 # Audit · <owner>/<repo>
 
-> <worst severity> · <n> high · <n> medium · <n> low · <n> areas not checked
+> <worst severity> · <n> high · <n> medium · <n> low · <n> groups not checked
 
-| Area | Status | Found |
+| Group | Status | Found |
 |---|:-:|---|
 | Features | 🟢/🔵/🟡/🔴/⚪ | … |
 | Merge | … | … |
@@ -45,7 +46,7 @@ Write `02-findings.md` and show it:
 | Actions | … | … |
 | Protection | … | … |
 
-| # | Sev | Area | Current | Recommended | Why it matters |
+| # | Sev | Group | Current | Recommended | Why it matters |
 |:-:|:-:|---|---|---|---|
 | 1 | 🔴 | Protection | `"Old CI"` is required | a check that runs | never ran on PR #<n>; PRs wait forever |
 
@@ -59,5 +60,6 @@ Write `02-findings.md` and show it:
 ```
 
 Marks: 🔴 `high`, 🟡 `medium`, 🔵 `low`, 🟢 nothing found, ⚪ not checked. If there are no
-findings, the report is the heading and one line: `🟢 Matches the baseline`, and the run goes to
-phase 4, which writes `04-nothing-to-fix`.
+findings, the report is the heading and one line: `🟢 Matches the baseline`. Then write
+`03-fixes.md` with the single line `No findings — nothing to decide`, mark `3 decide: skipped, no
+findings`, and go to phase 4, which writes `04-nothing-to-fix`.
