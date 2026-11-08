@@ -192,11 +192,16 @@ for (const entry of marketplace.plugins ?? []) {
   // A plugin that was never tagged in a repo that tags per plugin is unreleased, whatever else
   // happened to it: its first release is the version it already declares.
   const tag = explicitSince ? null : pluginTag(name);
-  const firstRelease = !explicitSince && !tag && repoReleasesPerPlugin;
-  const since = explicitSince ?? tag ?? (firstRelease ? null : repoBaseline());
-  if (!since && !firstRelease) {
+  const neverTagged = !explicitSince && !tag && repoReleasesPerPlugin;
+  const since = explicitSince ?? tag ?? (neverTagged ? null : repoBaseline());
+  if (!since && !neverTagged) {
     fail("Nothing to compare against — pass --since <ref> (the repo has no tags, no upstream, and no parent commit).");
   }
+  // A plugin whose directory did not exist at the baseline is new in this range (CI compares a pull
+  // request against origin/main): its first release is the version it declares, so its skills are
+  // not "new skills" that would demand a bump of a version nobody has released.
+  const addedInRange = Boolean(since) && ![...namesAt(since)].some((p) => p.startsWith(prefix));
+  const firstRelease = neverTagged || addedInRange;
 
   const touched = [...changedSince(since)].filter((p) => p.startsWith(prefix));
   if (touched.length === 0 && !firstRelease) continue;
@@ -220,7 +225,8 @@ for (const entry of marketplace.plugins ?? []) {
   const reasons = [];
   let kind = "none";
 
-  if (firstRelease) reasons.push(`never tagged: first release at ${currentVersion}`);
+  if (neverTagged) reasons.push(`never tagged: first release at ${currentVersion}`);
+  else if (addedInRange) reasons.push(`new plugin since ${since}: first release at ${currentVersion}`);
 
   const before = since ? namesAt(since) : new Set();
   const skillsBefore = unitsUnder(before, prefix, "skills");
