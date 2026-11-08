@@ -81,6 +81,17 @@ Common emoji map:
 - License: 📜
 - Acknowledgments: 🙏
 - Contact: 📧
+- Quick Start: ⚡
+- API: 📡 (Endpoints 🔌, Example 🔎, Errors 🚨)
+- Architecture / Tech Stack: 🧱
+- Configuration: 🔧
+- Scope & Design Decisions: 🧭
+- Troubleshooting: 🩺
+- Changelog: 📝
+
+An H2 that the Table of Contents links to needs a single-code-point emoji: one with a variation
+selector (⚙️, 🏗️, 🛠️, 🏛️) leaves an invisible character in GitHub's anchor and the link breaks.
+`python3 -c "print(len('🧱'))"` must print `1`. H3s that nothing links to may use either.
 
 ### Features section format
 

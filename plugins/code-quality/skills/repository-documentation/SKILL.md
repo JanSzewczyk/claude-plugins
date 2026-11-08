@@ -151,7 +151,10 @@ Read the template for the confirmed type: [web-app](templates/web-app.md),
   the template (treat them as user-authored).
 - **Regenerate fresh**: header, Features, Getting Started, Scripts
   Overview, Testing, Project Structure, and all per-type sections —
-  these reflect current code state.
+  these reflect current code state. Regenerating means rewriting in the
+  template's shape, not dropping what the old section said: every fact
+  still true in the code (how to start it, limits, constraints, scope)
+  moves into the new README.
 - **Preserve the title** if the user clearly customized it (different
   from `package.json#name`).
 - **Keep every marker comment** a script reads (`<!-- begin:template -->`,
@@ -223,7 +226,9 @@ GitHub.
 - [ ] Project Structure tree reflects actual directories (verified with `Glob`)
 - [ ] License section matches actual `LICENSE` file (read it; don't assume MIT)
 - [ ] Scripts section lists scripts present in `package.json` — or, for Python, every `Makefile` target as `make <target>` (no invented commands)
-- [ ] Every marker comment from the old README is still there, `begin`/`end` pairs balanced
+- [ ] Every marker comment from the old README is still there: no marker count dropped, `begin`/`end` counts unchanged and balanced
+- [ ] Every fact the old README stated is still in the new one, moved or reworded at most
+- [ ] Every feature bullet names an outcome backed by a file in the repo; every example response is one a test or schema backs
 - [ ] Every string the repo's tests assert on the README is still in it
 - [ ] GitHub description ≤ 350 chars and contains no markdown
 - [ ] GitHub topics: 5–20 items, all kebab-case, no duplicates
