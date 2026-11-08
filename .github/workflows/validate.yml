@@ -36,6 +36,7 @@ jobs:
           plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs
           plugins/plugin-dev/skills/marketplace-creator/tests/check-cli.test.mjs
           plugins/plugin-dev/skills/plugin-release/tests/plan-release.test.mjs
+          plugins/github/skills/github-repo-init/tests/apply-plan.test.mjs
 
   cli:
     name: plugins load, install and stay in budget

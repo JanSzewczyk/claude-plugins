@@ -91,6 +91,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **💾 [create-commit](./plugins/git-workflow/skills/create-commit/)** — Splits uncommitted work into logical commits, each message in Conventional Commits format, never with AI attribution
 - **🔀 [create-pull-request](./plugins/git-workflow/skills/create-pull-request/)** — Pushes the branch if needed and opens a GitHub PR with a unified five-section description, shown for approval first
 - **🚢 [ship-task](./plugins/git-workflow/skills/ship-task/)** — Carries one task through branch, change, verification, commits and a pull request, using the three skills above; other skills can hand it the same flow
+- **🏗️ [github-repo-init](./plugins/github/skills/github-repo-init/)** — Creates a new GitHub repository from your own template and configures merge, Dependabot, security, Actions and a protected default branch, every decision approved first
 
 ---
 
@@ -127,8 +128,9 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
+| [**github**](./plugins/github/) | GitHub repository administration — create a repository from your template and configure it, every decision approved | — | 1 | [README](./plugins/github/README.md) |
 
-**Total: 15 agents · 57 skills**
+**Total: 15 agents · 58 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -184,6 +186,7 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 /plugin install shared-rules@szum-tech
 /plugin install git-workflow@szum-tech
 /plugin install knowledge-dev@szum-tech
+/plugin install github@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -325,8 +328,11 @@ What are you doing?
 ├── Keeping shared .claude/rules/ files in sync across repos
 │   └── Skill: sync-rules (shared-rules)
 │
-└── Branching, committing, opening a pull request, or doing a whole task through to one
-    └── Skills: create-branch, create-commit, create-pull-request, ship-task (git-workflow)
+├── Branching, committing, opening a pull request, or doing a whole task through to one
+│   └── Skills: create-branch, create-commit, create-pull-request, ship-task (git-workflow)
+│
+└── Creating and configuring a new GitHub repository
+    └── Skill: github-repo-init (github)
 ```
 
 ### ⚡ Quick Reference
@@ -366,6 +372,7 @@ What are you doing?
 | Commit what I just changed | `/create-commit` skill |
 | Open a pull request for this branch | `/create-pull-request` skill |
 | Do a task on its own branch and open a PR | `/ship-task` skill |
+| Create a new GitHub repository with sane settings | `/github-repo-init` skill |
 
 ---
 
@@ -426,10 +433,13 @@ claude-plugins/
     │   ├── .claude-plugin/plugin.json
     │   ├── references/            # Shared conventions for all its skills
     │   └── skills/                # 4 skills (create-branch, create-commit, create-pull-request, ship-task)
-    └── knowledge-dev/              # Knowledge base authoring and build
+    ├── knowledge-dev/              # Knowledge base authoring and build
+    │   ├── .claude-plugin/plugin.json
+    │   ├── agents/                # librarian
+    │   └── skills/                # 1 skill (knowledge-author)
+    └── github/                     # GitHub repository administration
         ├── .claude-plugin/plugin.json
-        ├── agents/                # librarian
-        └── skills/                # 1 skill (knowledge-author)
+        └── skills/                # 1 skill (github-repo-init)
 ```
 
 ### 🗂️ Key Files
