@@ -108,6 +108,25 @@ test("a plugin never tagged in a repo that tags is a first release, not a bump",
   assert.equal(plan.proposedVersion, "1.0.0");
 });
 
+test("a plugin added since the baseline is a first release, even with --since", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  git("branch", "main-before");
+  marketplace([
+    { name: "foo", source: "./plugins/foo" },
+    { name: "bar", source: "./plugins/bar" },
+  ]);
+  plugin("plugins/bar", "bar");
+  commit("add bar");
+  const plan = planFor(run("--since", "main-before"), "bar");
+  assert.equal(plan.firstRelease, true);
+  assert.equal(plan.bump, "none");
+  assert.equal(plan.proposedVersion, "1.0.0");
+  const check = spawnSync(process.execPath, [SCRIPT, root, "--check", "--since", "main-before"], { encoding: "utf8" });
+  assert.equal(check.status, 0, check.stdout + check.stderr);
+});
+
 test("a repo with one plain tag still compares against it", () => {
   marketplace([{ name: "foo", source: "./plugins/foo" }]);
   plugin("plugins/foo", "foo");
