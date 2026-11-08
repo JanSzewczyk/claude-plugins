@@ -205,6 +205,18 @@
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT"
+    },
+    {
+      "name": "github",
+      "source": "./plugins/github",
+      "description": "GitHub repository administration through gh — create a repository from your template and configure merge, security, Dependabot, Actions and a protected default branch, every decision approved first",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     }
   ]
 }
