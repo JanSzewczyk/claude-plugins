@@ -1,6 +1,6 @@
 // Offline tests for apply-plan.mjs. A fake gh (written to a temp dir) logs every call and
 // fails the ones whose arguments contain FAKE_GH_FAIL.
-// Run: node --test plugins/github/skills/github-repo-init/tests/apply-plan.test.mjs
+// Run: node --test plugins/github/tests/apply-plan.test.mjs
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -162,4 +162,29 @@ test("an unwritable --out after a successful create exits 3 with the report on s
   const { code, report } = run(base(), { out: "/nonexistent-dir/out.json" });
   assert.equal(code, 3);
   assert.equal(report.create.status, "ok");
+});
+
+test("an existing repository skips create and the commit wait", () => {
+  const p = base();
+  p.repo = { owner: "me", name: "demo", existing: true };
+  const { code, report, calls } = run(p);
+  assert.equal(code, 0);
+  assert.equal(report.create.status, "existing");
+  assert.equal(report.waitedForCommit, null);
+  assert.ok(!calls.some((c) => c.args[1] === "create"));
+  assert.deepEqual(report.steps.map((s) => s.status), ["ok", "ok", "ok", "ok"]);
+});
+
+test("an existing repository rejects creation fields", () => {
+  const p = base();
+  p.repo = { owner: "me", name: "demo", existing: true, visibility: "public" };
+  assert.ok(validatePlan(p).some((e) => e.includes("existing repository takes no creation fields")));
+});
+
+test("the approval file follows the plan's number", () => {
+  const dir = mkdtempSync(join(tmpdir(), "apply-plan-"));
+  const planFile = join(dir, "04-plan.json");
+  writeFileSync(planFile, JSON.stringify(base()));
+  spawnSync("node", [SCRIPT, planFile, "--approve"], { encoding: "utf8" });
+  assert.ok(existsSync(join(dir, "04-approved")));
 });

@@ -2,7 +2,7 @@
   "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "github",
   "displayName": "GitHub",
-  "description": "GitHub repository administration through the gh CLI — create a new repository from your own template and configure it step by step: merge methods, head-branch cleanup, Dependabot alerts and security updates, secret and code scanning, Actions token permissions, and a default-branch ruleset with required status checks and the bypass your release bot needs. Every decision is proposed and approved before anything is written.",
+  "description": "GitHub repository administration through the gh CLI — create a new repository from your own template and configure it step by step, or audit an existing one against the same baseline and fix what you approve: merge methods, head-branch cleanup, Dependabot alerts and security updates, secret and code scanning, Actions token permissions, and a default-branch ruleset with required status checks that really run and the bypass your release bot needs. Every decision is proposed and approved before anything is written.",
   "version": "1.0.0",
   "author": {
     "name": "Szum Tech Team",

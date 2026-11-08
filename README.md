@@ -92,6 +92,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🔀 [create-pull-request](./plugins/git-workflow/skills/create-pull-request/)** — Pushes the branch if needed and opens a GitHub PR with a unified five-section description, shown for approval first
 - **🚢 [ship-task](./plugins/git-workflow/skills/ship-task/)** — Carries one task through branch, change, verification, commits and a pull request, using the three skills above; other skills can hand it the same flow
 - **🏗️ [github-repo-init](./plugins/github/skills/github-repo-init/)** — Creates a new GitHub repository from your own template and configures merge, Dependabot, security, Actions and a protected default branch, every decision approved first
+- **🩺 [github-repo-audit](./plugins/github/skills/github-repo-audit/)** — Audits an existing repository's settings against the same baseline — including required checks that never run and release bots a ruleset would block — and fixes what you approve
 
 ---
 
@@ -128,9 +129,9 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**shared-rules**](./plugins/shared-rules/) | Single source of truth for `.claude/rules/` files across repos | — | 1 | [README](./plugins/shared-rules/README.md) |
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
-| [**github**](./plugins/github/) | GitHub repository administration — create a repository from your template and configure it, every decision approved | — | 1 | [README](./plugins/github/README.md) |
+| [**github**](./plugins/github/) | GitHub repository administration — create a repository from your template or audit an existing one, every decision approved | — | 2 | [README](./plugins/github/README.md) |
 
-**Total: 15 agents · 58 skills**
+**Total: 15 agents · 59 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -331,8 +332,8 @@ What are you doing?
 ├── Branching, committing, opening a pull request, or doing a whole task through to one
 │   └── Skills: create-branch, create-commit, create-pull-request, ship-task (git-workflow)
 │
-└── Creating and configuring a new GitHub repository
-    └── Skill: github-repo-init (github)
+└── Creating a new GitHub repository, or auditing the settings of an existing one
+    └── Skills: github-repo-init, github-repo-audit (github)
 ```
 
 ### ⚡ Quick Reference
@@ -373,6 +374,7 @@ What are you doing?
 | Open a pull request for this branch | `/create-pull-request` skill |
 | Do a task on its own branch and open a PR | `/ship-task` skill |
 | Create a new GitHub repository with sane settings | `/github-repo-init` skill |
+| Check and fix the settings of an existing repository | `/github-repo-audit` skill |
 
 ---
 
@@ -439,7 +441,9 @@ claude-plugins/
     │   └── skills/                # 1 skill (knowledge-author)
     └── github/                     # GitHub repository administration
         ├── .claude-plugin/plugin.json
-        └── skills/                # 1 skill (github-repo-init)
+        ├── references/            # Settings baseline shared by both skills
+        ├── scripts/               # read-settings.mjs, apply-plan.mjs
+        └── skills/                # 2 skills (github-repo-init, github-repo-audit)
 ```
 
 ### 🗂️ Key Files

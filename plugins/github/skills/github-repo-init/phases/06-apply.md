@@ -10,7 +10,7 @@ summary written from memory instead of the report is not this artifact.
 Run once, as written — do not modify the command or the plan:
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/apply-plan.mjs <run-dir>/05-plan.json --out <run-dir>/06-apply.json
+node ${CLAUDE_SKILL_DIR}/../../scripts/apply-plan.mjs <run-dir>/05-plan.json --out <run-dir>/06-apply.json
 ```
 
 The script creates the repository, waits for its first commit, runs the settings steps, runs the

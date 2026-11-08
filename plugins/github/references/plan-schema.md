@@ -6,8 +6,8 @@ refuses `gh auth`, `gh secret`, `gh repo delete` and any `DELETE` request.
 | Command | Does |
 |---|---|
 | `apply-plan.mjs <plan> --dry-run` | validates and prints the commands; calls nothing |
-| `apply-plan.mjs <plan> --approve` | validates and writes `05-approved` (the plan's sha256) beside it |
-| `apply-plan.mjs <plan> --out <report>` | applies; refuses (exit 2) unless `05-approved` matches the plan |
+| `apply-plan.mjs <plan> --approve` | validates and writes `NN-approved` (the plan's sha256) beside `NN-plan.json` |
+| `apply-plan.mjs <plan> --out <report>` | applies; refuses (exit 2) unless `NN-approved` matches the plan |
 
 Exit codes: 0 created (see the report for each step), 1 create failed, 2 nothing ran (invalid,
 unapproved or changed plan), 3 created but the run crashed or the report could not be written — the
@@ -43,6 +43,7 @@ JSON on stdout says what ran.
 
 | Field | Rule |
 |---|---|
+| `repo.existing` | `true` for `github-repo-audit`: the repository exists, so `repo` holds only `owner`, `name`, `existing` and nothing is created |
 | `repo.template` | `owner/repo`, or `null` for the empty option. Not combined with `gitignore`, `license`, `addReadme`. |
 | `repo.description` | ≤ 350 characters |
 | `steps[].id` | unique; referenced by `needs` |

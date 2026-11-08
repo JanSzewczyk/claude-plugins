@@ -36,7 +36,7 @@ Drop a taken name and propose another. Re-check a name the user types themselves
 Always ask. Recommend **public** unless the description says private, mentions a client, a
 company-internal system or secrets. Spell out the trade-off in the option descriptions using the
 owner's tier: on Free, a private repository loses the ruleset, secret scanning, code
-scanning and private vulnerability reporting (see `${CLAUDE_SKILL_DIR}/references/settings-catalog.md`).
+scanning and private vulnerability reporting (see `${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md`).
 `internal` is offered only for an Enterprise org.
 
 ## 4. Description and topics

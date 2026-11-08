@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// Applies an approved github-repo-init plan (05-plan.json) with the gh CLI, in a fixed order:
-// create the repository, wait for its first commit, run the settings steps, run the protection
-// steps last, then read the result back from GitHub. Prints one JSON report to stdout.
+// Applies an approved plan from github-repo-init or github-repo-audit with the gh CLI, in a fixed
+// order: create the repository and wait for its first commit (skipped when repo.existing is true),
+// run the settings steps, run the protection steps last, then read the result back from GitHub.
+// Prints one JSON report to stdout.
 //
 // Usage: node apply-plan.mjs <plan.json> --dry-run          validate, print commands, call nothing
-//        node apply-plan.mjs <plan.json> --approve          validate, write 05-approved (sha256)
-//        node apply-plan.mjs <plan.json> [--out <report>]   apply; needs a matching 05-approved
+//        node apply-plan.mjs <plan.json> --approve          validate, write NN-approved (sha256)
+//        node apply-plan.mjs <plan.json> [--out <report>]   apply; needs a matching NN-approved
 // Env:   GH_BIN overrides the gh executable (tests use a fake).
 // Exit:  0 repository created (some steps may have failed — see the report)
+//        0 also for an existing repository: the steps ran (see the report)
 //        1 repository creation failed, nothing else ran
 //        2 nothing ran: the plan is invalid, unapproved, or changed since approval
 //        3 repository created, but the run crashed or the report file could not be written;
@@ -16,7 +18,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 const GH = process.env.GH_BIN || "gh";
 // Template contents usually land within seconds; 30 polls 2 s apart give it about a minute.
@@ -40,8 +42,12 @@ export function validatePlan(plan) {
   if (!r) return ["plan.repo is missing"];
   if (!r.owner || !r.name) errors.push("repo.owner and repo.name are required");
   if (r.name && !/^[A-Za-z0-9._-]{1,100}$/.test(r.name)) errors.push(`repo.name "${r.name}" is not a valid repository name`);
-  if (!["public", "private", "internal"].includes(r.visibility)) errors.push("repo.visibility must be public, private or internal");
-  if (r.template && (r.gitignore || r.license || r.addReadme)) errors.push("a template cannot be combined with gitignore, license or addReadme");
+  if (r.existing) {
+    if (r.template || r.gitignore || r.license || r.addReadme || r.visibility) errors.push("an existing repository takes no creation fields (visibility, template, gitignore, license, addReadme)");
+  } else {
+    if (!["public", "private", "internal"].includes(r.visibility)) errors.push("repo.visibility must be public, private or internal");
+    if (r.template && (r.gitignore || r.license || r.addReadme)) errors.push("a template cannot be combined with gitignore, license or addReadme");
+  }
   if (r.description && r.description.length > MAX_DESCRIPTION) errors.push(`repo.description is longer than ${MAX_DESCRIPTION} characters`);
   if (!Array.isArray(plan.steps)) errors.push("plan.steps must be an array");
   const ids = new Set();
@@ -97,8 +103,9 @@ export function apply(plan, { dryRun = false } = {}) {
   const repo = `${r.owner}/${r.name}`;
   const report = { repo, dryRun, create: null, waitedForCommit: null, steps: [], readBack: null };
 
-  const cArgs = createArgs(r);
-  if (dryRun) report.create = { command: show(cArgs), status: "planned" };
+  const cArgs = r.existing ? null : createArgs(r);
+  if (!cArgs) report.create = { status: "existing" };
+  else if (dryRun) report.create = { command: show(cArgs), status: "planned" };
   else {
     const res = gh(cArgs);
     report.create = { command: show(cArgs), status: res.code === 0 ? "ok" : "failed", output: res.code === 0 ? res.stdout : res.stderr };
@@ -106,7 +113,7 @@ export function apply(plan, { dryRun = false } = {}) {
   }
 
   // A repository generated from a template gets its files a few seconds after the API answers.
-  if (!dryRun && (r.template || r.addReadme)) {
+  if (!dryRun && cArgs && (r.template || r.addReadme)) {
     report.waitedForCommit = false;
     for (let i = 0; i < WAIT_ATTEMPTS; i++) {
       const res = gh(["api", `repos/${repo}/commits?per_page=1`, "--jq", ".[0].sha"]);
@@ -153,7 +160,12 @@ function readBack(repo) {
 }
 
 export const sha256 = (text) => createHash("sha256").update(text).digest("hex");
-const approvalFile = (planFile) => join(dirname(planFile), "05-approved");
+// NN-plan.json is approved by NN-approved beside it (05 in github-repo-init, 04 in github-repo-audit).
+const approvalFile = (planFile) => {
+  const base = basename(planFile);
+  const m = base.match(/^(\d+)-plan\.json$/);
+  return join(dirname(planFile), m ? `${m[1]}-approved` : `${base}.approved`);
+};
 
 function main(argv) {
   const outIdx = argv.indexOf("--out");
