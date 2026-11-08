@@ -4,8 +4,9 @@ description: >
   Generate or update a project's README.md plus a ready-to-paste GitHub
   repository description and topics list, following the Szum-Tech
   documentation standard. Auto-detects project type (web app, mobile app,
-  npm package, CLI tool, monorepo, Claude plugin) and confirms it with the
-  user before generating. Use whenever the user wants a README written,
+  npm package, CLI tool, monorepo, Claude plugin, Python API service such
+  as a FastAPI template with uv) and confirms it with the user before
+  generating. Use whenever the user wants a README written,
   refreshed or fixed, asks to document a repo or a freshly scaffolded
   project, or needs the GitHub About text, description or topics — even if
   they only say "this repo has no docs" or "the README is outdated after
@@ -41,7 +42,8 @@ Follow these steps in order; a step is skipped only under its stated condition (
 
 Read the configuration files in the repository root (`package.json`,
 `app.json`, `pubspec.yaml`, `turbo.json`, `next.config.*`, `bin/`, the plugin
-manifests) in parallel `Read`/`Glob` calls, and apply the priority-ordered
+manifests, and for Python `pyproject.toml`, `uv.lock` / `poetry.lock` /
+`pdm.lock`, `.python-version`, `Makefile`) in parallel `Read`/`Glob` calls, and apply the priority-ordered
 rules in `references/detection-rules.md` — first match wins.
 
 Build an **evidence list** (e.g., `["expo@~50 in deps", "app.json present", "metro.config.js"]`)
@@ -79,6 +81,18 @@ Extract everything you can from the filesystem without asking:
   `references/badges-registry.md` → *Dependency version badges*.
 - **directory tree** — `Glob` on `*` (depth 2) to build Project Structure section
 
+**Python projects** read the same fields from other files:
+
+- **name / description / license** — `[project]` in `pyproject.toml` (`[tool.poetry]` for Poetry)
+- **Python version** — `.python-version`, else `[project].requires-python`
+- **package manager** — from the lockfile: `uv.lock` → uv, `poetry.lock` → Poetry, `pdm.lock` → PDM
+- **commands** — the `Makefile`'s `.PHONY` targets (else `[tool.poe.tasks]`, `justfile`, or the
+  `uv run …` lines in CI); list every target, never one that is not there
+- **key dependencies** — `[project].dependencies` and `[dependency-groups]`, each looked up in the
+  lockfile under its normalized name for the badges in Step 6
+- **settings** — every key of `.env.example` and the settings class
+- **template repo** — `gh repo view --json isTemplate,defaultBranchRef`
+
 #### 3b — Deep research (description quality pass)
 
 `package.json#description` is often too short or stale. Before writing the
@@ -86,8 +100,9 @@ description and tagline, read the actual source to understand what the project
 really does. **What to read (in priority order):**
 
 1. **Entry points** — `src/index.ts`, `src/main.ts`, `app/layout.tsx`,
-   `src/App.tsx`, `src/cli.ts`, `bin/<name>` — reveals core API surface and
-   app structure.
+   `src/App.tsx`, `src/cli.ts`, `bin/<name>`, and for Python
+   `src/<package>/main.py`, `__main__.py`, `config.py` and the routers —
+   reveals core API surface and app structure.
 2. **Feature directories** — scan `src/`, `app/`, `lib/`, `packages/` with
    `Glob("**/*.ts", depth: 3)`. Read the most meaningful files (hooks,
    services, routes, components with complex logic). Skip generated files,
@@ -122,7 +137,8 @@ can read from disk.
 Read the template for the confirmed type: [web-app](templates/web-app.md),
 [mobile-app](templates/mobile-app.md), [npm-package](templates/npm-package.md),
 [cli-tool](templates/cli-tool.md), [monorepo](templates/monorepo.md),
-[claude-plugin](templates/claude-plugin.md), or
+[claude-plugin](templates/claude-plugin.md),
+[python-service](templates/python-service.md), or
 [generic](templates/generic.md) as the fallback. The template uses
 `{{placeholders}}` that map directly to fields gathered in Step 3.
 
@@ -138,6 +154,14 @@ Read the template for the confirmed type: [web-app](templates/web-app.md),
   these reflect current code state.
 - **Preserve the title** if the user clearly customized it (different
   from `package.json#name`).
+- **Keep every marker comment** a script reads (`<!-- begin:template -->`,
+  `<!-- only:example -->` and the like) around the same content in the
+  regenerated sections. A template repo's setup script strips lines by
+  them; losing one breaks every project made from it. See
+  `templates/python-service.md` → *Audience markers*.
+- **Keep text the repo's tests assert on.** `grep -rn "README" tests/ scripts/`
+  first; a heading or phrase a test looks for stays verbatim, even without
+  the standard emoji (see *Tests that read the README* in the same template).
 
 If no README exists, skip this merge step.
 
@@ -198,7 +222,9 @@ GitHub.
 - [ ] All code fences specify a language
 - [ ] Project Structure tree reflects actual directories (verified with `Glob`)
 - [ ] License section matches actual `LICENSE` file (read it; don't assume MIT)
-- [ ] Scripts section lists scripts present in `package.json` (no invented commands)
+- [ ] Scripts section lists scripts present in `package.json` — or, for Python, every `Makefile` target as `make <target>` (no invented commands)
+- [ ] Every marker comment from the old README is still there, `begin`/`end` pairs balanced
+- [ ] Every string the repo's tests assert on the README is still in it
 - [ ] GitHub description ≤ 350 chars and contains no markdown
 - [ ] GitHub topics: 5–20 items, all kebab-case, no duplicates
 - [ ] No `{{placeholders}}` remain unsubstituted in the final file

@@ -1,6 +1,6 @@
 # Badges Registry
 
-Contents: header badges per project type · CI / quality badges · dependency version badges (required for tech stack and dependencies) · logo slug cheat-sheet · static fallback · license badges · rules.
+Contents: header badges per project type · CI / quality badges · dependency version badges (required for tech stack and dependencies) · Python dependency version badges (lockfile) · logo slug cheat-sheet · static fallback · license badges · rules.
 
 Curated shields.io badges for the README header and inline sections.
 Pick 2-5 for the header (signal + status + meta) and use the rest inline
@@ -54,6 +54,16 @@ Replace `MIT` with actual license from `LICENSE` file.
 [![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?logo=turborepo&logoColor=white)](https://turbo.build/)
 [![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 ```
+
+### Python service
+
+```markdown
+[![CI](https://img.shields.io/github/actions/workflow/status/{owner}/{repo}/ci.yml?branch={branch}&logo=githubactions&logoColor=white&label=CI)](https://github.com/{owner}/{repo}/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/dynamic/regex?url=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/.python-version&search=(%5Cd%2B%5C.%5Cd%2B)&replace=%241&label=Python&logo=python&logoColor=white)](https://www.python.org/)
+```
+
+No `.python-version`: `https://img.shields.io/python/required-version-toml?tomlFilePath=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/pyproject.toml&logo=python&logoColor=white`
+(shows `requires-python`, e.g. `>=3.15`). Add the framework's lockfile badge (below) as the third.
 
 ## CI / quality badges (inline near workflows section)
 
@@ -109,6 +119,33 @@ pinned one):
 [![Next.js](https://img.shields.io/npm/v/next?logo=nextdotjs&logoColor=white&label=Next.js)](https://www.npmjs.com/package/next)
 ```
 
+## Python dependency version badges (REQUIRED for a Python tech stack)
+
+Python has no `package-json` endpoint, so read the **locked** version from the lockfile with
+shields.io's `dynamic/regex` badge. It matches the two lines every `[[package]]` entry starts with
+in `uv.lock`, `poetry.lock` and `pdm.lock` alike (checked against all three):
+
+```
+https://img.shields.io/badge/dynamic/regex?url=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{lockfile}&search=name%20%3D%20%22{package}%22%5Cnversion%20%3D%20%22(%5B%5E%22%5D%2B)%22&replace=%241&label={Label}&logo={slug}&logoColor=white
+```
+
+- `{branch}` — the default branch (`gh repo view --json defaultBranchRef`), never assumed `main`
+- `{lockfile}` — `uv.lock`, `poetry.lock` or `pdm.lock`
+- `{package}` — the name as the lockfile writes it: lowercase, hyphens, no extras
+  (`uvicorn[standard]` → `uvicorn`, `pydantic_settings` → `pydantic-settings`)
+- Dev and test tools (Ruff, mypy, pytest) are in the lockfile too, so they use the same URL
+- The badge reads `no result` when the name is wrong — open each URL once before writing it
+
+```markdown
+[![FastAPI](https://img.shields.io/badge/dynamic/regex?url=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/uv.lock&search=name%20%3D%20%22fastapi%22%5Cnversion%20%3D%20%22(%5B%5E%22%5D%2B)%22&replace=%241&label=FastAPI&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Pydantic](https://img.shields.io/badge/dynamic/regex?url=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/uv.lock&search=name%20%3D%20%22pydantic%22%5Cnversion%20%3D%20%22(%5B%5E%22%5D%2B)%22&replace=%241&label=Pydantic&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![Ruff](https://img.shields.io/badge/dynamic/regex?url=https://raw.githubusercontent.com/{owner}/{repo}/{branch}/uv.lock&search=name%20%3D%20%22ruff%22%5Cnversion%20%3D%20%22(%5B%5E%22%5D%2B)%22&replace=%241&label=Ruff&logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
+```
+
+No lockfile (a bare `requirements.txt`) or no GitHub repo: the PyPI endpoint shows the latest
+release, not the pinned one — `https://img.shields.io/pypi/v/{package}?logo={slug}&logoColor=white&label={Label}`.
+Tools that are not locked packages (uv itself, Docker, GitHub Actions) get a static chip.
+
 ### Logo slugs cheat-sheet (use with `?logo={slug}&logoColor=white`)
 
 Common: `nextdotjs`, `react`, `typescript`, `tailwindcss`, `vite`,
@@ -116,6 +153,9 @@ Common: `nextdotjs`, `react`, `typescript`, `tailwindcss`, `vite`,
 `bun`, `pnpm`, `yarn`, `vitest`, `jest`, `playwright`, `cypress`,
 `storybook`, `prisma`, `postgresql`, `mongodb`, `firebase`, `supabase`,
 `vercel`, `eslint`, `prettier`, `radixui`, `framer`.
+
+Python: `python`, `fastapi`, `pydantic`, `django`, `flask`, `uv`, `ruff`, `pytest`, `poetry`,
+`docker`, `githubactions`, `openapiinitiative`.
 
 Logos are from [Simple Icons](https://simpleicons.org/) — any slug listed
 there works.
@@ -131,7 +171,7 @@ package (platforms, services, concepts):
 [![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
 ```
 
-Never use a static badge for a dependency that exists in `package.json` —
+Never use a static badge for a dependency that exists in `package.json` or a Python lockfile —
 the whole point is that the badge stays current as the project upgrades.
 
 ## License badges

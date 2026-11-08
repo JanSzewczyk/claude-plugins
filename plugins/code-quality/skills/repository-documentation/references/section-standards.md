@@ -46,7 +46,7 @@ specific sections but preserve the overall flow and style.
 ```
 
 **Rules:**
-- Title emoji should reflect project type: `🚀` web/template, `📱` mobile, `📦` npm, `⚙️` cli, `🧩` plugin, `🏗️` monorepo
+- Title emoji should reflect project type: `🚀` web/template, `📱` mobile, `📦` npm, `⚙️` cli, `🧩` plugin, `🏗️` monorepo, `🐍` python-service
 - Minimum 2 badges, max 5 in header (more go in dedicated section if needed)
 - Tagline in `**bold**`, single line, 6-15 words
 - Nav links: 3-5 items, point to actual H2 anchors
@@ -95,10 +95,11 @@ Group features into sub-sections by category. Each feature line:
 Whenever the README enumerates project dependencies — the **Tech Stack**, the
 "Core Technologies" sub-section of Features, Peer Dependencies, "Built with"
 lists — render every entry as a **shields.io dependency-version badge** that
-auto-reflects the version pinned in `package.json`. Static colour-chip badges
-are forbidden for anything that exists as a package in `package.json`. The URL
-format and the `npm/v/` fallback live in `badges-registry.md` →
-*Dependency version badges*.
+auto-reflects the version pinned in `package.json` or, for Python, in the
+lockfile. Static colour-chip badges are forbidden for anything that exists as
+a package there. The URL formats and the `npm/v/` and `pypi/v/` fallbacks live
+in `badges-registry.md` → *Dependency version badges* and *Python dependency
+version badges*.
 
 For grouped bullet lists, place the badge before the description:
 
@@ -143,8 +144,8 @@ Skip tables for: features (use grouped lists), simple key-value pairs (use bulle
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (version {X}.x or higher)
-- **{Package manager}** (npm/pnpm/yarn/bun)
+- **Node.js** (version {X}.x or higher) — or **Python** {X.Y} for a Python project
+- **{Package manager}** (npm/pnpm/yarn/bun, or uv/Poetry/PDM)
 - **Git** for version control
 {type-specific prerequisites}
 
@@ -208,7 +209,7 @@ If this {project type} helped you, please consider giving it a ⭐ on GitHub!
 ## Anti-patterns (do NOT do)
 
 - ❌ Multiple H1 headings (only the title is H1)
-- ❌ Inline HTML beyond `<div align="center">`, `<br>`, `<img>` (no `<table>`, no custom styling)
+- ❌ Inline HTML beyond `<div align="center">`, `<br>`, `<img>` and HTML comments (no `<table>`, no custom styling). Comments a script reads, such as `<!-- begin:template -->` or `<!-- only:example -->`, are kept exactly where they were (see `templates/python-service.md` → *Audience markers*)
 - ❌ Emoji shortcodes (`:rocket:`) — use literal emoji (`🚀`)
 - ❌ Trailing whitespace, multiple blank lines between sections (max 1 blank line, plus separator `---` where the skeleton calls for it)
 - ❌ Hard-coded line breaks (`<br>`) inside paragraphs

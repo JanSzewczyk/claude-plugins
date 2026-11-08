@@ -80,10 +80,27 @@ evidence so the user can verify the choice.
 - `next.config.*`, `vite.config.*` with app entry — likely web-app
 - `"private": true` in package.json
 
-## 7. generic (fallback)
+## 7. python-service
+
+**Strong signals (both required):**
+- `pyproject.toml` whose `[project].dependencies` (or `[tool.poetry.dependencies]`) names a web
+  framework: `fastapi`, `litestar`, `django`, `flask`, `starlette`
+- A lockfile: `uv.lock`, `poetry.lock` or `pdm.lock` (a `requirements*.txt` alone also counts)
+
+**Confirmatory signals:**
+- An ASGI/WSGI server in dependencies: `uvicorn`, `granian`, `hypercorn`, `gunicorn`
+- `src/<package>/main.py` with `create_app` / `FastAPI(`, or `manage.py` (Django)
+- A committed `openapi.json` / `openapi.yaml`
+- `.python-version`, `Makefile`, `Dockerfile`, `compose.yaml`, `.env.example`
+- `gh repo view --json isTemplate` is `true` → a service template; the README gets the
+  *Use This Template* section
+
+**Anti-signals:** no web framework in the dependencies (a library, CLI or data project) → `generic`.
+
+## 8. generic (fallback)
 
 Use when:
-- No `package.json` (Python, Go, Rust, etc.)
+- No `package.json` and no web-service signals (a Python library or CLI, Go, Rust, etc.)
 - Detected stack doesn't match any of the above
 - User explicitly chose "Other"
 
@@ -105,4 +122,7 @@ Evidence:
 - **Next.js + npm package** (rare): if `package.json#main` points to `dist/` AND `next.config.*` exists, ask the user — usually it's a web-app with a build output.
 - **Monorepo containing apps + packages**: prefer `monorepo` template; per-package READMEs are out of scope for a single run.
 - **Storybook-only repo**: treat as `npm-package` (component library) unless a top-level app exists.
+- **Python service with a frontend** (`pyproject.toml` with FastAPI plus a `frontend/package.json`): a
+  `package.json` at the root wins (`monorepo` or `web-app`); one only in a subfolder leaves it a
+  `python-service`.
 - **Multiple frameworks present**: pick the one in `dependencies` (not `devDependencies`) and matching a config file.
