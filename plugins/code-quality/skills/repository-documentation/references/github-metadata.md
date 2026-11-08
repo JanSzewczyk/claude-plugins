@@ -22,6 +22,7 @@ the repository **About** panel: a description and topics.
 - **npm-package**: `Type-safe React form builder powered by Zod schemas, with zero runtime dependencies and full SSR support.`
 - **cli-tool**: `Command-line tool for scaffolding TypeScript monorepos with Turborepo, pnpm workspaces, and shared ESLint/Prettier configuration.`
 - **monorepo**: `Turborepo monorepo containing the web app, mobile app, and shared design system, with end-to-end CI and Changesets-driven releases.`
+- **python-service**: `Production-ready FastAPI service template with uv, Ruff, mypy strict, pytest, Problem Details errors, a checked OpenAPI contract, Docker and GitHub Actions CI.`
 - **claude-plugin**: `Claude Code marketplace plugin bundling skills and agents for Next.js, testing, and code-quality workflows used at Szum-Tech.`
 
 **Anti-patterns:**
@@ -60,6 +61,9 @@ Always include the character count when reporting back to the user.
 **Tooling tags:**
 `vitest`, `jest`, `playwright`, `cypress`, `storybook`, `eslint`, `prettier`, `husky`, `lint-staged`, `commitlint`, `semantic-release`, `github-actions`, `dependabot`, `vercel`, `netlify`, `docker`, `pnpm`, `bun`
 
+**Python tags:**
+`python`, `python3`, `fastapi`, `litestar`, `django`, `flask`, `pydantic`, `uv`, `poetry`, `ruff`, `mypy`, `pytest`, `hypothesis`, `structlog`, `uvicorn`, `asgi`, `openapi`, `rest-api`, `schemathesis`
+
 **Domain tags:**
 `boilerplate`, `template`, `starter`, `starter-kit`, `design-system`, `component-library`, `documentation`, `cli-tool`, `automation`, `developer-tools`, `enterprise`, `production-ready`
 
@@ -88,6 +92,11 @@ cli typescript nodejs scaffolding monorepo turborepo pnpm developer-tools npm-pa
 **monorepo:**
 ```
 monorepo turborepo pnpm typescript nextjs expo design-system shared-config changesets github-actions
+```
+
+**python-service (FastAPI template):**
+```
+fastapi python uv ruff mypy pytest pydantic openapi rest-api docker github-actions template boilerplate production-ready
 ```
 
 **claude-plugin:**
