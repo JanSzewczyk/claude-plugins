@@ -43,4 +43,4 @@ class FakeOrderRepository:
 
 ## Exceptions
 
-Add this only to a module that has the pain (see the principle); a CRUD module keeps the session. The fake covers rule tests only: test the SQL adapter against the real engine, and annotate the fake as `OrderRepository` in fixtures so the type checker keeps it in step. At HTTP level the fake enters through `app.dependency_overrides`; service tests build the service with it directly.
+Add this only to a module that has the pain (see the principle); a CRUD module keeps the session. The fake covers rule tests only; it and the SQL adapter pass one contract suite, see `testing/python/pytest/run-one-contract-suite-against-the-adapter-and-the-fake`.

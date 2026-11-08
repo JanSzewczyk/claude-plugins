@@ -1,27 +1,25 @@
 ---
-title: Use @pytest.mark.parametrize with ids= for the same logic over many inputs
-summary: One test body, named cases; no test_case_1, test_case_2 copies.
+title: Give every parametrized pytest case a readable id
+summary: Name each case with pytest.param(id=) or ids=, so a failure says which input broke.
 impact: low
 applies: [python, pytest]
-sources: [https://docs.pytest.org/en/stable/how-to/parametrize.html, https://docs.pytest.org/en/stable/example/parametrize.html]
+implements: testing/principles/keep-control-flow-out-of-tests
+sources: [https://docs.pytest.org/en/stable/example/parametrize.html]
 ---
 
 ## Rule
 
-Cover the same behaviour over several inputs with `@pytest.mark.parametrize`, and give each case a readable `ids=` entry.
+Give each case of `@pytest.mark.parametrize` a readable id, with `pytest.param(..., id=...)` next to its data or an `ids=` list.
 
 ## Why
 
-Copy-pasted tests drift apart, and anonymous ids such as `test_add[1-2-3]` do not say which case failed.
+Anonymous ids such as `test_add[1-2-3]` do not say which case failed or what it was meant to cover.
 
 ## Incorrect
 
 ```python
-@pytest.mark.parametrize(
-    ("a", "b", "expected"),
-    [(1, 2, 3), (-1, 1, 0)],
-)
-def test_add(a, b, expected):
+@pytest.mark.parametrize(("a", "b", "expected"), [(1, 2, 3), (-1, 1, 0)])
+def test_add(a: int, b: int, expected: int) -> None:
     assert add(a, b) == expected
 ```
 
@@ -30,9 +28,8 @@ def test_add(a, b, expected):
 ```python
 @pytest.mark.parametrize(
     ("a", "b", "expected"),
-    [(1, 2, 3), (-1, 1, 0)],
-    ids=["positives", "cancel-out"],
+    [pytest.param(1, 2, 3, id="positives"), pytest.param(-1, 1, 0, id="cancel-out")],
 )
-def test_add(a, b, expected):
+def test_add(a: int, b: int, expected: int) -> None:
     assert add(a, b) == expected
 ```
