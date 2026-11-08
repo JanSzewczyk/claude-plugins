@@ -1,4 +1,4 @@
-# `05-plan.json` schema
+# Plan schema (`NN-plan.json`)
 
 The file `scripts/apply-plan.mjs` executes. The script validates it first (exit 2 on any error) and
 refuses `gh auth`, `gh secret`, `gh repo delete` and any `DELETE` request.
@@ -11,7 +11,8 @@ refuses `gh auth`, `gh secret`, `gh repo delete` and any `DELETE` request.
 
 Exit codes: 0 created (see the report for each step), 1 create failed, 2 nothing ran (invalid,
 unapproved or changed plan), 3 created but the run crashed or the report could not be written — the
-JSON on stdout says what ran.
+JSON on stdout says what ran. With `repo.existing: true` there is no create step: 0 means the steps
+ran, 3 that the run crashed or the report could not be written.
 
 ```json
 {
@@ -36,7 +37,7 @@ JSON on stdout says what ran.
       "args": ["api", "-X", "PUT", "repos/{repo}/automated-security-fixes"] },
     { "id": "ruleset", "group": "protection",
       "args": ["api", "-X", "POST", "repos/{repo}/rulesets", "--input", "-"],
-      "body": "<the full ruleset approved in 04-protection.md, starting from references/ruleset-default.json>" }
+      "body": "<the full approved ruleset: 04-protection.md in init, 03-fixes.md in audit>" }
   ]
 }
 ```
@@ -52,6 +53,6 @@ JSON on stdout says what ran.
 | `steps[].needs` | ids that must have succeeded; otherwise the step is reported `skipped` |
 | `steps[].body` | JSON object sent on stdin; the args must contain `--input -`. In the example above it is abbreviated |
 
-The report (`06-apply.json`) holds `create`, `waitedForCommit`, one entry per step with `status`
+The report (`06-apply.json` in init, `05-apply.json` in audit) holds `create`, `waitedForCommit`, one entry per step with `status`
 (`ok` | `failed` | `skipped` | `planned` in a dry run) and `error`, and `readBack` with the
 repository view, Dependabot alerts and security updates, Actions token permissions and rulesets.

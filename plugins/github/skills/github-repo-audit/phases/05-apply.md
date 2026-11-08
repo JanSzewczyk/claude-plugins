@@ -1,6 +1,7 @@
 # Phase 5 — Apply
 
-**Exit:** `05-apply.json` is the script's own report, including its read-back from GitHub.
+**Exit:** `05-apply.json` is the apply script's own report, and `05-after.json` is the read-back
+below. Both must exist before phase 6.
 
 **Input:** `04-plan.json` and `04-approved`.
 
@@ -17,7 +18,7 @@ the result back.
 |---|---|---|
 | 0 | Steps ran; some may have failed | phase 6 |
 | 2 | Plan invalid, not approved, or changed since approval — nothing ran | back to phase 4 |
-| 3 | The script crashed or could not write `--out` | save the JSON it printed as `05-apply.json`, then phase 6 |
+| 3 | The script crashed or could not write `--out` | save the JSON it printed as `05-apply.json`, run the read-back below, then phase 6; if it says `crashed`, the report takes the state of every step from `05-after.json` |
 
 For each failed step read its `error`: `403`/`404` with "upgrade" → not available on the owner's
 tier; `422` → the API refused the value (quote it); anything else → report it as is. Do not retry

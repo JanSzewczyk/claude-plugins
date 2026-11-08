@@ -1,10 +1,10 @@
 # Phase 3 — Decide
 
-**Exit:** `03-fixes.md` records a decision for every group that has findings: **fix**, **adjust**,
-or **keep as is**. A group with findings and no decision cannot be told apart from one that was
+**Exit:** `03-fixes.md` records a decision for every group that has findings: **fix all**,
+**choose**, or **keep as is**. A group with findings and no decision cannot be told apart from one that was
 forgotten.
 
-**Input:** `02-findings.md`, `01-settings.json`.
+**Input:** `02-findings.md`, `01-settings.json`, `${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md`.
 
 ## How to ask
 
@@ -12,11 +12,15 @@ One `AskUserQuestion` per group with findings (up to four groups per call), neve
 setting. Each question lists the group's findings in the question text, worst first, and offers:
 
 1. **Fix all (Recommended)** — every finding of the group that has a fix
-2. **Choose** — a multi-select follow-up with one option per finding
+2. **Choose** — a multi-select follow-up with one option per finding. A finding whose `needs` names
+   another finding brings that one in with it (security updates need alerts, push protection needs
+   secret scanning); say so in the follow-up question
 3. **Keep as is** — nothing changes; ask in one line whether it is deliberate, and record the answer
 
-Findings without a `step` and outside protection (Dependabot version updates need a file, a
-private repository on Free cannot have rulesets) are not offered as fixes; they go to the report.
+Findings with no `step` that no ruleset can fix (`dependabot-version-updates` needs a file;
+`protection-not-available` means a private repository on Free cannot have rulesets) are not offered
+as fixes; they go under `## Report only` in `03-fixes.md` and on to `06-report.md`. When
+`protection-not-available` is present, skip the Protection questions and record `Ruleset: none`.
 
 ## Protection
 
@@ -31,8 +35,9 @@ Ask separately, because a wrong answer here breaks releases or merges:
 
 Then build the target ruleset:
 
-- **A ruleset already targets the default branch** → start from its full current body in
-  `01-settings.json` and add only what was approved. Every rule the user did not ask to change stays
+- **A ruleset already targets the default branch** → if its `source_type` is `Organization`, do not
+  update it: offer a repository ruleset next to it, or report that the org owner must change it.
+  Otherwise start from its full current body in `01-settings.json` and add only what was approved. Every rule the user did not ask to change stays
   exactly as it is. The step will be a `PUT` to `repos/{repo}/rulesets/<id>`.
 - **No ruleset** → start from `${CLAUDE_SKILL_DIR}/../../references/ruleset-default.json`. The step
   will be a `POST` to `repos/{repo}/rulesets`.
@@ -47,13 +52,14 @@ rejected.
 
 ```markdown
 ## <Group>
-Decision: fix | adjust | keep as is
+Decision: fix all | choose | keep as is
 Fix: <finding ids>
 Kept: <finding ids> — deliberate | not now
 
 ## Protection
 Decision: …
 Ruleset: update <id> | create | none
+Covers: <the protection finding ids this ruleset fixes>
 Required checks: <names>
 Strict: yes | no
 Bypass: <actor type:id — evidence>

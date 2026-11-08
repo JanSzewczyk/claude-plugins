@@ -3,7 +3,8 @@
 **Exit:** one of `04-approved` (written by the script after the user answered **Apply**),
 `04-cancelled` with the reason, or `04-nothing-to-fix` when no group was set to fix.
 
-**Input:** `03-fixes.md`, `01-settings.json`, `${CLAUDE_SKILL_DIR}/../../references/plan-schema.md`.
+**Input:** `03-fixes.md`, `01-settings.json`, `${CLAUDE_SKILL_DIR}/../../references/plan-schema.md`,
+`${CLAUDE_SKILL_DIR}/../../references/settings-catalog.md`.
 
 ## 1. Build the plan
 
@@ -13,8 +14,10 @@ Otherwise write `04-plan.json` with `repo` set to `{ "owner": "<owner>", "name":
 "existing": true }` and one step per approved fix:
 
 - copy each finding's `step` as `args`, with `id` = the finding id and `group` = its group, and keep
-  its `needs`;
-- the ruleset is one step in group `protection`, with the full target ruleset from phase 3 as
+  its `needs`. Every id in `needs` must be a step of this plan; if one is not, go back to phase 3
+  for that group instead of dropping the `needs`;
+- the ruleset is one step with `id` `ruleset` in group `protection` (the finding ids it fixes are
+  under `Covers:` in `03-fixes.md`), with the full target ruleset from phase 3 as
   `body`: `["api","-X","PUT","repos/{repo}/rulesets/<id>","--input","-"]` to update, or
   `["api","-X","POST","repos/{repo}/rulesets","--input","-"]` to create.
 

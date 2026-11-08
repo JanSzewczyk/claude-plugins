@@ -14,7 +14,8 @@
 Before: <n> high · <n> medium · <n> low    After: <n> high · <n> medium · <n> low   (or "no changes made")
 
 ## Fixed
-<finding id — what changed, confirmed by 05-after.json>
+<finding id — what changed, confirmed by 05-after.json; the ids under `Covers:` count as fixed when
+the `ruleset` step is ok and they are gone from 05-after.json>
 
 ## Not fixed
 | Finding | Why |
