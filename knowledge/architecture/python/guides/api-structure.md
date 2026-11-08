@@ -50,8 +50,10 @@ src/myapp/
 ├── billing/               # another module, same shape or plain
 └── main.py                # wires adapters to ports
 tests/
-├── unit/                  # domain and services on fake repositories
-└── integration/           # repositories on a real database
+└── orders/                # mirrors the module; kind is a marker, not a folder
+    ├── test_domain.py     # rules on plain objects
+    ├── test_service.py    # services on fake repositories
+    └── test_repository.py # one contract suite; the SQL run marked integration
 ```
 
 ## Evolution

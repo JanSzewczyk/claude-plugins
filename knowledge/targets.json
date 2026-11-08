@@ -4,7 +4,7 @@
       "kind": "skill-index",
       "skill": "plugins/react/skills/create-stories",
       "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**", "testing/builders/principles/**"],
-      "exclude": ["testing/testing-library/react/**"],
+      "exclude": ["testing/testing-library/react/**", "testing/principles/assert-the-resulting-state-not-the-calls-made", "testing/principles/replace-an-unrunnable-dependency-with-a-contract-tested-fake", "testing/principles/name-a-test-after-the-behaviour-and-its-outcome", "testing/principles/keep-control-flow-out-of-tests"],
       "where": { "languages": ["typescript"], "frameworks": ["react"] }
     },
     {
@@ -26,7 +26,7 @@
       "description": "Rules for writing Storybook stories and interaction tests for React components in CSF Next: how to query, awaiting interactions, when to use .test() or play, portals, mocks, naming and file setup. Use when writing, fixing or reviewing a .stories.tsx file. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules to every story file you write or review. The first section is always in force; open a rule from the table when the task touches it.",
       "include": ["testing/principles/**", "testing/testing-library/**", "testing/storybook/**"],
-      "exclude": ["testing/testing-library/react/**"],
+      "exclude": ["testing/testing-library/react/**", "testing/principles/assert-the-resulting-state-not-the-calls-made", "testing/principles/replace-an-unrunnable-dependency-with-a-contract-tested-fake", "testing/principles/name-a-test-after-the-behaviour-and-its-outcome", "testing/principles/keep-control-flow-out-of-tests"],
       "where": { "languages": ["typescript"], "frameworks": ["react"] },
       "inline": "high",
       "profile": "lean"
@@ -38,6 +38,7 @@
       "description": "Rules for testing React components with React Testing Library, Vitest and MSW, and for deciding what to test at which layer: rendering, queries, user-event, jest-dom, waitFor, act warnings, mocking the network, flat test files, custom hooks, coverage. Use when writing, fixing or reviewing a *.test.tsx component test or planning a test strategy. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules to every component test you write or review, and to every test strategy you plan. Examples from shared notes may query through Storybook's `canvas`; in React Testing Library use `screen`. For story files, use the Storybook rules instead.",
       "include": ["testing/principles/**", "testing/strategy/**", "testing/testing-library/**", "testing/msw/**", "testing/vitest/**"],
+      "exclude": ["testing/principles/assert-the-resulting-state-not-the-calls-made", "testing/principles/replace-an-unrunnable-dependency-with-a-contract-tested-fake", "testing/principles/name-a-test-after-the-behaviour-and-its-outcome", "testing/principles/keep-control-flow-out-of-tests"],
       "where": { "languages": ["typescript"], "frameworks": ["react"] },
       "inline": "high",
       "profile": "compact"
@@ -99,9 +100,24 @@
       "kind": "knowledge-skill",
       "skill": "plugins/python/skills/pytest-rules",
       "title": "pytest rules",
-      "description": "Team conventions for Python tests with pytest: strict markers, plain assert, expected exceptions, fixture scope, mocking at boundaries, time-machine, testcontainers, pytest-asyncio, Hypothesis, coverage, random order and timeouts. Use when writing, fixing or reviewing a pytest test or test configuration. Background knowledge that agents preload; not a command.",
+      "description": "Team conventions for Python tests with pytest: suite layout by domain, test names, public interfaces, state over interactions, contract-tested fakes, flaky tests, strict markers, plain assert, expected exceptions, fixture scope, mocking at boundaries, time-machine, testcontainers, pytest-asyncio, Hypothesis, coverage, random order and timeouts. Use when writing, fixing or reviewing a pytest test or test configuration. Background knowledge that agents preload; not a command.",
       "intro": "Apply these rules to every Python test you write or review. The first section is always in force; open a rule from the table when the task touches it.",
-      "include": ["testing/python/**"],
+      "include": [
+        "testing/python/**",
+        "testing/principles/every-test-must-be-able-to-fail",
+        "testing/principles/keep-the-unit-under-test-real",
+        "testing/principles/tests-pass-alone-in-any-order",
+        "testing/principles/derive-expected-values-from-the-input",
+        "testing/principles/avoid-hasty-test-abstractions",
+        "testing/principles/fix-the-cause-of-a-flaky-test-instead-of-rerunning-it",
+        "testing/principles/assert-the-resulting-state-not-the-calls-made",
+        "testing/principles/replace-an-unrunnable-dependency-with-a-contract-tested-fake",
+        "testing/principles/name-a-test-after-the-behaviour-and-its-outcome",
+        "testing/principles/keep-control-flow-out-of-tests",
+        "testing/strategy/principles/mock-only-what-you-cannot-run",
+        "testing/strategy/principles/reproduce-a-bug-with-a-failing-test-first",
+        "testing/strategy/principles/choose-tests-by-what-hurts-most"
+      ],
       "where": { "languages": ["python"] },
       "inline": "high",
       "profile": "lean"

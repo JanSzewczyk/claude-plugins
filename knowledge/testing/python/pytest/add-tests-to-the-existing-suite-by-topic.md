@@ -8,7 +8,7 @@ sources: [https://docs.pytest.org/en/stable/explanation/goodpractices.html]
 
 ## Rule
 
-Put a new test in the project's existing test directory, in the file that already holds its topic (status cases beside the other status cases, race tests beside the other race tests). Before you write, check which cases an existing test already proves and write only the rest; a case is never written twice. When two tests cover one case, keep the stronger one and move any assertion only the other had into it. A weak existing test is fixed in place, see `testing/principles/every-test-must-be-able-to-fail`; after merging suites, run the guard mutants again, because a guard may have been left with a single test.
+Put a new test in the module's existing test directory under `tests/`, in the file that already holds its topic (status cases beside the other status cases, race tests beside the other race tests). Before you write, check which cases an existing test already proves and write only the rest; a case is never written twice. When two tests cover one case, keep the stronger one and move any assertion only the other had into it. A weak existing test is fixed in place, see `testing/principles/every-test-must-be-able-to-fail`; after merging suites, run the guard mutants again, because a guard may have been left with a single test.
 
 ## Why
 
@@ -17,10 +17,10 @@ A status code changes in one suite while the copy of that case in a second suite
 ## Incorrect
 
 ```
-tests/
+tests/orders/
   test_api.py          # status cases
   test_concurrency.py  # race tests
-tests_extra/
+tests_extra/orders/
   test_status.py       # the same status cases again
   test_races.py        # the same race tests again
 ```
@@ -28,11 +28,11 @@ tests_extra/
 ## Correct
 
 ```
-tests/
+tests/orders/
   test_api.py          # status cases, the missing ones added here
   test_concurrency.py  # race tests, the weak one strengthened here
 ```
 
 ## Exceptions
 
-A suite split by kind or cost (end-to-end, load tests, a nightly fuzz run) is not a parallel suite and may live in its own directory, run from its own named target and a scheduled CI job. A directory that belongs to the normal check is registered as in `tooling/python/register-every-test-directory-in-the-check-gate`.
+A suite that needs a run of its own (end-to-end against a deployed environment, load tests, a nightly fuzz run) is not a parallel suite and may live in its own directory, run from its own named target and a scheduled CI job. A directory that belongs to the normal check is registered as in `tooling/python/register-every-test-directory-in-the-check-gate`.
