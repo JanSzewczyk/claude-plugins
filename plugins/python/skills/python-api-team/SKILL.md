@@ -19,7 +19,7 @@ the session has (`mcp__ccd_turn__update_plan`, otherwise `TaskCreate` and `TaskU
 
 ```
 0 variant   → one of full / lean / short / review, named, with the reason
-1 plan      → architect: layout and checklist, approved by the user (full only)
+1 plan      → architect: layout and checklist, approved by the user (full, lean)
 2 build     → developer: code, tests, hand-off          (full, short)
 3 test      → tester: contract tests, defects as red tests
 4 fix       → developer: the defects, in order          (when any are red)
@@ -40,12 +40,12 @@ the session has (`mcp__ccd_turn__update_plan`, otherwise `TaskCreate` and `TaskU
 
 - **full**: a new service, a new module, or a feature whose rules span more than one module.
   Steps 0–7.
-- **lean**: the task arrives with a spec that already fixes routes, statuses, limits and where the
-  code goes (a document, a ticket), so there is no layout left to decide, and the change is a new
-  endpoint or module rather than a one-line fix. Steps 0, 2, then 3 and 5 side by side, one fix
-  step for both tables, a second review pass, 7. No architect. Add the tester's guard proofs
-  (its step 5) only when a rule reads stored state; without one, the tester runs the contract
-  cases and the fuzzer only.
+- **lean**: a new endpoint or module whose task arrives with a spec that already fixes routes,
+  statuses and limits (a document, a ticket). Like full, with the architect turning the spec into
+  the layout and checklist (step 1), but the tester and the reviewer run side by side (steps 3 and
+  5), with one fix step for both tables, a second review pass and the report (7). The tester's
+  guard proofs (its step 5) run only when a rule reads stored state or a limit sheds load;
+  without one, it runs the contract cases and the fuzzer only.
 - **short**: a small change inside an existing module with a layout to follow. Steps 0, 2, 5, 6, 7;
   add steps 3 and 4 when the change adds a rule that reads stored state (a limit, stock,
   already-done), because only the tester proves its guard and its defects need a fix before the
@@ -53,7 +53,7 @@ the session has (`mcp__ccd_turn__update_plan`, otherwise `TaskCreate` and `TaskU
 - **review**: existing code to be tested and reviewed as it stands. Steps 0, 3, 4 (when any are
   red), 5, 6, 7; the developer fixes only what the tester and reviewer report.
 
-A spec that fixes the layout and the rules means lean; a layout decision still open means full.
+A spec that fixes the routes and the rules means lean; a layout decision still open means full.
 When it is unclear, choose full: a skipped architect costs more than an extra plan step. Say which
 variant you chose and why. The variant is never "skip the reviewer": the author's own checks are
 what the reviewer exists to confirm.
@@ -100,7 +100,7 @@ tester's files and Result line only.
    change and run the architect once more with that; a second rejection ends the flow. Without the
    plan-mode tools, print the plan and ask with `AskUserQuestion` (approve / change / reject).
    Gate: no open decision is left, and the user approved a plan; nothing is built before.
-2. **Build.** Task, the architect's hand-off (the spec in the lean variant), and "return the
+2. **Build.** Task, the architect's hand-off, and "return the
    exported OpenAPI path, the list of state-dependent rules with their guards, the test files with
    the cases each covers, and which checks you ran", and have it commit the work and return the commit
    hash (the lean variant's reviewer needs one). One developer run builds it;
