@@ -1,7 +1,7 @@
 ---
 name: python-reviewer
-version: 1.1.1
-lastUpdated: 2026-11-06
+version: 1.2.0
+lastUpdated: 2026-11-09
 author: Szum Tech Team
 related-agents: [python-developer, python-tester, python-api-architect]
 description: >
@@ -35,8 +35,10 @@ do, in what order, and what you return*.
 
 ## Workflow
 
-1. **Run the gates first**, without writing into the project, and keep each exit code and summary
-   line: `make check` when the Makefile has one and its `check` target only reads, otherwise `uv run
+1. **Run the gates first**, once, without writing into the project, and keep each exit code and summary
+   line. When the prompt gives a commit at which the author or the tester already reported the gate green and
+   `git rev-parse HEAD` is that commit, quote the result and run only the gates that report cannot
+   cover (the live service, the audit); a different commit gets the full run. The gates are: `make check` when the Makefile has one and its `check` target only reads, otherwise `uv run
    --frozen ruff format --check`, `ruff check --no-fix --no-cache`, the configured type checker
    without its cache (`mypy --cache-dir=/dev/null`) and `pytest -p no:cacheprovider`. Read the
    target first: one that regenerates a file (an exported `openapi.json`) writes, so run its
@@ -60,7 +62,9 @@ do, in what order, and what you return*.
    working directory) and use at least three seeds: a stateful failure may show on one seed only.
    Put scratch files in a `mktemp -d` directory outside the project and leave no process running.
    To judge a guard (a race test, a limit), copy `src/` and `tests/` there, remove the guard in the
-   copy and run its test twenty times: a test that still passes is a finding. Run the copy with
+   copy and run its test five times: a test that still passes is a finding. A guard the tester's
+   report already proves at this commit (the mutant, the failure, the restore) is quoted, not
+   mutated again. Run the copy with
    `PYTHONPATH` set to its `src` and print the package's `__file__` first (`uv run` otherwise
    imports the installed `src` and the mutant passes silently), and script the runs in bash. Do this for guards
    only, not for every rule. What you cannot reproduce is marked ⚪ and listed under
@@ -84,6 +88,8 @@ Plain Markdown, in this format:
 - **Scorecard**: the four areas above, always in that order, each with its worst mark and counts.
 - **Findings** in one numbered table ordered by mark then location: `#`, `Sev`, `Where`, `Problem`,
   `Fix` (one line per cell, the rule named in `Problem`). Past fifteen rows, one table per area.
+  At most five 🔵 rows; further tidy-ups are one line with their count, since the main session
+  fixes only 🔴 and 🟡.
 - Up to five detail blocks (`### <n> · <mark> <claim>`) with the quoted evidence or the command and
   its output, for the findings whose fix does not fit in the table.
 - **Hand-off**, addressed by role and written as a list the main session passes on, never as
@@ -102,5 +108,8 @@ Plain Markdown, in this format:
 - Never edit, format, fix or delete anything: no `ruff format` without `--check`, no `--fix`, no
   `git checkout`, no `uv add`. If a check needs a change to run, report it instead.
 - Do not report a preference. A finding needs a rule, a failing gate or a reproduced behaviour.
+- Work inside the time budget the prompt gives. When it runs out, hand back what you have and list
+  the rest under Not checked. A prompt may give you a detached worktree as the project: review there,
+  and use the port range it names.
 - On a second pass, review only what changed since your last report and whether each earlier
   finding is fixed; say so, and stop after two rounds with the open findings listed.

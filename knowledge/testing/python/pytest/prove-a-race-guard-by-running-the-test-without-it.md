@@ -9,7 +9,7 @@ sources: [https://docs.python.org/3/library/threading.html#barrier-objects, http
 
 ## Rule
 
-After writing a test for a race guard, remove the guard once and confirm the test fails. Write the test with the competing calls released together and assert on the final state, as in the example, not on timing.
+After writing a test for a race guard, remove the guard once and confirm the test fails. One mutant per guard is the proof; a second is for the constraint case under Exceptions. Write the test with the competing calls released together and assert on the final state, as in the example, not on timing.
 
 ## Why
 
