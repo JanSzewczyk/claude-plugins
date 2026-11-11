@@ -1,4 +1,4 @@
-name: Version bump check
+name: Version Bump Check 🏷️
 description: >
   Fail a pull request in which a plugin changed and its version did not. Works in a marketplace
   repository and in a single-plugin repository. Runs the plan-release script from the ref this
@@ -25,11 +25,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Every changed plugin has a version bump
+    - name: Check every changed plugin has a version bump 🏷️
       shell: bash
       env:
         SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/plugin-release/scripts/plan-release.mjs

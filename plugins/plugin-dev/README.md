@@ -13,7 +13,7 @@ This plugin is about **building and distributing plugins**: what goes into one, 
 | **plugin-creator** | `/plugin-creator`, `/plugin-creator audit <dir>` | Create, extend, debug and audit a plugin — manifest, skills, agents, hooks, MCP/LSP servers, `userConfig`, dependencies, evals, token cost and release readiness; converts a `.claude/` setup |
 | **marketplace-creator** | `/marketplace-creator`, `/marketplace-creator audit` | Create a marketplace, add, rename or remove entries, host it, set relevance; its audit finds manifest and doc drift plus unpinned sources, missing `renames` and other install-time breakage |
 | **plugin-release** | `/plugin-release` | On request only: work out which plugins changed (branch vs main, one commit, or uncommitted), propose the semver bump each change implies, write it into plugin.json after you agree, and tag the release; `--check` is the CI gate for a missing bump |
-| **plugin-setup** | `/plugin-setup` | Write the plugin-development workflow (where manifests live, which docs to update, never bump unasked) into a project's CLAUDE.md, and optionally a CI workflow built from the shared actions (drift and version bump gate, plus optional load/install/budget, skill audit and evals jobs) |
+| **plugin-setup** | `/plugin-setup` | Write the plugin-development workflow (where manifests live, which docs to update, never bump unasked) into a project's CLAUDE.md, and optionally a CI workflow built from the shared actions (drift audit and version bump gate, plus optional CLI, skill audit, knowledge and evals jobs) |
 | **mod-creator** | `/mod-creator`, `/mod-creator audit <path>` | Build, test, debug and audit Claude Code mods (`/mod-creator audit <path>` ranks findings and gives a verdict) — plugins whose `hooks/hooks.json` lists `modules` that draw panes, bands and toasts, add commands, or guard tool calls |
 
 ## Installation
@@ -101,41 +101,57 @@ that edit help — belongs to [**skill-dev**](../skill-dev/).
 
 ## Shared GitHub Actions
 
-Four composite actions run the plugin-dev scripts from the ref they are pinned to, so a repository
-that uses them vendors nothing. Replace `<version>` with a `plugin-dev--v<version>` tag that exists
+Every check is its own composite action under `.github/actions/`, and each runs the plugin-dev
+scripts from the ref it is pinned to, so a repository that uses them vendors nothing. Replace
+`<version>` with a `plugin-dev--v<version>` tag that exists
 (`git ls-remote --tags https://github.com/JanSzewczyk/claude-plugins 'plugin-dev--v*'`) and that
-contains the action; the ones below ship from the release that follows this change. `/plugin-setup --ci`
-writes a workflow from them and lets you pick the jobs.
+contains the action; the ones marked new ship from the release that follows this change.
+`/plugin-setup --ci` writes a workflow from them and lets you pick the jobs.
 
 | Action | Fails when | Inputs |
 | --- | --- | --- |
-| `plugin-checks` | manifests or docs drifted from the plugins on disk, a changed plugin has no version bump, optionally a plugin does not load, install or fit the token budget | `node-version`, `install-claude`, `strict`, `check-version-bumps`, `strict-version-bumps`, `ignore-plugins`, `base-ref`, `path`, `check-load`, `check-install`, `check-budget`, `budget-warn`, `budget-fail` |
-| `version-bump-check` | a plugin changed and its version did not (marketplace or single-plugin repo; fetches the base history itself, no `fetch-depth: 0`; annotates the manifest and writes a step summary) | `base-ref`, `path`, `strict`, `ignore-plugins`, `node-version` |
-| `skill-audit` | a skill breaks the frontmatter contract, has a too-long description or a dead link | `path`, `skills-glob` (default `plugins/*/skills/*/`), `node-version` |
-| `plugin-evals` | a plugin's `claude plugin eval` cases fall below the threshold; skipped with a notice when no `api-key` is passed | `api-key`, `plugins` (default: every plugin with an `evals/` folder), `tag`, `runs`, `model`, `judge-model`, `threshold`, `artifact-name`, `path` |
+| `marketplace-audit` 🔍 (new) | manifests or docs drifted from the plugins on disk, or the native `claude plugin validate` fails; a single-plugin repo is validated directly | `path`, `strict`, `install-claude`, `node-version` |
+| `version-bump-check` 🏷️ (new) | a plugin changed and its version did not (marketplace or single-plugin repo; fetches the base history itself, no `fetch-depth: 0`; annotates the manifest, writes a step summary) | `base-ref`, `path`, `strict`, `ignore-plugins`, `node-version` |
+| `plugin-load-check` 🔌 (new) | a plugin loads with errors or not at all | `path`, `node-version` |
+| `plugin-install-check` 📦 (new) | a plugin does not install from the marketplace | `path`, `node-version` |
+| `plugin-budget-check` ⚖️ (new) | a plugin's always-on tokens reach the fail limit | `path`, `api-key`, `budget-warn`, `budget-fail`, `node-version` |
+| `skill-audit` 🔎 (new) | a skill breaks the frontmatter contract, has a too-long description or a dead link | `path`, `skills-glob` (default `plugins/*/skills/*/`), `node-version` |
+| `knowledge-check` 📚 (new) | a knowledge note breaks the contract or a generated rendering is stale; for repos with a `knowledge/` folder | `path`, `strict-lint`, `node-version` |
+| `plugin-evals` 🧪 (new) | a plugin's `claude plugin eval` cases fall below the threshold; skipped with a notice without an `api-key` | `api-key`, `plugins` (default: every plugin with an `evals/` folder), `tag`, `runs`, `model`, `judge-model`, `threshold`, `artifact-name`, `path` |
+| `plugin-checks` ✅ | the bundle of the first five checks in one step, kept for workflows already pinned to it | `node-version`, `install-claude`, `strict`, `check-version-bumps`, `strict-version-bumps`, `ignore-plugins`, `base-ref`, `path`, `check-load`, `check-install`, `check-budget`, `budget-warn`, `budget-fail` |
 
-`version-bump-check` and `plugin-checks` do nothing outside a `pull_request` event for the bump part.
-Each action is a step, so give each its own job when you want them in parallel:
+The CLI actions install Claude Code only when it is not already on the `PATH`, so three of them in
+one job install it once. Each action is a step; give each its own job when you want them in parallel,
+in the house style of the author's other workflows (icons in the workflow, job and step names, a
+`concurrency` group, `permissions: contents: read`):
 
 ```yaml
+name: Plugin Checks ✅
+on:
+  pull_request:
+permissions:
+  contents: read
 jobs:
-  checks:
+  manifests:
+    name: Manifests and Docs 🔍
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@plugin-dev--v<version>
-  skills:
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check manifests and documentation 🔍
+        uses: JanSzewczyk/claude-plugins/.github/actions/marketplace-audit@plugin-dev--v<version>
+  version-bumps:
+    name: Version Bumps 🏷️
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: JanSzewczyk/claude-plugins/.github/actions/skill-audit@plugin-dev--v<version>
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check every changed plugin has a version bump 🏷️
+        uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@plugin-dev--v<version>
 ```
 
-This repository's own `validate.yml` runs `skill-audit`, `plugin-evals` and `version-bump-check` from
-its checkout, so what other repositories get is what runs here. Its knowledge-base jobs stay local:
-they only make sense in a repo with a `knowledge/` folder.
+This repository's own `validate.yml` runs every one of them from its checkout, so what other
+repositories get is what runs here.
 
 ## Requirements
 

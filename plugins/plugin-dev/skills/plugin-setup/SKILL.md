@@ -102,15 +102,20 @@ another manifest path), stop and ask which one wins before writing.
 
 Skip this step when the repo is not on GitHub, and say why.
 
-**Pick the jobs.** Two jobs are always written: `checks` (manifest and docs drift) and
-`version-bumps` (the bump gate, its own check so it can be made required). Offer the rest in one multi-select question, each with what it costs; with `--ci` and
-no chance to ask, write only the two always-on jobs:
+**Pick the jobs.** Two jobs are always written: `manifests` (the `marketplace-audit` action) and
+`version-bumps` (the `version-bump-check` action, its own check so it can be made required). Offer the
+rest in one multi-select question, each with what it costs; with `--ci` and no chance to ask, write
+only those two:
 
 | Block in the template | Adds | Offer it when |
 | --- | --- | --- |
-| `cli` | `check-load`, `check-install`, `check-budget`: every plugin loads, installs from the marketplace and stays under the always-on token budget | a marketplace; needs Claude Code on the runner, which the action installs |
+| `cli` | one job with three steps, `plugin-load-check`, `plugin-install-check` and `plugin-budget-check`: every plugin loads, installs from the marketplace and stays under the always-on token budget | a marketplace; the actions install Claude Code on the runner |
 | `skills` | the `skill-audit` action: frontmatter contract, description length, dead links on every skill | the repo has `skills/` folders |
+| `knowledge` | the `knowledge-check` action: notes follow the contract and every generated rendering is current | the repo has a `knowledge/` folder |
 | `evals` | the `plugin-evals` action, manual only | some plugin has an `evals/` folder; it needs an `ANTHROPIC_API_KEY` secret and is skipped without one |
+
+Every check is its own action and its own job or step, so a repo can also drop one by hand. The old
+bundle `plugin-checks` still exists for workflows pinned to it, but new files use the separate actions.
 
 **Write the file.** Copy [templates/plugin-checks.yml](./templates/plugin-checks.yml) to
 `.github/workflows/plugin-checks.yml`. For each `# BEGIN:<block>` … `# END:<block>` pair, keep the
@@ -135,7 +140,9 @@ template does not know.
 The actions run the plugin-dev scripts from the ref they are pinned to, so the project vendors nothing
 and any other repository can use the same ones. The bump check works in a marketplace and in a
 single-plugin repo, fetches the base history itself, and fails a pull request in which a plugin changed
-and its version did not. `checks` passes `check-version-bumps: "false"` so the gate is not run twice.
+and its version did not. The template follows the house style of the author's other workflows: icons in
+the workflow, job and step names, a `concurrency` group and `permissions: contents: read`; keep them
+when editing the file.
 
 ### 5. Report
 

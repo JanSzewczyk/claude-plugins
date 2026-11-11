@@ -1,0 +1,30 @@
+name: Plugin Load Check 🔌
+description: >
+  Fail when a plugin loads with errors or not at all: a missing agent or skill path, a broken hooks file, a corrupt manifest. Asks the CLI itself (claude plugin list) in a throwaway config, never the runner's own. Installs Claude Code when it is not on the PATH.
+
+inputs:
+  path:
+    description: Root of the marketplace, relative to the workspace.
+    default: "."
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code 🤖
+      shell: bash
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
+
+    - name: Check every plugin loads 🔌
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs
+        ROOT: ${{ inputs.path }}
+      run: node "$SCRIPT" "$ROOT" --load

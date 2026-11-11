@@ -1,0 +1,30 @@
+name: Plugin Install Check 📦
+description: >
+  Fail when a plugin does not install from the marketplace: a wrong source path, a reserved name, a dependency range no plugin.json satisfies. Runs marketplace add and plugin install in a throwaway config, never the runner's own. Installs Claude Code when it is not on the PATH.
+
+inputs:
+  path:
+    description: Root of the marketplace, relative to the workspace.
+    default: "."
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code 🤖
+      shell: bash
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
+
+    - name: Check every plugin installs 📦
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs
+        ROOT: ${{ inputs.path }}
+      run: node "$SCRIPT" "$ROOT" --install
