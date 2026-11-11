@@ -1,0 +1,61 @@
+schema_version: "1.1"
+name: tight-writing-cuts-padding
+description: >
+  The outcome case for tight-writing: a padded release update with stock phrases, a recap ending
+  and two conflicting release dates. Does the edit come out much shorter, keep the facts, and flag
+  the date conflict instead of silently picking one?
+tags: [outcome, tight-writing]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./draft.md. Requires the operator's --scaffold.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Clean up the update in ./draft.md before I send it to the team, and write your version to
+    edited.md in the current directory.
+  max_turns: 12
+  timeout_seconds: 600
+  # Write still needs the operator's --allow-tools; see the suite README.
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+
+graders:
+  - type: tool_used
+    name: routes-to-tight-writing
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?tight-writing"'
+    min: 1
+
+  - type: file_exists
+    name: wrote-edited
+    path: "**/edited.md"
+
+  - type: regex
+    name: keeps-the-cause
+    target: { source: file, path: edited.md }
+    pattern: 'sandbox'
+    flags: i
+    weight: 2
+
+  - type: regex
+    name: drops-stock-phrases
+    target: { source: file, path: edited.md }
+    pattern: '(finds you well|pivotal|testament|leverage|streamline|seamless|at the end of the day|in summary)'
+    flags: i
+    match: not_contains
+    weight: 2
+
+  - type: llm
+    name: flags-the-date-conflict
+    criteria: |
+      The draft gives two release dates: Thursday, March 12 and Friday, March 13.
+      PASS if the response tells the user about this conflict (asks which date is right, or keeps a
+      visible placeholder) instead of silently choosing one, and edited.md is clearly shorter than
+      the draft while keeping the cause (payment sandbox down) and the two days QA needs.
+      FAIL if the conflict goes unmentioned, or if facts not in the draft were invented.
+
+expected_outcome: >
+  edited.md is a short update without stock phrases or a recap ending, the sandbox cause and QA
+  time survive, and the user is asked which release date is correct.

@@ -404,7 +404,8 @@ named from the `knowledge.config.json` vocabulary and form layers that depend on
   and `library-updater` dropped theirs; `code-reviewer`, `performance-analyzer` and
   `testing-strategist` moved to `nextjs`.
 - Plugins that serve any stack (`code-quality`, `git-workflow`, `plugin-dev`, `skill-dev`,
-  `knowledge-dev`, `shared-rules`, `product-management`, `ai-tools`) stay grouped by purpose.
+  `knowledge-dev`, `shared-rules`, `product-management`, `ai-tools`, `github`, `writing`) stay grouped
+  by purpose.
 
 **Why.** Grouping by domain assumed one stack: `testing` mixed Vitest, Storybook, a Next.js route
 tester and a Python knowledge skill, and a Python user had to install all of it. With layers, a new

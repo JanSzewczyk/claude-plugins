@@ -18,7 +18,7 @@
 
 This repository is a [Claude Code](https://claude.com/claude-code) marketplace — a curated collection of **skills** and **agents** that extend Claude Code with domain-specific knowledge for modern full-stack development. Install a plugin once and every project you open gets access to specialist assistants that know your stack's conventions, patterns, and pitfalls.
 
-Technology plugins are layered — a technology-agnostic **testing** core, the **typescript** and **python** language layers, then **react**, **nextjs** and **firebase** on top, with **design** for Tailwind CSS and the design system — so you install only the stack you work in, and a new technology is a new plugin. Alongside them sit technology-agnostic plugins: repository maintenance, product management orchestration, AI tool integrations, Git workflow on GitHub, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
+Technology plugins are layered — a technology-agnostic **testing** core, the **typescript** and **python** language layers, then **react**, **nextjs** and **firebase** on top, with **design** for Tailwind CSS and the design system — so you install only the stack you work in, and a new technology is a new plugin. Alongside them sit technology-agnostic plugins: repository maintenance, product management orchestration, AI tool integrations, Git workflow on GitHub, prose quality for messages and posts, and Claude Code plugin authoring itself. Each plugin ships with ready-to-use agents and slash-command skills that Claude Code picks up automatically.
 
 ## ✨ Features
 
@@ -93,6 +93,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🚢 [ship-task](./plugins/git-workflow/skills/ship-task/)** — Carries one task through branch, change, verification, commits and a pull request, using the three skills above; other skills can hand it the same flow
 - **🏗️ [github-repo-init](./plugins/github/skills/github-repo-init/)** — Creates a new GitHub repository from your own template and configures merge, Dependabot, security, Actions and a protected default branch, every decision approved first
 - **🩺 [github-repo-audit](./plugins/github/skills/github-repo-audit/)** — Audits an existing repository's settings against the same baseline — including required checks that never run and release bots a ruleset would block — and fixes what you approve
+- **✍️ [tight-writing](./plugins/writing/skills/tight-writing/)** — Writes, edits or reviews messages, emails and posts so they are short, consistent and free of AI-sounding filler, keeping your voice; fires on any request for such text
 
 ---
 
@@ -130,8 +131,9 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**git-workflow**](./plugins/git-workflow/) | Git workflow on GitHub — branches, Conventional Commits, pull requests, whole tasks from branch to PR | — | 4 | [README](./plugins/git-workflow/README.md) |
 | [**knowledge-dev**](./plugins/knowledge-dev/) | Shared knowledge base tooling — author rule notes, build them into skills and agents, check drift in CI | 1 | 1 | [README](./plugins/knowledge-dev/README.md) |
 | [**github**](./plugins/github/) | GitHub repository administration — create a repository from your template or audit an existing one, every decision approved | — | 2 | [README](./plugins/github/README.md) |
+| [**writing**](./plugins/writing/) | Prose quality — write, edit or review messages, emails and posts: short, consistent, no AI-sounding filler | — | 1 | [README](./plugins/writing/README.md) |
 
-**Total: 15 agents · 59 skills**
+**Total: 15 agents · 60 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -188,6 +190,7 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 /plugin install git-workflow@szum-tech
 /plugin install knowledge-dev@szum-tech
 /plugin install github@szum-tech
+/plugin install writing@szum-tech
 ```
 
 Or browse available plugins interactively:
@@ -332,8 +335,11 @@ What are you doing?
 ├── Branching, committing, opening a pull request, or doing a whole task through to one
 │   └── Skills: create-branch, create-commit, create-pull-request, ship-task (git-workflow)
 │
-└── Creating a new GitHub repository, or auditing the settings of an existing one
-    └── Skills: github-repo-init, github-repo-audit (github)
+├── Creating a new GitHub repository, or auditing the settings of an existing one
+│   └── Skills: github-repo-init, github-repo-audit (github)
+│
+└── Writing or tightening a message, email or post, or checking if it reads as AI
+    └── Skill: tight-writing (writing)
 ```
 
 ### ⚡ Quick Reference
@@ -375,6 +381,7 @@ What are you doing?
 | Do a task on its own branch and open a PR | `/ship-task` skill |
 | Create a new GitHub repository with sane settings | `/github-repo-init` skill |
 | Check and fix the settings of an existing repository | `/github-repo-audit` skill |
+| Write or shorten a message so it does not sound like AI | `/tight-writing` skill (fires on its own) |
 
 ---
 
@@ -439,11 +446,14 @@ claude-plugins/
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # librarian
     │   └── skills/                # 1 skill (knowledge-author)
-    └── github/                     # GitHub repository administration
+    ├── github/                     # GitHub repository administration
+    │   ├── .claude-plugin/plugin.json
+    │   ├── references/            # Settings baseline shared by both skills
+    │   ├── scripts/               # read-settings.mjs, apply-plan.mjs
+    │   └── skills/                # 2 skills (github-repo-init, github-repo-audit)
+    └── writing/                    # Prose quality for text meant for people
         ├── .claude-plugin/plugin.json
-        ├── references/            # Settings baseline shared by both skills
-        ├── scripts/               # read-settings.mjs, apply-plan.mjs
-        └── skills/                # 2 skills (github-repo-init, github-repo-audit)
+        └── skills/                # 1 skill (tight-writing)
 ```
 
 ### 🗂️ Key Files
