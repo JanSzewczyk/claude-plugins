@@ -1,6 +1,6 @@
 ---
-name: routing-tight-writing
-description: A natural request that tight-writing should pick up, phrased the way a user would actually ask.
+name: routing-human-writing
+description: A natural request that human-writing should pick up, phrased the way a user would actually ask.
 tags: [routing, smoke]
 plugins: ["../.."]
 runs: 3

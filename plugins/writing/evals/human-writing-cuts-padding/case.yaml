@@ -1,10 +1,10 @@
 schema_version: "1.1"
-name: tight-writing-cuts-padding
+name: human-writing-cuts-padding
 description: >
-  The outcome case for tight-writing: a padded release update with stock phrases, a recap ending
+  The outcome case for human-writing: a padded release update with stock phrases, a recap ending
   and two conflicting release dates. Does the edit come out much shorter, keep the facts, and flag
   the date conflict instead of silently picking one?
-tags: [outcome, tight-writing]
+tags: [outcome, human-writing]
 plugins: ["../.."]
 runs: 3
 
@@ -23,9 +23,9 @@ execution:
 
 graders:
   - type: tool_used
-    name: routes-to-tight-writing
+    name: routes-to-human-writing
     tool: Skill
-    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?tight-writing"'
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?human-writing"'
     min: 1
 
   - type: file_exists
