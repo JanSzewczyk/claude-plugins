@@ -217,6 +217,18 @@
       },
       "homepage": "https://github.com/JanSzewczyk/claude-plugins",
       "license": "MIT"
+    },
+    {
+      "name": "writing",
+      "source": "./plugins/writing",
+      "description": "Prose quality — write, edit or review messages, emails and posts so they are short, consistent and free of AI-sounding filler, keeping the writer's voice",
+      "author": {
+        "name": "Szum Tech Team",
+        "email": "szum.tech@gmail.com",
+        "url": "https://github.com/JanSzewczyk"
+      },
+      "homepage": "https://github.com/JanSzewczyk/claude-plugins",
+      "license": "MIT"
     }
   ]
 }
