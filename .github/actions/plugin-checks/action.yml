@@ -15,8 +15,14 @@ inputs:
     description: Pass --strict to the doctor, so warnings fail the job too.
     default: "false"
   check-version-bumps:
-    description: On pull requests, require a version bump for every changed plugin. Needs a checkout with fetch-depth 0.
+    description: On pull requests, require a version bump for every changed plugin, in a marketplace or a single-plugin repo. Fetches the base history itself.
     default: "true"
+  strict-version-bumps:
+    description: Also fail when a bump is smaller than the change implies.
+    default: "false"
+  ignore-plugins:
+    description: Comma-separated plugin names to leave out of the version bump check.
+    default: ""
   base-ref:
     description: Branch the version bump check compares against.
     default: ${{ github.base_ref }}
@@ -76,12 +82,13 @@ runs:
         SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
         ROOT: ${{ inputs.path }}
         BASE: ${{ inputs.base-ref }}
+        STRICT: ${{ inputs.strict-version-bumps == 'true' && '--strict' || '' }}
+        IGNORE: ${{ inputs.ignore-plugins }}
       run: |
-        if [ ! -f "$ROOT/.claude-plugin/marketplace.json" ]; then
-          echo "::notice::Single-plugin repo: the bump check needs a marketplace.json, so it is skipped."
-          exit 0
-        fi
-        node "$SKILLS/plugin-release/scripts/plan-release.mjs" "$ROOT" --check --since "origin/$BASE"
+        args=("$ROOT" --check --since "origin/$BASE")
+        [ -n "$STRICT" ] && args+=("$STRICT")
+        [ -n "$IGNORE" ] && args+=(--ignore "$IGNORE")
+        node "$SKILLS/plugin-release/scripts/plan-release.mjs" "${args[@]}"
 
     - name: Plugins load, install and stay in budget
       if: inputs.check-load == 'true' || inputs.check-install == 'true' || inputs.check-budget == 'true'

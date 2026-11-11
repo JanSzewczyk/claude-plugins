@@ -1,0 +1,53 @@
+name: Version bump check
+description: >
+  Fail a pull request in which a plugin changed and its version did not. Works in a marketplace
+  repository and in a single-plugin repository. Runs the plan-release script from the ref this
+  action is pinned to, so the calling repository vendors nothing, and needs no fetch-depth: 0
+  because it fetches the base history itself. Writes annotations and a step summary, never a file.
+
+inputs:
+  base-ref:
+    description: Branch the pull request is compared against.
+    default: ${{ github.base_ref }}
+  path:
+    description: Root of the marketplace or single-plugin repository, relative to the workspace.
+    default: "."
+  strict:
+    description: Also fail when a bump is smaller than the change implies (a patch where a new skill needs a minor).
+    default: "false"
+  ignore-plugins:
+    description: Comma-separated plugin names to leave out of the check.
+    default: ""
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Every changed plugin has a version bump
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/plugin-release/scripts/plan-release.mjs
+        ROOT: ${{ inputs.path }}
+        BASE: ${{ inputs.base-ref }}
+        STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
+        IGNORE: ${{ inputs.ignore-plugins }}
+        EVENT: ${{ github.event_name }}
+      run: |
+        if [ "$EVENT" != "pull_request" ] && [ "$EVENT" != "pull_request_target" ]; then
+          echo "::notice::The version bump check compares a pull request with its base; skipped on '$EVENT'."
+          exit 0
+        fi
+        if [ -z "$BASE" ]; then
+          echo "::error::No base branch: pass base-ref, or run this on a pull_request event."
+          exit 1
+        fi
+        args=("$ROOT" --check --since "origin/$BASE")
+        [ -n "$STRICT" ] && args+=("$STRICT")
+        [ -n "$IGNORE" ] && args+=(--ignore "$IGNORE")
+        node "$SCRIPT" "${args[@]}"

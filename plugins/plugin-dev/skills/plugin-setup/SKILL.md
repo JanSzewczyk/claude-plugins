@@ -1,6 +1,6 @@
 ---
 name: plugin-setup
-description: Set up a Claude Code plugin or marketplace repository so that every change is versioned, documented and checked — writes a managed plugin-development block into the project's CLAUDE.md (where manifests live, what to bump and update after each change, when to run the marketplace-creator audit and plugin-release), and optionally adds a CI workflow that fails a pull request with manifest drift or a missing version bump. Re-running refreshes the block in place. Use when starting or adopting a plugin repo, when version bumps or README updates keep getting forgotten, or when the user asks to "set up the plugin repo", "set up plugin-dev", "add the plugin workflow to CLAUDE.md", "make version bumps automatic", "skonfiguruj repo pluginów", "dodaj zasady pluginów do CLAUDE.md". NOT for building a plugin (plugin-creator), auditing an existing repo (marketplace-creator) or cutting a release (plugin-release).
+description: Set up a Claude Code plugin or marketplace repository so that every change is versioned, documented and checked — writes a managed plugin-development block into the project's CLAUDE.md (where manifests live, which docs to update after a change, when to run the marketplace-creator audit, and that versions are bumped only when the user asks), and optionally adds a CI workflow that fails a pull request with manifest drift or a changed plugin whose version was not bumped. Re-running refreshes the block in place. Use when starting or adopting a plugin repo, when README updates keep getting forgotten or pull requests ship without a version bump, or when the user asks to "set up the plugin repo", "set up plugin-dev", "add the plugin workflow to CLAUDE.md", "add the version bump check to CI", "skonfiguruj repo pluginów", "dodaj zasady pluginów do CLAUDE.md". NOT for building a plugin (plugin-creator), auditing an existing repo (marketplace-creator) or cutting a release (plugin-release).
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 argument-hint: "[path to the repo root, defaults to the current directory] [--ci]"
 ---
@@ -22,13 +22,14 @@ this one without copying its `CLAUDE.md` by hand.
 
 | Step | Without this skill | After it |
 | --- | --- | --- |
-| Version bump | only if someone remembers | `CLAUDE.md` tells Claude to do it in the same change; CI (`--ci`) fails a PR without it |
+| Version bump | only if someone remembers | stays manual: the user runs `/plugin-release`, which proposes and asks; `CLAUDE.md` forbids bumping unasked; CI (`--ci`) fails a PR that changed a plugin without a bump |
 | README and doc tables | only if someone remembers | `CLAUDE.md` names the files; `/marketplace-creator audit` finds what is stale |
 | Manifest drift, `$schema` | found at install | `/marketplace-creator audit` before each commit, and in CI |
 | Release tags | manual | still manual, through `/plugin-release`: tagging publishes, so it stays a decision |
 
-Say this to the user in their language when you report: the block makes the workflow the default,
-CI makes it enforced, and nothing runs in the background.
+Say this to the user in their language when you report: the block makes the doc and audit steps the
+default, nobody bumps a version without being asked, CI is what notices a missing bump, and nothing
+runs in the background.
 
 ## Steps
 
@@ -76,16 +77,15 @@ Fill [templates/claude-md-block.md](./templates/claude-md-block.md):
 
 - `{{LAYOUT}}`: the real paths from step 1, for example `plugins/<name>/.claude-plugin/plugin.json`.
 - `{{AGENTS_LINE}}`: the explicit-array line if any plugin sets `agents`, otherwise the scan line.
-- `{{VERSIONING}}`: the pinned-version rules when `version` is set; the "follows commits, nothing to
-  bump" line when it is not.
+- `{{VERSIONING}}`: one descriptive line, never an instruction to bump. When `version` is set:
+  "Plugins pin `version`, so users stay on the cached copy until it changes; semver sizes are in
+  `/plugin-release`." When it is not: "No plugin sets `version`, so installs follow the git commit and
+  there is nothing to bump."
 - `{{DOCS}}`: every file that enumerates skills or agents by hand (root and per-plugin READMEs, a
   table in `CLAUDE.md`). Leave out any that do not exist.
 - `{{TAGS}}`: the tag line only when the repo tags releases or a plugin declares `dependencies`.
 - `{{AUDIT}}`: `/marketplace-creator audit` in a marketplace, `/plugin-creator audit .` for a
   single plugin.
-- `{{BUMP_CHECK}}`: the `/plugin-release` line below in a marketplace; drop the line for a single
-  plugin, whose bump the release script cannot plan:
-  `4. **Check the bump** with \`/plugin-release\` in plan mode: it proposes the semver size per plugin. Do not let it tag.`
 
 Then place it:
 
@@ -110,9 +110,12 @@ git ls-remote --tags https://github.com/JanSzewczyk/claude-plugins "plugin-dev--
 ```
 
 If that version is not tagged, use the newest tag the command lists and say so. The workflow calls
-the shared `plugin-checks` action at that tag (Node 26, optional `strict`, `base-ref` and `path`
-inputs), so the project vendors nothing and any other repository can use the same action. Skip the
-step when the repo is not on GitHub, and say why.
+the shared `plugin-checks` action at that tag (Node 26, optional `strict`, `base-ref`, `path` and
+`ignore-plugins` inputs), so the project vendors nothing and any other repository can use the same
+action. Its bump check works in a marketplace and in a single-plugin repo, and fails a pull request
+in which a plugin changed and its version did not. A repo that wants only that check can use
+`version-bump-check` from the same tag, as the template's comment shows. Skip the step when the repo
+is not on GitHub, and say why.
 
 ### 5. Report
 
@@ -124,11 +127,11 @@ whether CI was added, and the one thing that stays manual: `/plugin-release` to 
 The block points at these through the audit it names; read the rule when the user asks why.
 
 <!-- BEGIN:knowledge -->
-<!-- generated by knowledge.mjs from 16 note(s) (sha256 d519526b042e); edit the notes in knowledge/, then run build -->
+<!-- generated by knowledge.mjs from 16 note(s) (sha256 04523958b3fc); edit the notes in knowledge/, then run build -->
 
 | Impact | Rule | Applies to |
 | --- | --- | --- |
-| critical | [Bump the plugin version in every change that touches the plugin](references/rules.md#bump-the-plugin-version-in-every-change-that-touches-the-plugin) — A pinned version keeps users on the cached copy until the string changes, however many commits land. | claude-code |
+| critical | [Raise a changed plugin's version before merge, on the maintainer's say-so](references/rules.md#raise-a-changed-plugins-version-before-merge-on-the-maintainers-say-so) — A pinned version keeps users on the cached copy until it changes; bump once on request, and let CI catch a miss. | claude-code |
 | critical | [Keep plugin.json in .claude-plugin/ and every component at the plugin root](references/rules.md#keep-pluginjson-in-claude-plugin-and-every-component-at-the-plugin-root) — The manifest is .claude-plugin/plugin.json; skills/, agents/ and hooks/ sit beside .claude-plugin/, never in it. | claude-code |
 | high | [Give a version range to every dependency whose skills or tools your plugin calls](references/rules.md#give-a-version-range-to-every-dependency-whose-skills-or-tools-your-plugin-calls) — An unconstrained dependency moves to every release, so one rename breaks your plugin for everyone who updates. | claude-code |
 | high | [Keep name, version and dependencies identical in plugin.json and the marketplace entry](references/rules.md#keep-name-version-and-dependencies-identical-in-pluginjson-and-the-marketplace-entry) — Two surfaces read two files; a value set in both must match, or install and browse disagree. | claude-code |
@@ -151,6 +154,7 @@ The block points at these through the audit it names; read the rule when the use
 
 - Never write outside the `plugin-dev` markers in an existing `CLAUDE.md`.
 - Never move manifests, add `$schema` or bump versions unasked; step 2 reports, the user decides.
+- Never write a line into `CLAUDE.md` that tells an agent to bump a version after a change.
 - Never commit, push or tag. A caller such as `/ship-task` owns that.
 - Never add a hook to make this "automatic": a plugin hook fires in every project where the plugin
   is enabled. CI is the enforcement point.

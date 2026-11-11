@@ -18,3 +18,10 @@ jobs:
           fetch-depth: 0
 
       - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@{{PLUGIN_DEV_REF}}
+          # Optional inputs: strict, ignore-plugins, base-ref, path, check-load, check-install, check-budget.
+
+      # Only the version bump check, without the manifest and documentation drift check? Replace
+      # the step above with this one. Both fail a pull request in which a plugin changed and its
+      # version did not, in a marketplace and in a single-plugin repo.
+      #
+      # - uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@{{PLUGIN_DEV_REF}}

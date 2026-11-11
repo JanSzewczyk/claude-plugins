@@ -185,14 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 26
 
       # A plugin that pins `version` keeps users on the cached copy until the string changes, so a
-      # change merged without a bump never reaches anyone. Compare against the PR's base.
+      # change merged without a bump never reaches anyone. This is the shared action other plugin
+      # repositories use; here it runs from the checkout.
       - name: Every changed plugin has a version bump
-        run: node plugins/plugin-dev/skills/plugin-release/scripts/plan-release.mjs . --check --since "origin/${{ github.base_ref }}"
+        uses: ./.github/actions/version-bump-check
