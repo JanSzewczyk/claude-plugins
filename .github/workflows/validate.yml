@@ -80,21 +80,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 26
-
       - name: Audit every skill
-        run: |
-          status=0
-          for dir in plugins/*/skills/*/; do
-            if ! out=$(node plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs "$dir" 2>&1); then
-              echo "::error file=${dir}SKILL.md::skill-audit found errors in ${dir}"
-              echo "$out"
-              status=1
-            fi
-          done
-          exit $status
+        uses: ./.github/actions/skill-audit
 
   knowledge:
     name: knowledge base renderings
@@ -151,33 +138,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 26
-
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
-
       - name: Run the smoke routing cases
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          claude plugin eval "plugins/${{ matrix.plugin }}" \
-            --tag smoke \
-            --runs 2 \
-            --model sonnet \
-            --judge-model haiku \
-            --threshold 0.8 \
-            --no-publish \
-            --json "eval-${{ matrix.plugin }}.json"
-
-      - name: Upload the result document
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/plugin-evals
         with:
-          name: eval-${{ matrix.plugin }}
-          path: eval-${{ matrix.plugin }}.json
-          if-no-files-found: ignore
+          api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          plugins: plugins/${{ matrix.plugin }}
+          artifact-name: eval-${{ matrix.plugin }}
 
   version-bumps:
     name: version bumps

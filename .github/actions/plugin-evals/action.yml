@@ -1,0 +1,110 @@
+name: Plugin evals
+description: >
+  Run the routing and outcome evals of one or more plugins with `claude plugin eval`. Early access:
+  it needs an API key, so without one the step is skipped with a notice, never failed. Each result
+  document is uploaded as an artifact.
+
+inputs:
+  api-key:
+    description: Anthropic API key, passed from a repository secret. Empty skips the evals.
+    default: ""
+  plugins:
+    description: Plugin directories to evaluate, one per line or space-separated, relative to path. Empty means every plugin directory that has an evals/ folder.
+    default: ""
+  path:
+    description: Root of the repository, relative to the workspace.
+    default: "."
+  tag:
+    description: Only run cases carrying this tag.
+    default: smoke
+  runs:
+    description: Runs per case.
+    default: "2"
+  model:
+    description: Model the cases run on.
+    default: sonnet
+  judge-model:
+    description: Model that grades the outcome cases.
+    default: haiku
+  threshold:
+    description: Pass rate a plugin must reach.
+    default: "0.8"
+  artifact-name:
+    description: Name of the uploaded result artifact. Give each call its own, for example per matrix entry.
+    default: plugin-evals
+  node-version:
+    description: Node.js version.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Check the evals can run
+      id: gate
+      shell: bash
+      env:
+        KEY: ${{ inputs.api-key }}
+      run: |
+        if [ -z "$KEY" ]; then
+          echo "::notice::No api-key given, so the plugin evals are skipped."
+          echo "run=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "run=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - uses: actions/setup-node@v4
+      if: steps.gate.outputs.run == 'true'
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code
+      if: steps.gate.outputs.run == 'true'
+      shell: bash
+      run: npm install -g @anthropic-ai/claude-code
+
+    - name: Run the evals
+      if: steps.gate.outputs.run == 'true'
+      shell: bash
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.api-key }}
+        ROOT: ${{ inputs.path }}
+        PLUGINS: ${{ inputs.plugins }}
+        TAG: ${{ inputs.tag }}
+        RUNS: ${{ inputs.runs }}
+        MODEL: ${{ inputs.model }}
+        JUDGE: ${{ inputs.judge-model }}
+        THRESHOLD: ${{ inputs.threshold }}
+      run: |
+        cd "$ROOT"
+        mkdir -p eval-results
+        if [ -n "$PLUGINS" ]; then
+          read -r -a dirs <<< "$(echo "$PLUGINS" | tr '\n' ' ')"
+        else
+          dirs=()
+          for evals in plugins/*/evals ./evals; do
+            [ -d "$evals" ] && dirs+=("$(dirname "$evals")")
+          done
+        fi
+        if [ ${#dirs[@]} -eq 0 ]; then
+          echo "::notice::No plugin has an evals/ folder, nothing to run."
+          exit 0
+        fi
+        status=0
+        for dir in "${dirs[@]}"; do
+          name=$(basename "$(cd "$dir" && pwd)")
+          if ! claude plugin eval "$dir" --tag "$TAG" --runs "$RUNS" --model "$MODEL" \
+            --judge-model "$JUDGE" --threshold "$THRESHOLD" --no-publish \
+            --json "eval-results/$name.json"; then
+            echo "::error::Evals of $dir fell below $THRESHOLD or failed."
+            status=1
+          fi
+        done
+        exit $status
+
+    - name: Upload the result documents
+      if: always() && steps.gate.outputs.run == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.path }}/eval-results
+        if-no-files-found: ignore

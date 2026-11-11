@@ -2,7 +2,8 @@ name: Plugin checks
 description: >
   Fail a pull request whose plugin manifests or docs drifted from the plugins on disk, or that
   changed a plugin without bumping its version. Runs the plugin-dev scripts from the ref this
-  action is pinned to, so the calling repository vendors nothing.
+  action is pinned to, so the calling repository vendors nothing. Skill audits and plugin evals are
+  separate actions (skill-audit, plugin-evals) so each can be its own job.
 
 inputs:
   node-version:
