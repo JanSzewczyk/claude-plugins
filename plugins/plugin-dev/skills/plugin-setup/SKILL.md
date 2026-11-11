@@ -102,9 +102,9 @@ another manifest path), stop and ask which one wins before writing.
 
 Skip this step when the repo is not on GitHub, and say why.
 
-**Pick the jobs.** The base job (`checks`: manifest and docs drift, plus the version bump gate) is
-always written. Offer the rest in one multi-select question, each with what it costs; with `--ci` and
-no chance to ask, write only the base job:
+**Pick the jobs.** Two jobs are always written: `checks` (manifest and docs drift) and
+`version-bumps` (the bump gate, its own check so it can be made required). Offer the rest in one multi-select question, each with what it costs; with `--ci` and
+no chance to ask, write only the two always-on jobs:
 
 | Block in the template | Adds | Offer it when |
 | --- | --- | --- |
@@ -135,8 +135,7 @@ template does not know.
 The actions run the plugin-dev scripts from the ref they are pinned to, so the project vendors nothing
 and any other repository can use the same ones. The bump check works in a marketplace and in a
 single-plugin repo, fetches the base history itself, and fails a pull request in which a plugin changed
-and its version did not. A repo that wants only that check can use `version-bump-check`, as the
-template's closing comment shows.
+and its version did not. `checks` passes `check-version-bumps: "false"` so the gate is not run twice.
 
 ### 5. Report
 

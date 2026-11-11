@@ -14,7 +14,7 @@ on:
 
 jobs:
   checks:
-    name: manifests, docs and version bumps
+    name: manifests and docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +22,27 @@ jobs:
           fetch-depth: 0
 
       - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@{{PLUGIN_DEV_REF}}
-        # BEGIN:cli
         with:
+          # The version bump gate is its own job below, so it shows as its own check.
+          check-version-bumps: "false"
+          # BEGIN:cli
           check-load: "true"
           check-install: "true"
           check-budget: "true"
-        # END:cli
-        # Other inputs: strict, strict-version-bumps, ignore-plugins, base-ref, path.
+          # END:cli
+          # Other inputs: strict, path.
+
+  version-bumps:
+    name: version bumps
+    # Fails a pull request in which a plugin changed and its version did not. Works in a marketplace
+    # and in a single-plugin repo, and fetches the base history itself, so no fetch-depth: 0.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@{{PLUGIN_DEV_REF}}
+        # Inputs: strict (also fail a bump that is too small), ignore-plugins, base-ref, path.
 
   # BEGIN:skills
   skills:
@@ -55,7 +69,3 @@ jobs:
           api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Inputs: plugins (default: every plugin with an evals/ folder), tag, runs, model, threshold.
   # END:evals
-
-# Only the version bump check, without the drift audit? Replace the `checks` job's step with
-#   - uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@{{PLUGIN_DEV_REF}}
-# It works in a marketplace and in a single-plugin repo and needs no fetch-depth: 0.
