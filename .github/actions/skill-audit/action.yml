@@ -1,0 +1,48 @@
+name: Skill audit
+description: >
+  Run the mechanical half of skill-audit on every skill in the repository: the frontmatter
+  contract, description length, dead links, orphan reference files. Any error fails the job and is
+  annotated on the SKILL.md; warnings stay in the log for the author. Runs the script from the ref
+  this action is pinned to, so the calling repository vendors nothing.
+
+inputs:
+  path:
+    description: Root of the repository, relative to the workspace.
+    default: "."
+  skills-glob:
+    description: Glob, relative to path, that matches skill directories.
+    default: "plugins/*/skills/*/"
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Audit every skill
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs
+        ROOT: ${{ inputs.path }}
+        GLOB: ${{ inputs.skills-glob }}
+      run: |
+        cd "$ROOT"
+        shopt -s nullglob
+        dirs=($GLOB)
+        if [ ${#dirs[@]} -eq 0 ]; then
+          echo "::notice::No skills match '$GLOB' under '$ROOT', nothing to audit."
+          exit 0
+        fi
+        status=0
+        for dir in "${dirs[@]}"; do
+          if ! out=$(node "$SCRIPT" "$dir" 2>&1); then
+            echo "::error file=${dir}SKILL.md::skill-audit found errors in ${dir}"
+            echo "$out"
+            status=1
+          fi
+        done
+        exit $status
