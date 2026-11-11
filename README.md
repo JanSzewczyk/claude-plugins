@@ -93,7 +93,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🚢 [ship-task](./plugins/git-workflow/skills/ship-task/)** — Carries one task through branch, change, verification, commits and a pull request, using the three skills above; other skills can hand it the same flow
 - **🏗️ [github-repo-init](./plugins/github/skills/github-repo-init/)** — Creates a new GitHub repository from your own template and configures merge, Dependabot, security, Actions and a protected default branch, every decision approved first
 - **🩺 [github-repo-audit](./plugins/github/skills/github-repo-audit/)** — Audits an existing repository's settings against the same baseline — including required checks that never run and release bots a ruleset would block — and fixes what you approve
-- **✍️ [humanize](./plugins/writing/skills/humanize/)** — Writes, edits or reviews messages, emails and posts so they are short, consistent and free of AI-sounding filler, keeping your voice; fires on any request for such text
+- **✍️ [humanize](./plugins/writing/skills/humanize/)** — Writes, edits or reviews messages, emails and posts so they are short, consistent and free of AI-sounding filler, keeping your voice; humanizes drafts and files without touching code; fires on any request for such text
 
 ---
 
