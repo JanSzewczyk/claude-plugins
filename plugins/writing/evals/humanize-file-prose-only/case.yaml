@@ -1,0 +1,50 @@
+schema_version: "1.1"
+name: humanize-file-prose-only
+description: >
+  The file case for humanize: release notes with chatbot residue, "serves as", an -ing tail and
+  bold labels around a bash code block. Does the edit fix the prose and leave the code block
+  byte-for-byte the same, em dash and "leverage" included?
+tags: [outcome, humanize]
+plugins: ["../.."]
+runs: 3
+
+context:
+  # Builds ./notes.md. Requires the operator's --scaffold.
+  scaffold_script: fixture.sh
+
+execution:
+  prompt: >
+    Humanize the prose in ./notes.md and write the result to edited.md in the current directory.
+  max_turns: 12
+  timeout_seconds: 600
+  # Write still needs the operator's --allow-tools; see the suite README.
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+
+graders:
+  - type: tool_used
+    name: routes-to-humanize
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?humanize"'
+    min: 1
+
+  - type: file_exists
+    name: wrote-edited
+    path: "**/edited.md"
+
+  - type: regex
+    name: keeps-code-block
+    target: { source: file, path: edited.md }
+    pattern: '# leverage the cache — do not edit this line\nnpm run build -- --cache'
+    weight: 3
+
+  - type: regex
+    name: drops-residue
+    target: { source: file, path: edited.md }
+    pattern: '(Great question|I hope this helps|serves as|highlighting our commitment)'
+    flags: i
+    match: not_contains
+    weight: 2
+
+expected_outcome: >
+  edited.md states what the cache layer does without chatbot residue, "serves as" or the -ing
+  tail, and the bash code block is unchanged.
