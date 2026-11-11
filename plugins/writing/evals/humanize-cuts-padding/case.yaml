@@ -1,10 +1,10 @@
 schema_version: "1.1"
-name: human-writing-cuts-padding
+name: humanize-cuts-padding
 description: >
-  The outcome case for human-writing: a padded release update with stock phrases, a recap ending
+  The outcome case for humanize: a padded release update with stock phrases, a recap ending
   and two conflicting release dates. Does the edit come out much shorter, keep the facts, and flag
   the date conflict instead of silently picking one?
-tags: [outcome, human-writing]
+tags: [outcome, humanize]
 plugins: ["../.."]
 runs: 3
 
@@ -23,9 +23,9 @@ execution:
 
 graders:
   - type: tool_used
-    name: routes-to-human-writing
+    name: routes-to-humanize
     tool: Skill
-    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?human-writing"'
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?humanize"'
     min: 1
 
   - type: file_exists

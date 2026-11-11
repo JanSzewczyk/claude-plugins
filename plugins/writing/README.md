@@ -15,10 +15,10 @@ For commit messages and pull requests see [git-workflow](../git-workflow/); for 
 
 | Skill | Invoke with | Description |
 |-------|-------------|-------------|
-| **human-writing** | `/human-writing [draft or file path]`, or just ask for a message | Three modes picked from the request. **Write** drafts new text and returns only the text. **Edit** tightens a draft and lists what changed. **Review** names each problem with the quoted line and a short fix, without rewriting. Rules cover voice, facts and opinions, brevity, consistency (one term per concept, matching numbers and dates, no self-contradiction) and a catalogue of AI-sounding patterns |
+| **humanize** | `/humanize [draft or file path]`, or just ask for a message | Three modes picked from the request. **Write** drafts new text and returns only the text. **Edit** tightens a draft and lists what changed. **Review** names each problem with the quoted line and a short fix, without rewriting. Rules cover voice, facts and opinions, brevity, consistency (one term per concept, matching numbers and dates, no self-contradiction) and a catalogue of AI-sounding patterns |
 
-The skill keeps its pattern catalogue in [`references/patterns.md`](./skills/human-writing/references/patterns.md)
-and the self-check it runs before answering in [`references/checklist.md`](./skills/human-writing/references/checklist.md).
+The skill keeps its pattern catalogue in [`references/patterns.md`](./skills/humanize/references/patterns.md)
+and the self-check it runs before answering in [`references/checklist.md`](./skills/humanize/references/checklist.md).
 
 ## Installation
 
