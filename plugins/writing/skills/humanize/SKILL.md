@@ -1,5 +1,5 @@
 ---
-name: human-writing
+name: humanize
 description: Writes, edits or reviews prose so it is short, consistent and does not read as AI-generated — no padding, no self-contradiction, no stock phrases or fake drama, the writer's voice kept. Use whenever the user asks for text meant for people — a message, email, Slack or Teams reply, post, announcement, update, bio, note — asks to shorten, tighten, rewrite or change the tone of a draft, or asks whether something sounds like AI, even if they never mention style: 'write a message to the team', 'reply to this email', 'make this shorter', 'does this read as AI', 'napisz wiadomość do zespołu', 'odpisz mu', 'skróć to', 'zmień ton na luźniejszy', 'czy to brzmi jak AI'. The word and pattern lists target English prose. NOT for commit messages or pull requests (git-workflow), READMEs (repository-documentation), PRDs (prd-spec), code or code comments.
 argument-hint: "[draft text or file path]"
 ---

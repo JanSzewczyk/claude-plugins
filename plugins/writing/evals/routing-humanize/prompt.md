@@ -1,6 +1,6 @@
 ---
-name: routing-human-writing
-description: A natural request that human-writing should pick up, phrased the way a user would actually ask.
+name: routing-humanize
+description: A natural request that humanize should pick up, phrased the way a user would actually ask.
 tags: [routing, smoke]
 plugins: ["../.."]
 runs: 3
