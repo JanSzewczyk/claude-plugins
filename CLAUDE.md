@@ -121,11 +121,13 @@ The block is identical in both places, and must be byte-for-byte the same for a 
 
 Versions live in two places: `.claude-plugin/plugin.json` (`version`, per plugin) and agent frontmatter (`version` + `lastUpdated`, per agent). **Skills have no version field** — `SKILL.md` frontmatter is locked to the fields defined above, so a skill's version is tracked implicitly through its parent plugin's `version` in `plugin.json`.
 
-**IMPORTANT — this must happen automatically, without being asked:** whenever you edit an agent `.md` file or anything under a plugin's `skills/` directory (or the plugin otherwise changes), bump the version before ending the turn. Don't leave a version unchanged just because the user didn't mention versioning.
+**Never bump a version on your own.** Do not edit a plugin's `version`, an agent's `version` or `lastUpdated` unless the user asks for it in this conversation. Editing a skill or agent is not a request to bump. When the user wants the bump, run `/plugin-release`: the CLI (`plan-release.mjs`) works out which plugins changed against `main` and how big each bump is, you show that plan, and you apply it only after the user agrees. The `version bumps` job in CI fails a pull request in which a plugin changed and its version did not, so a forgotten bump is caught there, not by a standing instruction to agents.
 
-- Editing a skill (any file under `plugins/<name>/skills/**`) → bump that plugin's `version` in `plugins/<name>/.claude-plugin/plugin.json`.
-- Editing an agent (`plugins/<name>/agents/*.md`) → bump both that agent's own `version` in its frontmatter **and** the plugin's `version` in `plugin.json`, and set `lastUpdated` to today's date.
-- Editing `plugin.json` metadata directly (description, agents list) with no other content change → bump the plugin `version` for that alone.
+What a bump covers, once the user has asked:
+
+- A change to a skill (any file under `plugins/<name>/skills/**`) → the plugin's `version` in `plugins/<name>/.claude-plugin/plugin.json`.
+- A change to an agent (`plugins/<name>/agents/*.md`) → that agent's own `version` in its frontmatter **and** the plugin's `version` in `plugin.json`, with `lastUpdated` set to today's date.
+- A change to `plugin.json` metadata (description, agents list) with no other content change → the plugin `version` for that alone.
 - A brand-new plugin starts at `1.0.0`; a brand-new agent starts at `1.0.0` with `lastUpdated` set to the creation date.
 
 Semver rules for the bump size (apply the same rule to both plugin and agent versions):
@@ -134,9 +136,9 @@ Semver rules for the bump size (apply the same rule to both plugin and agent ver
 - **minor** (`x.Y+1.0`) — new skill or agent added, new capability/section, meaningfully expanded guidance, non-breaking additions.
 - **major** (`X+1.0.0`) — breaking change: removed/renamed a skill or agent, changed a frontmatter contract, restructured in a way that invalidates prior usage.
 
-Editing a note in `knowledge/` changes the generated files of every skill that receives it: bump each plugin whose files `build` rewrote, as if you had edited that skill by hand.
+Editing a note in `knowledge/` changes the generated files of every skill that receives it: those plugins need a bump like any other changed plugin. Say which ones `build` rewrote; the bump itself waits for the user.
 
-When several plugins/agents change in one turn, bump each one independently according to the scope of its own change — don't apply a single bump size across all of them.
+When several plugins/agents change together, each gets its own bump according to the scope of its own change — never a single size across all of them.
 
 ## Validation & testing
 
@@ -233,7 +235,10 @@ unknown version"; `/marketplace-creator audit` warns about ranges with no tag. F
 `claude plugin update <dependency>@szum-tech` (re-records the version from the checkout) or by
 tagging the dependency; to try one plugin without installing, `claude --plugin-dir ./plugins/<name>`.
 
-**Releasing.** `/plugin-release` works out which plugins changed since the last tag, proposes the
-semver bump each change implies against the rules in the Versioning section, and drives
-`claude plugin tag` to create `<plugin>--v<version>`. Run `/marketplace-creator audit` first — a release
+**Releasing.** `/plugin-release`, run when the user asks, works out which plugins changed (this branch
+against `main`, plus uncommitted work), proposes the semver bump each change implies against the
+rules in the Versioning section, writes it after the user agrees, and drives
+`claude plugin tag` to create `<plugin>--v<version>`. The `version bumps` CI job
+(`.github/actions/version-bump-check`, shared with other plugin repos) fails a pull request that
+changed a plugin without a bump. Run `/marketplace-creator audit` first — a release
 that ships a stale README is the exact failure this repo keeps hitting.

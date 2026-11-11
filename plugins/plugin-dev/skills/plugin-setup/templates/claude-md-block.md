@@ -15,15 +15,20 @@ Managed by `/plugin-setup`; re-run it to refresh this section instead of editing
 - Every manifest opens with `$schema`: `https://www.schemastore.org/claude-code-plugin-manifest.json`
   for a plugin, `https://www.schemastore.org/claude-code-marketplace.json` for the marketplace.
 
-### After every change to a plugin
+### After a change to a plugin
 
-Do these in the same change, without being asked. A change is unfinished until they are done.
-
-1. **Bump the version.** {{VERSIONING}}
-2. **Update the docs that list capabilities by hand:** {{DOCS}}.
-3. **Run {{AUDIT}}** and fix what it reports before committing. It checks manifests,
+1. **Update the docs that list capabilities by hand:** {{DOCS}}.
+2. **Run {{AUDIT}}** and fix what it reports before committing. It checks manifests,
    docs and frontmatter against what is on disk.
-{{BUMP_CHECK}}
+
+### Versions
+
+{{VERSIONING}}
+
+**Never bump a version on your own.** Editing a skill or an agent is not a request to bump: change
+a `version` only when the user asks for it in this conversation, and then through `/plugin-release`,
+which proposes the size from the diff and writes nothing until the user agrees. A pull request that
+changed a plugin and left its version alone is caught by CI, not by a standing instruction.
 
 ### Releasing
 

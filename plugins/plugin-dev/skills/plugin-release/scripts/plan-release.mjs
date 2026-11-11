@@ -6,12 +6,22 @@
 // The semantic half stays with the caller — this script proposes a floor, never the final call.
 // A "patch" verdict on a diff that quietly changed a skill's contract is still a major.
 //
-// Usage: node plan-release.mjs [repo-root] [--since <ref>] [--apply] [--json] [--plugin <name>] [--check]
+// Usage: node plan-release.mjs [repo-root] [--since <ref> | --commit <ref> | --working]
+//          [--apply] [--json] [--plugin <name>] [--ignore <a,b>] [--check [--strict]]
+//
+// What is compared (first match wins): --since <ref>; --commit <ref> (that one commit);
+// --working (uncommitted changes only); otherwise the point where the current branch left the
+// default branch; on the default branch itself, each plugin's last release tag.
+//
+// Works on a marketplace (.claude-plugin/marketplace.json) and on a single-plugin repo (a root
+// .claude-plugin/plugin.json, treated as one plugin rooted at ".").
 //
 // --check is the CI gate: with --since <the PR's base>, it exits 1 when a changed plugin has no
-// version bump, and warns when the bump is smaller than the change implies. It writes nothing.
+// version bump, and warns when the bump is smaller than the change implies (--strict fails on
+// that too). It writes nothing to the repo. Under GitHub Actions it prints ::error annotations
+// and writes a Markdown summary to $GITHUB_STEP_SUMMARY.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 
@@ -19,19 +29,31 @@ const argv = process.argv.slice(2);
 const asJson = argv.includes("--json");
 const apply = argv.includes("--apply");
 const check = argv.includes("--check");
+const strict = argv.includes("--strict");
+const working = argv.includes("--working");
 
 function flag(name, fallback) {
   const i = argv.indexOf(name);
   return i !== -1 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback;
 }
 
-const VALUE_FLAGS = new Set(["--since", "--plugin"]);
+const VALUE_FLAGS = new Set(["--since", "--plugin", "--commit", "--ignore"]);
 const positional = argv.filter((a, i) => !a.startsWith("--") && !VALUE_FLAGS.has(argv[i - 1]));
 const root = resolve(positional[0] ?? process.cwd());
 const onlyPlugin = flag("--plugin", null);
 const explicitSince = flag("--since", null);
+const commitRef = flag("--commit", null);
+const ignored = new Set((flag("--ignore", "") ?? "").split(",").map((n) => n.trim()).filter(Boolean));
 if (check && apply) {
   console.error("✗ --check and --apply exclude each other");
+  process.exit(1);
+}
+if ([explicitSince, commitRef, working || null].filter(Boolean).length > 1) {
+  console.error("✗ --since, --commit and --working exclude each other");
+  process.exit(1);
+}
+if (commitRef && apply) {
+  console.error("✗ --apply writes into the working tree, so it cannot be combined with --commit");
   process.exit(1);
 }
 
@@ -55,15 +77,49 @@ const lines = (text) => (text ?? "").split("\n").filter(Boolean);
 if (!existsSync(join(root, ".git"))) fail(`${root} is not a git repository`);
 
 const marketplacePath = join(root, ".claude-plugin", "marketplace.json");
-if (!existsSync(marketplacePath)) fail("No .claude-plugin/marketplace.json — this is not a marketplace repo root.");
-const marketplaceRaw = readFileSync(marketplacePath, "utf8");
-const marketplace = JSON.parse(marketplaceRaw);
+const singleManifestPath = join(root, ".claude-plugin", "plugin.json");
 
+// A marketplace lists its plugins. A repo with only a root .claude-plugin/plugin.json is one plugin
+// rooted at ".", which gets the same plan through a one-entry catalog that is never written back.
+let marketplaceRaw = null;
+let marketplace;
+if (existsSync(marketplacePath)) {
+  marketplaceRaw = readFileSync(marketplacePath, "utf8");
+  marketplace = JSON.parse(marketplaceRaw);
+} else if (existsSync(singleManifestPath)) {
+  const { name } = JSON.parse(readFileSync(singleManifestPath, "utf8"));
+  if (!name) fail(".claude-plugin/plugin.json has no name.");
+  marketplace = { plugins: [{ name, source: "." }] };
+} else {
+  fail("No .claude-plugin/marketplace.json or .claude-plugin/plugin.json — this is not a plugin repo root.");
+}
+
+// CI checks out a pull request shallow, with no origin/<base>. Fetch what the comparison needs, once,
+// and only for --check: a planning run on a laptop never reaches for the network.
+function ensureHistory(ref) {
+  const resolves = () => Boolean(git(["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], true));
+  const joined = () => resolves() && Boolean(git(["merge-base", ref, "HEAD"], true));
+  if (joined()) return;
+  const shallow = git(["rev-parse", "--is-shallow-repository"], true) === "true";
+  const remote = /^origin\/(.+)$/.exec(ref);
+  if (remote && !resolves()) {
+    git(["fetch", "--no-tags", ...(shallow ? ["--depth=1"] : []), "origin", `${remote[1]}:refs/remotes/origin/${remote[1]}`], true);
+  }
+  if (shallow && !joined()) git(["fetch", "--no-tags", "--unshallow", "origin"], true);
+}
+
+if (explicitSince && check) ensureHistory(explicitSince);
 if (explicitSince && !git(["rev-parse", "--verify", `${explicitSince}^{commit}`], true)) {
   fail(`--since ref "${explicitSince}" does not resolve to a commit`);
 }
+if (commitRef && !git(["rev-parse", "--verify", `${commitRef}^{commit}`], true)) {
+  fail(`--commit ref "${commitRef}" does not resolve to a commit`);
+}
 if (onlyPlugin && !(marketplace.plugins ?? []).some((e) => e.name === onlyPlugin)) {
-  fail(`marketplace.json lists no plugin named "${onlyPlugin}"`);
+  fail(`${marketplaceRaw ? "marketplace.json" : "plugin.json"} lists no plugin named "${onlyPlugin}"`);
+}
+for (const name of ignored) {
+  if (!(marketplace.plugins ?? []).some((e) => e.name === name)) console.error(`⚠ --ignore names "${name}", which is not a plugin here`);
 }
 
 // Where a plugin's last release is. Tags are per plugin, so the newest tag in the repo says
@@ -84,6 +140,44 @@ function repoBaseline() {
   return git(["rev-parse", "HEAD~1"], true) ? "HEAD~1" : null;
 }
 
+// The branch every other branch is measured against: origin/HEAD, then the usual names.
+function defaultBranchRef() {
+  const head = git(["symbolic-ref", "--short", "--quiet", "refs/remotes/origin/HEAD"], true);
+  return [head, "origin/main", "origin/master", "main", "master"].filter(Boolean).find((ref) => git(["rev-parse", "--verify", "--quiet", `${ref}^{commit}`], true)) ?? null;
+}
+
+// Where the current branch left the default branch. Nothing on the default branch itself: there
+// the last release tag is the honest baseline.
+function branchBaseline() {
+  const def = defaultBranchRef();
+  if (!def) return null;
+  const current = git(["branch", "--show-current"], true);
+  if (current && current === def.replace(/^origin\//, "")) return null;
+  return git(["merge-base", "HEAD", def], true) || null;
+}
+
+const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbfce9d";
+
+// The range being judged: a branch, one commit, or the uncommitted changes. `till` is the end of
+// it and `withWorking` says whether uncommitted work counts.
+let fixedSince = explicitSince;
+let till = "HEAD";
+let withWorking = true;
+if (commitRef) {
+  till = git(["rev-parse", `${commitRef}^{commit}`]);
+  fixedSince = git(["rev-parse", "--verify", "--quiet", `${till}^`], true) || EMPTY_TREE;
+  withWorking = false;
+} else if (working) {
+  fixedSince = "HEAD";
+} else if (!explicitSince) {
+  fixedSince = branchBaseline();
+}
+const baselineLabel = commitRef
+  ? `commit ${commitRef}`
+  : working
+    ? "the uncommitted changes"
+    : explicitSince ?? (fixedSince ? "the point where this branch left the default branch" : "each plugin's last release");
+
 // The working tree, one entry per file. -z keeps paths verbatim (no quoting of spaces), and a
 // rename is two fields: the new path, then the old one.
 function workingTreeChanges() {
@@ -97,14 +191,14 @@ function workingTreeChanges() {
   return out;
 }
 
-const status = workingTreeChanges();
+const status = withWorking ? workingTreeChanges() : [];
 const dirty = status.length > 0;
 const namesAt = (ref) => new Set(lines(git(["ls-tree", "-r", "--name-only", ref], true)));
 
 // A path present at the baseline but gone now, or vice versa — how additions and removals are
 // detected. "Now" means the working tree, not HEAD: a skill added but not yet committed still
 // counts as a new skill, which is exactly the state you are in when planning a release.
-const after = namesAt("HEAD");
+const after = namesAt(till);
 for (const { code, path, from } of status) {
   if (from && code.includes("R")) after.delete(from);
   if (code.includes("D")) after.delete(path);
@@ -114,7 +208,9 @@ for (const { code, path, from } of status) {
 // Changed paths: committed since `since`, plus anything currently uncommitted, so a release
 // planned mid-edit sees the work in the tree rather than only what is already in history.
 function changedSince(since) {
-  const committed = since ? lines(git(["diff", "--name-only", `${since}...HEAD`])) : [];
+  // The root commit has no parent, and git cannot diff against an empty tree it has no object for:
+  // every file it holds is what it changed.
+  const committed = !since ? [] : since === EMPTY_TREE ? lines(git(["ls-tree", "-r", "--name-only", till])) : lines(git(["diff", "--name-only", `${since}...${till}`]));
   return new Set([...committed, ...status.flatMap(({ path, from }) => (from ? [path, from] : [path]))]);
 }
 
@@ -177,6 +273,7 @@ const notPlanned = [];
 for (const entry of marketplace.plugins ?? []) {
   const name = entry.name;
   if (onlyPlugin && name !== onlyPlugin) continue;
+  if (ignored.has(name)) continue;
 
   const dir = localPluginDir(entry);
   if (!dir) {
@@ -186,14 +283,25 @@ for (const entry of marketplace.plugins ?? []) {
   const rel = relative(root, dir).replace(/\\/g, "/");
   const prefix = rel ? `${rel}/` : "";
   const manifestPath = manifestRel(prefix, dir);
-  const manifest = manifestPath ? JSON.parse(readFileSync(join(root, manifestPath), "utf8")) : {};
-  const currentVersion = manifest.version ?? entry.version ?? null;
+  // For one commit, "now" is that commit, not whatever the working tree holds.
+  const readAt = (path) => {
+    if (!commitRef) return path && existsSync(join(root, path)) ? JSON.parse(readFileSync(join(root, path), "utf8")) : null;
+    const raw = git(["show", `${till}:${path}`], true);
+    try {
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+  const manifest = (manifestPath ? readAt(manifestPath) : null) ?? {};
+  const entryNow = commitRef ? (readAt(".claude-plugin/marketplace.json")?.plugins ?? []).find((e) => e.name === name) ?? entry : entry;
+  const currentVersion = manifest.version ?? entryNow.version ?? null;
 
   // A plugin that was never tagged in a repo that tags per plugin is unreleased, whatever else
   // happened to it: its first release is the version it already declares.
-  const tag = explicitSince ? null : pluginTag(name);
-  const neverTagged = !explicitSince && !tag && repoReleasesPerPlugin;
-  const since = explicitSince ?? tag ?? (neverTagged ? null : repoBaseline());
+  const tag = fixedSince ? null : pluginTag(name);
+  const neverTagged = !fixedSince && !tag && repoReleasesPerPlugin;
+  const since = fixedSince ?? tag ?? (neverTagged ? null : repoBaseline());
   if (!since && !neverTagged) {
     fail("Nothing to compare against — pass --since <ref> (the repo has no tags, no upstream, and no parent commit).");
   }
@@ -203,7 +311,13 @@ for (const entry of marketplace.plugins ?? []) {
   const addedInRange = Boolean(since) && ![...namesAt(since)].some((p) => p.startsWith(prefix));
   const firstRelease = neverTagged || addedInRange;
 
-  const touched = [...changedSince(since)].filter((p) => p.startsWith(prefix));
+  // A plugin at the repo root shares its folder with the repo's own files; those are not the plugin.
+  const notThePlugin = (p) =>
+    /^(\.github|\.vscode|\.idea|docs|node_modules)\//.test(p) ||
+    /^\.(gitignore|gitattributes|editorconfig)$/.test(p) ||
+    /^(README|LICENSE|LICENCE|CHANGELOG|CLAUDE)(\.[A-Za-z]+)?$/i.test(p) ||
+    p === ".claude-plugin/marketplace.json";
+  const touched = [...changedSince(since)].filter((p) => p.startsWith(prefix) && (prefix !== "" || !notThePlugin(p)));
   if (touched.length === 0 && !firstRelease) continue;
 
   if (currentVersion === null) {
@@ -317,7 +431,7 @@ if (apply) {
       }
     }
     const inEntry = (m) => m.plugins.find((e) => e.name === plan.plugin);
-    if (inEntry(JSON.parse(marketplaceOut))?.version !== undefined) {
+    if (marketplaceOut !== null && inEntry(JSON.parse(marketplaceOut))?.version !== undefined) {
       const updated = rewriteVersion(marketplaceOut, inEntry, plan.proposedVersion);
       if (updated) marketplaceOut = updated;
       else written = false;
@@ -335,32 +449,57 @@ function bumpKind(from, to) {
   return x > a ? "major" : y > b ? "minor" : z > c ? "patch" : "none";
 }
 
+// A GitHub workflow command carries one line; % and newlines are escaped the way the runner expects.
+const annotate = (level, file, title, message) =>
+  console.log(`::${level} file=${file},title=${title}::${message.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`);
+
 if (check) {
   const missing = plans.filter((p) => !p.alreadyBumped && !p.firstRelease && p.bump !== "none");
   const tooSmall = plans.filter((p) => p.alreadyBumped && order.indexOf(bumpKind(p.previousVersion, p.currentVersion)) < order.indexOf(p.kind));
+  const failing = missing.length > 0 || (strict && tooSmall.length > 0);
+  const onActions = process.env.GITHUB_ACTIONS === "true";
+  const manifestOf = (p) => p.manifestPath ?? ".claude-plugin/plugin.json";
+
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const rows = [
+      ...missing.map((p) => `| ✗ ${p.plugin} | ${p.currentVersion} | ${p.proposedVersion} (${p.bump}) | ${p.reasons.join("; ")} |`),
+      ...tooSmall.map((p) => `| ${strict ? "✗" : "⚠"} ${p.plugin} | ${p.previousVersion} → ${p.currentVersion} | ${p.kind} bump | ${p.reasons.join("; ")} |`),
+    ];
+    const body = rows.length
+      ? `### Version bumps\n\n| Plugin | Version | Needs | Why |\n| --- | --- | --- | --- |\n${rows.join("\n")}\n\nRun \`/plugin-release\` in Claude Code to plan and apply the bump, or set \`version\` by hand in the plugin's \`plugin.json\` (and its marketplace entry, if it lists one).\n`
+      : `### Version bumps\n\n✓ every changed plugin has a version bump since ${baselineLabel}.\n`;
+    try {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${body}\n`);
+    } catch {
+      // The summary is a convenience; the exit code is the gate.
+    }
+  }
+
   if (asJson) {
-    console.log(JSON.stringify({ root, since: explicitSince ?? "per plugin", missing, tooSmall, notPlanned }, null, 2));
+    console.log(JSON.stringify({ root, since: fixedSince ?? "per plugin", missing, tooSmall, notPlanned }, null, 2));
   } else {
     for (const p of missing) {
       console.log(`✗ ${p.plugin} changed but is still at ${p.currentVersion} — needs a ${p.bump} bump to ${p.proposedVersion}`);
       for (const reason of p.reasons) console.log(`    · ${reason}`);
+      if (onActions) annotate("error", manifestOf(p), "Version bump missing", `${p.plugin} changed (${p.reasons.join("; ")}) but is still at ${p.currentVersion}. Bump it to ${p.proposedVersion} with /plugin-release.`);
     }
     for (const p of tooSmall) {
-      console.log(`⚠ ${p.plugin} went ${p.previousVersion} → ${p.currentVersion}, but the change suggests a ${p.kind} bump`);
+      console.log(`${strict ? "✗" : "⚠"} ${p.plugin} went ${p.previousVersion} → ${p.currentVersion}, but the change suggests a ${p.kind} bump`);
       for (const reason of p.reasons) console.log(`    · ${reason}`);
+      if (onActions) annotate(strict ? "error" : "warning", manifestOf(p), "Version bump may be too small", `${p.plugin} went ${p.previousVersion} → ${p.currentVersion}, but the change suggests a ${p.kind} bump (${p.reasons.join("; ")}).`);
     }
-    if (!missing.length && !tooSmall.length) console.log(`✓ every changed plugin has a version bump since ${explicitSince ?? "its last release"}`);
+    if (!missing.length && !tooSmall.length) console.log(`✓ every changed plugin has a version bump since ${baselineLabel}`);
   }
-  process.exit(missing.length ? 1 : 0);
+  process.exit(failing ? 1 : 0);
 }
 
 if (asJson) {
-  console.log(JSON.stringify({ root, since: explicitSince ?? "per plugin", dirty, plans, notPlanned }, null, 2));
+  console.log(JSON.stringify({ root, since: fixedSince ?? "per plugin", dirty, plans, notPlanned }, null, 2));
   process.exit(0);
 }
 
 console.log(
-  `Comparing against: ${explicitSince ?? "each plugin's last release"}${dirty ? "  (working tree is dirty — uncommitted changes included)" : ""}`
+  `Comparing against: ${baselineLabel}${dirty ? "  (working tree is dirty — uncommitted changes included)" : ""}`
 );
 
 for (const { plugin, reason } of notPlanned) console.log(`\n${plugin}  not planned: ${reason}`);
@@ -371,7 +510,7 @@ if (plans.length === 0) {
 }
 
 for (const plan of plans) {
-  const baseline = !explicitSince && plan.since ? `  since ${plan.since}` : "";
+  const baseline = !fixedSince && plan.since ? `  since ${plan.since}` : "";
   const header = plan.alreadyBumped
     ? `${plan.plugin}  ${plan.previousVersion} → ${plan.currentVersion}  (already bumped)${baseline}`
     : plan.firstRelease

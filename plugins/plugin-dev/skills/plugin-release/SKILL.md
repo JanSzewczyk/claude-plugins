@@ -1,6 +1,6 @@
 ---
 name: plugin-release
-description: Cut a release for one or more plugins in a Claude Code marketplace repo — work out which plugins changed since the last tag, propose the semver bump each change implies, write the new versions into plugin.json, keep the docs tables in step, and create the release tags with `claude plugin tag`. Use when the user wants to release, publish, version, or tag a plugin, asks "what needs a version bump", says they forgot to bump a version, or has finished a batch of skill and agent edits and wants the repo release-ready.
+description: Work out which plugins in a Claude Code marketplace or single-plugin repo need a version bump and how big, then bump and tag only after the user agrees — it reads the branch against main, one commit, or the uncommitted changes, proposes the semver bump per plugin with reasons, writes the new versions into plugin.json on approval, and creates the release tags with `claude plugin tag`. Use only when the user asks for it: "release the plugin", "what needs a version bump", "bump the version", "tag a release", "podbij wersję", "co wymaga podbicia wersji". Never run it on your own after an edit or a commit; CI is what catches a missing bump.
 allowed-tools: Read, Glob, Grep, Bash, Edit
 argument-hint: "[plugin name to release, or nothing for every changed plugin]"
 ---
@@ -10,13 +10,17 @@ argument-hint: "[plugin name to release, or nothing for every changed plugin]"
 In a marketplace with no changelog, the manifest is the entire release record — so the version
 bump is the release. This skill makes that bump correct and repeatable instead of remembered.
 
-> - [scripts/plan-release.mjs](./scripts/plan-release.mjs) — diffs each plugin against its last
->   release, and proposes a bump per plugin with its reasons. `--apply` writes them.
+> - [scripts/plan-release.mjs](./scripts/plan-release.mjs) — the CLI that decides whether each plugin
+>   needs a bump and how big, with its reasons. `--apply` writes them; `--check` is the CI gate.
 
 ## The versioning rules
 
 If the repository's `CLAUDE.md` has a Versioning section, read it before deciding anything: it is
 the contract, and where it differs from the defaults below, it wins.
+
+**A bump is the user's decision.** This skill runs when the user asks for it, shows the plan, and
+writes a version only after they agree. Nothing here runs because a file was edited or a commit was
+made, and no `CLAUDE.md` should tell an agent to do so.
 
 - **Versions live in the manifest**, in `.claude-plugin/plugin.json` or the marketplace entry. A plugin with
   neither follows the git commit and has nothing to bump; the plan says so. **Skills have no
@@ -43,38 +47,48 @@ node "${CLAUDE_SKILL_DIR}/scripts/plan-release.mjs" .
 
 | Flag | Effect |
 | --- | --- |
-| `--since <ref>` | What to compare every plugin against. Defaults per plugin to its last `<plugin>--v*` tag; a repo without such tags uses its last plain tag, then the upstream branch, then `HEAD~1`. |
+| *(none)* | Compare each plugin against where the current branch left the default branch (`origin/HEAD`, then `origin/main`, then `main`), plus uncommitted work. On the default branch itself, or without one, each plugin's last `<plugin>--v*` tag; then the upstream branch, then `HEAD~1`. |
+| `--since <ref>` | Compare every plugin against that ref instead. |
+| `--commit <ref>` | Only what that one commit changed (`<ref>~1` to `<ref>`), ignoring the working tree. |
+| `--working` | Only the uncommitted changes (against `HEAD`). |
 | `--plugin <name>` | Plan only that plugin. |
 | `--apply` | Write the proposed versions into every layer that declares one. Without it the script only reports. |
 | `--json` | Machine-readable plan. |
-| `--check` | The CI gate, with `--since <base>`: exit 1 when a changed plugin has no bump, a warning when the bump is smaller than the change implies. Writes nothing. |
+| `--check` | The CI gate: exit 1 when a changed plugin has no bump, a warning when the bump is smaller than the change implies. Writes nothing. With `--strict` a too-small bump fails too; `--ignore <a,b>` leaves plugins out. Under GitHub Actions it prints `::error` annotations and a step summary. |
 
 The plan includes **uncommitted work**, so a new skill that exists only in the working tree is
 still seen as a new skill. That is deliberate: you plan a release before committing the bump, not
 after.
 
-Plugins are found through each marketplace entry's `source`. Under `not planned` the script names
-what it cannot release: remote sources, which ship from their own repo, and plugins with no version.
+Plugins are found through each marketplace entry's `source`; a repo with no `marketplace.json` but a
+root `.claude-plugin/plugin.json` is one plugin rooted at `.`, where `.github/`, dotfiles, `docs/` and
+the root README, LICENSE, CHANGELOG and CLAUDE.md do not count as a change. Under `not planned` the
+script names what it cannot release: remote sources, which ship from their own repo, and plugins with no version.
 A plugin with no tag in a repo that tags per plugin is a **first release**: tag the version it
 already declares, with no bump.
 
 ## The workflow
 
-1. **Run the planner without `--apply` first** and read the reasons per plugin. The script
-   proposes a *floor*, derived from what files moved — it cannot see intent.
+1. **Run the planner without `--apply` first**, with the scope the user means: the branch (default),
+   one commit (`--commit <ref>`) or the uncommitted changes (`--working`). Read the reasons per
+   plugin. The script proposes a *floor*, derived from what files moved — it cannot see intent.
 2. **Overrule it where the diff is semantically bigger than it looks.** The script says patch for
    an edit inside an existing skill. If that edit changed the skill's frontmatter contract,
    renamed its slash command, or removed a documented capability, it is a **major** and you must
    say so. This step is the reason the skill exists; do not skip it.
-3. **Run `/marketplace-creator audit` before bumping anything.** A release that ships a README claiming
+3. **Show the plan and ask.** One line per plugin (old → new, size, reason), and wait for the
+   user's yes, or their own size. Without it, stop here: no file is written.
+4. **Run `/marketplace-creator audit` before bumping anything.** A release that ships a README claiming
    the wrong skill count is the failure this pairing exists to prevent. Fix the drift first — the
    doc edits belong in the same release, not a follow-up.
-4. **Apply the bumps.** `--apply` for the mechanical ones; edit the manifest by hand where you
+5. **Apply the bumps.** `--apply` for the mechanical ones; edit the manifest by hand where you
    overruled the proposal. For every agent the script flagged, bump its frontmatter `version` and
    set `lastUpdated` to today's date.
-5. **Commit** the version bumps together with the changes they describe.
-6. **Tag**, with the path the plan printed for that plugin. The native command validates that
-   `plugin.json` and the marketplace entry agree before it writes anything:
+6. **Leave the commit to the user**, or to the flow that called you (`/ship-task`), together with the
+   changes the bump describes.
+7. **Tag only when the user asks for a release**, with the path the plan printed for that plugin.
+   The native command validates that `plugin.json` and the marketplace entry agree before it writes
+   anything:
    ```bash
    claude plugin tag <plugin-path> --dry-run
    claude plugin tag <plugin-path> -m "<name> v%s" --push
@@ -84,6 +98,8 @@ already declares, with no bump.
 
 ## Guardrails
 
+- **Never run this, and never apply a bump, unprompted** — not after an edit, not after a commit, not
+  to be helpful. The user asks; CI catches the rest.
 - **Never bump without a reason you can state.** If you cannot name what changed, the plugin
   probably should not be released.
 - **Never tag a dirty tree, and never `--force` a tag.** A tag that does not correspond to a
@@ -99,11 +115,11 @@ The plugin authoring rules behind these checks, generated from the knowledge not
 finding needs its reason or its fix.
 
 <!-- BEGIN:knowledge -->
-<!-- generated by knowledge.mjs from 16 note(s) (sha256 3744261c2336); edit the notes in knowledge/, then run build -->
+<!-- generated by knowledge.mjs from 16 note(s) (sha256 57d9b5e8df9d); edit the notes in knowledge/, then run build -->
 
 | Impact | Rule | Applies to |
 | --- | --- | --- |
-| critical | [Bump the plugin version in every change that touches the plugin](references/rules.md#bump-the-plugin-version-in-every-change-that-touches-the-plugin) — A pinned version keeps users on the cached copy until the string changes, however many commits land. | claude-code |
+| critical | [Raise a changed plugin's version before merge, on the maintainer's say-so](references/rules.md#raise-a-changed-plugins-version-before-merge-on-the-maintainers-say-so) — A pinned version keeps users on the cached copy until it changes; bump once on request, and let CI catch a miss. | claude-code |
 | critical | [Keep plugin.json in .claude-plugin/ and every component at the plugin root](references/rules.md#keep-pluginjson-in-claude-plugin-and-every-component-at-the-plugin-root) — The manifest is .claude-plugin/plugin.json; skills/, agents/ and hooks/ sit beside .claude-plugin/, never in it. | claude-code |
 | high | [Give a version range to every dependency whose skills or tools your plugin calls](references/rules.md#give-a-version-range-to-every-dependency-whose-skills-or-tools-your-plugin-calls) — An unconstrained dependency moves to every release, so one rename breaks your plugin for everyone who updates. | claude-code |
 | high | [Keep name, version and dependencies identical in plugin.json and the marketplace entry](references/rules.md#keep-name-version-and-dependencies-identical-in-pluginjson-and-the-marketplace-entry) — Two surfaces read two files; a value set in both must match, or install and browse disagree. | claude-code |

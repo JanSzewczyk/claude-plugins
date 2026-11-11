@@ -251,3 +251,196 @@ test("--check reads the old version from a manifest that moved into .claude-plug
   assert.equal(report.status, 0);
   assert.deepEqual(report.missing, []);
 });
+
+// --- baseline, scopes, single-plugin repos, the CI gate ---
+
+function checkout(...args) {
+  git("checkout", "-q", ...args);
+}
+
+test("on a feature branch the baseline is where it left the default branch, not a stale tag", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  git("branch", "-M", "main");
+  git("tag", "foo--v1.0.0");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "main moved on\n");
+  write("plugins/foo/plugin.json", { name: "foo", version: "1.0.1" });
+  commit("unreleased work already bumped on main");
+  checkout("-b", "feature/x");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "branch work\n");
+  commit("branch change");
+
+  const plan = planFor(run(), "foo");
+  assert.equal(plan.since, git("merge-base", "HEAD", "main").trim());
+  assert.deepEqual(plan.touched, ["plugins/foo/skills/hello/SKILL.md"], "main's earlier work is not this branch's");
+  assert.equal(plan.alreadyBumped, false);
+  assert.equal(plan.bump, "patch");
+});
+
+test("on the default branch the per-plugin tag is still the baseline", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  git("branch", "-M", "main");
+  git("tag", "foo--v1.0.0");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "more\n");
+  commit("change");
+  assert.equal(planFor(run(), "foo").since, "foo--v1.0.0");
+});
+
+test("--commit judges one commit and reads the version as of that commit", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "first\n");
+  commit("first change");
+  const first = git("rev-parse", "HEAD").trim();
+  write("plugins/foo/plugin.json", { name: "foo", version: "1.0.1" });
+  commit("bump");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "uncommitted\n");
+
+  const plan = planFor(run("--commit", first), "foo");
+  assert.deepEqual(plan.touched, ["plugins/foo/skills/hello/SKILL.md"]);
+  assert.equal(plan.currentVersion, "1.0.0", "the bump came in a later commit");
+  assert.equal(plan.bump, "patch");
+  assert.equal(runCheck("--commit", first).status, 1);
+  assert.equal(runCheck("--commit", "HEAD").status, 0, "the bump commit changes only the manifest and is itself the bump");
+});
+
+test("--commit works on the root commit and cannot be applied", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  assert.equal(planFor(run("--commit", "HEAD"), "foo").firstRelease, true);
+  const out = spawnSync(process.execPath, [SCRIPT, root, "--commit", "HEAD", "--apply"], { encoding: "utf8" });
+  assert.equal(out.status, 1);
+  assert.match(out.stderr, /cannot be combined with --commit/);
+});
+
+test("--working sees only uncommitted changes", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  plugin("plugins/bar", "bar");
+  marketplace([
+    { name: "foo", source: "./plugins/foo" },
+    { name: "bar", source: "./plugins/bar" },
+  ]);
+  commit("base");
+  git("branch", "-M", "main");
+  checkout("-b", "feature/x");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "committed\n");
+  commit("foo change");
+  appendFileSync(join(root, "plugins/bar/skills/hello/SKILL.md"), "uncommitted\n");
+  const report = run("--working");
+  assert.equal(planFor(report, "foo"), undefined);
+  assert.equal(planFor(report, "bar").bump, "patch");
+});
+
+test("conflicting scope flags fail", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  const out = spawnSync(process.execPath, [SCRIPT, root, "--working", "--since", "HEAD"], { encoding: "utf8" });
+  assert.equal(out.status, 1);
+  assert.match(out.stderr, /exclude each other/);
+});
+
+function singlePlugin() {
+  write(".claude-plugin/plugin.json", { name: "solo", version: "1.0.0" });
+  write("skills/hello/SKILL.md", "---\nname: hello\ndescription: Hi\n---\nHi\n");
+  write("README.md", "# solo\n");
+  commit("base");
+}
+
+test("a single-plugin repo is planned, checked and written without a marketplace", () => {
+  singlePlugin();
+  appendFileSync(join(root, "skills/hello/SKILL.md"), "more\n");
+  const missing = runCheck("--since", "HEAD");
+  assert.equal(missing.status, 1);
+  assert.equal(missing.missing[0].plugin, "solo");
+
+  const plan = planFor(run("--since", "HEAD", "--apply"), "solo");
+  assert.equal(plan.applied, true);
+  assert.equal(plan.tagCommand, "claude plugin tag .");
+  assert.equal(JSON.parse(readFileSync(join(root, ".claude-plugin/plugin.json"))).version, "1.0.1");
+  assert.equal(runCheck("--since", "HEAD").status, 0);
+});
+
+test("files that belong to the repo, not the plugin, do not demand a bump", () => {
+  singlePlugin();
+  write(".github/workflows/ci.yml", "name: ci\n");
+  write("docs/guide.md", "guide\n");
+  write(".gitignore", "node_modules\n");
+  appendFileSync(join(root, "README.md"), "more\n");
+  const report = runCheck("--since", "HEAD");
+  assert.equal(report.status, 0);
+  assert.deepEqual(report.missing, []);
+  write("hooks/hooks.json", "{}\n");
+  assert.equal(runCheck("--since", "HEAD").status, 1, "a hook is the plugin");
+});
+
+test("--ignore leaves a plugin out of the check", () => {
+  marketplace([
+    { name: "foo", source: "./plugins/foo" },
+    { name: "bar", source: "./plugins/bar" },
+  ]);
+  plugin("plugins/foo", "foo");
+  plugin("plugins/bar", "bar");
+  commit("base");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "more\n");
+  appendFileSync(join(root, "plugins/bar/skills/hello/SKILL.md"), "more\n");
+  const report = runCheck("--since", "HEAD", "--ignore", "bar");
+  assert.deepEqual(report.missing.map((p) => p.plugin), ["foo"]);
+});
+
+test("--strict fails a bump smaller than the change implies; without it that only warns", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  write("plugins/foo/skills/second/SKILL.md", "---\nname: second\ndescription: Two\n---\nTwo\n");
+  write("plugins/foo/plugin.json", { name: "foo", version: "1.0.1" });
+  assert.equal(runCheck("--since", "HEAD").status, 0);
+  assert.equal(runCheck("--since", "HEAD", "--strict").status, 1);
+});
+
+test("under GitHub Actions --check annotates the manifest and writes a step summary", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo", ".claude-plugin/plugin.json");
+  commit("base");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "more\n");
+  const summary = join(root, "..", `summary-${Date.now()}.md`);
+  const out = spawnSync(process.execPath, [SCRIPT, root, "--check", "--since", "HEAD"], {
+    encoding: "utf8",
+    env: { ...process.env, GITHUB_ACTIONS: "true", GITHUB_STEP_SUMMARY: summary },
+  });
+  assert.equal(out.status, 1);
+  assert.match(out.stdout, /^::error file=plugins\/foo\/\.claude-plugin\/plugin\.json,title=Version bump missing::foo changed/m);
+  const text = readFileSync(summary, "utf8");
+  rmSync(summary, { force: true });
+  assert.match(text, /### Version bumps/);
+  assert.match(text, /\| ✗ foo \| 1\.0\.0 \| 1\.0\.1 \(patch\) \|/);
+});
+
+test("--check fetches the base and the missing history in a shallow clone", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  git("branch", "-M", "main");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "main two\n");
+  commit("main two");
+  checkout("-b", "feature/x");
+  appendFileSync(join(root, "plugins/foo/skills/hello/SKILL.md"), "branch\n");
+  commit("branch change");
+
+  const clone = mkdtempSync(join(tmpdir(), "release-clone-"));
+  try {
+    execFileSync("git", ["clone", "-q", "--depth", "1", "--branch", "feature/x", `file://${root}`, clone]);
+    assert.equal(execFileSync("git", ["-C", clone, "rev-parse", "--is-shallow-repository"], { encoding: "utf8" }).trim(), "true");
+    const out = spawnSync(process.execPath, [SCRIPT, clone, "--json", "--check", "--since", "origin/main"], { encoding: "utf8" });
+    assert.equal(out.status, 1, out.stdout + out.stderr);
+    assert.equal(JSON.parse(out.stdout).missing[0].plugin, "foo");
+  } finally {
+    rmSync(clone, { recursive: true, force: true });
+  }
+});
