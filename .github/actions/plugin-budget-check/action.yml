@@ -1,0 +1,44 @@
+name: Plugin Budget Check ⚖️
+description: >
+  Fail a plugin whose always-on tokens (skill and agent descriptions, paid in every session) reach
+  the fail limit, and warn above the warn limit. Signed out, the CLI only estimates offline, 25-40%
+  low, and the limits scale down to match; pass an api-key for counted figures.
+
+inputs:
+  path:
+    description: Root of the marketplace, relative to the workspace.
+    default: "."
+  api-key:
+    description: Anthropic API key, passed from a repository secret, for counted instead of estimated tokens. Optional.
+    default: ""
+  budget-warn:
+    description: Always-on tokens above which the check warns.
+    default: "1800"
+  budget-fail:
+    description: Always-on tokens at which the check fails.
+    default: "2000"
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code 🤖
+      shell: bash
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
+
+    - name: Check the always-on token budget ⚖️
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs
+        ROOT: ${{ inputs.path }}
+        ANTHROPIC_API_KEY: ${{ inputs.api-key }}
+        WARN: ${{ inputs.budget-warn }}
+        FAIL: ${{ inputs.budget-fail }}
+      run: node "$SCRIPT" "$ROOT" --budget --warn-at "$WARN" --fail-at "$FAIL"

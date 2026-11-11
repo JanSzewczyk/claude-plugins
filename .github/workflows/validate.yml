@@ -1,8 +1,9 @@
-name: validate
+name: Validate ✅
 
 # The repo ships Markdown, JSON and a few scripts, so there is little to build. What can break is
 # agreement: a plugin nobody registered, an agent missing from plugin.json, a README claiming a
-# skill count that stopped being true. This workflow is the guard for that.
+# skill count that stopped being true. This workflow is the guard for that. Every job runs one of
+# the shared actions in .github/actions, so other plugin repositories get what runs here.
 
 on:
   push:
@@ -10,27 +11,23 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   manifests:
-    name: manifests and documentation
+    name: Manifests and Docs 🔍
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 26
-
-      # The native schema pass needs the CLI; without it the script warns and skips that part
-      # rather than failing, so this step is allowed to fail on a fork without the install.
-      - name: Install Claude Code
-        continue-on-error: true
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Check manifests and documentation
-        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs .
-
-      - name: Test the marketplace scripts and the release planner
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check manifests and documentation 🔍
+        uses: ./.github/actions/marketplace-audit
+      - name: Test the marketplace scripts and the release planner 🧪
         run: >
           node --test
           plugins/plugin-dev/skills/marketplace-creator/tests/check-marketplace.test.mjs
@@ -39,83 +36,48 @@ jobs:
           plugins/github/tests/apply-plan.test.mjs
           plugins/github/tests/read-settings.test.mjs
 
-  cli:
-    name: plugins load, install and stay in budget
+  plugins-cli:
+    name: Plugins in the CLI 🔌
     runs-on: ubuntu-latest
     # validate reads manifests; these steps ask the CLI itself. Load and install run in a
     # throwaway HOME and CLAUDE_CONFIG_DIR the script deletes afterwards, never the runner's own.
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check every plugin loads 🔌
+        uses: ./.github/actions/plugin-load-check
+      - name: Check every plugin installs from the marketplace 📦
+        uses: ./.github/actions/plugin-install-check
+      - name: Check the always-on token budget ⚖️
+        uses: ./.github/actions/plugin-budget-check
         with:
-          node-version: 26
-
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
-
-      # A missing agent or skill path, a broken hooks file or a corrupt manifest: the plugin
-      # loads with errors, or not at all, and validate can pass anyway.
-      - name: Every plugin loads
-        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --load
-
-      # marketplace add ./ then install <plugin>@szum-tech for each entry: a wrong source path, a
-      # reserved name, a dependency range no plugin.json satisfies.
-      - name: Every plugin installs from the marketplace
-        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --install
-
-      # Skill and agent descriptions are paid in every session. Warn above 1,800, fail at 2,000.
-      # Signed out, the CLI only estimates offline (25–40% low) and the limits scale down to
-      # match; an ANTHROPIC_API_KEY secret, when the repo has one, gives counted figures.
-      - name: Always-on token budget
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node plugins/plugin-dev/skills/marketplace-creator/scripts/check-cli.mjs . --budget
+          api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 
   skills:
-    name: skill-audit sweep
+    name: Skill Audit 🔎
     runs-on: ubuntu-latest
-    # The mechanical half of skill-audit on every skill: frontmatter contract, description
-    # length, dead links, orphan references. Errors fail the job; warnings are left to the author.
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Audit every skill
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Audit every skill 🔎
         uses: ./.github/actions/skill-audit
 
   knowledge:
-    name: knowledge base renderings
+    name: Knowledge Base 📚
     runs-on: ubuntu-latest
-    # Skills and agents get generated copies of the notes in knowledge/. A note edited without a
-    # rebuild, or a generated file edited by hand, is drift: check rebuilds in memory and fails on
-    # any byte that differs, naming the file and whether it is stale or hand-edited.
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 26
-
-      - name: Validate the notes
-        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs validate
-
-      - name: Check the generated files are current
-        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
-
-      - name: Lint the notes across the base
-        # Warnings only (orphans, near-duplicates, a knowledge skill near its line budget): read
-        # them in the log. Add --strict to make them fail. Offline: --links probes sources.
-        run: node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs lint
-
-      - name: Test the build script and the edit hook
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check the knowledge base 📚
+        uses: ./.github/actions/knowledge-check
+      - name: Test the build script and the edit hook 🧪
         run: node --test plugins/knowledge-dev/skills/knowledge-author/tests/knowledge.test.mjs
 
   evals:
-    name: skill routing evals (smoke)
+    name: Plugin Evals 🧪 (${{ matrix.plugin }})
     runs-on: ubuntu-latest
-    # `claude plugin eval` is early access and needs both an API key and the enablement
-    # variable, so this job only runs when the secrets are present. Without them it is skipped,
-    # not failed — see plugins/*/evals/ for what it would run.
+    # `claude plugin eval` is early access and needs an API key, so this job only runs on a manual
+    # dispatch and the action skips itself without the secret — see plugins/*/evals/.
     if: ${{ github.event_name == 'workflow_dispatch' }}
     strategy:
       fail-fast: false
@@ -136,9 +98,9 @@ jobs:
           - testing
           - typescript
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Run the smoke routing cases
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Run the smoke routing cases 🧪
         uses: ./.github/actions/plugin-evals
         with:
           api-key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -146,14 +108,13 @@ jobs:
           artifact-name: eval-${{ matrix.plugin }}
 
   version-bumps:
-    name: version bumps
+    name: Version Bumps 🏷️
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
       # A plugin that pins `version` keeps users on the cached copy until the string changes, so a
-      # change merged without a bump never reaches anyone. This is the shared action other plugin
-      # repositories use; here it runs from the checkout.
-      - name: Every changed plugin has a version bump
+      # change merged without a bump never reaches anyone.
+      - name: Check every changed plugin has a version bump 🏷️
         uses: ./.github/actions/version-bump-check

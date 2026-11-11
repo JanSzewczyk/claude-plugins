@@ -1,0 +1,47 @@
+name: Knowledge Check 📚
+description: >
+  Keep a knowledge base honest in a repository that has a knowledge/ folder: every note follows the
+  authoring contract, every generated rendering in skills and agents is current (a note edited
+  without a rebuild, or a generated file edited by hand, fails and is named), and the notes lint
+  across the base. Runs the knowledge-author script from the ref this action is pinned to.
+
+inputs:
+  path:
+    description: Root of the repository that holds knowledge/, relative to the workspace.
+    default: "."
+  strict-lint:
+    description: Pass --strict to the lint, so its warnings (orphans, near-duplicates) fail the job.
+    default: "false"
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Validate the notes ✅
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs
+        ROOT: ${{ inputs.path }}
+      run: node "$SCRIPT" validate --root "$ROOT"
+
+    - name: Check the generated files are current 🔄
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs
+        ROOT: ${{ inputs.path }}
+      run: node "$SCRIPT" check --root "$ROOT"
+
+    - name: Lint the notes across the base 🧹
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs
+        ROOT: ${{ inputs.path }}
+        STRICT: ${{ inputs.strict-lint == 'true' && '--strict' || '' }}
+      run: node "$SCRIPT" lint --root "$ROOT" $STRICT

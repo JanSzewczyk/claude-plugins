@@ -1,8 +1,8 @@
-name: plugin-checks
+name: Plugin Checks ✅
 
 # Added by /plugin-setup. Fails a pull request whose manifests or docs drifted from the plugins
-# on disk, or in which a plugin changed and its version did not. The checks come from the shared
-# actions at the ref named below, so nothing is vendored into this repository.
+# on disk, or in which a plugin changed and its version did not. Every job runs one shared action
+# at the ref named below, so nothing is vendored into this repository.
 
 on:
   push:
@@ -12,59 +12,88 @@ on:
   workflow_dispatch:
   # END:evals
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  checks:
-    name: manifests and docs
+  manifests:
+    name: Manifests and Docs 🔍
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-checks@{{PLUGIN_DEV_REF}}
-        with:
-          # The version bump gate is its own job below, so it shows as its own check.
-          check-version-bumps: "false"
-          # BEGIN:cli
-          check-load: "true"
-          check-install: "true"
-          check-budget: "true"
-          # END:cli
-          # Other inputs: strict, path.
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check manifests and documentation 🔍
+        uses: JanSzewczyk/claude-plugins/.github/actions/marketplace-audit@{{PLUGIN_DEV_REF}}
+        # Inputs: strict, path.
 
   version-bumps:
-    name: version bumps
+    name: Version Bumps 🏷️
     # Fails a pull request in which a plugin changed and its version did not. Works in a marketplace
     # and in a single-plugin repo, and fetches the base history itself, so no fetch-depth: 0.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@{{PLUGIN_DEV_REF}}
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check every changed plugin has a version bump 🏷️
+        uses: JanSzewczyk/claude-plugins/.github/actions/version-bump-check@{{PLUGIN_DEV_REF}}
         # Inputs: strict (also fail a bump that is too small), ignore-plugins, base-ref, path.
+
+  # BEGIN:cli
+  plugins-cli:
+    name: Plugins in the CLI 🔌
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check every plugin loads 🔌
+        uses: JanSzewczyk/claude-plugins/.github/actions/plugin-load-check@{{PLUGIN_DEV_REF}}
+      - name: Check every plugin installs from the marketplace 📦
+        uses: JanSzewczyk/claude-plugins/.github/actions/plugin-install-check@{{PLUGIN_DEV_REF}}
+      - name: Check the always-on token budget ⚖️
+        uses: JanSzewczyk/claude-plugins/.github/actions/plugin-budget-check@{{PLUGIN_DEV_REF}}
+        # Inputs: api-key (counted instead of estimated tokens), budget-warn, budget-fail.
+  # END:cli
 
   # BEGIN:skills
   skills:
-    name: skill audit
+    name: Skill Audit 🔎
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: JanSzewczyk/claude-plugins/.github/actions/skill-audit@{{PLUGIN_DEV_REF}}
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Audit every skill 🔎
+        uses: JanSzewczyk/claude-plugins/.github/actions/skill-audit@{{PLUGIN_DEV_REF}}
         # Inputs: path, skills-glob (default plugins/*/skills/*/).
   # END:skills
 
+  # BEGIN:knowledge
+  knowledge:
+    name: Knowledge Base 📚
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Check the knowledge base 📚
+        uses: JanSzewczyk/claude-plugins/.github/actions/knowledge-check@{{PLUGIN_DEV_REF}}
+        # Inputs: path, strict-lint.
+  # END:knowledge
+
   # BEGIN:evals
   evals:
-    name: plugin evals
-    # Early access and billed per run, so manual only; the step is skipped without the secret.
+    name: Plugin Evals 🧪
+    # Early access and billed per run, so manual only; the action is skipped without the secret.
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: JanSzewczyk/claude-plugins/.github/actions/plugin-evals@{{PLUGIN_DEV_REF}}
+      - name: Checkout code 📚
+        uses: actions/checkout@v7
+      - name: Run the smoke routing cases 🧪
+        uses: JanSzewczyk/claude-plugins/.github/actions/plugin-evals@{{PLUGIN_DEV_REF}}
         with:
           api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Inputs: plugins (default: every plugin with an evals/ folder), tag, runs, model, threshold.

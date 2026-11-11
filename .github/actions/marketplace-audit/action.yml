@@ -1,0 +1,51 @@
+name: Marketplace Audit 🔍
+description: >
+  Fail a pull request whose plugin manifests or docs drifted from the plugins on disk: an
+  unregistered plugin, an unlisted agent, a stale README count, a broken frontmatter contract. In a
+  marketplace it runs the drift audit and the native `claude plugin validate`; in a single-plugin
+  repository it validates the plugin itself. Runs the script from the ref this action is pinned to.
+
+inputs:
+  path:
+    description: Root of the marketplace or single-plugin repository, relative to the workspace.
+    default: "."
+  strict:
+    description: Pass --strict, so warnings fail the job too.
+    default: "false"
+  install-claude:
+    description: Install Claude Code so the native `claude plugin validate` pass can run. A failed install is ignored.
+    default: "true"
+  node-version:
+    description: Node.js version the script runs on.
+    default: "26"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Claude Code 🤖
+      if: inputs.install-claude == 'true'
+      continue-on-error: true
+      shell: bash
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
+
+    - name: Check manifests and documentation 🔍
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../../plugins/plugin-dev/skills/marketplace-creator/scripts/check-marketplace.mjs
+        STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
+        ROOT: ${{ inputs.path }}
+      run: |
+        if [ -f "$ROOT/.claude-plugin/marketplace.json" ]; then
+          node "$SCRIPT" "$ROOT" $STRICT
+        elif command -v claude >/dev/null; then
+          # A single-plugin repo has no catalog to compare against: validate the plugin itself.
+          claude plugin validate "$ROOT" --strict
+        else
+          echo "::error::No marketplace.json under $ROOT and Claude Code is not installed to validate the plugin."
+          exit 1
+        fi

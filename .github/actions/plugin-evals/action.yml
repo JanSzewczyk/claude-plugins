@@ -1,4 +1,4 @@
-name: Plugin evals
+name: Plugin Evals 🧪
 description: >
   Run the routing and outcome evals of one or more plugins with `claude plugin eval`. Early access:
   it needs an API key, so without one the step is skipped with a notice, never failed. Each result
@@ -39,7 +39,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check the evals can run
+    - name: Check the evals can run 🔑
       id: gate
       shell: bash
       env:
@@ -52,17 +52,18 @@ runs:
           echo "run=true" >> "$GITHUB_OUTPUT"
         fi
 
-    - uses: actions/setup-node@v4
+    - name: Set up Node.js 🟢
       if: steps.gate.outputs.run == 'true'
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Install Claude Code
+    - name: Install Claude Code 🤖
       if: steps.gate.outputs.run == 'true'
       shell: bash
-      run: npm install -g @anthropic-ai/claude-code
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
 
-    - name: Run the evals
+    - name: Run the evals 🧪
       if: steps.gate.outputs.run == 'true'
       shell: bash
       env:
@@ -101,9 +102,9 @@ runs:
         done
         exit $status
 
-    - name: Upload the result documents
+    - name: Upload the result documents 📤
       if: always() && steps.gate.outputs.run == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.path }}/eval-results

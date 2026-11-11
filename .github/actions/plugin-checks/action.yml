@@ -1,9 +1,10 @@
-name: Plugin checks
+name: Plugin Checks ✅
 description: >
-  Fail a pull request whose plugin manifests or docs drifted from the plugins on disk, or that
-  changed a plugin without bumping its version. Runs the plugin-dev scripts from the ref this
-  action is pinned to, so the calling repository vendors nothing. Skill audits and plugin evals are
-  separate actions (skill-audit, plugin-evals) so each can be its own job.
+  One step that bundles the plugin checks: manifests and docs drift, the version bump gate and,
+  optionally, load, install and token budget. Each of them is also its own action
+  (marketplace-audit, version-bump-check, plugin-load-check, plugin-install-check,
+  plugin-budget-check), so a repository can make each one its own job or step; this bundle stays for
+  repositories that want a single line. Runs the scripts from the ref it is pinned to.
 
 inputs:
   node-version:
@@ -49,17 +50,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Install Claude Code
+    - name: Install Claude Code 🤖
       if: inputs.install-claude == 'true'
       continue-on-error: true
       shell: bash
-      run: npm install -g @anthropic-ai/claude-code
+      run: command -v claude >/dev/null || npm install -g @anthropic-ai/claude-code
 
-    - name: Manifests and documentation agree
+    - name: Check manifests and documentation 🔍
       shell: bash
       env:
         SKILLS: ${{ github.action_path }}/../../../plugins/plugin-dev/skills
@@ -76,7 +78,7 @@ runs:
           exit 1
         fi
 
-    - name: Every changed plugin has a version bump
+    - name: Check every changed plugin has a version bump 🏷️
       if: inputs.check-version-bumps == 'true' && github.event_name == 'pull_request'
       shell: bash
       env:
@@ -91,7 +93,7 @@ runs:
         [ -n "$IGNORE" ] && args+=(--ignore "$IGNORE")
         node "$SKILLS/plugin-release/scripts/plan-release.mjs" "${args[@]}"
 
-    - name: Plugins load, install and stay in budget
+    - name: Check plugins load, install and fit the budget 🔌
       if: inputs.check-load == 'true' || inputs.check-install == 'true' || inputs.check-budget == 'true'
       shell: bash
       env:

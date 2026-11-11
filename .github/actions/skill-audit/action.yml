@@ -1,4 +1,4 @@
-name: Skill audit
+name: Skill Audit 🔎
 description: >
   Run the mechanical half of skill-audit on every skill in the repository: the frontmatter
   contract, description length, dead links, orphan reference files. Any error fails the job and is
@@ -19,11 +19,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v4
+    - name: Set up Node.js 🟢
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Audit every skill
+    - name: Audit every skill 🔎
       shell: bash
       env:
         SCRIPT: ${{ github.action_path }}/../../../plugins/skill-dev/skills/skill-audit/scripts/check-skill.mjs
