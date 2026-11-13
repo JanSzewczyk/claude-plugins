@@ -130,7 +130,7 @@ const authoredFiles = markdownFiles.filter((f) => !generated.has(f));
 
 // ------------------------------------------------------- the frontmatter contract
 
-const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
+const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable", "disable-model-invocation"];
 const PERSON_PHRASES = ["I can", "I will", "I'll", "You can", "You should", "Use me"];
 const TRIGGER_MARKERS = /\b(use (this )?(skill )?when|use whenever|whenever|trigger|invoke (it|this) when|not for|after |before )/i;
 

@@ -98,10 +98,11 @@ them, an agent needs `name` and `description`, and every official skill key is a
 - **Agents:** `name`, `version`, `lastUpdated`, `author`, `related-agents`, `description`,
   `tools`, `model`, `color`, `skills`. Every key is required. `permissionMode`, `hooks` and
   `mcpServers` are rejected: Claude Code ignores them on agents shipped in a plugin.
-- **Skills:** exactly `name`, `description`, and optionally `allowed-tools`, `argument-hint` and
-  `user-invocable`, in that order. No `version`, `tags`, `author`, `examples`, `metadata`.
+- **Skills:** exactly `name`, `description`, and optionally `allowed-tools`, `argument-hint`,
+  `user-invocable` and `disable-model-invocation`, in that order. No `version`, `tags`, `author`, `examples`, `metadata`.
   `user-invocable` takes `true` or `false`; `false` marks a background-knowledge skill that agents
-  preload through `skills:` (the generated `*-rules` skills).
+  preload through `skills:` (the generated `*-rules` skills). `disable-model-invocation: true` marks a skill
+  only the user starts.
 
 | Message | Repair |
 | --- | --- |

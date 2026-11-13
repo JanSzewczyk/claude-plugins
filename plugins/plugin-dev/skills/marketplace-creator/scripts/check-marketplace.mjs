@@ -332,7 +332,7 @@ const AGENT_KEY_ORDER = [
 const IGNORED_AGENT_KEYS = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
 // user-invocable: false is the documented "background knowledge" pattern: a skill agents preload
 // through skills:, hidden from the / menu. The generated knowledge skills rely on it.
-const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable"];
+const SKILL_KEY_ORDER = ["name", "description", "allowed-tools", "argument-hint", "user-invocable", "disable-model-invocation"];
 // Every key Claude Code reads in SKILL.md frontmatter. Anything else is silently ignored, which is
 // how a typo such as `allowed_tools` goes unnoticed.
 const OFFICIAL_SKILL_KEYS = [
@@ -577,7 +577,7 @@ for (const { name, dir: pluginDir, entry } of local) {
         name,
         skillPath,
         `SKILL.md frontmatter carries keys outside the skill contract: ${unknown.join(", ")}`,
-        "allowed: name, description, allowed-tools, argument-hint, user-invocable"
+        "allowed: name, description, allowed-tools, argument-hint, user-invocable, disable-model-invocation"
       );
     }
     const known = fm.keys.filter((k) => SKILL_KEY_ORDER.includes(k));
