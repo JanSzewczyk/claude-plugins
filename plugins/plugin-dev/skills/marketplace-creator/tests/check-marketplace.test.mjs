@@ -40,7 +40,7 @@ function marketplace(plugins, extra = {}) {
 // keys, an agents/ folder discovered by the default scan, a YAML list for skills:.
 function plugin(dir, name = "foo") {
   write(`${dir}/.claude-plugin/plugin.json`, { $schema: "https://x.io/p.json", name, displayName: "Foo", keywords: ["a"], version: "1.0.0", ...ATTRIBUTION });
-  write(`${dir}/skills/hello/SKILL.md`, "---\nname: hello\ndescription: Says hello\nlicense: MIT\ndisable-model-invocation: true\n---\nHi\n");
+  write(`${dir}/skills/hello/SKILL.md`, "---\nname: hello\ndescription: Says hello\nlicense: MIT\nmodel: sonnet\n---\nHi\n");
   write(`${dir}/agents/rev.md`, "---\nname: rev\ndescription: Reviews\nmodel: sonnet\nskills:\n  - hello\n---\nHi\n");
   write(`${dir}/README.md`, "# Foo\n\nUse hello, or the rev agent.\n");
 }
@@ -174,7 +174,7 @@ test("conventions are opt-in and turn the house rules into errors", () => {
   const report = run();
   assert.equal(report.status, 1);
   const found = messages(report).join("\n");
-  assert.match(found, /SKILL\.md frontmatter carries keys outside the skill contract: license, disable-model-invocation/);
+  assert.match(found, /SKILL\.md frontmatter carries keys outside the skill contract: license, model/);
   assert.match(found, /agent frontmatter is missing required keys/);
   assert.match(found, /agents\/rev\.md exists but is not listed/);
   assert.match(found, /the Plugins table has no row|README does not document/);
