@@ -11,7 +11,7 @@
     {
       "name": "nextjs",
       "source": "./plugins/nextjs",
-      "description": "Next.js full-stack development — App Router, Server Actions, API tests, code review, performance and Lighthouse audits, test strategy",
+      "description": "Next.js full-stack development — SDD task flow with developer, tester and reviewer agents, nextjs-rules, app setup, API tests, performance and Lighthouse audits",
       "author": {
         "name": "Szum Tech Team",
         "email": "szum.tech@gmail.com",
