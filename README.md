@@ -26,6 +26,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 
 - **✨ [frontend-expert](./plugins/react/)** — React 19 specialist for UI components, Tailwind CSS v4, and design-system integration
 - **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
+- **🕵️ [qa-engineer](./plugins/testing/)** — Black-box QA of any app (web, API, CLI, library): runs a given list of flows or builds one from the spec, drives the browser with Playwright CLI, reports pass/fail per flow and what to fix
 - **🧪 [testing-strategist](./plugins/nextjs/)** — Plans test coverage across unit, integration, and E2E layers
 - **🧪 [storybook-tester](./plugins/react/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
 - **🐍 [python-developer](./plugins/python/)** — Writes and fixes Python code with its pytest tests under the team rules, then runs Ruff, the type checker and the tests
@@ -116,7 +117,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
-| [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
+| [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation, black-box QA engineer agent | 1 | 2 | [README](./plugins/testing/README.md) |
 | [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
 | [**python**](./plugins/python/) | Python — developer, API-architect, tester and reviewer agents, API architecture guide, team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | 4 | 8 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
@@ -134,7 +135,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | [**github**](./plugins/github/) | GitHub repository administration — create a repository from your template or audit an existing one, every decision approved | — | 2 | [README](./plugins/github/README.md) |
 | [**writing**](./plugins/writing/) | Prose quality — write, edit or review messages, emails and posts: short, consistent, no AI-sounding filler | — | 1 | [README](./plugins/writing/README.md) |
 
-**Total: 15 agents · 60 skills**
+**Total: 16 agents · 60 skills**
 
 Technology plugins depend only downward, and installing one installs what it depends on:
 
@@ -295,6 +296,8 @@ What are you doing?
 │   └── Agent: database-architect (firebase)
 │       Skills: firebase-firestore, db-migration
 │
+├── QA of a running app / feature / flows → Agent: qa-engineer (testing)
+│
 ├── Writing tests
 │   ├── Planning test strategy      → Agent: testing-strategist (nextjs)
 │   ├── Component / Storybook tests → Agent: storybook-tester (react)
@@ -398,6 +401,7 @@ claude-plugins/
 └── plugins/
     ├── testing/                   # Technology-agnostic testing core
     │   ├── .claude-plugin/plugin.json
+    │   ├── agents/                # qa-engineer
     │   └── skills/                # 2 skills (playwright-cli, true-dom-tester)
     ├── typescript/                # TypeScript & JavaScript language layer
     │   ├── .claude-plugin/plugin.json
