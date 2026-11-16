@@ -1,14 +1,13 @@
 ---
 title: Put a db operation that several features need in features/shared, not in each feature
-summary: An entity written by more than one feature gets one set of operations in features/shared/server/db/{entity}/.
+summary: An entity with no single owner gets one set of operations in features/shared/server/db/{entity}/.
 impact: medium
 applies: [typescript, nextjs]
-sources: [https://nextjs.org/docs/app/getting-started/project-structure]
 ---
 
 ## Rule
 
-When a feature must read or write an entity that another feature owns or also writes, put that db operation in `features/shared/server/db/{entity}/` and call it from both services. Never copy the query into the calling feature.
+When several features write an entity that has no single owning feature, put that db operation in `features/shared/server/db/{entity}/` and call it from each service; the operation takes ids, returns tuples and holds no permission logic. For an entity one feature owns, ask that feature's service by id instead. Never copy the query into the calling feature.
 
 ## Why
 

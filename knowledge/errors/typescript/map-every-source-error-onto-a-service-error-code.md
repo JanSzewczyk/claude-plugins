@@ -8,7 +8,7 @@ sources: [https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status]
 
 ## Rule
 
-Return failures from the service layer only as a `ServiceError` whose `code` comes from the closed set below, with `isRetryable`, `isNotFound`, `isAlreadyExists` and `isPermissionDenied` derived from it. Each adapter (database driver, HTTP client, validator) maps its own codes and statuses onto this set in `categorizeServiceError(error, resource)`; nothing else invents codes.
+Return failures from the service layer only as a `ServiceError` whose `code` comes from the closed set below, with `isRetryable`, `isNotFound`, `isAlreadyExists` and `isPermissionDenied` derived from it. Each adapter (database driver, HTTP client, validator) maps its own codes and statuses onto this set in `categorizeServiceError(error, resource)`; nothing else invents codes. `categorizeServiceError` returns an error that is already a `ServiceError` unchanged.
 
 ## Why
 
