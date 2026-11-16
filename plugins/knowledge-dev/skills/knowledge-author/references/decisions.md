@@ -583,8 +583,10 @@ budget at every profile (then split it by `paths`).
 
 Verified neither in the PoC nor in the docs. Settle before relying on them:
 
-- Does `skills:` in a plugin agent resolve a skill from another plugin by bare name, or does it need
-  `plugin:skill`? (plan, spike 0a)
+- ~~Does `skills:` in a plugin agent resolve a skill from another plugin by bare name, or does it need
+  `plugin:skill`?~~ Settled 2026-11-16 for plugins loaded together: yes. `nextjs:code-reviewer` named
+  `typescript-rules`, `react-rules`, `component-test-rules` and `storybook-rules` from the `typescript`
+  and `react` plugins by bare name, and a live run listed their headings.
 - Does `skills:` really load a generated knowledge skill in a live session? The A/B simulated the
   preload with an appended system prompt.
 - Can an agent that preloads a knowledge skill open the `references/rules.md` its injected SKILL.md

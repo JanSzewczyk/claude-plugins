@@ -1,5 +1,5 @@
 ---
-title: Import feature layers in one direction: action, service, permissions, db or api
+title: Import feature layers in one direction: action, then service, then db or api
 summary: Each server layer imports only the layers below it; types/ is importable everywhere and imports nothing.
 impact: high
 applies: [typescript, nextjs]
@@ -9,7 +9,7 @@ sources: [https://nextjs.org/docs/app/guides/data-security]
 
 ## Rule
 
-Let actions import services, services import `permissions.ts`, `db/` and `api/`, and nothing import upward. Zod schemas from `schemas/` are imported by actions and services; `types/` is importable by every layer and imports no layer.
+Let actions import services and `permissions.ts`, services import `permissions.ts`, `db/` and `api/`, and nothing import upward. Zod schemas from `schemas/` are imported by actions and services; `types/` is importable by every layer and imports no layer.
 
 ## Why
 

@@ -27,8 +27,13 @@ export async function createInvoiceWithLines({ invoice, lines }: CreateInvoiceIn
 ## Correct
 
 ```ts
-// invoice.service.ts — mutations.ts exports insertInvoice and insertInvoiceLines, one statement each
-const [invoiceError, created] = await insertInvoice({ invoice });
-if (invoiceError) return [invoiceError, null];
-return insertInvoiceLines({ invoiceId: created.id, lines });
+// invoice.service.ts — mutations.ts exports insertInvoice and insertInvoiceLines, one statement each,
+// and the service runs them in one transaction (see the transaction rule)
+return db.transaction(async (tx) => {
+  const [invoiceError, created] = await insertInvoice({ invoice, tx });
+  if (invoiceError) throw invoiceError;
+  const [linesError, saved] = await insertInvoiceLines({ invoiceId: created.id, lines, tx });
+  if (linesError) throw linesError;
+  return [null, saved];
+});
 ```
