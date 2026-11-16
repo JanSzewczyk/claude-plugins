@@ -9,6 +9,13 @@ Headings are `## [<version> <plugin>] — <date>`.
 Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
 newest three versions of each plugin.
 
+## [3.1.0 testing] — 2026-11-16
+
+### Added
+
+- `qa-engineer` agent: black-box QA of any app (web, HTTP API, CLI, library). Runs a given list of flows and checks, or builds the most important ones from the spec, README or the app itself; drives the browser with `playwright-cli`; returns `Result: PASS | FAIL | SKIPPED` and a per-flow table with what to fix. Artifacts stay outside the repository.
+- README section on using it as an SDD `review.checks` entry.
+
 ## [4.3.0 plugin-dev] — 2026-11-16
 
 ### Added
