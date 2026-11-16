@@ -3,7 +3,7 @@ title: Call redirect, notFound, forbidden and unauthorized outside try, or rethr
 summary: These interrupts work by throwing; a surrounding catch swallows them and the navigation never happens.
 impact: high
 applies: [typescript, nextjs]
-sources: [https://nextjs.org/docs/app/api-reference/functions/redirect, https://nextjs.org/docs/app/api-reference/functions/unstable_rethrow]
+sources: [https://nextjs.org/docs/app/api-reference/functions/redirect, https://nextjs.org/docs/app/api-reference/functions/unstable_rethrow, https://nextjs.org/docs/app/api-reference/functions/forbidden, https://nextjs.org/docs/app/api-reference/functions/unauthorized]
 ---
 
 ## Rule

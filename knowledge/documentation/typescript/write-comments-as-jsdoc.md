@@ -1,14 +1,14 @@
 ---
 title: Write every warranted comment as a JSDoc block, not a // line
-summary: A /** */ comment above a function, type or statement shows in editor hovers; a // comment shows nowhere else.
+summary: A /** */ comment on a declaration shows in editor hovers; a // comment above it shows nowhere else.
 impact: low
 applies: [typescript]
-sources: [https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html]
+sources: [https://tsdoc.org/]
 ---
 
 ## Rule
 
-When a comment is warranted, write it in JSDoc form (`/** ... */`), also for a single line above a function, type, constant or non-obvious statement. Use `//` only for tool directives such as `// @ts-expect-error` or a linter suppression.
+When a comment is warranted, write it in JSDoc form (`/** ... */`), also for a single line above a function, type, constant or member declaration. Inside a function body a `//` line is fine for a non-obvious step, and `//` is the form for tool directives such as `// @ts-expect-error` or a linter suppression.
 
 ## Why
 

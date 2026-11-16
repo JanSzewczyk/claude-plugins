@@ -31,3 +31,7 @@ type ProjectSidebarProps = {
   onDelete(projectId: string): void;
 };
 ```
+
+## Exceptions
+
+Method signatures are compared bivariantly, so `strictFunctionTypes` does not check their parameters the way it checks a property of function type. Keep the property form where a callback is assigned from a function with a narrower parameter type and the soundness matters.

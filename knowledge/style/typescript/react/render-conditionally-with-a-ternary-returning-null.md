@@ -1,6 +1,6 @@
 ---
 title: Render conditionally with a ternary that returns null, never with &&
-summary: condition ? <X /> : null for elements, fragments and text; && renders a stray 0 or "" when the left side is falsy.
+summary: condition ? <X /> : null for elements, fragments and text; && renders a stray 0 when the left side is a number.
 impact: high
 applies: [typescript, react]
 sources: [https://react.dev/learn/conditional-rendering]
@@ -12,7 +12,7 @@ Write every conditional in JSX as `condition ? <Element /> : null`, including fr
 
 ## Why
 
-With `&&`, a falsy non-boolean left side such as `0` or `""` is rendered as-is, so an empty list shows a stray "0" on the page; the ternary always renders exactly the element or nothing.
+With `&&`, a numeric left side that is `0` (or `NaN`) is rendered as-is, so an empty list shows a stray "0" on the page; the ternary always renders exactly the element or nothing. Banning `&&` outright, even with a boolean left side, is a team style choice that keeps the rule mechanical to follow and to lint.
 
 ## Incorrect
 

@@ -34,7 +34,7 @@ without backoff hitting a down dependency, not 6 independent failures.
   `logger` import used in a sibling file of the same feature — inconsistent context
   coverage within one module.
 
-**Reference field table** (from `structured-logging`, keep names consistent against this):
+**Reference field table** (from the `use-the-shared-log-field-names` logging rule, keep names consistent against this):
 
 | Field         | Type    | When to Use          |
 | ------------- | ------- | --------------------- |
@@ -60,7 +60,7 @@ where `apiResponse` happens to contain a token). This check is the value-level b
 - Email addresses in a field not named for masked output (`maskEmail` wasn't used).
 - Long opaque alphanumeric strings in unexpected fields (looks like a token/API key/JWT).
 - Full IDs where a masked/truncated form was expected (`maskId` pattern from
-  `structured-logging` truncates to `xxxx...xxxx`).
+  the logging rules truncate to `xxxx...xxxx`).
 - Anything matching common secret shapes: `sk-...`, `AKIA...`, `gh[oprsu]_...`, a PEM block.
 
 **Example finding:**
@@ -79,14 +79,14 @@ not `req.headers`.
 
 - `message` strings with interpolated values (`` `User ${id} logged in` `` baked into the
   string) instead of the value living in a separate field — breaks structured search, the
-  core rule `structured-logging` states first.
+  core logging rule stated first.
 - A raw object dumped as the whole log line instead of a short human `message` plus
   metadata fields — hard to skim in a terminal or log viewer.
 - Malformed lines (parse failure) — usually a process killed mid-write; worth flagging even
   though it's not a logging-convention issue, since it affects whether the rest of the file
   can be trusted as complete.
 - Log level misuse: expected/handled outcomes logged at `error` (e.g. "not found" on a
-  lookup) instead of `warn`/`info` — `structured-logging` reserves `error` for things that
+  lookup) instead of `warn`/`info` — the logging rules reserve `error` for things that
   need investigation.
 
 ## 5. Source-code compliance

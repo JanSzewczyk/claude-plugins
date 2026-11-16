@@ -34,7 +34,7 @@ When each source returns its own error shape, every caller has to know Postgres 
 // unavailable       yes          connection refused, HTTP 502/503
 // timeout           yes          deadline exceeded, AbortError, HTTP 504
 // rate-limited      yes          HTTP 429
-// external-api      yes          other upstream failure
+// external-api      no           other upstream failure (a permanent 4xx; a 5xx is `unavailable`)
 // internal          no           anything unrecognised
 } catch (error) {
   return [categorizeServiceError(error, "Budget"), null];

@@ -1,6 +1,6 @@
 ---
 title: Attach a caught error with withError, never in withMetadata or the message
-summary: log.withError(err) runs the configured errorSerializer and keeps the stack; { error } or err.message loses it.
+summary: log.withError(err) keeps the stack through the configured serializer; { error } or err.message loses it.
 impact: high
 applies: [typescript, loglayer]
 sources: [https://loglayer.dev/logging-api/error-handling, https://loglayer.dev/cheatsheet]
@@ -12,7 +12,7 @@ Attach a caught value with `.withError(error)` and keep the message constant. Do
 
 ## Why
 
-An error passed through `.withMetadata` skips the `errorSerializer` (`serializeError`) set on the root `LogLayer`, so the stack trace is lost: an `Error`'s fields are not enumerable and serialize as `{}`.
+`withError` is LogLayer's documented path for an `Error`, where the configured error serializer and the `err` field apply; an `Error` placed in metadata is serialized as a plain object, and its fields are not enumerable, so it comes out as `{}` and the stack is lost.
 
 ## Incorrect
 

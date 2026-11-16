@@ -18,16 +18,17 @@ An ownership check placed after the write runs too late to stop it, and validati
 
 ```ts
 const [error, budget] = await updateBudget(id, input); // mutate first
-const session = await auth();
-if (budget.ownerId !== session?.userId) forbidden(); // the update already happened
+const { userId } = await auth();
+if (budget.ownerId !== userId) forbidden(); // the update already happened
 ```
 
 ## Correct
 
 ```ts
-const session = await auth();
-if (!session) unauthorized();
-if (!(await canEditBudget(session.userId, id))) forbidden();
+const { isAuthenticated, userId } = await auth();
+if (!isAuthenticated) unauthorized();
+const [permissionError] = await canEditBudget(userId, id);
+if (permissionError) forbidden();
 const parsed = budgetSchema.safeParse(input);
 if (!parsed.success) return { success: false, error: "Check the form", fieldErrors: z.flattenError(parsed.error).fieldErrors };
 const [error, budget] = await updateBudget(id, parsed.data);

@@ -1,7 +1,7 @@
 ---
 title: Call useFormStatus in a component rendered inside the form
 summary: useFormStatus reads the parent form; called in the component that renders the form it is always idle.
-impact: high
+impact: medium
 applies: [typescript, react, nextjs]
 sources: [https://react.dev/reference/react-dom/hooks/useFormStatus]
 ---

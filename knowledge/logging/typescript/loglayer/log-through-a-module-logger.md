@@ -8,7 +8,7 @@ sources: [https://loglayer.dev/logging-api/child-loggers, https://loglayer.dev/l
 
 ## Rule
 
-At the top of each server file, create one module logger with `createLogger({ module: "<domain>-<layer>" })` (for example `budgets-db`, `budgets-actions`, `templates-service`) and log only through it. Feature code never calls `console.*` and never imports the root logger from `~/lib/logger`.
+At the top of each server file that logs, create a module logger with `createLogger({ module: "<domain>-<layer>" })` (for example `budgets-db`, `budgets-actions`, `templates-service`; files of one layer share the name) and log only through it. `createLogger` returns `logger.child().withContext(context)`: add context to a module logger, never to the root. Feature code never calls `console.*` and never imports the root logger from `~/lib/logger`.
 
 ## Why
 
@@ -38,5 +38,7 @@ export async function getBudget(id: string) {
 ```
 
 ## Exceptions
+
+A file in no layer folder (`permissions.ts`, a util) rarely logs; when it does, give it the module name of its feature.
 
 Client error boundaries (`error.tsx`, `global-error.tsx`) run in the browser, where the server logger does not exist; they may call `console.error`.

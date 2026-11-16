@@ -8,7 +8,7 @@ sources: [https://nextjs.org/docs/app/api-reference/file-conventions/route, http
 
 ## Rule
 
-In a route handler, turn every failure into `Response.json({ error: message }, { status })`, with the status taken from the `ServiceError` code (400 validation, 404 not found, 409 already exists, 403 permission denied, 503 retryable, 500 otherwise). Log the unexpected ones once before answering.
+In a route handler, turn every failure into `Response.json({ error: message }, { status })`, with the status taken from the `ServiceError` code (400 validation, 404 not found, 409 already exists, 403 permission denied, 429 rate limited, 502 external API, 503 unavailable, 504 timeout, 500 otherwise). Log the unexpected ones once before answering.
 
 ## Why
 

@@ -1,7 +1,7 @@
 ---
 title: Call hooks only at the top level of a component or custom hook
 summary: No hook inside a condition, loop, nested function or after an early return; React.use is the one exception.
-impact: high
+impact: medium
 applies: [typescript, react]
 sources: [https://react.dev/reference/rules/rules-of-hooks, https://react.dev/reference/react/use]
 ---
