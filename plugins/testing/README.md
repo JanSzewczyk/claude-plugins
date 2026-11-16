@@ -65,5 +65,5 @@ review:
 
 - [**typescript**](../typescript/) — Vitest unit tests, `mimicry-js` builders, coverage gaps, `unit-tester` agent
 - [**react**](../react/) — Storybook interaction tests, accessibility audits, `storybook-tester` agent
-- [**nextjs**](../nextjs/) — API route tests, `testing-strategist` agent
+- [**nextjs**](../nextjs/) — API route tests, `nextjs-developer`, `nextjs-tester` and `code-reviewer` agents
 - [**python**](../python/) — `factory_boy` rules for Python tests

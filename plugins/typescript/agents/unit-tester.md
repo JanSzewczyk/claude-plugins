@@ -3,7 +3,7 @@ name: unit-tester
 version: 1.1.1
 lastUpdated: 2026-10-27
 author: Szum Tech Team
-related-agents: [testing-strategist, storybook-tester, nextjs-backend-engineer]
+related-agents: [nextjs-tester, storybook-tester, nextjs-developer]
 description: >
   Use when: writing Vitest unit tests for TypeScript logic — utilities, pure functions,
   Zod schemas, custom hooks, and Server Actions with mocked dependencies; adding test

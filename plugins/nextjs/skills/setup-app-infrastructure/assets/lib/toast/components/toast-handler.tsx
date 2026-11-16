@@ -4,17 +4,9 @@ import * as React from "react";
 
 import { usePathname } from "next/navigation";
 
-// ⚠️ STEP 1 — wire up YOUR toast library here. The handler only needs a function
-// to call per toast type. Recommended:
-//     import { toast } from "@szum-tech/design-system"; // ← recommended; exposes .success/.error/.warning/.info
-// Other common choices:
-//     import { toast } from "sonner";
-//     import { toast } from "react-hot-toast";   // note: only .success / .error exist
-//     import { toast } from "@/components/ui/toast"; // shadcn/ui or your own wrapper
-// Replace the line below with your library's import:
-import { toast } from "REPLACE_WITH_YOUR_TOAST_LIBRARY";
+import { toast } from "sonner";
 
-// Relative imports keep this folder portable regardless of your project's path alias.
+// Siblings in this folder are imported relatively.
 import { TOAST_COOKIE_NAME } from "../constants";
 import { type ToastMessage } from "../types";
 
@@ -47,8 +39,6 @@ export function ToastHandler() {
     const { type, message, duration } = toastMessage;
     const options = duration !== undefined ? { duration } : undefined;
 
-    // STEP 2 — map each type to your library's API. If it lacks .warning / .info,
-    // fall back to the base toast(message, options) call.
     switch (type) {
       case "success":
         toast.success(message, options);

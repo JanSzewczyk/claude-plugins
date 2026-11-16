@@ -2,7 +2,7 @@
 
 ## Role in the Error Handling Architecture
 
-This file implements the **ServiceError contract** defined in the `error-handling` skill. The contract requires:
+This file implements the **ServiceError contract** defined in the error rules of `nextjs-rules` (the `map-every-source-error-onto-a-service-error-code` rule; the class is in `setup-app-infrastructure`). The contract requires:
 
 - **Boolean properties** for type-safe error branching: `isRetryable`, `isNotFound`, `isAlreadyExists`, `isPermissionDenied`
 - **Static factory methods**: `notFound()`, `alreadyExists()`, `validation()`, `dataCorruption()`, `permissionDenied()`

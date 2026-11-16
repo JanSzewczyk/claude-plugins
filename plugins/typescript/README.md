@@ -1,6 +1,6 @@
 # typescript
 
-TypeScript and JavaScript tooling — Vitest unit tests, `mimicry-js` test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm package updates. The language layer that the `react` and `nextjs` plugins build on.
+TypeScript and JavaScript tooling — the `typescript-rules` knowledge skill, Vitest unit tests, `mimicry-js` test data builders and their rules, coverage-gap ranking, dead-code sweeps with Knip, and safe npm package updates. The language layer that the `react` and `nextjs` plugins build on.
 
 ## Contents
 
@@ -19,9 +19,10 @@ TypeScript and JavaScript tooling — Vitest unit tests, `mimicry-js` test data 
 | **builder-factory**  | `/builder-factory` | Test data builders with `mimicry-js` and Faker for any TypeScript interface or type — traits, overrides, field mappings |
 | **coverage-gaps**    | `/coverage-gaps`  | Finds and ranks the coverage gaps that matter — weights uncovered branches, critical paths, and git churn over line percentages                                 |
 | **dead-code**        | `/dead-code`      | Find unused files, exports, types, and dependencies via Knip's reachability graph; rank by confidence, propose safe removal                                     |
+| **typescript-rules** | — (preloaded)     | Generated background knowledge: TypeScript style and typing rules (`function` declarations, `Array<T>`, const objects, `unknown` instead of `any`, `~/` alias, JSDoc), preloaded by the Next.js agents |
 | **builder-rules-ts** | — (preloaded)     | Generated background knowledge: test data builder rules for TypeScript and `mimicry-js`, preloaded by the testing agents                                        |
 
-`builder-rules-ts`, the `references/rules.md` files and the `BEGIN:knowledge` blocks in
+`typescript-rules`, `builder-rules-ts`, the `references/rules.md` files and the `BEGIN:knowledge` blocks in
 `unit-testing` and `builder-factory` are generated from `knowledge/` at the repo root. Edit the notes there and run the
 `knowledge-dev` build; never edit the generated files.
 

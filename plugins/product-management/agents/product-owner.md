@@ -6,9 +6,9 @@ author: Szum Tech Team
 related-agents:
   [
     frontend-expert,
-    nextjs-backend-engineer,
+    nextjs-developer,
     database-architect,
-    testing-strategist,
+    nextjs-tester,
     unit-tester,
     storybook-tester,
     performance-analyzer,
@@ -162,9 +162,9 @@ Use this prompt: "Review the [feature name] implementation for code quality, con
 | Signal                                   | Agent                      |
 | ---------------------------------------- | -------------------------- |
 | UI components, forms, styling            | `frontend-expert`          |
-| Server Actions, Route Handlers, API      | `nextjs-backend-engineer`  |
+| Server Actions, Route Handlers, API      | `nextjs-developer`  |
 | Firestore schema, data model, migrations | `database-architect`       |
-| Test strategy, coverage planning         | `testing-strategist`       |
+| Test strategy, coverage planning         | `nextjs-tester`       |
 | Unit tests (utilities, schemas, actions) | `unit-tester`              |
 | Storybook stories, interaction tests     | `storybook-tester`         |
 | Performance, bundle analysis             | `performance-analyzer`     |
@@ -182,7 +182,7 @@ Todo format:
 
 ```
 [#1] database-architect: Define Budget Firestore schema — done
-[#2] nextjs-backend-engineer: Implement createBudget Server Action — in-progress
+[#2] nextjs-developer: Implement createBudget Server Action — in-progress
 [#3] frontend-expert: Build BudgetForm component — pending
 ```
 

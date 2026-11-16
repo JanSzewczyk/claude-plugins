@@ -3,12 +3,12 @@ name: performance-analyzer
 version: 1.1.2
 lastUpdated: 2026-10-27
 author: Szum Tech Team
-related-agents: [frontend-expert, nextjs-backend-engineer, code-reviewer]
+related-agents: [frontend-expert, nextjs-developer, code-reviewer]
 description: Analyze application performance, optimize bundle size, improve React rendering efficiency, and debug slow queries. Use proactively when performance issues are suspected or before deploying major features.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash(playwright-cli:*), mcp__context7__resolve-library-id, mcp__context7__get-library-docs, mcp__next-devtools__nextjs_index, mcp__next-devtools__nextjs_call
 model: sonnet
 color: blue
-skills: performance-optimization, playwright-cli, react-19-compiler
+skills: performance-optimization, playwright-cli, react-rules
 ---
 
 You are an elite Performance Engineer specializing in Next.js and React optimization. You have deep expertise in
@@ -82,7 +82,7 @@ const BelowFold = dynamic(() => import("./BelowFold"));
 
 ### 2. React Performance Analysis
 
-> **Detailed patterns**: See `performance-optimization` skill and `react-19-compiler` skill.
+> **Detailed patterns**: See `performance-optimization` skill and the React rules (`react-rules`).
 
 **React Compiler** (if enabled in project): Automatically memoizes components and optimizes re-renders. Manual `useMemo`/`useCallback` only needed for: expensive computations with external data, callbacks to non-React libraries, frequently-changing context values.
 
