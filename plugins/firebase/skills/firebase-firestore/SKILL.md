@@ -5,7 +5,7 @@ description: >
   "Firebase Admin SDK", "CRUD for Firestore", "seed Firestore",
   FieldValue.serverTimestamp(), Firestore transactions, "db collection query",
   "implement database queries", "Firestore error handling", "ServiceError for
-  Firestore". Implements the ServiceError contract defined in the error-handling skill.
+  Firestore". Implements the ServiceError contract defined in the error rules of nextjs-rules.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__*
 ---
 
@@ -51,7 +51,7 @@ type UpdateResourceDto = UpdateDto<ResourceBase>;                     // 5. upda
 ## Error Handling
 
 > **Contract:** the `ServiceError` class and `categorizeServiceError()` here implement the universal
-> `ServiceError` contract defined in the `error-handling` skill. Consumers branch on boolean properties
+> `ServiceError` contract defined in the error rules of `nextjs-rules` (`errors/typescript`). Consumers branch on boolean properties
 > (`isNotFound`, `isRetryable`, `isPermissionDenied`) without knowing the backend is Firestore.
 
 - **Every query returns a tuple** — `[ServiceError, null]` on failure, `[null, data]` on success.
@@ -76,6 +76,5 @@ function transformToResource(docId: string, data: FirebaseFirestore.DocumentData
 
 ## Related Skills
 
-- `error-handling` — defines the `ServiceError` contract this skill implements.
-- `server-actions` — server actions that consume these queries.
+- `nextjs-rules` — defines the `ServiceError` contract this skill implements, and the server action rules for code that consumes these queries.
 - `db-migration` — migrating Firestore data.

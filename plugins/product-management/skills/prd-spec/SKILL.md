@@ -110,9 +110,9 @@ Use this table to determine which specialist agent handles each type of task ext
 | Signal in PRD/TDD | Agent |
 |---|---|
 | UI components, forms, styling, client-side state | `frontend-expert` |
-| Server Actions, Route Handlers, API endpoints, middleware | `nextjs-backend-engineer` |
+| Server Actions, Route Handlers, API endpoints, middleware | `nextjs-developer` |
 | Firestore schema, data model, indexes, migrations | `database-architect` |
-| Test strategy, coverage planning, test type selection | `testing-strategist` |
+| Test strategy, coverage planning, test type selection | `nextjs-tester` |
 | Unit tests for utilities, schemas, hooks, Server Actions (mocked) | `unit-tester` |
 | Storybook stories, interaction tests, visual tests | `storybook-tester` |
 | Performance, bundle analysis, Core Web Vitals | `performance-analyzer` |
@@ -121,16 +121,16 @@ Use this table to determine which specialist agent handles each type of task ext
 ### Mapping Examples
 
 **PRD signal → agent:**
-- "Users can submit a form with name and email" → `frontend-expert` (form UI) + `nextjs-backend-engineer` (Server Action)
+- "Users can submit a form with name and email" → `frontend-expert` (form UI) + `nextjs-developer` (Server Action)
 - "Data must persist across sessions" → `database-architect` (schema)
 - "Must load in under 2 seconds" → `performance-analyzer`
 - "All form states must be documented" → `storybook-tester`
 
 **TDD signal → agent:**
 - `## Data Model` section with new types → `database-architect`
-- `## API Contracts` section → `nextjs-backend-engineer`
+- `## API Contracts` section → `nextjs-developer`
 - `## Architecture` with new components → `frontend-expert`
-- `## Security` rules → `nextjs-backend-engineer` (middleware/guards)
+- `## Security` rules → `nextjs-developer` (middleware/guards)
 
 ---
 
@@ -155,9 +155,9 @@ When `product-owner` generates a task breakdown, use this format:
 | # | Task | Agent | Depends on | Priority |
 |---|---|---|---|---|
 | 1 | Define Firestore schema for `[entity]` | `database-architect` | — | P0 |
-| 2 | Implement Server Action `create[Entity]` | `nextjs-backend-engineer` | #1 | P0 |
+| 2 | Implement Server Action `create[Entity]` | `nextjs-developer` | #1 | P0 |
 | 3 | Build `[EntityForm]` component | `frontend-expert` | #2 | P1 |
 | 4 | Write Storybook stories for `[EntityForm]` | `storybook-tester` | #3 | P1 |
-| 5 | Plan test strategy | `testing-strategist` | #3 | P2 |
+| 5 | Plan test strategy | `nextjs-tester` | #3 | P2 |
 | 6 | Final code review | `code-reviewer` | All | P2 |
 ```

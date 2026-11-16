@@ -160,4 +160,4 @@ Performance Issue?
 
 - `react-19-compiler` - React Compiler optimization guidance
 - `firebase-firestore` - Database query patterns
-- `structured-logging` - Performance logging
+- `nextjs-rules` - Logging and error-handling conventions

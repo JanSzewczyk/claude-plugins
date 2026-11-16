@@ -1,6 +1,6 @@
 # react
 
-React development — agents and skills for building modern React 19 user interfaces: the React Compiler and new hooks, Storybook stories with interaction tests in CSF Next, and WCAG accessibility audits. Builds on the **typescript** layer; the **nextjs** layer builds on this one.
+React development — agents and skills for building modern React 19 user interfaces: the `react-rules` knowledge skill, enabling the React Compiler, Storybook stories with interaction tests in CSF Next, and WCAG accessibility audits. Builds on the **typescript** layer; the **nextjs** layer builds on this one.
 
 ## Contents
 
@@ -15,13 +15,14 @@ React development — agents and skills for building modern React 19 user interf
 
 | Skill                    | Invoke with            | Description                                                                                                                              |
 | ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **react-19-compiler**    | `/react-19-compiler`   | React 19 hooks, React Compiler optimization, memoization decisions                                                                       |
+| **react-rules**          | — (preloaded)          | Generated background knowledge: React component and hook rules (namespace import, ternary rendering, keys, no manual memoization under the Compiler, hooks, context and hooks folders, stories) |
+| **react-19-compiler**    | `/react-19-compiler`   | Enable and verify the React Compiler, migrate a module off manual memoization, answer "is this useMemo still needed"                    |
 | **create-stories**       | `/create-stories`      | Create or update a component's `.stories.tsx` — setup check, CSF Next stories per state, `.test()` interaction tests, mocking            |
 | **accessibility-audit**  | `/accessibility-audit` | WCAG accessibility audits — automated checks, manual review checklists, ARIA patterns                                                    |
-| **storybook-rules**      | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `testing-strategist` |
-| **component-test-rules** | — (preloaded)          | Generated background knowledge: test strategy and React Testing Library, Vitest and MSW rules, preloaded by `testing-strategist`         |
+| **storybook-rules**      | — (preloaded)          | Generated background knowledge: the Storybook story and interaction-test rules, preloaded by `storybook-tester` and `nextjs-tester` |
+| **component-test-rules** | — (preloaded)          | Generated background knowledge: test strategy and React Testing Library, Vitest and MSW rules, preloaded by `nextjs-tester`         |
 
-`storybook-rules`, `component-test-rules`, the `references/rules.md` file and the `BEGIN:knowledge` block in
+`react-rules`, `storybook-rules`, `component-test-rules`, the `references/rules.md` file and the `BEGIN:knowledge` block in
 `create-stories` are generated from `knowledge/` at the repo root. Edit the notes there and run the
 `knowledge-dev` build; never edit the generated files.
 
@@ -49,7 +50,7 @@ what it kept, fixed and added.
 
 **Skills** — invoke directly:
 
-> `/react-19-compiler` — React 19 hooks and Compiler optimization guidance
+> `/react-19-compiler` — enable and verify the React Compiler, migrate off manual memoization
 > `/create-stories` — create or update the stories and interaction tests for a component
 > `/accessibility-audit` — run a WCAG audit on a component
 

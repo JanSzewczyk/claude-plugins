@@ -3,7 +3,7 @@ name: storybook-tester
 version: 2.1.1
 lastUpdated: 2026-10-27
 author: Szum Tech Team
-related-agents: [frontend-expert, testing-strategist, unit-tester]
+related-agents: [frontend-expert, nextjs-tester, unit-tester]
 description: >
   Use when: writing or updating Storybook stories and interaction tests for a React component,
   adding .test() checks or play functions to stories, covering component variants and edge cases in

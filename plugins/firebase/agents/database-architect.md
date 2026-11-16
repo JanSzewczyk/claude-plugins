@@ -3,12 +3,12 @@ name: database-architect
 version: 1.1.1
 lastUpdated: 2026-10-27
 author: Szum Tech Team
-related-agents: [nextjs-backend-engineer, code-reviewer, library-updater]
+related-agents: [nextjs-developer, code-reviewer, library-updater]
 description: Design Firestore data models, optimize database queries, plan safe data migrations, and manage type-safe database patterns using tuple error handling and ServiceError. Use proactively when features require Firestore data storage, query performance needs improvement, or schema migrations are needed.
 tools: Glob, Grep, Read, Write, Edit, WebFetch, TodoWrite, WebSearch, Bash, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 model: sonnet
 color: orange
-skills: firebase-firestore, db-migration, error-handling, builder-factory, structured-logging, t3-env-validation
+skills: firebase-firestore, db-migration, builder-factory, typescript-rules, nextjs-rules
 ---
 
 You are an elite Database Architect with deep expertise in data modeling, query optimization, and type-safe database
@@ -91,7 +91,7 @@ See `db-migration` skill for migration script templates.
 
 ### 6. Error Handling
 
-Follow the project's error handling pattern from CLAUDE.md. See `error-handling` and `firebase-firestore` skills for tuple return pattern and `ServiceError` class usage.
+Follow the project's error handling pattern from CLAUDE.md. See the error rules in `nextjs-rules` (tuple returns, the `ServiceError` contract) and the `firebase-firestore` skill for the Firestore implementation.
 
 ## Design Process
 
@@ -197,7 +197,7 @@ Is it a security concern? → Security Rules / RLS Policies
 - Infrastructure-level database changes (scaling, replication, sharding)
 - Cross-service data consistency requirements
 - Performance issues that extend beyond query optimization → hand off to `performance-analyzer`
-- Breaking schema changes that affect multiple application features → coordinate with `nextjs-backend-engineer`
+- Breaking schema changes that affect multiple application features → coordinate with `nextjs-developer`
 
 ## Communication Style
 

@@ -25,16 +25,16 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 ### 🤖 Specialist Agents
 
 - **✨ [frontend-expert](./plugins/react/)** — React 19 specialist for UI components, Tailwind CSS v4, and design-system integration
-- **✨ [nextjs-backend-engineer](./plugins/nextjs/)** — Server Actions, API routes, database operations, and authentication flows for Next.js
+- **✨ [nextjs-developer](./plugins/nextjs/)** — Implements Next.js App Router pages, server actions and services with their tests under the team rules, then runs the project's checks
 - **🕵️ [qa-engineer](./plugins/testing/)** — Black-box QA of any app (web, API, CLI, library): runs a given list of flows or builds one from the spec, drives the browser with Playwright CLI, reports pass/fail per flow and what to fix
-- **🧪 [testing-strategist](./plugins/nextjs/)** — Plans test coverage across unit, integration, and E2E layers
+- **🧪 [nextjs-tester](./plugins/nextjs/)** — Independent tests for a Next.js feature from its acceptance criteria, at the cheapest sensible layer; defects as failing tests
 - **🧪 [storybook-tester](./plugins/react/)** — Writes Storybook CSF Next stories and play-function interaction tests for component variants and edge cases
 - **🐍 [python-developer](./plugins/python/)** — Writes and fixes Python code with its pytest tests under the team rules, then runs Ruff, the type checker and the tests
 - **🏛️ [python-api-architect](./plugins/python/)** — Read-only architecture advice for Python APIs: domain modules or hexagonal modules, with a layout and a hand-off
 - **🧪 [python-tester](./plugins/python/)** — Black-box tests for a Python API from its contract: every documented status, Schemathesis, guards proved by removing them, flaky and coverage checks; reports defects as failing tests
 - **🔎 [python-reviewer](./plugins/python/)** — Read-only review of Python code against the team rules: runs the checks, reproduces each finding and returns a verdict with a findings table
 - **🧪 [unit-tester](./plugins/typescript/)** — Writes Vitest unit tests for utilities, schemas, hooks, and Server Actions (with mocked dependencies)
-- **🧹 [code-reviewer](./plugins/nextjs/)** — Comprehensive Next.js/React/TypeScript code review for quality, performance, and security
+- **🧹 [code-reviewer](./plugins/nextjs/)** — Review of Next.js/React/TypeScript changes against the team rules: runs the checks, reproduces each finding, returns a verdict with a findings table
 - **⚡ [performance-analyzer](./plugins/nextjs/)** — Bundle size, React rendering efficiency, and slow query analysis
 - **📦 [library-updater](./plugins/typescript/)** — Updates npm packages, investigates breaking changes, and verifies code quality post-update
 - **🔥 [database-architect](./plugins/firebase/)** — Firebase Firestore schema design, data modeling, and architecture guidance
@@ -43,18 +43,15 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 
 ### 🛠️ Slash-Command Skills
 
-- **⚛️ [react-19-compiler](./plugins/react/skills/react-19-compiler/)** — React 19 compiler patterns, memoization decisions, and Server Component boundaries
+- **⚛️ [react-19-compiler](./plugins/react/skills/react-19-compiler/)** — Enable and verify the React Compiler, migrate off manual memoization
 - **🎨 [tailwind-css-4](./plugins/design/skills/tailwind-css-4/)** — Tailwind CSS v4 CSS-first config, migration guide, and utility patterns
-- **🔐 [t3-env-validation](./plugins/nextjs/skills/t3-env-validation/)** — Type-safe environment variables with T3 Env and Zod
-- **⚡ [server-actions](./plugins/nextjs/skills/server-actions/)** — Next.js Server Actions with react-hook-form and Zod validation
-- **📝 [structured-logging](./plugins/nextjs/skills/structured-logging/)** — Production logging patterns for Next.js applications
-- **🔔 [toast-notifications](./plugins/nextjs/skills/toast-notifications/)** — Toast notification architecture and patterns
-- **🚨 [error-handling](./plugins/nextjs/skills/error-handling/)** — Error boundaries, retry patterns, and validation-vs-runtime error handling
+- **🚀 [run-nextjs-task](./plugins/nextjs/skills/run-nextjs-task/)** — Runs one planned task (an SDD brief or task id) through developer, tester and reviewer agents for a Next.js app, with no questions
+- **🔐 [setup-app-infrastructure](./plugins/nextjs/skills/setup-app-infrastructure/)** — Adds T3 Env validation, LogLayer logging, ServiceError and retry, server action result types and cookie toasts to a Next.js project
 - **🎨 [design-system-component](./plugins/design/skills/design-system-component/)** — CVA-based component architecture following design system conventions
 - **🎨 [szum-tech-design-system](./plugins/design/skills/szum-tech-design-system/)** — Reference for `@szum-tech/design-system` — OKLCH tokens, Radix UI components, Tailwind CSS v4
 - **🧱 [implement-design](./plugins/design/skills/implement-design/)** — Inventory-first protocol for porting an external design (native Claude Design handoff, `/design-sync`'d project, mockup, screenshot, pasted JSX) onto DS components instead of reinventing them
 - **📦 [generate-feature-package](./plugins/nextjs/skills/generate-feature-package/)** — Scaffolds a new `features/<name>/` domain package with zone folders and barrel files following the feature-architecture spec
-- **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and structured-logging violations
+- **📄 [devlogs](./plugins/nextjs/skills/devlogs/)** — Audits a LogLayer + Pino dev-session log (`tmp/app.log`) for missing context, sensitive-data leaks, and logging-rule violations
 - **📖 [create-stories](./plugins/react/skills/create-stories/)** — Create or update a component's Storybook stories with browser-rendered `.test()` interaction tests in CSF Next format
 - **🏗️ [builder-factory](./plugins/typescript/skills/builder-factory/)** — Type-safe test data builders and factories
 - **🌐 [playwright-cli](./plugins/testing/skills/playwright-cli/)** — Playwright browser automation for E2E tests and web scraping
@@ -118,11 +115,11 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | Plugin | Description | Agents | Skills | Guide |
 | --- | --- | --- | --- | --- |
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation, black-box QA engineer agent | 1 | 2 | [README](./plugins/testing/README.md) |
-| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
+| [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — typescript-rules, Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 6 | [README](./plugins/typescript/README.md) |
 | [**python**](./plugins/python/) | Python — developer, API-architect, tester and reviewer agents, API architecture guide, team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | 4 | 8 | [README](./plugins/python/README.md) |
-| [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
+| [**react**](./plugins/react/) | React 19 — react-rules, the Compiler, Storybook interaction tests, accessibility audits | 2 | 6 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
-| [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
+| [**nextjs**](./plugins/nextjs/) | Next.js App Router — SDD task flow with developer, tester and reviewer agents, nextjs-rules, app setup, API tests, performance and Lighthouse audits | 4 | 8 | [README](./plugins/nextjs/README.md) |
 | [**firebase**](./plugins/firebase/) | Firebase Firestore, database architecture, migrations | 1 | 2 | [README](./plugins/firebase/README.md) |
 | [**code-quality**](./plugins/code-quality/) | Repository maintenance — README generation, template-repository sync, dependency updates across ecosystems | — | 3 | [README](./plugins/code-quality/README.md) |
 | [**product-management**](./plugins/product-management/) | PRD/TDD orchestration, agent coordination | 1 | 1 | [README](./plugins/product-management/README.md) |
@@ -155,7 +152,9 @@ Earlier versions grouped plugins by domain. Agents and skills keep their names; 
 | --- | --- |
 | `testing:unit-tester`, `unit-testing`, `builder-factory`, `coverage-gaps`, `builder-rules-ts` | `typescript:…` |
 | `testing:storybook-tester`, `create-stories`, `storybook-rules`, `accessibility-audit` | `react:…` |
-| `testing:testing-strategist`, `api-test` | `nextjs:…` |
+| `testing:testing-strategist`, `api-test` | `nextjs:nextjs-tester`, `nextjs:api-test` |
+| `nextjs:nextjs-backend-engineer`, `nextjs:testing-strategist` | `nextjs:nextjs-developer`, `nextjs:nextjs-tester` |
+| `nextjs:server-actions`, `error-handling`, `structured-logging`, `t3-env-validation`, `toast-notifications` | the `nextjs:nextjs-rules` knowledge skill and `nextjs:setup-app-infrastructure` |
 | `testing:builder-rules-py` | `python:builder-rules` |
 | `code-quality:code-reviewer`, `performance-analyzer`, `performance-optimization` | `nextjs:…` |
 | `code-quality:library-updater`, `dead-code` | `typescript:…` |
@@ -283,11 +282,11 @@ What are you doing?
 │
 ├── Building UI / styling / components
 │   └── Agent: frontend-expert (react)
-│       Skills: react-19-compiler (react), tailwind-css-4, design-system-component, szum-tech-design-system (design)
+│       Skills: react-rules (react, preloaded), tailwind-css-4, design-system-component, szum-tech-design-system (design)
 │
 ├── Server actions / API routes / database ops
-│   └── Agent: nextjs-backend-engineer (nextjs)
-│       Skills: server-actions, t3-env-validation, structured-logging, error-handling, toast-notifications
+│   └── Agent: nextjs-developer (nextjs)
+│       Skills: nextjs-rules (preloaded), setup-app-infrastructure
 │
 ├── Scaffolding a new feature / domain / module
 │   └── Skill: generate-feature-package (nextjs)
@@ -299,7 +298,7 @@ What are you doing?
 ├── QA of a running app / feature / flows → Agent: qa-engineer (testing)
 │
 ├── Writing tests
-│   ├── Planning test strategy      → Agent: testing-strategist (nextjs)
+│   ├── Tests from criteria         → Agent: nextjs-tester (nextjs)
 │   ├── Component / Storybook tests → Agent: storybook-tester (react)
 │   │                                  Skills: create-stories (react), builder-factory (typescript)
 │   ├── DOM-based browser tests    → Skill: true-dom-tester (testing)
@@ -355,9 +354,9 @@ What are you doing?
 | Build with @szum-tech/design-system | `/szum-tech-design-system` skill |
 | Create a design system component | `/design-system-component` skill |
 | Scaffold a new feature package | `/generate-feature-package` skill |
-| Create a server action | `nextjs-backend-engineer` agent |
+| Create a server action | `nextjs-developer` agent |
 | Write Storybook tests | `storybook-tester` agent |
-| Plan which tests to write | `testing-strategist` agent |
+| Write tests from acceptance criteria | `nextjs-tester` agent |
 | Write unit tests | `unit-tester` agent (or `/unit-testing` skill) |
 | Write Python code and its tests | `python-developer` agent |
 | Decide how a Python API is structured | `python-api-architect` agent (or `/api-architecture-rules` skill) |
@@ -372,9 +371,8 @@ What are you doing?
 | Design a database schema | `database-architect` agent |
 | Write a migration script | `/db-migration` skill |
 | Update npm packages | `library-updater` agent |
-| Add environment variables | `/t3-env-validation` skill |
-| Add logging to my code | `/structured-logging` skill |
-| Handle errors properly | `/error-handling` skill |
+| Add environment variables, logging or ServiceError | `/setup-app-infrastructure` skill |
+| Run one planned Next.js task (SDD brief or task id) with tests and review | `/run-nextjs-task` skill |
 | Test an API endpoint | `/api-test` skill |
 | Orchestrate a feature from PRD/TDD | `product-owner` agent |
 | Write a PRD or TDD document | `/prd-spec` skill |
@@ -406,7 +404,7 @@ claude-plugins/
     ├── typescript/                # TypeScript & JavaScript language layer
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # unit-tester, library-updater
-    │   └── skills/                # 5 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts)
+    │   └── skills/                # 6 skills (unit-testing, builder-factory, coverage-gaps, dead-code, generated builder-rules-ts, typescript-rules)
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # python-developer, python-api-architect, python-tester, python-reviewer
@@ -414,14 +412,14 @@ claude-plugins/
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester
-    │   └── skills/                # 5 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules, component-test-rules)
+    │   └── skills/                # 6 skills (react-19-compiler, create-stories, accessibility-audit, generated storybook-rules, component-test-rules, react-rules)
     ├── design/                    # Design system & styling
     │   ├── .claude-plugin/plugin.json
     │   └── skills/                # 4 skills (szum-tech-design-system, tailwind-css-4, design-system-component, implement-design)
     ├── nextjs/                    # Next.js full-stack development
     │   ├── .claude-plugin/plugin.json
-    │   ├── agents/                # nextjs-backend-engineer, code-reviewer, performance-analyzer, testing-strategist
-    │   └── skills/                # 10 skills (server-actions, error-handling, api-test, lighthouse-audit, …)
+    │   ├── agents/                # nextjs-developer, nextjs-tester, code-reviewer, performance-analyzer
+    │   └── skills/                # 8 skills (run-nextjs-task, setup-app-infrastructure, generated nextjs-rules, api-test, lighthouse-audit, …)
     ├── firebase/                  # Firebase & database architecture
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # database-architect
