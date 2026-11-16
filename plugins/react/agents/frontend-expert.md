@@ -1,7 +1,7 @@
 ---
 name: frontend-expert
-version: 1.2.0
-lastUpdated: 2026-10-27
+version: 1.2.1
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [storybook-tester, performance-analyzer, code-reviewer]
 description: Implement UI components, style with Tailwind CSS, integrate with design systems, build React components, and fix UI bugs. Use proactively for any frontend-related tasks.

@@ -3,7 +3,7 @@
   "name": "nextjs",
   "displayName": "Next.js",
   "description": "Next.js full-stack development — a task flow and developer, tester and reviewer agents for the App Router, the nextjs-rules knowledge skill (routing, feature architecture, server actions, errors, logging, env), app infrastructure setup, route handler tests, feature scaffolding, performance optimization and Lighthouse audits.",
-  "version": "1.5.1",
+  "version": "2.0.0",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
@@ -12,8 +12,8 @@
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
   "dependencies": [
-    { "name": "react", "version": "^1.2.0" },
-    { "name": "typescript", "version": "^1.0.0" },
+    { "name": "react", "version": "^1.5.0" },
+    { "name": "typescript", "version": "^1.4.0" },
     { "name": "testing", "version": "^3.0.0" },
     { "name": "design", "version": "^1.0.4" }
   ],

@@ -1,7 +1,7 @@
 ---
 name: database-architect
-version: 1.1.1
-lastUpdated: 2026-10-27
+version: 1.2.0
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [nextjs-developer, code-reviewer, library-updater]
 description: Design Firestore data models, optimize database queries, plan safe data migrations, and manage type-safe database patterns using tuple error handling and ServiceError. Use proactively when features require Firestore data storage, query performance needs improvement, or schema migrations are needed.

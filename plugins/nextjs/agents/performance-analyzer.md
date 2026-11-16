@@ -1,7 +1,7 @@
 ---
 name: performance-analyzer
-version: 1.1.2
-lastUpdated: 2026-10-27
+version: 1.1.3
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [frontend-expert, nextjs-developer, code-reviewer]
 description: Analyze application performance, optimize bundle size, improve React rendering efficiency, and debug slow queries. Use proactively when performance issues are suspected or before deploying major features.
