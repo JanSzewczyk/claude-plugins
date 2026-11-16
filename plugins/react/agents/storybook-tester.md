@@ -1,7 +1,7 @@
 ---
 name: storybook-tester
-version: 2.1.1
-lastUpdated: 2026-10-27
+version: 2.1.2
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [frontend-expert, nextjs-tester, unit-tester]
 description: >

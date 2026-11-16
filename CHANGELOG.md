@@ -9,6 +9,78 @@ Headings are `## [<version> <plugin>] — <date>`.
 Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
 newest three versions of each plugin.
 
+## [2.0.0 nextjs] — 2026-11-16
+
+### Added
+
+- `run-nextjs-task` skill: runs one planned task (an SDD `/sdd:implement` brief or a task id) through `nextjs-developer`, `nextjs-tester` and `code-reviewer`, with no questions and one fix round. Set `skill:nextjs:run-nextjs-task` in `specs/capabilities.yml`.
+- `nextjs-developer` and `nextjs-tester` agents.
+- `nextjs-rules` knowledge skill (generated from `knowledge/`): Server Components and the client boundary, page and layout data loading, feature folders and layer order, server actions, error tuples and ServiceError codes, LogLayer logging, T3 Env.
+- `setup-app-infrastructure` skill: adds T3 Env validation, LogLayer logging, ServiceError and retry helper, server action result types and cookie toasts.
+
+### Changed
+
+- `code-reviewer` is rewritten: it returns a verdict, a scorecard, a findings table and an `SDD: PASS|FAIL|SKIPPED` line, works without a hand-off and is read-only.
+- `devlogs` checks logs against the logging rules in `nextjs-rules`.
+- Requires `react` ^1.5.0 and `typescript` ^1.4.0.
+
+### Removed
+
+- Skills `server-actions`, `error-handling`, `structured-logging`, `t3-env-validation` and `toast-notifications`. Their rules are in `nextjs-rules`, their setup steps and templates in `setup-app-infrastructure`.
+- Agent `nextjs-backend-engineer`: use `nextjs-developer`. Agent `testing-strategist`: use `nextjs-tester`.
+
+## [1.5.0 react] — 2026-11-16
+
+### Added
+
+- `react-rules` knowledge skill (generated): React component and hook rules, including no manual memoization under the React Compiler.
+
+### Changed
+
+- `react-19-compiler` is now a short procedure to enable, verify and migrate to the React Compiler; its rules moved to `react-rules`, and its `hooks.md` and `server-components.md` references are gone.
+- `frontend-expert` preloads `react-rules` instead of `react-19-compiler`.
+
+## [1.4.0 typescript] — 2026-11-16
+
+### Added
+
+- `typescript-rules` knowledge skill (generated): `function` declarations, `Array<T>`, const objects instead of enums, `unknown` instead of `any`, the `~/` alias, JSDoc comments.
+
+## [1.2.0 shared-rules] — 2026-11-16
+
+### Added
+
+- Generated rules files for `sync-rules`: `nextjs-server-actions.md`, `nextjs-error-handling.md`, `nextjs-logging.md` and `nextjs-env.md`.
+
+### Changed
+
+- `typescript.md`, `react.md`, `nextjs-page-layout-patterns.md` and `feature-architecture.md` are generated from `knowledge/` and carry its rules; their `paths` now match monorepos (`**/app/**`, `**/features/**`). Projects that synced them will see `update`.
+
+## [1.5.0 knowledge-dev] — 2026-11-16
+
+### Added
+
+- `rules-file` target: renders notes into one self-contained `.claude/rules` file with `paths:` frontmatter for `sync-rules` (D28).
+
+## [1.1.0 firebase] — 2026-11-16
+
+### Changed
+
+- `database-architect` preloads `typescript-rules` and `nextjs-rules`; the ServiceError contract it implements is now defined in `nextjs-rules`.
+- Requires `nextjs` ^2.0.0 and `typescript` ^1.4.0.
+
+## [1.0.8 product-management] — 2026-11-16
+
+### Changed
+
+- Agent routing tables name `nextjs-developer` and `nextjs-tester` instead of `nextjs-backend-engineer` and `testing-strategist`.
+
+## [3.1.1 testing] — 2026-11-16
+
+### Changed
+
+- README names the `nextjs` agents that replace `testing-strategist`.
+
 ## [3.1.0 testing] — 2026-11-16
 
 ### Added

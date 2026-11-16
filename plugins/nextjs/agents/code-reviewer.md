@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
-version: 2.0.3
-lastUpdated: 2026-10-27
+version: 3.0.0
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [nextjs-developer, nextjs-tester, performance-analyzer]
 description: >

@@ -1,7 +1,7 @@
 ---
 name: unit-tester
-version: 1.1.1
-lastUpdated: 2026-10-27
+version: 1.1.2
+lastUpdated: 2026-11-16
 author: Szum Tech Team
 related-agents: [nextjs-tester, storybook-tester, nextjs-developer]
 description: >
