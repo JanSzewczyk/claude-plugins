@@ -85,6 +85,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 - **🔦 [lighthouse-audit](./plugins/nextjs/skills/lighthouse-audit/)** — Automated Lighthouse audit with scored report and prioritized Next.js fix plan
 - **📚 [knowledge-author](./plugins/knowledge-dev/skills/knowledge-author/)** — Writes and extracts one-decision-per-file rule notes in `knowledge/`, builds them into the skills and agents that apply them, and checks for drift
 - **🔁 [python-api-team](./plugins/python/skills/python-api-team/)** — Runs the architect, developer, tester and reviewer in turn with hand-offs, decision stops and a collected list of rule proposals
+- **▶️ [run-python-task](./plugins/python/skills/run-python-task/)** — Runs one already-planned task (an orchestrator brief or a task id) through developer, tester and reviewer with no questions, following the brief's git instructions
 - **🏗️ [api-architecture-rules](./plugins/python/skills/api-architecture-rules/)** — Chooses and lays out the architecture of a Python (FastAPI) API: domain modules, and hexagonal layers where a module needs them
 - **🔗 [sync-rules](./plugins/shared-rules/skills/sync-rules/)** — Pulls canonical `.claude/rules/` files into any repo from a single source of truth, with hash-based drift detection
 - **🌿 [create-branch](./plugins/git-workflow/skills/create-branch/)** — Creates a branch off a freshly fetched default branch, named `<type>/<english-kebab-case>` from your work or your hint
@@ -117,7 +118,7 @@ Technology plugins are layered — a technology-agnostic **testing** core, the *
 | --- | --- | --- | --- | --- |
 | [**testing**](./plugins/testing/) | Technology-agnostic testing core — Playwright, DOM-based test generation | — | 2 | [README](./plugins/testing/README.md) |
 | [**typescript**](./plugins/typescript/) | TypeScript & JavaScript — Vitest unit tests, mimicry-js builders, coverage gaps, dead-code sweeps, npm package updates | 2 | 5 | [README](./plugins/typescript/README.md) |
-| [**python**](./plugins/python/) | Python — developer, API-architect, tester and reviewer agents, API architecture guide, team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | 4 | 7 | [README](./plugins/python/README.md) |
+| [**python**](./plugins/python/) | Python — developer, API-architect, tester and reviewer agents, API architecture guide, team conventions (Ruff, uv, typing, errors, logging, documentation, asyncio, security), pytest and FastAPI rules, and factory_boy test data rules | 4 | 8 | [README](./plugins/python/README.md) |
 | [**react**](./plugins/react/) | React 19 — Compiler, Storybook interaction tests, accessibility audits | 2 | 5 | [README](./plugins/react/README.md) |
 | [**design**](./plugins/design/) | Design system & styling — Szum-Tech design system, Tailwind CSS v4, design porting | — | 4 | [README](./plugins/design/README.md) |
 | [**nextjs**](./plugins/nextjs/) | Next.js App Router — Server Actions, API tests, code review, performance and Lighthouse audits, test strategy | 4 | 10 | [README](./plugins/nextjs/README.md) |
@@ -309,6 +310,7 @@ What are you doing?
 ├── Writing Python code, or structuring a Python API
 │   ├── Implementation + tests     → Agent: python-developer (python)
 │   ├── Full build + verify flow   → Skill: python-api-team (python)
+│   ├── One planned task           → Skill: run-python-task (python)
 │   ├── Black-box tests / guards   → Agent: python-tester (python)
 │   ├── Review against the rules   → Agent: python-reviewer (python)
 │   └── Architecture / layout      → Agent: python-api-architect, Skill: api-architecture-rules (python)
@@ -357,6 +359,7 @@ What are you doing?
 | Write Python code and its tests | `python-developer` agent |
 | Decide how a Python API is structured | `python-api-architect` agent (or `/api-architecture-rules` skill) |
 | Build and verify a Python API end to end | `/python-api-team` skill |
+| Run one planned task (SDD brief or task id) with tests and review | `/run-python-task` skill |
 | Test a Python API from its contract, prove a guard | `python-tester` agent |
 | Review Python code against the team rules | `python-reviewer` agent |
 | Find out what's untested and what to test first | `/coverage-gaps` skill |
@@ -403,7 +406,7 @@ claude-plugins/
     ├── python/                    # Python language layer
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # python-developer, python-api-architect, python-tester, python-reviewer
-    │   └── skills/                # 7 skills (api-architecture-rules, python-api-team, generated builder-rules, python-rules, python-project-rules, pytest-rules, fastapi-rules)
+    │   └── skills/                # 8 skills (api-architecture-rules, python-api-team, run-python-task, generated builder-rules, python-rules, python-project-rules, pytest-rules, fastapi-rules)
     ├── react/                     # React 19 UI development
     │   ├── .claude-plugin/plugin.json
     │   ├── agents/                # frontend-expert, storybook-tester

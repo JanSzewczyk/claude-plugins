@@ -32,12 +32,22 @@ what it finds. Skip steps 1 and 3 for a small change inside an existing module. 
 section (a rule that seems wrong or missing, with evidence); the flow collects them for you to
 decide, and nothing is applied automatically.
 
+### Task flow
+
+`/run-python-task` is the same sequence without the planning: the plan, the branch and the pull request
+belong to the caller. It builds, tests (one pass), reviews and fixes once, does what the brief says
+about commits, push and pull request, and reports files changed, test result, unmet criteria and the
+link. It never asks a question, so it works as the implementation flow of an orchestrator such as
+SDD, for example `implementation.projects.api: skill:python:run-python-task`. Both flows share the
+rules in `references/` (prompts, gates, budgets, proposals).
+
 ### Skills
 
 | Skill                | Invoke with   | Description                                                                                                                  |
 | -------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **api-architecture-rules** | `/api-architecture-rules` | Choose and lay out a Python API (FastAPI): domain modules or hexagonal modules, and where each piece of code goes; carries the architecture guide and its rules |
 | **python-api-team**  | `/python-api-team`  | Runs the four agents as one flow (full, short or review) from the main session: hand-offs passed verbatim, stops for decisions, one fix round after review, and a table of the rules the agents propose to change |
+| **run-python-task**  | `/run-python-task`  | Runs one already-planned task (a brief from an orchestrator such as SDD, or a task id) through developer, tester and reviewer with no planning and no questions: one tester pass, one fix round, git steps exactly as the brief says, and a short report |
 | **builder-rules** | — (preloaded) | Generated background knowledge: test data factory rules for Python and `factory_boy`, for Python testing agents to preload |
 | **python-rules**     | — (preloaded) | Generated background knowledge: docstrings and library documentation, typing syntax and mypy strict, exceptions, logging, asyncio, race-safe writes, t-string and secret-handling security |
 | **python-project-rules** | — (preloaded) | Generated background knowledge: project setup and tooling, uv and the lockfile, Ruff, CI workflow, Makefile, dependency audit, trusted publishing |
