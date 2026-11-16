@@ -54,8 +54,9 @@ node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs check
    languages, frameworks and libraries in `applies`.
 3. `build` renders them: a `references/rules.md` plus an index block between `BEGIN:knowledge` and
    `END:knowledge` in a hand-written `SKILL.md`, or a whole background-knowledge skill
-   (`user-invocable: false`) that agents preload through `skills:`. Frontmatter and sources never
-   reach the model.
+   (`user-invocable: false`) that agents preload through `skills:`, or a self-contained
+   `.claude/rules` file in `shared-rules` that `sync-rules` copies into projects (`rules-file`).
+   Frontmatter and sources never reach the model.
 4. `check` rebuilds in memory and byte-compares. CI fails on a stale or hand-edited copy and says
    which one it is.
 
@@ -72,7 +73,7 @@ Why each of these choices was made, with the evidence and the rejected alternati
 | no target receives this note | it never reaches a skill or agent: add it to a target or delete it |
 | looks like `<id>` | title or summary overlaps 70%+ with a note that is not just the same decision in another language |
 | no rule implements this principle | the principle lists `expects` and nothing has `implements` it |
-| `<skill>` is N of M lines | a knowledge skill is at 90% of its line budget |
+| `<skill>` is N of M lines | a knowledge skill or a rules file is at 90% of its line budget |
 
 ```bash
 node plugins/knowledge-dev/skills/knowledge-author/scripts/knowledge.mjs lint

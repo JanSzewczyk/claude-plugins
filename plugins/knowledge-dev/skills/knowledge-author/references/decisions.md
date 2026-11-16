@@ -39,6 +39,7 @@ Storybook skill; it has since become `create-stories`.
 - [D25 Cross-note checks are a deterministic lint; judgement stays with a reviewer](#d25-cross-note-checks-are-a-deterministic-lint-judgement-stays-with-a-reviewer)
 - [D26 Semantic review is a read-only agent fed by a lexical shortlist](#d26-semantic-review-is-a-read-only-agent-fed-by-a-lexical-shortlist)
 - [D27 Guides: the long form, beside the one-decision notes](#d27-guides-the-long-form-beside-the-one-decision-notes)
+- [D28 Rules files for .claude/rules are a third rendering](#d28-rules-files-for-clauderules-are-a-third-rendering)
 - [Open questions](#open-questions)
 
 ## D1 Plain files, not RAG
@@ -547,6 +548,37 @@ the unresolved preload question under Open questions; the Decision, inlined, doe
 **Revisit when** guides outnumber the rules they decide (then the rules are too thin), or when two
 guides repeat the same options table (then it is a principle).
 
+## D28 Rules files for .claude/rules are a third rendering
+
+**Decision.** A `rules-file` target (2026-11-16) writes one file into
+`plugins/shared-rules/skills/sync-rules/rules/`, which `sync-rules` copies into a project's
+`.claude/rules/`. The target names `file` and `paths` (globs, written as the file's `paths:`
+frontmatter) instead of `skill`, and takes `title`, `intro`, `include`, `exclude`, `where`, `profile`,
+`maxLines` and `guides`. It refuses `skill`, `layout`, `inline` and `description`. The file is
+self-contained: frontmatter, then the stamp, then every selected note in place, with no index and no
+links, and a guide's extra sections follow its Decision instead of going to `references/guides/`. The
+budget is `budgets.rulesFileLines` (400). The build owns only the files its targets name, so
+hand-written rules (`db-patterns.md`) and the folder's README stay where they are.
+
+**Why.** The TypeScript, React and Next.js conventions lived three times: in `shared-rules`, in
+rule-shaped procedure skills, and in agent prompts, and the copies in a project (FormLens) had already
+drifted from the source. Agents read the `*-rules` knowledge skills; in-session work and people read
+`.claude/rules`. Both now come from the same notes. `sync-rules` hashes whole files, so a rebuilt
+file reaches a project as `update`, never as a silent change.
+
+**Rejected.** `sync-rules` reading `knowledge/` itself: an installed plugin cannot see files outside
+its own directory (D3). Links into `references/`: a project receives one file, not a skill folder.
+Generating the README's table of rules: it also lists hand-written files. The stamp before the
+frontmatter: `paths:` is honoured only on the first line.
+
+**Cost.** Any edit to a note a rules file carries shows as `update` in every project that synced
+it. A project that needs different rules keeps them in its own files or constitution, not in the
+synced copy. The `paths` are fixed at the source, so they are written broadly (`**/app/**`) to
+match monorepos.
+
+**Revisit when** projects need their own `paths` for the same rules, or a rules file outgrows its
+budget at every profile (then split it by `paths`).
+
 ## Open questions
 
 Verified neither in the PoC nor in the docs. Settle before relying on them:
@@ -562,5 +594,3 @@ Verified neither in the PoC nor in the docs. Settle before relying on them:
   `preview.meta` and `meta.story` for Vue single-file components. The Vue note
   `testing/storybook/vue/story-file-setup` implements the principle; no skill receives it until a
   Vue plugin exists. `.test()` on Vue was not checked.
-- The `rules-file` target (notes rendered into `.claude/rules/*.md` for `sync-rules`) is designed
-  but not built.

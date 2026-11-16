@@ -142,17 +142,18 @@ stay out: the model does not use them (D13). Scaffold one with `new <domain>/<..
 
 | Option | Values | Default |
 | --- | --- | --- |
-| `kind` | `skill-index`: an index block in a hand-written SKILL.md plus the rules file. `knowledge-skill`: a whole generated background skill for agents | required |
+| `kind` | `skill-index`: an index block in a hand-written SKILL.md plus the rules file. `knowledge-skill`: a whole generated background skill for agents. `rules-file`: one self-contained `.claude/rules` file for `sync-rules`, named by `file` and loaded by its `paths` globs instead of `skill`; no `layout`, `inline` or `description` (D28) | required |
 | `layout` | `single`: one `references/rules.md` per skill. `per-rule`: one file per note, for large sets read rarely | `single` |
 | `profile` | `full`: Rule, Why, Incorrect, Correct. `lean`: the same without Incorrect unless `critical`. `compact`: as lean, with only the first sentence of Why. Use the smaller ones only when `maxLines` binds | `full` |
 | `inline` | Lowest impact a knowledge skill puts in its own SKILL.md; the rest go to the rules file in full | `high` |
-| `maxLines` | Line budget for a generated knowledge skill, which agents preload whole | 300 |
+| `maxLines` | Line budget for a generated knowledge skill, which agents preload whole, or for a rules file | 300 (rules file: 400) |
 | `guides` | Sections of each guide the target receives. `Decision` is always rendered like a rule; any others go to `references/guides/<id>.md` and the entry names that file | `["Decision"]` |
 
 ## Keep it true
 
 - Never edit a generated file (`references/rules.md`, `references/rules/*`, the block between
-  `BEGIN:knowledge` and `END:knowledge`, a generated knowledge skill). `check` fails on it and
+  `BEGIN:knowledge` and `END:knowledge`, a generated knowledge skill, a stamped file in
+  `plugins/shared-rules/skills/sync-rules/rules/`). `check` fails on it and
   tells a stale rendering from one edited by hand.
 - To retire a note, delete it and fix whatever `implements` it. `validate` reports the dangling
   references.
