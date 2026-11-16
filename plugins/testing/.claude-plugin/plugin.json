@@ -2,7 +2,7 @@
   "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "testing",
   "displayName": "Testing core",
-  "description": "Technology-agnostic testing core — Playwright browser automation and accessibility-tree DOM test generation, usable whatever the project's language or framework.",
+  "description": "Technology-agnostic testing core — Playwright browser automation, accessibility-tree DOM test generation and a black-box QA engineer agent, usable whatever the project's language or framework.",
   "version": "3.0.2",
   "author": {
     "name": "Szum Tech Team",
@@ -11,7 +11,7 @@
   },
   "homepage": "https://github.com/JanSzewczyk/claude-plugins",
   "license": "MIT",
-  "keywords": ["testing", "playwright", "e2e", "browser-automation"],
-  "agents": [],
+  "keywords": ["testing", "playwright", "e2e", "browser-automation", "qa"],
+  "agents": ["./agents/qa-engineer.md"],
   "skills": "./skills/"
 }
