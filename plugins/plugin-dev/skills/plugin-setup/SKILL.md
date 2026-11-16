@@ -84,6 +84,7 @@ Fill [templates/claude-md-block.md](./templates/claude-md-block.md):
 - `{{DOCS}}`: every file that enumerates skills or agents by hand (root and per-plugin READMEs, a
   table in `CLAUDE.md`). Leave out any that do not exist.
 - `{{TAGS}}`: the tag line only when the repo tags releases or a plugin declares `dependencies`.
+- `{{CHANGELOG}}`: filled after step 4; until then keep the placeholder.
 - `{{AUDIT}}`: `/marketplace-creator audit` in a marketplace, `/plugin-creator audit .` for a
   single plugin.
 
@@ -98,9 +99,33 @@ Then place it:
 If the existing `CLAUDE.md` already states a rule the block would contradict (another bump policy,
 another manifest path), stop and ask which one wins before writing.
 
-### 4. CI, only with `--ci` or when the user agrees
+### 4. Changelog, only when the user agrees
 
-Skip this step when the repo is not on GitHub, and say why.
+Version bumps are recorded in `CHANGELOG.md`; `/plugin-release` writes each section. Format and
+procedure: [../plugin-release/references/changelog.md](../plugin-release/references/changelog.md).
+
+- **`CHANGELOG.md` exists** → check its headings with
+  `node "${CLAUDE_SKILL_DIR}/../plugin-release/scripts/changelog.mjs" . sections`. Sections that do not
+  match `## [<version> <plugin>] — <date>` are reported, not rewritten. Set `{{CHANGELOG}}` to the line
+  below and enable the CI check in step 5.
+- **No `CHANGELOG.md`** → ask with AskUserQuestion, because creating the file is the user's call:
+  1. *Start with the next release*: write the intro only; `/plugin-release` adds the first section.
+  2. *Backfill from git history*: draft it with `changelog.mjs . backfill`, in a marketplace with
+     `--limit 3` unless the user wants more. Read the draft, drop merge noise and vague subjects, say
+     the entries are reconstructed from commit subjects, show it, and write it only after a yes.
+  3. *No changelog*: leave `{{CHANGELOG}}` out and skip the CI check.
+- **Marketplace with a main plugin** (one whose release tags are `v<version>`, with its Release notes
+  cut from `## [<version>]`): ask which plugin it is and add `Changelog main plugin: <name>` under
+  the line. Do not guess one.
+
+The `{{CHANGELOG}}` line: "Every version bump adds a `CHANGELOG.md` section, `## [<version> <plugin>] —
+<date>` (`## [<version>]` for a single plugin or the main plugin); `/plugin-release` drafts it from
+git history." Never write a changelog without the user's yes.
+
+### 5. CI, only with `--ci` or when the user agrees
+
+Skip this step when the repo is not on GitHub, and say why. If step 4 set up a changelog, the
+`version-bump-check` job also fails a bump with no section (`changelog: "true"`).
 
 **Pick the jobs.** Two jobs are always written: `manifests` (the `marketplace-audit` action) and
 `version-bumps` (the `version-bump-check` action, its own check so it can be made required). Offer the
@@ -119,7 +144,7 @@ bundle `plugin-checks` still exists for workflows pinned to it, but new files us
 
 **Write the file.** Copy [templates/plugin-checks.yml](./templates/plugin-checks.yml) to
 `.github/workflows/plugin-checks.yml`. For each `# BEGIN:<block>` … `# END:<block>` pair, keep the
-lines between the markers when the block was chosen and delete the whole span when not; always delete
+lines between the markers when the block was chosen (`changelog`: when step 4 set a changelog up) and delete the whole span when not; always delete
 the marker lines themselves. Replace every `{{PLUGIN_DEV_REF}}` with this plugin's release tag,
 `plugin-dev--v<version>` from `${CLAUDE_SKILL_DIR}/../../.claude-plugin/plugin.json`. Confirm the tag
 exists before writing it:
@@ -131,7 +156,7 @@ git ls-remote --tags https://github.com/JanSzewczyk/claude-plugins "plugin-dev--
 If that version is not tagged, use the newest tag the command lists and say so, because an action
 added in a later release is missing from an older tag: check that the tag contains
 `.github/actions/<name>/action.yml` for every action the file uses, and drop the job whose action it
-lacks.
+lacks. Keep the `changelog` input only when that tag's `version-bump-check/action.yml` declares it.
 
 **A workflow already there.** If `.github/workflows/plugin-checks.yml` exists (older runs pinned to
 `@main`), show the user the difference and ask before replacing it; keep any job of theirs the
@@ -144,17 +169,17 @@ and its version did not. The template follows the house style of the author's ot
 the workflow, job and step names, a `concurrency` group and `permissions: contents: read`; keep them
 when editing the file.
 
-### 5. Report
+### 6. Report
 
 Name the file the block went into and whether it was added or refreshed, what the audit found,
-which CI jobs were added (and which were offered and declined), and the one thing that stays manual: `/plugin-release` to tag.
+which CI jobs were added (and which were offered and declined), and the one thing that stays manual: `/plugin-release` to bump, write the changelog section and tag.
 
 ## Rules
 
 The block points at these through the audit it names; read the rule when the user asks why.
 
 <!-- BEGIN:knowledge -->
-<!-- generated by knowledge.mjs from 16 note(s) (sha256 bc03363bb84e); edit the notes in knowledge/, then run build -->
+<!-- generated by knowledge.mjs from 17 note(s) (sha256 5ce850efa63d); edit the notes in knowledge/, then run build -->
 
 | Impact | Rule | Applies to |
 | --- | --- | --- |
@@ -168,6 +193,7 @@ The block points at these through the audit it names; read the rule when the use
 | high | [Tag a release for every version another plugin's dependency range points at](references/rules.md#tag-a-release-for-every-version-another-plugins-dependency-range-points-at) — Dependency ranges resolve against <plugin>--v<version> git tags, not against plugin.json. | claude-code |
 | high | [Treat a published plugin's name as permanent and relabel it with displayName](references/rules.md#treat-a-published-plugins-name-as-permanent-and-relabel-it-with-displayname) — Installs, settings and configuration are keyed by name; a renamed plugin is a different plugin to every user. | claude-code |
 | high | [Run claude plugin validate and the drift check on every pull request](references/rules.md#run-claude-plugin-validate-and-the-drift-check-on-every-pull-request) — validate checks each manifest's shape; the drift check catches docs, agents arrays and versions that fell behind. | claude-code |
+| high | [Add a CHANGELOG.md section for every version you bump, in a heading tools can parse](references/rules.md#add-a-changelogmd-section-for-every-version-you-bump-in-a-heading-tools-can-parse) — One `## [<version> <plugin>] — <date>` section per bumped plugin, grouped Added, Changed, Fixed or Removed. | claude-code |
 | medium | [Install the plugin from a local marketplace before pushing a release](references/rules.md#install-the-plugin-from-a-local-marketplace-before-pushing-a-release) — validate checks files; only an install finds a wrong source, a missing directory or a reserved name. | claude-code |
 | medium | [Put instructions a plugin needs in a skill, not a CLAUDE.md inside the plugin](references/rules.md#put-instructions-a-plugin-needs-in-a-skill-not-a-claudemd-inside-the-plugin) — A CLAUDE.md at the plugin root is never loaded as context. | claude-code |
 | medium | [Keep SKILL.md under 500 lines and move reference material into references/](references/rules.md#keep-skillmd-under-500-lines-and-move-reference-material-into-references) — Every body line is paid on each use; reference files load only when the task needs them. | claude-code |
@@ -182,6 +208,7 @@ The block points at these through the audit it names; read the rule when the use
 - Never write outside the `plugin-dev` markers in an existing `CLAUDE.md`.
 - Never move manifests, add `$schema` or bump versions unasked; step 2 reports, the user decides.
 - Never write a line into `CLAUDE.md` that tells an agent to bump a version after a change.
+- Never create or backfill `CHANGELOG.md` without the user's yes, and never write a backfill they have not read.
 - Never commit, push or tag. A caller such as `/ship-task` owns that.
 - Never add a hook to make this "automatic": a plugin hook fires in every project where the plugin
   is enabled. CI is the enforcement point.

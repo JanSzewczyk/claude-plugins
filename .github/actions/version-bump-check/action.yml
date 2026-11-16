@@ -15,6 +15,9 @@ inputs:
   strict:
     description: Also fail when a bump is smaller than the change implies (a patch where a new skill needs a minor).
     default: "false"
+  changelog:
+    description: Also fail when a bumped plugin has no section for its version in CHANGELOG.md (skipped when the repository has no CHANGELOG.md).
+    default: "false"
   ignore-plugins:
     description: Comma-separated plugin names to leave out of the check.
     default: ""
@@ -37,6 +40,7 @@ runs:
         ROOT: ${{ inputs.path }}
         BASE: ${{ inputs.base-ref }}
         STRICT: ${{ inputs.strict == 'true' && '--strict' || '' }}
+        CHANGELOG: ${{ inputs.changelog == 'true' && '--changelog' || '' }}
         IGNORE: ${{ inputs.ignore-plugins }}
         EVENT: ${{ github.event_name }}
       run: |
@@ -50,5 +54,6 @@ runs:
         fi
         args=("$ROOT" --check --since "origin/$BASE")
         [ -n "$STRICT" ] && args+=("$STRICT")
+        [ -n "$CHANGELOG" ] && args+=("$CHANGELOG")
         [ -n "$IGNORE" ] && args+=(--ignore "$IGNORE")
         node "$SCRIPT" "${args[@]}"

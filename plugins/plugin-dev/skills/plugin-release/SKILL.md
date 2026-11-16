@@ -1,17 +1,21 @@
 ---
 name: plugin-release
-description: Work out which plugins in a Claude Code marketplace or single-plugin repo need a version bump and how big, then bump and tag only after the user agrees — it reads the branch against main, one commit, or the uncommitted changes, proposes the semver bump per plugin with reasons, writes the new versions into plugin.json on approval, and creates the release tags with `claude plugin tag`. Use only when the user asks for it: "release the plugin", "what needs a version bump", "bump the version", "tag a release", "podbij wersję", "co wymaga podbicia wersji". Never run it on your own after an edit or a commit; CI is what catches a missing bump.
+description: Work out which plugins in a Claude Code marketplace or single-plugin repo need a version bump and how big, then bump and tag only after the user agrees — it reads the branch against main, one commit, or the uncommitted changes, proposes the semver bump per plugin with reasons, writes the new versions into plugin.json on approval, and writes the matching CHANGELOG.md section (drafted from git history, also backfilled for a repo that has none, on request), and creates the release tags with `claude plugin tag`. Use only when the user asks for it: "release the plugin", "what needs a version bump", "bump the version", "tag a release", "podbij wersję", "co wymaga podbicia wersji". Never run it on your own after an edit or a commit; CI is what catches a missing bump.
 allowed-tools: Read, Glob, Grep, Bash, Edit
 argument-hint: "[plugin name to release, or nothing for every changed plugin]"
 ---
 
 # Plugin Release
 
-In a marketplace with no changelog, the manifest is the entire release record — so the version
-bump is the release. This skill makes that bump correct and repeatable instead of remembered.
+The manifest holds only the current version, so a bump alone says nothing about what changed. This
+skill makes the bump correct and repeatable instead of remembered, and records it in `CHANGELOG.md`.
 
 > - [scripts/plan-release.mjs](./scripts/plan-release.mjs) — the CLI that decides whether each plugin
->   needs a bump and how big, with its reasons. `--apply` writes them; `--check` is the CI gate.
+>   needs a bump and how big, with its reasons. `--apply` writes them; `--check` is the CI gate
+>   (`--changelog` also demands the CHANGELOG.md section).
+> - [scripts/changelog.mjs](./scripts/changelog.mjs) — drafts CHANGELOG.md sections from git history.
+> - [references/changelog.md](./references/changelog.md) — heading format, the draft and backfill
+>   procedure, and how a repository with a release workflow is handled.
 
 ## The versioning rules
 
@@ -84,9 +88,17 @@ already declares, with no bump.
 5. **Apply the bumps.** `--apply` for the mechanical ones; edit the manifest by hand where you
    overruled the proposal. For every agent the script flagged, bump its frontmatter `version` and
    set `lastUpdated` to today's date.
-6. **Leave the commit to the user**, or to the flow that called you (`/ship-task`), together with the
+6. **Write the changelog section for every bumped plugin**, following
+   [references/changelog.md](./references/changelog.md): draft it with `scripts/changelog.mjs`, rewrite
+   the points into what a user needs to know, show it, and write it only after the user agrees. A
+   repository with no `CHANGELOG.md` gets none unless the user says yes to creating it (ask; offer to
+   backfill the earlier versions from git history).
+7. **Leave the commit to the user**, or to the flow that called you (`/ship-task`), together with the
    changes the bump describes.
-7. **Tag only when the user asks for a release**, with the path the plan printed for that plugin.
+8. **Tag only when the user asks for a release**, and only when CI does not tag for you. A workflow
+   that tags on merge (`.github/workflows/*` calling `git tag` or `claude plugin tag`) owns that
+   step: say so and stop, because a hand-made tag on the feature branch points at a commit that is
+   not on the default branch after a squash merge. Otherwise use the path the plan printed for that plugin.
    The native command validates that `plugin.json` and the marketplace entry agree before it writes
    anything:
    ```bash
@@ -104,8 +116,11 @@ already declares, with no bump.
   probably should not be released.
 - **Never tag a dirty tree, and never `--force` a tag.** A tag that does not correspond to a
   commit is worse than no tag.
-- **Do not create a `CHANGELOG.md`** in a repo that has none: versioning goes through the manifest,
-  and release notes belong in the tag annotation (`-m`). Keep one that already exists up to date.
+- **Never create `CHANGELOG.md` unasked.** In a repo that has none, ask whether to start one and
+  whether to backfill it; without a yes, release notes stay in the tag annotation (`-m`). A repo that
+  has one gets a section for every bump, in the same change.
+- **Never write a changelog section the user has not seen.** A draft from commit subjects is a
+  starting point; the points must state what changed for a user.
 - **Pushing tags is a publishing action** — confirm with the user before `--push`, even when they
   asked for a release.
 
@@ -115,7 +130,7 @@ The plugin authoring rules behind these checks, generated from the knowledge not
 finding needs its reason or its fix.
 
 <!-- BEGIN:knowledge -->
-<!-- generated by knowledge.mjs from 16 note(s) (sha256 44d6a730fe1a); edit the notes in knowledge/, then run build -->
+<!-- generated by knowledge.mjs from 17 note(s) (sha256 f93db853c486); edit the notes in knowledge/, then run build -->
 
 | Impact | Rule | Applies to |
 | --- | --- | --- |
@@ -129,6 +144,7 @@ finding needs its reason or its fix.
 | high | [Tag a release for every version another plugin's dependency range points at](references/rules.md#tag-a-release-for-every-version-another-plugins-dependency-range-points-at) — Dependency ranges resolve against <plugin>--v<version> git tags, not against plugin.json. | claude-code |
 | high | [Treat a published plugin's name as permanent and relabel it with displayName](references/rules.md#treat-a-published-plugins-name-as-permanent-and-relabel-it-with-displayname) — Installs, settings and configuration are keyed by name; a renamed plugin is a different plugin to every user. | claude-code |
 | high | [Run claude plugin validate and the drift check on every pull request](references/rules.md#run-claude-plugin-validate-and-the-drift-check-on-every-pull-request) — validate checks each manifest's shape; the drift check catches docs, agents arrays and versions that fell behind. | claude-code |
+| high | [Add a CHANGELOG.md section for every version you bump, in a heading tools can parse](references/rules.md#add-a-changelogmd-section-for-every-version-you-bump-in-a-heading-tools-can-parse) — One `## [<version> <plugin>] — <date>` section per bumped plugin, grouped Added, Changed, Fixed or Removed. | claude-code |
 | medium | [Install the plugin from a local marketplace before pushing a release](references/rules.md#install-the-plugin-from-a-local-marketplace-before-pushing-a-release) — validate checks files; only an install finds a wrong source, a missing directory or a reserved name. | claude-code |
 | medium | [Put instructions a plugin needs in a skill, not a CLAUDE.md inside the plugin](references/rules.md#put-instructions-a-plugin-needs-in-a-skill-not-a-claudemd-inside-the-plugin) — A CLAUDE.md at the plugin root is never loaded as context. | claude-code |
 | medium | [Keep SKILL.md under 500 lines and move reference material into references/](references/rules.md#keep-skillmd-under-500-lines-and-move-reference-material-into-references) — Every body line is paid on each use; reference files load only when the task needs them. | claude-code |
@@ -141,4 +157,5 @@ finding needs its reason or its fix.
 ## Reporting back
 
 One line per plugin: name, old version → new version, bump size, and the one-phrase reason.
-Then the tag commands, and explicitly whether they were run or are waiting for confirmation.
+Then the changelog sections written (or declined), and the tag commands, with whether they were run
+or are waiting for confirmation.

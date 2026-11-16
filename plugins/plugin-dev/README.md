@@ -12,7 +12,7 @@ This plugin is about **building and distributing plugins**: what goes into one, 
 |-------|-------------|-------------|
 | **plugin-creator** | `/plugin-creator`, `/plugin-creator audit <dir>` | Create, extend, debug and audit a plugin — manifest, skills, agents, hooks, MCP/LSP servers, `userConfig`, dependencies, evals, token cost and release readiness; converts a `.claude/` setup |
 | **marketplace-creator** | `/marketplace-creator`, `/marketplace-creator audit` | Create a marketplace, add, rename or remove entries, host it, set relevance; its audit finds manifest and doc drift plus unpinned sources, missing `renames` and other install-time breakage |
-| **plugin-release** | `/plugin-release` | On request only: work out which plugins changed (branch vs main, one commit, or uncommitted), propose the semver bump each change implies, write it into plugin.json after you agree, and tag the release; `--check` is the CI gate for a missing bump |
+| **plugin-release** | `/plugin-release` | On request only: work out which plugins changed (branch vs main, one commit, or uncommitted), propose the semver bump each change implies, write it into plugin.json after you agree, write the matching `CHANGELOG.md` section (drafted from git history; offers to create and backfill the file when there is none) and tag the release; `--check` is the CI gate for a missing bump (`--changelog`: and a missing section) |
 | **plugin-setup** | `/plugin-setup` | Write the plugin-development workflow (where manifests live, which docs to update, never bump unasked) into a project's CLAUDE.md, and optionally a CI workflow built from the shared actions (drift audit and version bump gate, plus optional CLI, skill audit, knowledge and evals jobs) |
 | **mod-creator** | `/mod-creator`, `/mod-creator audit <path>` | Build, test, debug and audit Claude Code mods (`/mod-creator audit <path>` ranks findings and gives a verdict) — plugins whose `hooks/hooks.json` lists `modules` that draw panes, bands and toasts, add commands, or guard tool calls |
 
@@ -89,6 +89,18 @@ node plugins/plugin-dev/skills/plugin-release/scripts/plan-release.mjs . --apply
 
 On the default branch itself, with nothing to compare a branch against, each plugin is compared with
 its last `<plugin>--v*` tag. `--since <ref>` overrides all of it.
+
+**Changelog.** After the bump, `/plugin-release` drafts one `CHANGELOG.md` section per bumped plugin
+from git history, heading `## [<version> <plugin>] — <date>` (`## [<version>]` for a single plugin or
+a named main plugin), and writes it after you agree. With no `CHANGELOG.md` it asks whether to start
+one and whether to backfill earlier versions (cut at the commits that changed `version`, `--limit`
+keeps the newest n per plugin). `/plugin-setup` offers the same and turns on the CI check
+(`version-bump-check` with `changelog: "true"`).
+
+```bash
+node plugins/plugin-dev/skills/plugin-release/scripts/changelog.mjs . draft <plugin>
+node plugins/plugin-dev/skills/plugin-release/scripts/changelog.mjs . backfill --limit 3
+```
 
 ## How the pieces fit
 
