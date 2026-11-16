@@ -27,10 +27,11 @@ export async function deleteBudget(budgetId: string): ActionResponse<null> {
 
 ```ts
 export async function deleteBudget(budgetId: string): ActionResponse<null> {
-  const session = await auth();
-  if (!session) unauthorized();
-  if (!(await canEditBudget(session.userId, budgetId))) forbidden();
-  const [error] = await removeBudget({ userId: session.userId, budgetId });
+  const { isAuthenticated, userId } = await auth();
+  if (!isAuthenticated) unauthorized();
+  const [permissionError] = await canEditBudget(userId, budgetId);
+  if (permissionError) forbidden();
+  const [error] = await removeBudget({ userId, budgetId });
   return error ? { success: false, error: "Could not delete" } : { success: true, data: null };
 }
 ```

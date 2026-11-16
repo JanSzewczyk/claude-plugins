@@ -26,10 +26,9 @@ const pinoLogger = pino({ level: LOG_LEVEL });
 ```ts
 import { env } from "~/data/env/server";
 
-/** env is raw under SKIP_ENV_VALIDATION, so the schema default does not apply. */
-const pinoLogger = pino({ level: env.LOG_LEVEL ?? "info" });
+const pinoLogger = pino({ level: env.LOG_LEVEL });
 ```
 
 ## Exceptions
 
-`lib/logger.ts` is imported by unit tests and by a build with `SKIP_ENV_VALIDATION`, where `env` is the raw environment and `LOG_LEVEL` may be `undefined`; Pino throws on an `undefined` level, so this one call site keeps the `?? "info"` fallback.
+`lib/logger.ts` is imported by unit tests and by a build with `SKIP_ENV_VALIDATION`, where `env` is the raw environment and `LOG_LEVEL` may be `undefined`; Pino throws on an `undefined` level, so this one call site keeps `level: env.LOG_LEVEL ?? "info"` (see the rule on defaults in the env notes).

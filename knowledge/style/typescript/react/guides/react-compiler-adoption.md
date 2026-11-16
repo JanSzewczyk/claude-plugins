@@ -38,4 +38,4 @@ Run the React Compiler on the whole app (`compilationMode: "infer"`, the default
 3. Keep only the four exception cases and add the JSDoc comment that names each.
 4. Run the module's tests and stories, then move to the next module.
 
-**Profile before adding memoization back.** Record the interaction in the React DevTools Profiler, or wrap the subtree in `<React.Profiler id="..." onRender={...}>` and send the durations to the project logger or a test assertion. Add manual memoization only when the profile shows a component rendering more than about 10 times a second, a render over 16 ms, or a computation over 100 ms, and write the measured figure in its JSDoc comment.
+**Profile before adding memoization back.** Record the interaction in the React DevTools Profiler, or wrap the subtree in `<React.Profiler id="..." onRender={...}>` and send the durations to the project logger or a test assertion. Add manual memoization only when the profile shows a render over 16 ms or a computation over 100 ms that runs often (team figures, not React's), and write the measured figure in its JSDoc comment.

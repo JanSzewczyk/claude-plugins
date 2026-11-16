@@ -309,6 +309,19 @@
       "include": ["configuration/typescript/**"],
       "where": { "languages": ["typescript"] },
       "profile": "compact"
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/react/skills/react-19-compiler",
+      "include": ["style/typescript/react/leave-memoization-to-the-react-compiler", "style/typescript/react/fail-lint-on-react-compiler-diagnostics", "style/typescript/react/call-hooks-only-at-the-top-level", "style/typescript/react/guides/react-compiler-adoption"],
+      "where": { "languages": ["typescript"], "frameworks": ["react"] },
+      "guides": ["Decision", "Options", "Evolution"]
+    },
+    {
+      "kind": "skill-index",
+      "skill": "plugins/nextjs/skills/devlogs",
+      "include": ["logging/typescript/**", "logging/principles/**"],
+      "where": { "languages": ["typescript"] }
     }
   ]
 }

@@ -1,6 +1,6 @@
 ---
 title: Write a feature's access checks as canDoX functions in a server-only permissions.ts
-summary: features/{domain}/server/permissions.ts holds every canDoX guard, returns a tuple, and only services call it.
+summary: permissions.ts holds every canDoX guard as a tuple; services and actions call it, nobody rewrites the rule.
 impact: high
 applies: [typescript, nextjs]
 sources: [https://nextjs.org/docs/app/guides/data-security]
@@ -8,7 +8,7 @@ sources: [https://nextjs.org/docs/app/guides/data-security]
 
 ## Rule
 
-Put each rule about who may do what in the feature as a `canDoX` function in `features/{domain}/server/permissions.ts`, which starts with `import "server-only"` and returns `[error, null]` or `[null, undefined]`. Services call these functions; no action, page or component repeats the check inline.
+Put each rule about who may do what in the feature as a `canDoX` function in `features/{domain}/server/permissions.ts`, which starts with `import "server-only"` and returns `[error, null]` or `[null, undefined]`. Services and server actions call these functions; no page, component or other caller re-implements the check inline.
 
 ## Why
 

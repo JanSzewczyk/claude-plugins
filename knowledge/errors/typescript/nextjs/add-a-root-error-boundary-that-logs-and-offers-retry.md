@@ -1,6 +1,6 @@
 ---
-title: Add a root app/error.tsx that logs the error with its digest and offers retry
-summary: The boundary reports the error once with its digest and shows a generic message and a retry button.
+title: Add a root app/error.tsx that reports the error with its digest and offers retry
+summary: The boundary reports the error with its digest and shows a generic message and a retry button.
 impact: high
 applies: [typescript, nextjs]
 sources: [https://nextjs.org/docs/app/api-reference/file-conventions/error, https://nextjs.org/docs/app/getting-started/error-handling]
@@ -8,7 +8,7 @@ sources: [https://nextjs.org/docs/app/api-reference/file-conventions/error, http
 
 ## Rule
 
-Give the app a root `app/error.tsx` Client Component that logs the error with its `digest` in an effect, shows a generic message, and offers a button that calls `retry()`. Add a segment `error.tsx` only where that segment needs different recovery.
+Give the app a root `app/error.tsx` Client Component that reports the error with its `digest` in an effect (`console.error`: it runs in the browser, where the server logger does not exist), shows a generic message, and offers a button that calls `retry()`. Add a segment `error.tsx` only where that segment needs different recovery.
 
 ## Why
 
@@ -28,11 +28,9 @@ export default function Error({ error }: { error: Error }) {
 "use client";
 import * as React from "react";
 
-const log = createLogger({ module: "root-error-boundary" });
-
 export default function Error({ error, retry }: { error: Error & { digest?: string }; retry(): void }) {
   React.useEffect(() => {
-    log.withError(error).withMetadata({ digest: error.digest }).error("Unhandled render error");
+    console.error("Unhandled render error", error.digest, error);
   }, [error]);
   return <ErrorState title="Something went wrong" onRetry={retry} />;
 }

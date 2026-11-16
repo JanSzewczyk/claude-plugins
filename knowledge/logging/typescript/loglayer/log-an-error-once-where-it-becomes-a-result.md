@@ -1,6 +1,6 @@
 ---
-title: Log an error once, in the function that catches it and returns it as a result
-summary: The catch site logs with errorCode, isRetryable and ids, then returns [error, null]; callers do not log it again.
+title: Log a returned error once, in the action or route handler that decides what to do with it
+summary: Db and service functions return [error, null] silently; the action or handler logs it once with errorCode and ids.
 impact: medium
 applies: [typescript, loglayer]
 implements: logging/principles/log-an-error-once-where-it-is-handled
@@ -9,7 +9,7 @@ sources: [https://loglayer.dev/logging-api/error-handling]
 
 ## Rule
 
-The function that catches a thrown error and returns it as `[error, null]` logs it once, before returning, with `withError`, `errorCode`, `isRetryable` and the ids of the operation. A service or action that receives the returned error passes it on or maps it to a response without logging it again.
+Db and service functions return `[error, null]` without logging it. The server action or route handler that receives the error and decides the response logs it once, with `withError`, `errorCode`, `isRetryable` and the ids of the operation.
 
 ## Why
 
@@ -18,16 +18,10 @@ When the db function, the service and the action each log the same failure, one 
 ## Incorrect
 
 ```ts
-// db/budgets.ts
-} catch (error) {
-  log.withError(error).error("Get budget failed");
-  return [categorizeServiceError(error), null];
-}
-
 // services/budgets.ts
 const [error, budget] = await getBudget(id);
 if (error) {
-  serviceLog.withMetadata({ budgetId: id }).error("Could not load budget");
+  log.withMetadata({ budgetId: id }).error("Could not load budget"); // and db/ and the action log it too
   return [error, null];
 }
 ```
@@ -35,17 +29,20 @@ if (error) {
 ## Correct
 
 ```ts
-// db/budgets.ts
-} catch (error) {
-  const serviceError = categorizeServiceError(error);
-  log
-    .withError(error)
-    .withMetadata({ budgetId: id, errorCode: serviceError.code, isRetryable: serviceError.isRetryable })
-    .error("Get budget failed");
-  return [serviceError, null];
-}
-
 // services/budgets.ts
 const [error, budget] = await getBudget(id);
 if (error) return [error, null];
+
+// actions/update-budget.ts
+const [error] = await updateBudget(input);
+if (error) {
+  log
+    .withMetadata({ budgetId: input.id, errorCode: error.code, isRetryable: error.isRetryable })
+    .error("Update budget failed");
+  return { success: false, error: "Could not save the budget" };
+}
 ```
+
+## Exceptions
+
+The function that catches a thrown exception owns its cause: it passes the original with `.withError(cause)` where it handles it, or wraps it in the `ServiceError` it returns so the handler can log `withError`.

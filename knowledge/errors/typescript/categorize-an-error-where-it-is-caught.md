@@ -4,7 +4,6 @@ summary: The catch around the external call turns it into a ServiceError; the ca
 impact: medium
 applies: [typescript]
 implements: logging/principles/log-an-error-once-where-it-is-handled
-sources: [https://12factor.net/logs]
 ---
 
 ## Rule

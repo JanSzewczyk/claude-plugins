@@ -3,7 +3,6 @@ title: Branch on a ServiceError's kind flags, never on its message
 summary: Decide what to do from isNotFound, isAlreadyExists, isPermissionDenied and isRetryable; messages are for people.
 impact: high
 applies: [typescript]
-sources: [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message]
 ---
 
 ## Rule

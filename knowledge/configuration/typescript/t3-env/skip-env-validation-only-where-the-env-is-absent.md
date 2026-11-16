@@ -3,7 +3,7 @@ title: Set SKIP_ENV_VALIDATION only for lint, tests and Docker image builds
 summary: Skipped validation returns raw process.env with no defaults or transforms; never set it where the app runs.
 impact: high
 applies: [typescript, nextjs, t3-env]
-sources: [https://env.t3.gg/docs/nextjs, https://env.t3.gg/docs/customization]
+sources: [https://env.t3.gg/docs/nextjs, https://env.t3.gg/docs/customization, https://github.com/t3-oss/t3-env/blob/main/packages/core/src/index.ts]
 ---
 
 ## Rule

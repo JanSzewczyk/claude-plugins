@@ -1,6 +1,6 @@
 ---
 title: Import from another folder through the ~/ path alias, not a deep relative path
-summary: ../../.. paths break when a file moves and hide where the import comes from; ~/ is rooted at src.
+summary: ../../.. paths break when a file moves and hide where the import comes from; ~/ is rooted at the source root.
 impact: medium
 applies: [typescript]
 sources: [https://www.typescriptlang.org/tsconfig/#paths]
@@ -8,7 +8,7 @@ sources: [https://www.typescriptlang.org/tsconfig/#paths]
 
 ## Rule
 
-Import anything outside the current folder through the `~/` alias, which `tsconfig.json` maps to the source root (`"paths": { "~/*": ["./src/*"] }`). Keep `./` only for a sibling file in the same folder.
+Import anything outside the current folder through the `~/` alias, which `tsconfig.json` maps to the project's source root (`"paths": { "~/*": ["./*"] }`, or `./src/*` when the code lives in `src/`). Keep `./` only for a sibling file in the same folder.
 
 ## Why
 
