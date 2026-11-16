@@ -1,0 +1,354 @@
+# Changelog
+
+All notable changes to the plugins in this marketplace are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and each plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Headings are `## [<version> <plugin>] — <date>`.
+
+Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
+newest three versions of each plugin.
+
+## [4.3.0 plugin-dev] — 2026-11-16
+
+### Added
+
+- `plugin-release` writes a `CHANGELOG.md` section for every bumped plugin, drafted from git history, and offers to create and backfill the file when there is none (`scripts/changelog.mjs`).
+- `plugin-setup` offers the same, records a main plugin in the `CLAUDE.md` block and enables the CI check.
+- `version-bump-check` action: `changelog` input fails a bump without its section.
+
+## [4.2.1 plugin-dev] — 2026-11-13
+
+### Added
+
+- Make every CI check its own action and style the workflows with icons
+- Write the version bump gate as its own job in the plugin-setup workflow
+- Share skill-audit and plugin-evals as actions and let plugin-setup pick the CI jobs
+
+### Changed
+
+- Use another out-of-contract key in the conventions fixture
+
+### Fixed
+
+- Allow disable-model-invocation in the skill frontmatter contract
+
+## [1.6.2 skill-dev] — 2026-11-13
+
+### Fixed
+
+- Allow disable-model-invocation in the skill frontmatter contract
+
+## [3.3.0 python] — 2026-11-11
+
+### Added
+
+- Add a lean variant and time budgets to python-api-team
+
+## [4.2.0 plugin-dev] — 2026-11-11
+
+### Added
+
+- Make version bumps manual and gate them in CI
+
+## [1.4.2 knowledge-dev] — 2026-11-11
+
+### Added
+
+- Add writing plugin with the tight-writing skill
+
+## [2.0.0 writing] — 2026-11-11
+
+### Changed
+
+- Rename human-writing skill to humanize
+- Rename tight-writing skill to human-writing
+
+## [1.0.0 writing] — 2026-11-11
+
+### Added
+
+- Add writing plugin with the tight-writing skill
+
+## [3.5.0 code-quality] — 2026-11-08
+
+### Added
+
+- Add a Python service template to repository-documentation
+
+## [3.2.0 python] — 2026-11-08
+
+### Added
+
+- Add rules on test design, test doubles and suite layout
+
+## [1.4.0 react] — 2026-11-08
+
+### Added
+
+- Add rules on test design, test doubles and suite layout
+
+## [1.3.0 typescript] — 2026-11-08
+
+### Added
+
+- Add rules on test design, test doubles and suite layout
+
+## [1.0.1 github] — 2026-11-08
+
+### Added
+
+- Add github-repo-audit for existing repositories
+
+### Fixed
+
+- Stop github-repo-audit reading unreadable settings as off
+- Restore github-repo-init files moved by mistake
+- Treat a plugin added since the baseline as a first release
+
+## [1.0.0 github] — 2026-11-08
+
+### Added
+
+- Add github plugin with the github-repo-init skill
+
+## [3.1.2 python] — 2026-11-07
+
+### Changed
+
+- Run Ruff from the check target instead of pre-commit hooks
+
+## [1.4.1 knowledge-dev] — 2026-11-07
+
+### Changed
+
+- Rename builder-rules-py and api-architecture to *-rules and ask open decisions first
+
+## [1.4.0 knowledge-dev] — 2026-11-06
+
+### Added
+
+- Add API architecture guide, skill and two agents
+- Make documentation and logging rules language-neutral and add Vue story note
+
+## [3.4.4 code-quality] — 2026-11-05
+
+### Added
+
+- Add plugin-dev-setup, authoring rules and a bump check
+
+### Fixed
+
+- Cut three skill descriptions under the 1,024-character limit
+
+## [1.5.1 nextjs] — 2026-11-05
+
+### Fixed
+
+- Cut three skill descriptions under the 1,024-character limit
+
+## [1.6.1 skill-dev] — 2026-11-05
+
+### Added
+
+- Add plugin-creator and marketplace-creator with audit modes
+- Share one report format across the audit skills
+
+### Fixed
+
+- Stop counting any bulleted intro as a table of contents
+
+## [1.0.8 design] — 2026-11-05
+
+### Added
+
+- Add plugin-dev-setup, authoring rules and a bump check
+
+### Fixed
+
+- Cut three skill descriptions under the 1,024-character limit
+
+## [1.5.0 nextjs] — 2026-11-04
+
+### Added
+
+- Share one report format across the audit skills
+
+## [1.3.0 react] — 2026-11-04
+
+### Added
+
+- Share one report format across the audit skills
+
+### Changed
+
+- Rebuild component-test-rules after the source link fix
+
+## [1.6.0 skill-dev] — 2026-11-04
+
+### Added
+
+- Give the skill-audit report a scannable format
+- Add plugin-dev-setup, authoring rules and a bump check
+
+## [1.2.0 typescript] — 2026-11-04
+
+### Added
+
+- Share one report format across the audit skills
+
+## [3.4.3 code-quality] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [3.0.2 testing] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [3.0.1 testing] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+### Changed
+
+- Move builder-factory out of the testing core
+
+## [1.4.0 nextjs] — 2026-11-03
+
+### Added
+
+- Add component testing rules to the knowledge base
+- Add plugin-dev-setup, authoring rules and a bump check
+
+## [1.2.0 react] — 2026-11-03
+
+### Added
+
+- Add component testing rules to the knowledge base
+- Add plugin-dev-setup, authoring rules and a bump check
+
+## [1.0.8 firebase] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.6.2 git-workflow] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.0.7 design] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.0.7 firebase] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+### Changed
+
+- Move builder-factory out of the testing core
+
+## [1.0.7 product-management] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.6.1 git-workflow] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+## [1.0.6 design] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+## [1.0.6 product-management] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+## [1.1.3 shared-rules] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.0.6 ai-tools] — 2026-11-03
+
+### Changed
+
+- Move plugin manifests into .claude-plugin/
+
+## [1.1.2 shared-rules] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+## [1.1.0 typescript] — 2026-11-03
+
+### Added
+
+- Add component testing rules to the knowledge base
+- Add plugin-dev-setup, authoring rules and a bump check
+
+## [1.0.5 ai-tools] — 2026-11-03
+
+### Added
+
+- Check and add $schema in plugin manifests
+
+## [1.6.0 git-workflow] — 2026-11-02
+
+### Added
+
+- Add ship-task skill and hand update-deps flow to it
+
+## [3.0.0 testing] — 2026-10-27
+
+### Changed
+
+- Reorganize plugins by technology
+- Keep only mocking recipes in create-stories mocking.md
+
+## [1.0.6 firebase] — 2026-10-27
+
+### Changed
+
+- Reorganize plugins by technology
+
+## [1.0.5 product-management] — 2026-10-27
+
+### Changed
+
+- Reorganize plugins by technology
+
+## [1.1.1 shared-rules] — 2026-10-13
+
+### Added
+
+- Add displayName and keywords to every plugin, with a doctor check for them
+
+## [1.0.4 ai-tools] — 2026-10-13
+
+### Added
+
+- Add displayName and keywords to every plugin, with a doctor check for them
