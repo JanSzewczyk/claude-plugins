@@ -178,6 +178,137 @@
       "include": ["architecture/principles/**", "architecture/python/**"],
       "where": { "languages": ["python"] },
       "guides": ["Decision", "Options", "Layouts", "Evolution"]
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/typescript/skills/typescript-rules",
+      "title": "TypeScript rules",
+      "description": "Team conventions for TypeScript code: named functions with the function keyword, inline arrow callbacks, Array<T>, method signatures in object types, closed string sets as const objects instead of enums, unknown instead of any, the ~/ import alias, JSDoc comments that explain only a non-obvious why. Use when writing, fixing or reviewing TypeScript or TSX. Background knowledge that agents preload; not a command.",
+      "intro": "Apply these rules to every TypeScript file you write or review. React rules are in `react-rules`, Next.js rules in `nextjs-rules`. The first section is always in force; open a rule from the table when the task touches it.",
+      "include": ["style/typescript/*", "typing/typescript/*", "documentation/typescript/**", "documentation/principles/**"],
+      "where": { "languages": ["typescript"] },
+      "inline": "high",
+      "profile": "lean",
+      "maxLines": 220
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/react/skills/react-rules",
+      "title": "React rules",
+      "description": "Team conventions for React components and hooks (React 19): namespace import, ternary conditional rendering, stable list keys, no manual memoization under the React Compiler and its four exceptions, hooks at the top level, one context per file, hooks folder, a stories file for every component. Use when writing, fixing or reviewing a React component or hook. Background knowledge that agents preload; not a command.",
+      "intro": "Apply these rules to every React component and hook you write or review. TypeScript style is in `typescript-rules`; server and client component boundaries in Next.js are in `nextjs-rules`. The first section is always in force; open a rule from the table when the task touches it.",
+      "include": ["style/typescript/react/**", "architecture/typescript/react/**"],
+      "where": { "languages": ["typescript"], "frameworks": ["react"] },
+      "inline": "high",
+      "profile": "lean",
+      "maxLines": 220
+    },
+    {
+      "kind": "knowledge-skill",
+      "skill": "plugins/nextjs/skills/nextjs-rules",
+      "title": "Next.js rules",
+      "description": "Team conventions for Next.js App Router apps: Server Components and the client boundary, page and layout data loading, feature folders and layer order, server actions (auth, Zod validation, result types), error tuples and ServiceError codes, LogLayer logging, T3 Env validation. Use when writing, fixing or reviewing a page, layout, route handler, server action or service. Background knowledge that agents preload; not a command.",
+      "intro": "Apply these rules to every Next.js file you write or review. TypeScript style is in `typescript-rules` and React in `react-rules`. The first section is always in force; open a rule from the table when the task touches it. Procedures to set up env validation, logging, the ServiceError class or toasts are in `setup-app-infrastructure`.",
+      "include": [
+        "routing/typescript/nextjs/**",
+        "architecture/typescript/nextjs/**",
+        "api/typescript/nextjs/**",
+        "errors/typescript/**",
+        "errors/principles/**",
+        "logging/typescript/**",
+        "logging/principles/**",
+        "configuration/typescript/**"
+      ],
+      "where": { "languages": ["typescript"] },
+      "inline": "critical",
+      "profile": "compact",
+      "maxLines": 300
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/typescript.md",
+      "paths": ["**/*.ts", "**/*.tsx"],
+      "title": "TypeScript Style",
+      "intro": "Conventions for writing TypeScript in this project. React-specific rules live in `react.md`.",
+      "include": ["style/typescript/*", "typing/typescript/*", "documentation/typescript/**", "documentation/principles/**"],
+      "where": { "languages": ["typescript"] },
+      "profile": "compact"
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/react.md",
+      "paths": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "title": "React Style",
+      "intro": "Conventions for writing React components and hooks in this project. General TypeScript rules live in `typescript.md`.",
+      "include": ["style/typescript/react/**", "architecture/typescript/react/**"],
+      "where": { "languages": ["typescript"], "frameworks": ["react"] },
+      "guides": ["Decision", "Options", "Evolution"],
+      "profile": "compact"
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/nextjs-page-layout-patterns.md",
+      "paths": ["**/app/**/*.ts", "**/app/**/*.tsx"],
+      "title": "Next.js App Router — Page and Layout Patterns",
+      "intro": "Rules for creating `page.tsx` and `layout.tsx` files with the App Router and React Server Components.",
+      "include": ["routing/typescript/nextjs/**"],
+      "where": { "languages": ["typescript"] },
+      "guides": ["Decision", "Options"],
+      "profile": "lean"
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/feature-architecture.md",
+      "paths": ["**/features/**/*.ts", "**/features/**/*.tsx"],
+      "title": "Feature Architecture",
+      "intro": "How a feature domain is laid out under `features/<domain>/`, which layer may import which, and the server and client boundary.",
+      "include": ["architecture/typescript/nextjs/**"],
+      "where": { "languages": ["typescript"] },
+      "guides": ["Decision", "Layouts"],
+      "profile": "compact",
+      "maxLines": 450
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/nextjs-server-actions.md",
+      "paths": ["**/server/**/*.ts", "**/actions/**/*.ts", "**/*.action.ts", "**/*.form.tsx"],
+      "title": "Server Actions",
+      "intro": "How a server action is written: auth first, validation, the shared result type, revalidation, and how forms call it.",
+      "include": ["api/typescript/nextjs/**"],
+      "where": { "languages": ["typescript"] },
+      "profile": "compact",
+      "maxLines": 450
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/nextjs-error-handling.md",
+      "paths": ["**/server/**/*.ts", "**/services/**/*.ts", "**/app/**/error.tsx", "**/app/**/global-error.tsx", "**/app/api/**/*.ts"],
+      "title": "Error Handling",
+      "intro": "How errors travel between layers as `[error, data]` tuples with ServiceError codes, and how Next.js interrupts, error boundaries and route handlers answer them.",
+      "include": ["errors/typescript/**", "errors/principles/**"],
+      "where": { "languages": ["typescript"] },
+      "profile": "compact",
+      "maxLines": 450
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/nextjs-logging.md",
+      "paths": ["**/server/**/*.ts", "**/lib/**/*.ts", "**/app/**/*.ts", "**/app/**/*.tsx", "**/proxy.ts"],
+      "title": "Logging",
+      "intro": "How a Next.js app logs through LogLayer: module loggers, constant messages, errors, levels, redaction and the request id.",
+      "include": ["logging/typescript/**", "logging/principles/**"],
+      "where": { "languages": ["typescript"] },
+      "profile": "compact"
+    },
+    {
+      "kind": "rules-file",
+      "file": "plugins/shared-rules/skills/sync-rules/rules/nextjs-env.md",
+      "paths": ["**/env/**/*.ts", "**/env.ts", "**/.env.example", "**/next.config.ts"],
+      "title": "Environment Variables",
+      "intro": "How a Next.js app reads its environment through T3 Env: server and client schemas, public variables, defaults and tests.",
+      "include": ["configuration/typescript/**"],
+      "where": { "languages": ["typescript"] },
+      "profile": "compact"
     }
   ]
 }
