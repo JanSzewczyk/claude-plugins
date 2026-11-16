@@ -34,6 +34,8 @@ changed a plugin and left its version alone is caught by CI, not by a standing i
 
 {{TAGS}}
 
+{{CHANGELOG}}
+
 ### What runs on its own
 
 Nothing in the background. The steps above happen because this file asks for them; CI, if

@@ -7,7 +7,7 @@
 // A "patch" verdict on a diff that quietly changed a skill's contract is still a major.
 //
 // Usage: node plan-release.mjs [repo-root] [--since <ref> | --commit <ref> | --working]
-//          [--apply] [--json] [--plugin <name>] [--ignore <a,b>] [--check [--strict]]
+//          [--apply] [--json] [--plugin <name>] [--ignore <a,b>] [--check [--strict] [--changelog]]
 //
 // What is compared (first match wins): --since <ref>; --commit <ref> (that one commit);
 // --working (uncommitted changes only); otherwise the point where the current branch left the
@@ -19,7 +19,9 @@
 // --check is the CI gate: with --since <the PR's base>, it exits 1 when a changed plugin has no
 // version bump, and warns when the bump is smaller than the change implies (--strict fails on
 // that too). It writes nothing to the repo. Under GitHub Actions it prints ::error annotations
-// and writes a Markdown summary to $GITHUB_STEP_SUMMARY.
+// and writes a Markdown summary to $GITHUB_STEP_SUMMARY. With --changelog, --check also fails a
+// bumped plugin that has no `## [<version>]` / `## [<version> <plugin>]` section in CHANGELOG.md
+// (skipped when the repository has no CHANGELOG.md).
 
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -31,6 +33,7 @@ const apply = argv.includes("--apply");
 const check = argv.includes("--check");
 const strict = argv.includes("--strict");
 const working = argv.includes("--working");
+const changelogGate = argv.includes("--changelog");
 
 function flag(name, fallback) {
   const i = argv.indexOf(name);
@@ -456,7 +459,16 @@ const annotate = (level, file, title, message) =>
 if (check) {
   const missing = plans.filter((p) => !p.alreadyBumped && !p.firstRelease && p.bump !== "none");
   const tooSmall = plans.filter((p) => p.alreadyBumped && order.indexOf(bumpKind(p.previousVersion, p.currentVersion)) < order.indexOf(p.kind));
-  const failing = missing.length > 0 || (strict && tooSmall.length > 0);
+  // With --changelog, a bumped plugin needs a `## [<version>]` or `## [<version> <plugin>]` section in
+  // CHANGELOG.md. Only when that file exists: a repository without one is not forced to start it.
+  const changelogFile = join(root, "CHANGELOG.md");
+  const changelogText = changelogGate && existsSync(changelogFile) ? readFileSync(changelogFile, "utf8") : undefined;
+  const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const noEntry =
+    changelogText === undefined
+      ? []
+      : plans.filter((p) => p.alreadyBumped && !new RegExp(`^## \\[${escapeRe(p.currentVersion)}(?: ${escapeRe(p.plugin)})?\\]`, "m").test(changelogText));
+  const failing = missing.length > 0 || noEntry.length > 0 || (strict && tooSmall.length > 0);
   const onActions = process.env.GITHUB_ACTIONS === "true";
   const manifestOf = (p) => p.manifestPath ?? ".claude-plugin/plugin.json";
 
@@ -476,7 +488,7 @@ if (check) {
   }
 
   if (asJson) {
-    console.log(JSON.stringify({ root, since: fixedSince ?? "per plugin", missing, tooSmall, notPlanned }, null, 2));
+    console.log(JSON.stringify({ root, since: fixedSince ?? "per plugin", missing, tooSmall, noEntry, notPlanned }, null, 2));
   } else {
     for (const p of missing) {
       console.log(`✗ ${p.plugin} changed but is still at ${p.currentVersion} — needs a ${p.bump} bump to ${p.proposedVersion}`);
@@ -488,7 +500,11 @@ if (check) {
       for (const reason of p.reasons) console.log(`    · ${reason}`);
       if (onActions) annotate(strict ? "error" : "warning", manifestOf(p), "Version bump may be too small", `${p.plugin} went ${p.previousVersion} → ${p.currentVersion}, but the change suggests a ${p.kind} bump (${p.reasons.join("; ")}).`);
     }
-    if (!missing.length && !tooSmall.length) console.log(`✓ every changed plugin has a version bump since ${baselineLabel}`);
+    for (const p of noEntry) {
+      console.log(`✗ ${p.plugin} is at ${p.currentVersion} but CHANGELOG.md has no "## [${p.currentVersion} ${p.plugin}]" section`);
+      if (onActions) annotate("error", "CHANGELOG.md", "Changelog entry missing", `${p.plugin} was bumped to ${p.currentVersion} but CHANGELOG.md has no section for it. Add "## [${p.currentVersion} ${p.plugin}] — <date>" with /plugin-release.`);
+    }
+    if (!missing.length && !tooSmall.length && !noEntry.length) console.log(`✓ every changed plugin has a version bump since ${baselineLabel}`);
   }
   process.exit(failing ? 1 : 0);
 }

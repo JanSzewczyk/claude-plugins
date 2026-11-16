@@ -404,6 +404,22 @@ test("--strict fails a bump smaller than the change implies; without it that onl
   assert.equal(runCheck("--since", "HEAD", "--strict").status, 1);
 });
 
+test("--changelog fails a bumped plugin with no CHANGELOG.md section, and only when the file exists", () => {
+  marketplace([{ name: "foo", source: "./plugins/foo" }]);
+  plugin("plugins/foo", "foo");
+  commit("base");
+  write("plugins/foo/skills/second/SKILL.md", "---\nname: second\ndescription: Two\n---\nTwo\n");
+  write("plugins/foo/plugin.json", { name: "foo", version: "1.1.0" });
+  assert.equal(runCheck("--since", "HEAD", "--changelog").status, 0, "no CHANGELOG.md, nothing to enforce");
+  write("CHANGELOG.md", "# Changelog\n\n## [1.0.0 foo] - 2026-01-01\n");
+  assert.equal(runCheck("--since", "HEAD", "--changelog").status, 1, "heading with a hyphen is not a section");
+  assert.equal(runCheck("--since", "HEAD").status, 0, "off without the flag");
+  write("CHANGELOG.md", "# Changelog\n\n## [1.1.0 foo] — 2026-11-16\n\n### Added\n\n- second\n");
+  assert.equal(runCheck("--since", "HEAD", "--changelog").status, 0);
+  write("CHANGELOG.md", "# Changelog\n\n## [1.1.0 other] — 2026-11-16\n");
+  assert.equal(runCheck("--since", "HEAD", "--changelog").status, 1, "another plugin's section does not count");
+});
+
 test("under GitHub Actions --check annotates the manifest and writes a step summary", () => {
   marketplace([{ name: "foo", source: "./plugins/foo" }]);
   plugin("plugins/foo", "foo", ".claude-plugin/plugin.json");
