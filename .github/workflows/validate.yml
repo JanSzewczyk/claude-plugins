@@ -116,5 +116,7 @@ jobs:
         uses: actions/checkout@v7
       # A plugin that pins `version` keeps users on the cached copy until the string changes, so a
       # change merged without a bump never reaches anyone.
-      - name: Check every changed plugin has a version bump 🏷️
+      - name: Check every changed plugin has a version bump and a changelog section 🏷️
         uses: ./.github/actions/version-bump-check
+        with:
+          changelog: "true"
