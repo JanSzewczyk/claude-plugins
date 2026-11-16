@@ -1,11 +1,12 @@
 {
   "languages": ["typescript", "python"],
   "frameworks": ["react", "vue", "nextjs", "react-router", "django", "fastapi"],
-  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest", "msw", "claude-code", "uv", "ruff", "asyncio", "structlog", "hypothesis", "griffe", "schemathesis", "oasdiff", "spectral", "testcontainers", "time-machine", "pytest-asyncio", "mypy", "sqlalchemy", "pydantic-settings"],
+  "libraries": ["storybook", "testing-library", "mimicry-js", "factory-boy", "vitest", "pytest", "msw", "claude-code", "uv", "ruff", "asyncio", "structlog", "hypothesis", "griffe", "schemathesis", "oasdiff", "spectral", "testcontainers", "time-machine", "pytest-asyncio", "mypy", "sqlalchemy", "pydantic-settings", "zod", "loglayer", "pino", "t3-env", "react-hook-form", "sonner", "react-compiler", "playwright"],
   "budgets": {
     "title": 90,
     "summary": 120,
     "description": 1024,
-    "knowledgeSkillLines": 300
+    "knowledgeSkillLines": 300,
+    "rulesFileLines": 400
   }
 }

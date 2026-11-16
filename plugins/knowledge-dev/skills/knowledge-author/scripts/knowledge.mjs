@@ -15,6 +15,8 @@
 //   knowledge-skill  generates a whole background-knowledge skill (user-invocable: false) for agents
 //                    to preload: notes at or above `inline` impact in the SKILL.md itself, the rest in
 //                    references/rules.md
+//   rules-file       writes one self-contained `.claude/rules` file (`paths:` frontmatter, every note in
+//                    full, guide sections inline) for sync-rules to copy into projects (D28)
 //
 // Every generated artifact carries a stamp: a hash of its notes and its target. `check` rebuilds in
 // memory and byte-compares, and the stamp tells a stale copy from one edited by hand.
@@ -53,6 +55,7 @@ const SECTIONS_BY_TYPE = { principle: SECTION_ORDER, rule: SECTION_ORDER, guide:
 const REQUIRED_SECTIONS = { principle: ["Rule", "Why"], rule: ["Rule", "Why", "Incorrect", "Correct"], guide: ["Decision", "Options", "Evolution"] };
 const PROFILES = ["full", "lean", "compact"];
 const LAYOUTS = ["single", "per-rule"];
+const KINDS = ["skill-index", "knowledge-skill", "rules-file"];
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PLACEHOLDER = /\{\{TODO/; // not the bare word, which samples may contain (D18)
 const BEGIN = "<!-- BEGIN:knowledge -->";
@@ -446,6 +449,46 @@ function renderKnowledgeSkill(target, inlined, linked, layout, config) {
   return content;
 }
 
+// A `.claude/rules` file a project loads by path: no links (the project has no references/ folder),
+// so every note is rendered in place and a guide's extra sections follow its Decision (D28). The
+// stamp goes after the frontmatter, because `paths:` only works on the first line.
+const RULES_FILE_FORBIDDEN = ["skill", "layout", "inline", "description"];
+
+function validateRulesFileTarget(target) {
+  const where = { file: "knowledge/targets.json" };
+  const id = target.file ?? "a rules-file target";
+  if (typeof target.file !== "string" || !target.file.endsWith(".md")) {
+    throw new KnowledgeError(`${id}: a rules-file target needs \`file\`, a repo-relative path ending in .md`, where);
+  }
+  const forbidden = RULES_FILE_FORBIDDEN.filter((key) => key in target);
+  if (forbidden.length) {
+    throw new KnowledgeError(`${id}: a rules-file target does not take ${forbidden.map((k) => `\`${k}\``).join(", ")}`, { ...where, hint: "it renders one self-contained file: no skill, no layout, no inline split" });
+  }
+  if (!Array.isArray(target.paths) || !target.paths.length || target.paths.some((p) => typeof p !== "string" || !p)) {
+    throw new KnowledgeError(`${id}: a rules-file target needs a non-empty \`paths\` list of globs`, { ...where, hint: "a rules file without paths loads in every session" });
+  }
+}
+
+function renderRulesFileTarget(target, notes, config) {
+  const profile = target.profile ?? "full";
+  const parts = ["---", "paths:", ...target.paths.map((p) => `  - ${JSON.stringify(p)}`), "---", "", stampFor(notes, target), "", `# ${target.title ?? basename(target.file, ".md")}`];
+  if (target.intro) parts.push("", target.intro);
+  for (const n of notes) {
+    parts.push("", renderNote(n, { level: 2, profile }));
+    if (n.type === "guide") for (const name of guideExtras(n, target.guides)) parts.push("", `### ${name}`, "", n.sections.get(name));
+  }
+  const content = `${parts.join("\n").trimEnd()}\n`;
+  const lines = content.split("\n").length;
+  const maxLines = target.maxLines ?? config.budgets?.rulesFileLines ?? 400;
+  if (lines > maxLines) {
+    throw new KnowledgeError(`${target.file} would be ${lines} lines, the budget is ${maxLines}`, {
+      file: "knowledge/targets.json",
+      hint: "a project loads this file whole: use profile lean or compact, or split it by `paths`",
+    });
+  }
+  return content;
+}
+
 // Every file a fresh build would write, plus every file the build owns (to find leftovers).
 export function plan(root) {
   const config = loadConfig(root);
@@ -457,23 +500,33 @@ export function plan(root) {
   const owned = [];
   for (const target of loadTargets(root)) {
     const where = { file: "knowledge/targets.json" };
+    const id = target.skill ?? target.file;
+    if (!KINDS.includes(target.kind)) throw new KnowledgeError(`unknown target kind "${target.kind}" for ${id}`, { ...where, hint: `use ${KINDS.slice(0, -1).join(", ")} or ${KINDS.at(-1)}` });
+    if (target.kind === "rules-file") validateRulesFileTarget(target);
     const layout = target.layout ?? "single";
-    if (!LAYOUTS.includes(layout)) throw new KnowledgeError(`${target.skill}: layout "${layout}" is not one of ${LAYOUTS.join(", ")}`, where);
-    if (target.profile && !PROFILES.includes(target.profile)) throw new KnowledgeError(`${target.skill}: profile "${target.profile}" is not one of ${PROFILES.join(", ")}`, where);
+    if (!LAYOUTS.includes(layout)) throw new KnowledgeError(`${id}: layout "${layout}" is not one of ${LAYOUTS.join(", ")}`, where);
+    if (target.profile && !PROFILES.includes(target.profile)) throw new KnowledgeError(`${id}: profile "${target.profile}" is not one of ${PROFILES.join(", ")}`, where);
     const selected = selectNotes(notes, target);
-    if (!selected.length) throw new KnowledgeError(`${target.skill} selects no notes`, { ...where, hint: "check `include` and `where`" });
+    if (!selected.length) throw new KnowledgeError(`${id} selects no notes`, { ...where, hint: "check `include` and `where`" });
     const guideNames = target.guides ?? ["Decision"];
     const unknownGuide = guideNames.find((name) => !GUIDE_SECTIONS.includes(name));
     if (unknownGuide || !guideNames.includes("Decision")) {
-      throw new KnowledgeError(`${target.skill}: guides ${JSON.stringify(guideNames)} must name sections of ${GUIDE_SECTIONS.join(", ")} and include Decision`, where);
+      throw new KnowledgeError(`${id}: guides ${JSON.stringify(guideNames)} must name sections of ${GUIDE_SECTIONS.join(", ")} and include Decision`, where);
     }
     const slugs = new Map();
     for (const n of selected) {
       const key = layout === "per-rule" ? flatName(n.id) : slug(n.data.title);
-      if (slugs.has(key)) throw new KnowledgeError(`${n.id} and ${slugs.get(key)} would both render as "${key}" in ${target.skill}`, { hint: "retitle one of them" });
+      if (slugs.has(key)) throw new KnowledgeError(`${n.id} and ${slugs.get(key)} would both render as "${key}" in ${id}`, { hint: "retitle one of them" });
       slugs.set(key, n.id);
     }
 
+    if (target.kind === "rules-file") {
+      const file = join(root, target.file);
+      owned.push(file);
+      outputs.set(file, renderRulesFileTarget(target, selected, config));
+      continue;
+    }
+    if (!target.skill) throw new KnowledgeError(`a ${target.kind ?? "target"} without \`skill\``, { ...where, hint: "skill-index and knowledge-skill targets name the skill folder they fill" });
     const dir = join(root, target.skill);
     owned.push(join(dir, RULES_FILE), ...filesIn(join(dir, RULES_DIR)), ...filesIn(join(dir, GUIDES_DIR)));
     for (const n of selected.filter((g) => g.type === "guide" && guideExtras(g, target.guides).length)) {
@@ -489,8 +542,6 @@ export function plan(root) {
       const linked = selected.filter((n) => !inlined.includes(n));
       for (const [file, content] of renderReferences(dir, title, linked, target, layout, "full")) outputs.set(file, content);
       outputs.set(join(dir, "SKILL.md"), renderKnowledgeSkill(target, inlined, linked, layout, config));
-    } else {
-      throw new KnowledgeError(`unknown target kind "${target.kind}" for ${target.skill}`, { ...where, hint: "use skill-index or knowledge-skill" });
     }
   }
   return { issues, outputs, owned };
@@ -514,7 +565,8 @@ export function build(root) {
   for (const file of removed) {
     rmSync(file);
     const dir = dirname(file);
-    if (basename(dir) === "rules" && existsSync(dir) && readdirSync(dir).length === 0) rmdirSync(dir);
+    // Only the per-rule folder a build created; a rules-file target writes into sync-rules' own `rules/`.
+    if (toPosix(dir).endsWith(`/${RULES_DIR}`) && existsSync(dir) && readdirSync(dir).length === 0) rmdirSync(dir);
   }
   return { issues, written, removed };
 }
@@ -683,12 +735,13 @@ export async function lint(root, { links = false, fetchImpl = globalThis.fetch }
 
   // 4. Budgets: a knowledge skill near its line limit stops building on the next rule. (Titles and
   // summaries are not warned about: validate already fails them over the limit.)
-  for (const target of targets.filter((t) => t.kind === "knowledge-skill")) {
-    const file = join(root, target.skill, "SKILL.md");
+  for (const target of targets.filter((t) => t.kind === "knowledge-skill" || t.kind === "rules-file")) {
+    const rulesFile = target.kind === "rules-file";
+    const file = rulesFile ? join(root, target.file) : join(root, target.skill, "SKILL.md");
     if (!existsSync(file)) continue;
     const lines = readFileSync(file, "utf8").split("\n").length;
-    const max = target.maxLines ?? budgets.knowledgeSkillLines ?? 300;
-    if (lines >= max * BUDGET_NEAR) findings.push({ file: "knowledge/targets.json", message: `${target.skill} is ${lines} of ${max} lines`, hint: "set `inline` to a stricter impact, or narrow `include`, before it stops building" });
+    const max = target.maxLines ?? (rulesFile ? budgets.rulesFileLines ?? 400 : budgets.knowledgeSkillLines ?? 300);
+    if (lines >= max * BUDGET_NEAR) findings.push({ file: "knowledge/targets.json", message: `${rulesFile ? target.file : target.skill} is ${lines} of ${max} lines`, hint: rulesFile ? "use a smaller profile, or split the file by `paths`, before it stops building" : "set `inline` to a stricter impact, or narrow `include`, before it stops building" });
   }
 
   // 5. Dead sources: only on request, because it needs the network.
