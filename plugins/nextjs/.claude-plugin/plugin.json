@@ -2,7 +2,7 @@
   "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "nextjs",
   "displayName": "Next.js",
-  "description": "Next.js full-stack development — agents and skills for the App Router: Server Actions, route handler tests, error handling, structured logging, env validation, toast notifications, feature scaffolding, code review, performance optimization, Lighthouse audits, and test strategy.",
+  "description": "Next.js full-stack development — a task flow and developer, tester and reviewer agents for the App Router, the nextjs-rules knowledge skill (routing, feature architecture, server actions, errors, logging, env), app infrastructure setup, route handler tests, feature scaffolding, performance optimization and Lighthouse audits.",
   "version": "1.5.1",
   "author": {
     "name": "Szum Tech Team",
@@ -17,12 +17,12 @@
     { "name": "testing", "version": "^3.0.0" },
     { "name": "design", "version": "^1.0.4" }
   ],
-  "keywords": ["nextjs", "react", "app-router", "server-actions", "performance", "lighthouse"],
+  "keywords": ["nextjs", "react", "app-router", "server-actions", "agents", "sdd", "performance", "lighthouse"],
   "agents": [
-    "./agents/nextjs-backend-engineer.md",
+    "./agents/nextjs-developer.md",
+    "./agents/nextjs-tester.md",
     "./agents/code-reviewer.md",
-    "./agents/performance-analyzer.md",
-    "./agents/testing-strategist.md"
+    "./agents/performance-analyzer.md"
   ],
   "skills": "./skills/"
 }
