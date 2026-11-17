@@ -15,3 +15,8 @@ block (`### 1–3 · 🟡 …`). Every other fix is written out when it is appli
 
 A diff under every finding makes the report longer than the thing it audits, and the reader gives
 up before reaching the findings that matter.
+
+## Exceptions
+
+A finding shown as a card (see show-findings-as-cards-in-the-app) has its evidence on the card and
+gets no detail block, and it does not count toward the five.

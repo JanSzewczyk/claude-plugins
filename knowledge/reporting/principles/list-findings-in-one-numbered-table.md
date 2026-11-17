@@ -17,6 +17,11 @@ through.
 Findings spread across headings and bullets cannot be scanned or compared, and the numbers are
 what let the user answer "apply 1 and 4" instead of quoting the report back.
 
+## Exceptions
+
+Findings the session shows as cards (see show-findings-as-cards-in-the-app) leave this table; it
+then holds the rest, numbered on.
+
 ## Incorrect
 
 ```markdown
