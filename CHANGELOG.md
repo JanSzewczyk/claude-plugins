@@ -9,6 +9,40 @@ Headings are `## [<version> <plugin>] — <date>`.
 Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
 newest three versions of each plugin.
 
+## [1.7.0 skill-dev] — 2026-11-17
+
+### Added
+
+- `skill-audit` hands its 🔴 and 🟡 findings to `ReportFindings` when the session has the tool, so the desktop app shows them as cards. The reply keeps the verdict, scorecard, 🔵 rows, `Not checked` and `Next`. Without the tool the report is unchanged.
+
+## [4.4.0 plugin-dev] — 2026-11-17
+
+### Added
+
+- `marketplace-creator` (audit mode), `plugin-creator` (Audit mode) and `mod-creator` hand their 🔴 and 🟡 findings to `ReportFindings` when the session has the tool, so the desktop app shows them as cards. Without the tool the reports are unchanged.
+
+## [1.6.0 react] — 2026-11-17
+
+### Added
+
+- `accessibility-audit` hands its 🔴 and 🟡 findings to `ReportFindings` when the session has the tool, so the desktop app shows them as cards. Without the tool the report is unchanged.
+
+### Changed
+
+- The `accessibility-audit` references have contents lists, and `SKILL.md` no longer indexes `audit-guide.md` and `examples.md` twice.
+
+## [1.5.0 typescript] — 2026-11-17
+
+### Added
+
+- `dead-code` and `coverage-gaps` hand their 🔴 and 🟡 findings to `ReportFindings` when the session has the tool, so the desktop app shows them as cards. Without the tool the reports are unchanged.
+
+## [2.0.1 nextjs] — 2026-11-17
+
+### Changed
+
+- `lighthouse-audit` receives the new reporting rule and states that it does not use `ReportFindings` cards, because its findings are measurements per URL and not defects in files.
+
 ## [2.0.0 nextjs] — 2026-11-16
 
 ### Added
