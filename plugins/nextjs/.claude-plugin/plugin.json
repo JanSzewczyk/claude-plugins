@@ -3,7 +3,7 @@
   "name": "nextjs",
   "displayName": "Next.js",
   "description": "Next.js full-stack development — a task flow and developer, tester and reviewer agents for the App Router, the nextjs-rules knowledge skill (routing, feature architecture, server actions, errors, logging, env), app infrastructure setup, route handler tests, feature scaffolding, performance optimization and Lighthouse audits.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
     "name": "Szum Tech Team",
     "email": "szum.tech@gmail.com",
