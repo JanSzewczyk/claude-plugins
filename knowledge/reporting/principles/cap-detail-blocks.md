@@ -18,5 +18,6 @@ up before reaching the findings that matter.
 
 ## Exceptions
 
-A finding shown as a card (see show-findings-as-cards-in-the-app) has its evidence on the card and
-gets no detail block, and it does not count toward the five.
+A finding shown as a card (see show-findings-as-cards-in-the-app) already has its scenario and a
+one-sentence fix on the card: it gets a detail block only when the fix needs a diff, and then the
+block counts toward the five like any other.
