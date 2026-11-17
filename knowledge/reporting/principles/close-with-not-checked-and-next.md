@@ -9,7 +9,8 @@ impact: medium
 End the report with two lines. **Not checked:** what this run could not cover, and the skill or
 step that covers it. **Next:** the one action expected from the user, such as the finding numbers
 to apply or the command to run. Anything else the reader should know about the run (a fallback,
-findings dropped or merged, a cap) goes in a single line just above them.
+findings dropped or merged, a cap, how many findings did not fit in the cards) goes in a single line
+just above them.
 
 ## Why
 
