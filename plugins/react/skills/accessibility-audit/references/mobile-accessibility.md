@@ -2,6 +2,18 @@
 
 A practical guide for building accessible mobile web experiences with React, Tailwind CSS, and Playwright. Mobile accessibility requires attention to touch interactions, viewport behavior, responsive text, and device-specific input patterns.
 
+## Contents
+
+- [Touch Target Sizes](#touch-target-sizes)
+- [Touch Target Implementation with Tailwind CSS](#touch-target-implementation-with-tailwind-css)
+- [Gesture Alternatives](#gesture-alternatives)
+- [Viewport and Zoom](#viewport-and-zoom)
+- [Responsive Text Sizing](#responsive-text-sizing)
+- [Orientation](#orientation)
+- [Input Types on Mobile](#input-types-on-mobile)
+- [Mobile-Specific Testing with Playwright](#mobile-specific-testing-with-playwright)
+- [Common Mobile Accessibility Anti-Patterns and Fixes](#common-mobile-accessibility-anti-patterns-and-fixes)
+
 ## Touch Target Sizes
 
 Small touch targets are one of the most common mobile accessibility failures. Users with motor impairments, large fingers, or who are in moving environments need adequately sized targets.

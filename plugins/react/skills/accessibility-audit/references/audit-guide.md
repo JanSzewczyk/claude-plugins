@@ -3,6 +3,12 @@
 Reference material consulted during a manual WCAG 2.1 AA audit: the full review checklist, fixes for
 the most common violations, and the report template. The audit *process* lives in [SKILL.md](../SKILL.md).
 
+## Contents
+
+- [WCAG 2.1 AA Manual Checklist](#wcag-21-aa-manual-checklist)
+- [Common Issues & Fixes](#common-issues--fixes)
+- [Audit Report Format](#audit-report-format)
+
 ## WCAG 2.1 AA Manual Checklist
 
 Automated tools (axe-core) catch only ~30–50% of issues — work through this by hand for the rest.

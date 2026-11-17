@@ -9,12 +9,10 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(playwright-cli:*), ReportFind
 Run a WCAG 2.1 **Level AA** audit on a React component: automated scans (axe-core, Storybook a11y
 addon) plus a manual review for the ~50–70% of issues automation can't catch.
 
-This file is the audit **process**. The bulky reference material lives alongside it:
+This file is the audit **process**. The bulky reference material lives alongside it. The audit
+guide (manual checklist, common fixes, report template) and the worked examples are linked where
+each step needs them; the rest:
 
-> - [references/audit-guide.md](./references/audit-guide.md) — the full WCAG manual checklist, common
->   issues & fixes (before/after), and the audit report template. Open this during the manual review.
-> - [references/examples.md](./references/examples.md) — worked component audits, reusable patterns
->   (skip links, sr-only text, icon buttons), and a Storybook a11y story.
 > - [references/screen-reader-testing.md](./references/screen-reader-testing.md) — screen reader workflow.
 > - [references/mobile-accessibility.md](./references/mobile-accessibility.md) — touch targets, zoom, gestures.
 > - [references/motion-animation.md](./references/motion-animation.md) — `prefers-reduced-motion`, seizure risk.
