@@ -1,13 +1,13 @@
 ---
 title: Show 🔴/🟡 findings once as ReportFindings cards when the session has the tool
-summary: One call after the findings are final, numbered in short_summary; the reply keeps verdict, scorecard, 🔵 and Next.
+summary: One call after findings are final, fix ends failure_scenario, numbered in short_summary; the rest stays in the table.
 impact: medium
 sources: []
 ---
 
 ## Rule
 
-When the session has the `ReportFindings` tool and the findings are tied to files, call it once, from the main thread, after the findings are final, with the 🔴 and 🟡 findings worst first, at most 32. Number each in `short_summary` as `<n> · <mark> <claim>` so the reply can still say "apply 1 3", and put a concrete input or state and its wrong result in `failure_scenario`. The reply then leaves those rows out of the findings table and keeps the verdict, the scorecard, the 🔵 rows numbered on, `Not checked` and `Next`. Findings past the 32nd stay in the table, numbered on, and the line above `Not checked` says how many. When findings are fixed later in the session, call it again with the same findings and each one's outcome. Without the tool, write the report as usual.
+When the session has the `ReportFindings` tool, call it once, from the main thread, after the findings are final, with the 🔴 and 🟡 findings that name a file, worst first, at most 32. Number each in `short_summary` as `<n> · <mark> <claim>` so the reply can still say "apply 1 3". Put a concrete input or state and its wrong result in `failure_scenario`, and end it with the fix as a sentence starting `Fix:`, because a card has no other place for it. The reply leaves exactly those findings out of the findings table and keeps the verdict, the scorecard, every finding that is not a card (🔵, no file, past the 32nd) numbered on, `Not checked` and `Next`; the line above `Not checked` counts the findings past the 32nd. A card finding gets a detail block only when its fix needs a diff, and then it counts toward the five. When findings are fixed later in the session, call it again with the same findings and each one's outcome. Without the tool, write the report as usual.
 
 ## Why
 
