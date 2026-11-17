@@ -2,6 +2,18 @@
 
 A practical guide for testing web applications with screen readers. Screen reader testing catches accessibility issues that automated tools miss, such as confusing reading order, missing context, and poor announcements for dynamic content.
 
+## Contents
+
+- [Overview of Screen Readers](#overview-of-screen-readers)
+- [VoiceOver Quickstart (macOS)](#voiceover-quickstart-macos)
+- [What to Test with a Screen Reader](#what-to-test-with-a-screen-reader)
+- [Common Screen Reader Issues and Fixes](#common-screen-reader-issues-and-fixes)
+- [ARIA Live Regions in Practice](#aria-live-regions-in-practice)
+- [Screen Reader Testing Checklist](#screen-reader-testing-checklist)
+- [Practical Workflow: 5-Minute Screen Reader Check](#practical-workflow-5-minute-screen-reader-check)
+- [NVDA Quick Reference (Windows)](#nvda-quick-reference-windows)
+- [Tips for Developers](#tips-for-developers)
+
 ## Overview of Screen Readers
 
 | Screen Reader | Platform   | Cost               | Engine              | Market Share |

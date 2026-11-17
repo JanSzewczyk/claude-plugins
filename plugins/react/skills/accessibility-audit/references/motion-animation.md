@@ -2,6 +2,18 @@
 
 A practical guide for implementing accessible animations in React applications. Motion can enhance user experience when used purposefully, but it can also cause discomfort, distraction, or seizures for some users. This guide covers how to respect user preferences, avoid harmful patterns, and implement animation accessibility correctly.
 
+## Contents
+
+- [prefers-reduced-motion Media Query](#prefers-reduced-motion-media-query)
+- [Tailwind CSS: motion-safe and motion-reduce Variants](#tailwind-css-motion-safe-and-motion-reduce-variants)
+- [When Animation Is Decorative vs Functional](#when-animation-is-decorative-vs-functional)
+- [Seizure Risk: WCAG 2.3.1](#seizure-risk-wcag-231)
+- [Parallax and Auto-Scrolling Concerns](#parallax-and-auto-scrolling-concerns)
+- [CSS Implementation Patterns](#css-implementation-patterns)
+- [React Implementation: useReducedMotion Hook](#react-implementation-usereducedmotion-hook)
+- [Testing Reduced Motion Preference in Playwright](#testing-reduced-motion-preference-in-playwright)
+- [Best Practices](#best-practices)
+
 ## prefers-reduced-motion Media Query
 
 The `prefers-reduced-motion` media query detects whether the user has requested the system minimize non-essential motion. On macOS, this is set in System Settings > Accessibility > Display > Reduce motion. On iOS, it is in Settings > Accessibility > Motion > Reduce Motion.
