@@ -8,19 +8,21 @@ Complete examples of mimicry-js builders for various use cases.
 ## Complete Builder with Traits
 
 ```typescript
-import { build, sequence, oneOf } from "mimicry-js";
+import { build, sequence, oneOf, type FieldsConfiguration } from "mimicry-js";
 import { faker } from "@faker-js/faker"; // Check CLAUDE.md for locale
 import type { User } from "~/types/user";
 
-export const userBuilder = build<User>({
-  fields: {
-    id: sequence(),
-    email: () => faker.internet.email(),
-    firstName: () => faker.person.firstName(),
-    lastName: () => faker.person.lastName(),
-    role: "user",
-    isActive: true,
-  },
+const userBuilderFields: FieldsConfiguration<User> = {
+  id: sequence(),
+  email: () => faker.internet.email(),
+  firstName: () => faker.person.firstName(),
+  lastName: () => faker.person.lastName(),
+  role: "user",
+  isActive: true,
+};
+
+export const userBuilder = build({
+  fields: userBuilderFields,
   traits: {
     admin: {
       overrides: {
@@ -55,20 +57,22 @@ export const userBuilder = build<User>({
 ## Builder with postBuild Hook
 
 ```typescript
-import { build, sequence, oneOf } from "mimicry-js";
+import { build, sequence, oneOf, type FieldsConfiguration } from "mimicry-js";
 import { faker } from "@faker-js/faker";
 import type { Order } from "~/types/order";
 
-export const orderBuilder = build<Order>({
-  fields: {
-    id: sequence(),
-    userId: sequence(),
-    products: () => productBuilder.many(3),
-    totalAmount: 0,
-    status: oneOf("pending", "processing"),
-    createdAt: () => faker.date.recent(),
-    shippingAddress: () => addressBuilder.one(),
-  },
+const orderBuilderFields: FieldsConfiguration<Order> = {
+  id: sequence(),
+  userId: sequence(),
+  products: () => productBuilder.many(3),
+  totalAmount: 0,
+  status: oneOf("pending", "processing"),
+  createdAt: () => faker.date.recent(),
+  shippingAddress: () => addressBuilder.one(),
+};
+
+export const orderBuilder = build({
+  fields: orderBuilderFields,
   postBuild: (order) => {
     order.totalAmount = order.products.reduce((sum, p) => sum + p.price, 0);
     return order;
@@ -111,12 +115,14 @@ export const addressBuilder = build<Address>({
   },
 });
 
-export const userBuilder = build<User>({
-  fields: {
-    id: sequence(),
-    name: () => faker.person.fullName(),
-    address: () => addressBuilder.one(),
-  },
+const userBuilderFields: FieldsConfiguration<User> = {
+  id: sequence(),
+  name: () => faker.person.fullName(),
+  address: () => addressBuilder.one(),
+};
+
+export const userBuilder = build({
+  fields: userBuilderFields,
 });
 
 // Deep merging — only patches specified keys, keeps the rest
@@ -141,7 +147,7 @@ const user2 = userBuilder.one({
 > **Note:** Check CLAUDE.md for your specific database type patterns.
 
 ```typescript
-import { build, sequence, oneOf } from "mimicry-js";
+import { build, sequence, oneOf, type FieldsConfiguration } from "mimicry-js";
 import { faker } from "@faker-js/faker";
 import type {
   Resource,
@@ -149,12 +155,14 @@ import type {
 } from "~/features/resource/types/resource";
 
 // Base type builder (for DTOs — without id, timestamps)
-export const resourceBaseBuilder = build<ResourceBase>({
-  fields: {
-    name: () => faker.commerce.productName(),
-    status: "active",
-    category: () => faker.commerce.department(),
-  },
+const resourceBaseBuilderFields: FieldsConfiguration<ResourceBase> = {
+  name: () => faker.commerce.productName(),
+  status: "active",
+  category: () => faker.commerce.department(),
+};
+
+export const resourceBaseBuilder = build({
+  fields: resourceBaseBuilderFields,
   traits: {
     inactive: { overrides: { status: "inactive" } },
     pending: { overrides: { status: "pending" } },
@@ -162,15 +170,17 @@ export const resourceBaseBuilder = build<ResourceBase>({
 });
 
 // Application type builder (with id and timestamps)
-export const resourceBuilder = build<Resource>({
-  fields: {
-    id: () => faker.string.uuid(),
-    name: () => faker.commerce.productName(),
-    status: "active",
-    category: () => faker.commerce.department(),
-    createdAt: () => faker.date.past(),
-    updatedAt: () => faker.date.recent(),
-  },
+const resourceBuilderFields: FieldsConfiguration<Resource> = {
+  id: () => faker.string.uuid(),
+  name: () => faker.commerce.productName(),
+  status: "active",
+  category: () => faker.commerce.department(),
+  createdAt: () => faker.date.past(),
+  updatedAt: () => faker.date.recent(),
+};
+
+export const resourceBuilder = build({
+  fields: resourceBuilderFields,
   traits: {
     inactive: { overrides: { status: "inactive" } },
     pending: { overrides: { status: "pending" } },
@@ -183,7 +193,7 @@ export const resourceBuilder = build<Resource>({
 For TypeScript discriminated unions, create a separate builder per variant:
 
 ```typescript
-import { build, sequence, int } from "mimicry-js";
+import { build, sequence, int, type FieldsConfiguration } from "mimicry-js";
 import { faker } from "@faker-js/faker";
 
 type Shape =
@@ -215,7 +225,7 @@ const randomShape = (): Shape =>
 When types share a common base, avoid duplicating fields — define the base fields once and spread them:
 
 ```typescript
-import { build, sequence, oneOf } from "mimicry-js";
+import { build, sequence, oneOf, type FieldsConfiguration } from "mimicry-js";
 import { faker } from "@faker-js/faker";
 import type { BaseUser, AdminUser, GuestUser } from "~/types/user";
 
@@ -296,15 +306,17 @@ const deepTree = treeNodeBuilder.one({
 ## Computed Fields with postBuild
 
 ```typescript
-import { build, sequence, int } from "mimicry-js";
+import { build, sequence, int, type FieldsConfiguration } from "mimicry-js";
 
-export const accountBuilder = build<Account>({
-  fields: {
-    id: sequence(),
-    balance: int(0, 10000),
-    type: "basic",
-    creditLimit: 0,
-  },
+const accountBuilderFields: FieldsConfiguration<Account> = {
+  id: sequence(),
+  balance: int(0, 10000),
+  type: "basic",
+  creditLimit: 0,
+};
+
+export const accountBuilder = build({
+  fields: accountBuilderFields,
   postBuild: (account) => {
     switch (account.type) {
       case "premium":
@@ -398,21 +410,23 @@ const users = createTestUsers.list(5);
 ## Static Nested Objects (Generators Work Recursively)
 
 ```typescript
-import { build, sequence, oneOf } from "mimicry-js";
+import { build, sequence, oneOf, type FieldsConfiguration } from "mimicry-js";
 
-export const accountBuilder = build<Account>({
-  fields: {
-    id: sequence(),
-    // Static nested object — mimicry-js processes recursively
-    address: {
-      street: oneOf("123 Main St", "456 Elm Ave"),
-      city: oneOf("New York", "Los Angeles"),
-      zipCode: sequence((n) => String(10000 + n)),
-    },
-    settings: {
-      theme: oneOf("light", "dark"),
-      language: oneOf("en", "pl", "de"),
-    },
+const accountBuilderFields: FieldsConfiguration<Account> = {
+  id: sequence(),
+  // Static nested object — mimicry-js processes recursively
+  address: {
+    street: oneOf("123 Main St", "456 Elm Ave"),
+    city: oneOf("New York", "Los Angeles"),
+    zipCode: sequence((n) => String(10000 + n)),
   },
+  settings: {
+    theme: oneOf("light", "dark"),
+    language: oneOf("en", "pl", "de"),
+  },
+};
+
+export const accountBuilder = build({
+  fields: accountBuilderFields,
 });
 ```
