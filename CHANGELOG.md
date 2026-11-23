@@ -9,6 +9,12 @@ Headings are `## [<version> <plugin>] — <date>`.
 Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
 newest three versions of each plugin.
 
+## [1.6.0 typescript] — 2026-11-23
+
+### Changed
+
+- `builder-factory`, `builder-rules-ts` and `unit-testing`: a builder with traits types its fields as `FieldsConfiguration<T>` and calls `build({ fields, traits })` without `<T>`, so a misspelled trait name fails to compile. `build<T>()` stays for builders without traits.
+
 ## [1.7.0 skill-dev] — 2026-11-17
 
 ### Added
