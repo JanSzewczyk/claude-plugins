@@ -76,6 +76,12 @@ Each item names where the rule is explained; cite that section in the finding's 
 
 ### C. Works on its surfaces — interface.md → VS Code differences, admin.md
 
+- Every pane names the mod: a heading with its name as the first element of the body, and the
+  same human-readable `title` (not the raw `id`) on every `$.ui.open` for that id. Desktop
+  shows all mod panes under one fixed "Plugin" tab and draws titles only while several panes are
+  open, so a pane with no heading is anonymous when it is the only one (interface.md → Pane
+  titles). A missing `title`, a different one per open, one built from a value that can be
+  empty, one with control characters or cut by `.slice()`: 🟡.
 - `Raster`/`Image` only behind an `e.surface` check; layout that relies on terminal-only props
   has a fallback for Desktop and VS Code.
 - What the mod promises under `claude -p` holds there (api.md → `claude -p` limits).
@@ -170,6 +176,7 @@ Follow the reporting rules indexed at the end of SKILL.md. For a mod audit that 
 | :-: | :-: | --- | --- | --- |
 | 1 | 🔴 | `hooks/register.ts:14` | `tool.call` guard has no `.catch`, so a thrown error lets the call through | Add a `.catch` that refuses (events.md → Failing safely) |
 | 2 | 🟡 | `hooks/register.ts:52` | Pane draws `Image` without checking `e.surface` | Fall back to `Text` off the terminal (interface.md → VS Code differences) |
+| 3 | 🟡 | `hooks/register.ts:61` | `$.ui.open({ id: 'board' })` has no `title` and the body has no heading, so on Desktop a lone pane is just "Plugin" | Add a `title` const and a heading with the mod's name (interface.md → Pane titles) |
 
 **What the mod can reach:** files (`$.fs.read`), network to api.example.com (`$.http.fetch`); sees every tool call.
 

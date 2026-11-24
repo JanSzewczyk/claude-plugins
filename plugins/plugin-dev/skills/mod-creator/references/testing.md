@@ -1,6 +1,6 @@
 # Test a mod with `claude plugin test`
 
-Source: https://code.claude.com/docs/en/plugins/mods/test (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/test (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 
 The examples test `first-mod` (`/tally`, create.md), `hello-tabs` (interface.md → Worked
 example) and `acme-guard` (admin.md → Writing a policy mod); `countdown` and `grade` stand for
@@ -128,7 +128,7 @@ expect(answer.text).toBe('Passed')
 | `$.command.register`, `$.tool.register`, `$.ui.toast`, `$.ui.log`, `$.ui.status`, `$.ui.close`, `$.store.set` | `() => ({ value: undefined })` (toast/log text in `e.text`) |
 | `$.store.get` | `($, e) => ({ value: saved.get(e.key) })` |
 | `$.fs.read` | `($, e) => ({ value: e.path.endsWith('notes.md') ? '# Notes' : '' })` — `e.path` is absolute |
-| `$.ui.open` | `() => ({ value: { isPlaced: true } })` |
+| `$.ui.open` | `() => ({ value: { isPlaced: true } })`; to check the title, record the argument: `($, e) => { opened.push(e); return { value: { isPlaced: true } } }` and `expect(opened.every(open => open.title === 'Hello tabs')).toBe(true)` |
 | `$.ui.ask` | a **`tool.call`** stub (it arrives as `AskUserQuestion`): `($, e) => ({ result: { answers: { [e.questions[0].question]: 'Run it' } } })` |
 | `$.model.complete` | `() => ({ value: { isAnswered: true, text: '...', usage } })` |
 | `$.process.run` | `($, e) => ({ value: { exitCode: 0, stdout: '...', stderr: '' } })` (`e.argv`, `e.init`) |

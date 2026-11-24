@@ -1,6 +1,6 @@
 # Mods: what they are, when to use one, trust
 
-Source: https://code.claude.com/docs/en/plugins/mods/overview (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/overview (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 
 ## Contents
 
@@ -103,6 +103,32 @@ blocking user `PreToolUse` hook.
 Review before install: `claude plugin validate ./some-mod` prints `hooks:` (events handled)
 and `calls:` (mods API methods used) without running anything. See `admin.md` for which calls
 to look for.
+
+## Changes since 2.1.316 (from the Claude Code changelog)
+
+- **Mods Claude writes in a session** (the built-in `plugin-authoring` skill) turn on without
+  asking in auto and bypass modes (2.1.321), even with managed `allowUnsandboxedCommands: false`
+  or `allowManagedDomainsOnly`, and don't load in `dontAsk` mode. In other modes the user is asked
+  once and the answer is recorded (2.1.318). A mod saved just after a turn began reloads at the
+  turn's end (2.1.328). Headless sessions reload mods in `.claude/skills` when files change; set
+  `CLAUDE_CODE_PLUGIN_DIR_WATCH=0` to stop it (2.1.321).
+- **Mods' own tool calls** (`$.tool.call`, `$.mcp.call`) raise no permission prompt, even under
+  the user's ask rules or in `dontAsk` and `-p` runs; deny rules and organization policy still
+  apply (2.1.321). They work in Code Mode (2.1.326).
+- **Code Mode:** a mod that hooks tool calls no longer refuses to start it (2.1.327), and a mod
+  that lists only some tools no longer silently turns it off (2.1.329); only an administrator's
+  managed settings keep it off.
+- **Cost:** a mod's `$.model.complete` and `$.model.classify` count in `/cost`,
+  `$.session.usage()` and `--max-budget-usd` (2.1.325).
+- **What a mod attaches at `prompt.submit`** stays in the user's turn, not a system message
+  (2.1.318).
+- **easel** is a built-in mod that draws charts, on macOS and Linux for Pro, Max and where
+  available Team and Enterprise; turn automatic charts off in `/config` (2.1.330).
+- **Embedding apps** can switch on the policy plugin's `allowManagedModsOnly`; an admin's managed
+  settings still win (2.1.328).
+- **Installing:** `claude plugin validate` fails a custom-named marketplace file that
+  `claude plugin marketplace add` rejects (2.1.318); a nested hooks module reports the file in
+  the error (2.1.309).
 
 ## Turning mods on and off
 

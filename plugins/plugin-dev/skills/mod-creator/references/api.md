@@ -1,6 +1,6 @@
 # The mods API (`$`): commands, tools, models, background work, sessions, files
 
-Source: https://code.claude.com/docs/en/plugins/mods/api (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/api (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 Full method list: `reference.md` → Mods API namespaces; signatures and examples: generated
 `.claude-plugin/types/claude-code/index.d.ts`.
 
@@ -15,6 +15,7 @@ Full method list: `reference.md` → Mods API namespaces; signatures and example
 - Messages between sessions
 - Keeping state (variables, `$.state`, `$.store`, `/clear`)
 - Files, processes, network, settings
+- Newer calls (`$.agent.call`, `$.agent.limits`, `$.model.fork` effort, `$.audio.play`, `$.session.info`)
 
 ## Add a command
 
@@ -335,3 +336,18 @@ Every mods API call is itself an event named without `$.` (`fs.read`, `model.com
 `ui.open`). A mod earlier in the chain can observe, rewrite or refuse your call — that is how
 organizations restrict mods. A refused `$.process.spawn` after output started rejects with
 `$.process.spawn started, and a plugin withheld its result:` or `… ran, and …`.
+
+## Newer calls (2.1.318–2.1.326, from the changelog and the 2.1.330 types)
+
+Read each call's declaration in the generated `index.d.ts` before using it.
+
+| Call | What it does |
+|---|---|
+| `$.agent.call({ tool, input, agentId? }, { signal? })` (2.1.326) | Runs a tool as an agent's own call (no `agentId`: the main conversation): it has that agent's tools, folder, mode and rules and meets `tool.judge`, the permission dialog and the hooks. Resolves to the result or `{ deny }`. `Agent` in the background answers at once with `result.agentId`; `Workflow` is refused. `$.tool.call` is unchanged. Mods' own `$.tool.call`/`$.mcp.call` raise no permission prompt since 2.1.321; deny rules and organization policy still apply |
+| `$.agent.limits()` | `{ concurrent, depth, isBackgroundEnabled }`: how many agents may run at once, how deep they nest, whether they can run in the background |
+| `$.model.fork({ prompt, effort? })` | `effort` (2.1.318) is a level (`low`…`max`); the result reports the effort sent. `cost` and tokens of `$.model.complete`/`classify` count in `/cost` and `$.session.usage()` since 2.1.325 |
+| `$.audio.play({ asset } \| { url } \| { base64, mime }, { shouldLoop?, gain?, signal? })` | Plays one clip now (clips don't queue); `afplay` on macOS only, a Linux or Windows terminal plays nothing. Rejects naming the cause when the clip can't play |
+| `$.session.info()` | `{ transcriptPath, scratchpadDir?, promptId?, agentType?, configRoot?, platform?, isHosted? }`: the transcript file (empty where none is kept on this machine), the scratchpad, the current prompt id, the `--agent` type, the folder settings are read from when it isn't the cwd, `platform` (`macos`, `windows`, `wsl`, `linux`, `unknown`) and whether the engine runs on the hosted server |
+| `$.process.hookEnv()` | Resolves the variables a settings command hook gets (`CLAUDECODE`, `CLAUDE_CODE_SESSION_ID`, `CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA`, …); `$.process.run`/`spawn` set none of them, so pass it as the child's env: `$.process.run(['./rows.sh'], { env: await $.process.hookEnv() })`. `CLAUDE_PLUGIN_DATA` is the plugin's data folder, kept across updates; the call creates it and rejects when it can't |
+| `$.wasm.compile(source)` | Compiles a WebAssembly binary to a `WebAssembly.Module`. `source` is a **string literal** naming a `.wasm` file of the plugin (relative to the calling file) or bytes made at run time, up to 64 MiB; a non-literal path doesn't load. No WASI, no imports but what you pass; no synchronous compile (emscripten `addFunction` fails); set memory `maximum`. A loop that stays inside WebAssembly holds a core until Claude Code exits: have long code call an import that throws past a deadline. `validate` lists each file with size, SHA-256, imports and exports |
+| `$.ui.panes()`, `$.ui.place({ id })` | Panes and transcript rows: interface.md → Pane titles, Rows in the transcript |

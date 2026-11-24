@@ -1,7 +1,7 @@
 # Mods reference: lookup tables
 
 Source: https://code.claude.com/docs/en/plugins/mods/reference (entries as of CLI/Desktop
-v2.1.290 and VS Code v2.1.299; checked against Claude Code 2.1.316).
+v2.1.290 and VS Code v2.1.299; docs checked against Claude Code 2.1.316; version gates up to 2.1.330 from the changelog and types).
 
 ## Contents
 
@@ -151,7 +151,7 @@ answers without `next`.
 
 | Site | `e.props` | `e.requestId` | Drawn on |
 |---|---|---|---|
-| `Pane` | `title`, `isFocused`, `bodyColumns`, `placement` (`dock`/`inline`), `scroll` (`offset`, `bodyRows`), `view` | Pane `id` | Terminal, Desktop, VS Code |
+| `Pane` | `title`, `isFocused`, `isPromptCovered` (2.1.323), `bodyColumns`, `placement` (`dock`/`inline`, Desktop also `widget`), `anchoredEdges` (widget only), `scroll` (`offset`, `bodyRows`), `view` | Pane `id` | Terminal, Desktop, VS Code |
 | `AbovePrompt` | `hasSurvey`, `isWorking`, `maxRows`, `bodyColumns`, `scroll`, `view` | One instance | Terminal, Desktop |
 | `UserMessage` | `text`, `origin`, `isExpanded`, `task`/`from` | Message id | All three |
 | `AssistantMessage` | Reply text | Message id | All three |
@@ -276,3 +276,14 @@ bold), `mono`, `tabular` (ignored in terminal/VS Code). Replace `bold: true` wit
 | 2.1.307 | `refused:` lines only for size limits |
 | 2.1.309 | Model aliases in `turn.step` |
 | 2.1.310 | `Image` inside tmux |
+| 2.1.314 | `$.ui.place` and the `Placed` site (a row at the transcript's end) |
+| 2.1.318 | `effort` option of `$.model.fork` |
+| 2.1.319 | `$.theme.set` / `$.theme.clear`; `$.ui.backdrop` removed |
+| 2.1.321 | Band `e.props.isCollapsed`; `prompt.section` `breakPromptCache` |
+| 2.1.323 | `validate` type-checks a TypeScript hooks module (warnings; `--strict` fails on them); `engine.create` only in its one accepted form; `isPromptCovered` on `Pane`; `AbovePromptList`; `Backdrop` `scene` |
+| 2.1.324 | Desktop colors in the Code tab |
+| 2.1.326 | `Box overflowX="scroll"`, `Text maxLines` / `wrap="clip"`; `AgentRow`; `tool.judge`, `tool.run`, `session.stop`; `$.agent.call`, `$.session.info`, `$.process.hookEnv`, `$.wasm.compile` |
+| 2.1.330 | easel (built-in chart mod). Types for the version: `$.ui.panes()`, `placement: 'widget'`, `anchoredEdges`, `ContextMenu`, `Progress`, surface `mobile` |
+
+Entries from 2.1.314 up come from the Claude Code changelog and the 2.1.330 type declarations;
+read their detail in the generated `claude-code/index.d.ts` before using one.
