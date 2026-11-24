@@ -1,6 +1,6 @@
 # React to events: hooks, matchers, tool calls, prompts, turns, order, failures
 
-Source: https://code.claude.com/docs/en/plugins/mods/events (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/events (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 Exact fields per event: `reference.md` → Events by group, or the generated `index.d.ts`.
 
 ## Contents
@@ -14,6 +14,7 @@ Exact fields per event: `reference.md` → Events by group, or the generated `in
 - Follow a turn (`turn.start`, `turn.step`, `turn.complete`)
 - Change settings reads (`settings.read`)
 - Settings hook events (`classic.*`)
+- Newer events (`tool.judge`, `tool.run`, `session.stop`, `prompt.compose`, `engine.create`)
 - Order of mods in the chain
 - Failing safely (`.catch`, fail closed)
 
@@ -248,6 +249,21 @@ built-in guard loads, these hooks don't run in user-installed mods.
 ```javascript
 on('classic.Stop', async ($, e, next) => { $.ui.log('Transcript saved at ' + e.transcript_path); return next(e) })
 ```
+
+## Newer events (2.1.300–2.1.326, from the changelog and the 2.1.330 types)
+
+Read each event's input and result in the generated `index.d.ts` before using it.
+
+| Event | Fires | Notes |
+|---|---|---|
+| `tool.judge` (2.1.326) | Before auto mode's classifier asks about a call, after every rule, hook and check a person alone may answer | `next(e)` asks the classifier once; answer `{ decision: 'allow' \| 'deny' }`. A guard that fails is skipped and the classifier decides: give it `.catch(() => ({ decision: 'deny' }))`. The classifier's allow doesn't prove the call ran |
+| `tool.run` (2.1.326) | After a call is allowed, just before it runs; never for a refusal | `next(e)` runs the tool; `{ result }` answers in its place; `{ deny }` is the call's error. One check, one run: a second `next(e)` starts nothing. A guard that fails is skipped and the tool runs: `.catch(($, e, next) => next.called ? next(e) : { deny: 'no' })`. A hook that may match a tool turns off background moves and live output for it |
+| `session.stop` (2.1.326) | The user presses Stop (Esc, Ctrl+C, a client's Stop) | Observe only; the Stop goes on whatever a hook does. Note it before your first `await`. Never for `$.turn.abort` or a denied permission |
+| `prompt.compose` | The engine renders a system prompt | `next(e)` resolves to `{ sections }` (`{ id, text, scope }`); append (`scope: 'session'`), replace, reorder or drop. A list with a `shared` section after a `session` one skips the hook |
+| `prompt.context` | Once per conversation, when the first user message's context blocks are computed | `next(e)` resolves to `{ blocks }`; the answer stands until `$.ui.invalidate('prompt.context')`, compaction or `/clear` |
+| `prompt.change` (2.1.300) | The prompt box's text changes without a typed edit | |
+| `engine.create` (2.1.323) | While `$` is built, once per load, before the plugin's other hooks | May add `$` nouns and (in `prepend`/`append`) withhold them; replacing another's noun unloads the plugin. A `*`, namespace or negated hook now only observes; to add or withhold a noun hook it by name. `validate` fails a mod whose hook isn't in the one accepted form |
+| `agent.spawn` (2.1.300) | A workflow agent starts | Its `prompt` and `model` can be rewritten |
 
 ## Order of mods in the chain
 

@@ -36,7 +36,10 @@ TypeScript anyway. create.md → TypeScript has the details.
    installed version exactly. **When they disagree with anything below, they win.**
 2. `claude plugin validate <dir>` output: the `hooks:` and `calls:` lines are what Claude Code
    actually reads from the code.
-3. The references in this skill (docs as of Claude Code 2.1.316). Check `claude --version`
+3. The references in this skill (docs as of Claude Code 2.1.316; panes, Desktop and the
+   version gates up to 2.1.330 as in interface.md and reference.md). Before the mod has been
+   loaded, the generated types ship with the built-in `plugin-authoring` skill (the path is
+   printed when it loads). Check `claude --version`
    against the version gates in `references/reference.md` before using a newer feature.
 
 ## Knowledge base
@@ -51,6 +54,7 @@ Open only what the task needs:
 | [references/api.md](references/api.md) | Using `$`: commands, tools, model calls and caching, timers, toasts/status/log/notify, `prompt.submit`, interruptions, session messages, files, processes, HTTP, settings, and where state lives (`$.state`, `$.store`) |
 | [references/interface.md](references/interface.md) | Drawing: panes, the band, restyling built-in sites, elements and samples, keys and focus, redraws, VS Code differences |
 | [references/testing.md](references/testing.md) | Writing `*.test.ts` files: stubs, kit rules, the stub table, timers, drawings, policy mods |
+| [references/look.md](references/look.md) | A mod that restyles the Desktop or mobile app: `$.theme.set`, colors, a backdrop scene, sound, message style (2.1.319+) |
 | [references/troubleshooting.md](references/troubleshooting.md) | A mod does nothing, a hook is skipped, a drawing is missing, a value is lost, or any error line from Claude Code |
 | [references/admin.md](references/admin.md) | Org-wide mods, managed settings, the built-in guard, policy mods, reviewing a third-party mod |
 | [references/reference.md](references/reference.md) | Looking up any event, API method, render site, element prop, limit, setting, command or version gate |
@@ -108,7 +112,8 @@ and verdict`.
    module, and `types/index.d.ts` only if the mod uses `$.state`. Templates: create.md;
    `types/index.d.ts`: api.md → Keeping state.
 4. **Write the code** against the rules below.
-5. **Validate.** Run `claude plugin validate <dir>`, fix every error, and run it again; repeat
+5. **Validate.** Run `claude plugin validate <dir>` (`--strict` from 2.1.323 also fails on
+   TypeScript type warnings), fix every error, and run it again; repeat
    until it reports no errors and the `hooks:` and `calls:` lines match the design from step 2
    (a missing event means that hook never runs). Come back here after any change to the module
    in step 6.
@@ -150,6 +155,10 @@ without stopping the session, so these matter more than style:
 - Narrow every `ui.render` hook with a matcher and check `e.requestId` for panes; return
   `next(e)` for anything that isn't yours. Check `e.surface` before terminal-only elements
   (`Raster`, `Image`): Desktop and VS Code don't draw them.
+- A pane's `title` is not enough to name the mod: Desktop shows every mod pane under one fixed
+  "Plugin" tab, and the title row appears only while several panes are open. Pass the same
+  `title` (a human label, never the raw id) on every `$.ui.open`, and make a heading with the
+  mod's name the first element of the pane body (interface.md → Pane titles).
 - `focus`, `closeOnEscape`, `holdToasts`, `autoFocus` accept only `true` (passing `false`
   throws); omit them otherwise.
 - Every `Input`/`Select`, and every `Button` without a unique label, gets a unique string `key`:

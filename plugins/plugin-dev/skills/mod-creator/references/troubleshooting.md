@@ -1,6 +1,6 @@
 # Troubleshoot a mod
 
-Source: https://code.claude.com/docs/en/plugins/mods/troubleshoot (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/troubleshoot (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 
 A failing module or hook is **skipped silently** and the session continues, so a broken mod
 looks like one that does nothing. Always start with the two checks below.
@@ -99,6 +99,8 @@ Interruptions.
 | `<Input> needs a key`, `<Button> needs a key`, `is drawn twice; each takes its own key`, `key each once` (tests) | Missing/non-string/duplicate keys | Unique non-empty string `key` per control |
 | `ui.render (<site>) threw while drawn: …; the engine drew its own` | A value in your tree or in props passed to `next` broke drawing | Fix that value |
 | `Client client/x.js: the module failed without a message` | `throw new Error()` without message in a `Client` | Give the error a message |
+| Desktop tab says only "Plugin", the pane's `title` is nowhere | All mod panes share one fixed host tab; the title row exists only while several panes are open | Not a bug in the mod: add a heading with the mod's name in the pane body (interface.md → Pane titles) |
+| Tab shows the pane `id` instead of the title | A later `$.ui.open` for the id omitted `title` and retitled it | Pass the same `title` on every open |
 | `$.ui.open` runs, no pane | Opened without a user action in a terminal under 144 (110) columns | Open from a command/button; check `isPlaced` |
 | Another mod's band shows, yours doesn't | An earlier mod returned a tree without `await next(e)` inside a `Box` (or put size/position props on that Box) | Debug log: `answered ui.render without next()` names it; ask its author |
 | Band shows `▸ plugin panel hidden` | User collapsed it | Ctrl+X Ctrl+A or click |

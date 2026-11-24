@@ -1,7 +1,9 @@
 # Draw in the interface: panes, the band, built-in sites, elements, input, redraw, state
 
 Sources: https://code.claude.com/docs/en/plugins/mods/interface and
-https://code.claude.com/docs/en/plugins/mods/gallery (checked against Claude Code 2.1.316).
+https://code.claude.com/docs/en/plugins/mods/gallery (checked against Claude Code 2.1.316; pane
+titles, Desktop and 2.1.330 additions checked against the 2.1.330 type declarations and the
+Desktop Code tab).
 Props per site/element and limits: `reference.md`.
 
 ## Contents
@@ -10,10 +12,12 @@ Props per site/element and limits: `reference.md`.
 - Worked example: a pane with tabs, a counter and persistence
 - Pick where to draw (pane, band, Claude Code's own sites)
 - Opening and closing panes
+- Rows in the transcript, the band list and agent rows
 - Elements and samples
 - Presses, typing, keys and focus
 - Redrawing
 - Keeping state (pointer to api.md)
+- Desktop differences
 - VS Code differences
 
 ## The render cycle
@@ -33,6 +37,7 @@ window, `isFullscreen`; absent until measured in terminal/Desktop).
 
 ```javascript
 const PANE = 'hello-tabs'
+const PANE_TITLE = 'Hello tabs'                 // same title on every open (each open retitles)
 let tab = 'one'
 let count = 0
 
@@ -45,7 +50,7 @@ export function register(on) {
   })
 
   on('command.run', { command: 'hello-tabs' }, async ($) => {
-    await $.ui.open({ id: PANE, title: 'Hello tabs', focus: true, closeOnEscape: true })
+    await $.ui.open({ id: PANE, title: PANE_TITLE, focus: true, closeOnEscape: true })
     return {}                                   // print nothing
   })
 
@@ -69,6 +74,8 @@ export function register(on) {
         ] })]
 
     return Box({ flexDirection: 'column', children: [
+      // Heading in the body: with one pane open no surface draws its title (see Pane titles)
+      Text({ weight: 'bold', children: [PANE_TITLE] }),
       Box({ flexDirection: 'row', columnGap: 3, children: [tabButton('one', 'One', '1'), tabButton('two', 'Two', '2')] }),
       Text({ children: [' '] }),
       ...body,
@@ -86,8 +93,9 @@ Always narrow `ui.render` with a matcher (`{ component: 'Pane' }`), otherwise th
 every site.
 
 - **Pane** (`Pane`): sidebar beside the transcript in a wide fullscreen terminal, otherwise a
-  framed region above the prompt. Several panes → tabs with their titles. Check
-  `e.requestId === yourId`.
+  framed region above the prompt. Several panes → tabs with their titles (a lone pane has no
+  title drawn: see Pane titles). Check `e.requestId === yourId`, or match both at once with
+  `{ component: 'Pane', requestId: PANE }`.
 - **Band above the prompt** (`AbovePrompt`): one strip shared by all mods. Return a tree to draw,
   `next(e)` to draw nothing. A tree **replaces** what later mods draw; to keep theirs, put
   `await next(e)` among a `Box`'s children (and don't give that Box or its ancestors `width`,
@@ -138,12 +146,40 @@ await $.ui.close({ id: 'hello-tabs' })
 | Field | Effect |
 |---|---|
 | `id` (required) | Pane name: letters, digits, `_`, `-`, ≤64 chars |
-| `title` | Tab label when several panes are open |
+| `title` | Tab label when several panes are open (the `id` when omitted); see Pane titles |
 | `focus` | Request keyboard focus (granted only while the prompt is empty and nothing else has focus) |
 | `closeOnEscape` | Esc closes the pane |
 | `holdToasts` | In the terminal, holds all toasts while this pane shows — for dialog-like panes only |
 | `rows` | Height when above the prompt (default: a third of the space) |
 | `columns` | Width beside the transcript (≤45% of terminal; a user-resized width wins) |
+
+More `$.ui.open` fields (2.1.330 types): `backgroundColor` (what is painted under the body) and
+`placement: 'widget'` (start as the small form of a pane on the Desktop app; a request that
+surfaces without widgets ignore). `$.ui.panes()` lists this mod's own open panes
+(`id`, `title`, `isShown`, `isFocused`, `isPlaced`), also after a reload.
+
+### Pane titles
+
+What the user sees depends on the app (verified in the Desktop Code tab, 2.1.330):
+
+- **Desktop:** all mod panes share **one host tab labelled "Plugin"** next to Background tasks
+  and Plan. A mod cannot rename it: no `title`, `displayName` or other field reaches it. Below it
+  a second row of tabs shows each pane's `title`, **only while more than one pane is open**; with
+  a single pane that row is absent and nothing names the mod.
+- **Terminal:** same rule: with several panes each tab shows its `title`, with one pane no title
+  is drawn.
+- **VS Code:** everything the mod draws is framed and labelled with the plugin's name.
+
+So a mod must not rely on `title` to identify itself. Rules:
+
+1. Put a heading with the mod's name as the first element of the pane body (`Text` with
+   `weight: 'bold'`); keep the title and the heading the same text, in one `const`.
+2. Pass the same `title` on every `$.ui.open` for that id (auto-open and command): each open
+   retitles the pane, so a later open without it falls back to the `id`.
+3. Use a human label, not the raw id (`'Tool calls'`, not `'tool-calls'`). No control
+   characters (the open is refused), never cut a title with `.slice()` through an emoji
+   (drawn as U+FFFD), at most 4,096 characters.
+4. If the title is built from data (`kind + ' · ' + slug`), make sure no part can be empty.
 
 `focus`, `closeOnEscape`, `holdToasts` (and `autoFocus` on controls) accept **only `true`**:
 passing `false` throws (`ui.open: focus is true or left out`). Add the field conditionally:
@@ -154,6 +190,34 @@ A pane opened **without a user action** (timer, `turn.start`) appears only at �
 `{ isPlaced: false, reason }`; a waiting pane appears when the user opens it or widens the
 terminal. Use `$.ui.toast` to announce instead. Commands that open panes during a turn need
 `immediate: true`. `ui.close` events report `e.origin.kind` `plugin`, `person` or `unload`.
+
+## Rows in the transcript, the band list and agent rows
+
+From the 2.1.330 types; none is in the docs pages the rest of this file follows.
+
+- **`$.ui.place({ id })`** (2.1.314) puts one row at the transcript's end; it scrolls with the
+  conversation and a `ui.render` hook on `{ component: 'Placed' }` draws it. Every plugin's
+  hook hears every row: read `e.props.id` beside `e.props.plugin` and `next(e)` for others.
+  Display only: the model and the transcript file never read it and `--resume` brings none
+  back. Resolves `{ isPlaced: true, requestId }` or `{ isPlaced: false, reason }` (nothing
+  draws it): reply with text instead. `e.props` also has `onScreen` (which of the row's lines
+  the viewport shows; read-only). The 2.1.330 types say the site is raised on every attached
+  surface, while a docs summary listed it as terminal-only: check `e.surface` and test it on
+  the surfaces you target.
+- **`AbovePromptList`** (2.1.323) is the band's arrangement once its rows settled:
+  `e.props.rows` in chain order, one per plugin. Hide or reorder them in what `next(e)` gets and
+  wrap them by answering around it, never with rows copied by value. A bad answer is passed
+  over; to fail closed, answer no rows in `.catch`. A wrapper counts toward the tree limits.
+- **`AgentRow`** (2.1.326) is a subagent's row in the at-a-glance agent list. `e.props` is the
+  agent's `AgentInfo` (`id`, `description`, `type`, `status`, `parentId`, `name`, `usage`, …,
+  `hasRow`) plus `rowIds` and `columns` (read-only), `body` (text that replaces the engine's
+  columns, cut at the row's edge; `""` hides the row; may hold SGR styles and OSC 8 links) and
+  `isHidden`. Hide, relabel or reword a row by passing changed props to `next`:
+  `next({ ...e, props: { ...e.props, isHidden: e.props.status === 'idle' } })`. The Desktop
+  shows one line and takes no presses (a Link is drawn as its text, a Button is left out);
+  mobile keeps its own row and draws the tree or `body` under it. Some props refresh only every
+  five seconds, on `$.ui.invalidate` or with a new status.
+- **`e.props.isCollapsed`** on the band (2.1.321) says the user collapsed it.
 
 ## Elements and samples
 
@@ -177,6 +241,14 @@ Props per element: `reference.md` → Element props, borders, spacing, typograph
 | `Client` | Region drawn by a second file (no mods API) for animation/pointer; posts data as `ui.message`; failures fire `ui.fault` | Terminal, Desktop |
 | `Raster` | Grid of colored cells | Terminal only |
 | `Image` | Picture from PNG/RGBA bytes or a file | Terminal only (kitty ≥0.28, Ghostty, iTerm2 ≥3.5) |
+| `Progress` | Bar with `label` and a value | Every surface, mobile included (2.1.330 types) |
+
+Also in the 2.1.330 types, not covered by the docs pages this file was written from: a fourth
+surface `mobile` (`e.surface`; no `Client`; an `Input`/`Select` shows nothing unless the app says
+it draws it); `Shader` for a `desktop`/`mobile` backdrop; a `ContextMenu` site for the Desktop
+right-click menu (return a `Button` per row or an `https:` `Link`, `next(e)` for none).
+`Box overflowX="scroll"`, `Text maxLines` and `wrap="clip"` need 2.1.326: give such a hook a
+`.catch` that draws without them for older versions.
 
 Samples (paste into a pane's `return`):
 
@@ -294,6 +366,15 @@ line); faster calls coalesce and the hook reads the latest data.
 
 State a drawing reads: `api.md` → Keeping state (variables, `$.state`, `$.store`, reloading
 after `/clear`). `$.state` values redraw the sites that read them without `$.ui.invalidate`.
+
+## Desktop differences
+
+- `e.props.placement` is `dock`, `inline` or `widget`; treat any other value as `dock`. `widget`
+  is the small form of a minimized pane (clicks may not reach it): draw a glance there and the
+  full view otherwise, from the same state. A widget also gets `e.props.anchoredEdges`
+  (`['bottom','right']` in that corner, `[]` in the session rail); no call moves it.
+- `e.props.isPromptCovered` is `true` while a dialog or field above the prompt takes the keys.
+- Mod panes share the one "Plugin" host tab: see Pane titles above.
 
 ## VS Code differences
 

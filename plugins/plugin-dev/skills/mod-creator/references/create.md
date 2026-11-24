@@ -1,6 +1,6 @@
 # Create a mod: files, code, dev loop, validation, sharing
 
-Source: https://code.claude.com/docs/en/plugins/mods/create (checked against Claude Code 2.1.316).
+Source: https://code.claude.com/docs/en/plugins/mods/create (docs checked against Claude Code 2.1.316; later additions carry their version and come from the changelog and the 2.1.330 types).
 
 ## Contents
 
@@ -89,6 +89,11 @@ export function register(on) {
   })
 }
 ```
+
+For a mod with a pane, set `displayName` in `plugin.json` (the name shown in `/plugin`) and
+follow interface.md → Pane titles: a `title` const passed on every `$.ui.open`, and a heading
+with the mod's name at the top of the pane body, because Desktop labels every mod pane
+"Plugin".
 
 `register(on, options)` also receives `options`: the plugin's `userConfig` values with defaults
 filled in (set by users under `pluginConfigs` in settings).
