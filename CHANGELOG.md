@@ -9,6 +9,16 @@ Headings are `## [<version> <plugin>] — <date>`.
 Entries before 4.3.0 of `plugin-dev` were reconstructed from commit subjects and cover only the
 newest three versions of each plugin.
 
+## [4.5.0 plugin-dev] — 2026-11-24
+
+### Added
+
+- `mod-creator`: new `references/look.md` for Desktop and mobile looks (`$.theme.set`, colors, backdrop scenes, sound, message style), and sections on the events, `$` calls, render sites (`Placed`, `AbovePromptList`, `AgentRow`) and behaviour changes of Claude Code 2.1.314–2.1.330.
+
+### Changed
+
+- `mod-creator`: Desktop shows every mod pane under one fixed "Plugin" tab and draws pane titles only while several panes are open. Creating a mod now puts a heading with the mod's name at the top of each pane body and passes the same `title` on every `$.ui.open`; the audit flags a pane that doesn't (checklist C, 🟡).
+
 ## [1.6.0 typescript] — 2026-11-23
 
 ### Changed
